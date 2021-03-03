@@ -25,7 +25,6 @@
 		B3AF24AA25EE84570062EDA9 /* UIViewControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3AF24A925EE84570062EDA9 /* UIViewControllerExtension.swift */; };
 		B3AF255625EEA6CD0062EDA9 /* Pods_WebRTCSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 17397D6C67619E3AEBD7A4CA /* Pods_WebRTCSDK.framework */; };
 		B3AF255F25EEA6EA0062EDA9 /* Pods_TelnyxWebRTCDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6831A164C510407EBB5A919B /* Pods_TelnyxWebRTCDemo.framework */; };
-		B3AF261725EEB1B90062EDA9 /* Starscream.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = B3AF261625EEB1B80062EDA9 /* Starscream.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,7 +44,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				B3AF261725EEB1B90062EDA9 /* Starscream.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,7 +76,6 @@
 		B3AF248A25EE7C350062EDA9 /* Socket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Socket.swift; sourceTree = "<group>"; };
 		B3AF249725EE7DC70062EDA9 /* SocketDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketDelegate.swift; sourceTree = "<group>"; };
 		B3AF24A925EE84570062EDA9 /* UIViewControllerExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIViewControllerExtension.swift; sourceTree = "<group>"; };
-		B3AF261625EEB1B80062EDA9 /* Starscream.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Starscream.framework; path = "../../../../../Library/Developer/Xcode/DerivedData/WebRTCSDK-avihqcelbarsybenrrmalblwisxe/Build/Products/Debug-iphonesimulator/Starscream/Starscream.framework"; sourceTree = "<group>"; };
 		D50D648ABF71AA9BE2F93889 /* Pods_WebRTCSDK_WebRTCSDKTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_WebRTCSDK_WebRTCSDKTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC9BC1EDFFF9036F8CB56E1E /* Pods-WebRTCSDK-WebRTCSDKTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WebRTCSDK-WebRTCSDKTests.release.xcconfig"; path = "Target Support Files/Pods-WebRTCSDK-WebRTCSDKTests/Pods-WebRTCSDK-WebRTCSDKTests.release.xcconfig"; sourceTree = "<group>"; };
 		E416E72A202EB8794769F5F1 /* Pods-WebRTCSDK.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WebRTCSDK.debug.xcconfig"; path = "Target Support Files/Pods-WebRTCSDK/Pods-WebRTCSDK.debug.xcconfig"; sourceTree = "<group>"; };
@@ -129,7 +126,6 @@
 		B368BEB625EDDB610032AE52 = {
 			isa = PBXGroup;
 			children = (
-				B3AF261625EEB1B80062EDA9 /* Starscream.framework */,
 				B368BEC225EDDB610032AE52 /* WebRTCSDK */,
 				B368BED225EDDBC90032AE52 /* WebRTCSDKTests */,
 				B368BEE925EDDD060032AE52 /* TelnyxWebRTCDemo */,
@@ -283,6 +279,7 @@
 				B368BEE425EDDD060032AE52 /* Sources */,
 				B368BEE525EDDD060032AE52 /* Frameworks */,
 				B368BEE625EDDD060032AE52 /* Resources */,
+				E2C9802024A3BCEF0C7ED085 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -421,6 +418,23 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E2C9802024A3BCEF0C7ED085 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		FDC1E2FDD8D07601DF902ADE /* [CP] Check Pods Manifest.lock */ = {
