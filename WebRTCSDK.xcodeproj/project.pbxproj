@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		56B8E2605929DA67793FF439 /* Pods_WebRTCSDK_WebRTCSDKTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D50D648ABF71AA9BE2F93889 /* Pods_WebRTCSDK_WebRTCSDKTests.framework */; };
+		B309D13D25EF119E00A2AADF /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B309D11125EF107F00A2AADF /* Starscream.framework */; };
 		B368BEC525EDDB610032AE52 /* WebRTCSDK.h in Headers */ = {isa = PBXBuildFile; fileRef = B368BEC325EDDB610032AE52 /* WebRTCSDK.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		B368BED425EDDBC90032AE52 /* WebRTCSDKTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B368BED325EDDBC90032AE52 /* WebRTCSDKTests.swift */; };
 		B368BED625EDDBC90032AE52 /* WebRTCSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B368BEC025EDDB610032AE52 /* WebRTCSDK.framework */; };
@@ -37,18 +38,6 @@
 		};
 /* End PBXContainerItemProxy section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		B3AF261125EEB1860062EDA9 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
 		0DC90532A56B655C65D39178 /* Pods-TelnyxWebRTCDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxWebRTCDemo.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo.debug.xcconfig"; sourceTree = "<group>"; };
 		17397D6C67619E3AEBD7A4CA /* Pods_WebRTCSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_WebRTCSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -56,6 +45,7 @@
 		6831A164C510407EBB5A919B /* Pods_TelnyxWebRTCDemo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxWebRTCDemo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8E96401AF973E46333D8EBA8 /* Pods-WebRTCSDK.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WebRTCSDK.release.xcconfig"; path = "Target Support Files/Pods-WebRTCSDK/Pods-WebRTCSDK.release.xcconfig"; sourceTree = "<group>"; };
 		A0472DFA1A1C7F53CFD935C0 /* Pods-WebRTCSDK-WebRTCSDKTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WebRTCSDK-WebRTCSDKTests.debug.xcconfig"; path = "Target Support Files/Pods-WebRTCSDK-WebRTCSDKTests/Pods-WebRTCSDK-WebRTCSDKTests.debug.xcconfig"; sourceTree = "<group>"; };
+		B309D11125EF107F00A2AADF /* Starscream.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Starscream.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B368BEC025EDDB610032AE52 /* WebRTCSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WebRTCSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B368BEC325EDDB610032AE52 /* WebRTCSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebRTCSDK.h; sourceTree = "<group>"; };
 		B368BEC425EDDB610032AE52 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -87,6 +77,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B3AF255625EEA6CD0062EDA9 /* Pods_WebRTCSDK.framework in Frameworks */,
+				B309D13D25EF119E00A2AADF /* Starscream.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -210,6 +201,7 @@
 		EA45B40E24738E41F9F44AA0 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B309D11125EF107F00A2AADF /* Starscream.framework */,
 				6831A164C510407EBB5A919B /* Pods_TelnyxWebRTCDemo.framework */,
 				17397D6C67619E3AEBD7A4CA /* Pods_WebRTCSDK.framework */,
 				D50D648ABF71AA9BE2F93889 /* Pods_WebRTCSDK_WebRTCSDKTests.framework */,
@@ -240,7 +232,6 @@
 				B368BEBC25EDDB610032AE52 /* Sources */,
 				B368BEBD25EDDB610032AE52 /* Frameworks */,
 				B368BEBE25EDDB610032AE52 /* Resources */,
-				B3AF261125EEB1860062EDA9 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -655,13 +646,17 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(BUILD_PRODUCTS_DIR)/Starscream",
+				);
 				INFOPLIST_FILE = WebRTCSDK/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
+					"$(BUILT_PRODUCTS_DIR)/Starscream",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.WebRTCSDK;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
@@ -683,13 +678,17 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(BUILD_PRODUCTS_DIR)/Starscream",
+				);
 				INFOPLIST_FILE = WebRTCSDK/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
+					"$(BUILT_PRODUCTS_DIR)/Starscream",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.WebRTCSDK;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
