@@ -121,6 +121,17 @@ extension TxClient : SocketDelegate {
             case .CLIENT_READY:
                 self.delegate?.onClientReady()
                 break
+            case .ANSWER:
+                //When the remote peer answers the call
+                //Set the remote SDP into the current RTCPConnection and the call should start!
+                if let params = vertoMessage.params {
+                    guard let remoteSdp = params["sdp"] as? String else {
+                        return
+                    }
+                    //retrieve the remote SDP from the ANSWER verto message and set it to the current RTCPconnection
+                    self.call?.answered(sdp: remoteSdp)
+                }
+                break;
             default:
                 print("TxClient:: SocketDelegate Default method")
                 break
