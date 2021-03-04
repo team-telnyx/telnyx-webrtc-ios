@@ -6,7 +6,7 @@ target 'TelnyxWebRTCDemo' do
   use_frameworks!
 
   # Pods for TelnyxWebRTCDemo
-   pod 'WebRTCSDK', :path => '.'
+  pod 'WebRTCSDK', :path => '.'
 
 end
 

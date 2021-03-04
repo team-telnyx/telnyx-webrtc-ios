@@ -22,6 +22,8 @@
 		B309D24025F06EA600A2AADF /* InviteMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D23F25F06EA600A2AADF /* InviteMessage.swift */; };
 		B309D24E25F0717B00A2AADF /* UICallScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = B309D24D25F0717B00A2AADF /* UICallScreen.xib */; };
 		B309D25325F071DD00A2AADF /* UICallScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D25225F071DD00A2AADF /* UICallScreen.swift */; };
+		B309D26225F1574C00A2AADF /* WebRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B309D26125F1574C00A2AADF /* WebRTC.framework */; };
+		B309D26325F1574C00A2AADF /* WebRTC.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B309D26125F1574C00A2AADF /* WebRTC.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B368BEC525EDDB610032AE52 /* WebRTCSDK.h in Headers */ = {isa = PBXBuildFile; fileRef = B368BEC325EDDB610032AE52 /* WebRTCSDK.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		B368BED425EDDBC90032AE52 /* WebRTCSDKTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B368BED325EDDBC90032AE52 /* WebRTCSDKTests.swift */; };
 		B368BED625EDDBC90032AE52 /* WebRTCSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B368BEC025EDDB610032AE52 /* WebRTCSDK.framework */; };
@@ -51,6 +53,20 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		B309D26425F1574C00A2AADF /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				B309D26325F1574C00A2AADF /* WebRTC.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		0DC90532A56B655C65D39178 /* Pods-TelnyxWebRTCDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxWebRTCDemo.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo.debug.xcconfig"; sourceTree = "<group>"; };
 		17397D6C67619E3AEBD7A4CA /* Pods_WebRTCSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_WebRTCSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -72,6 +88,7 @@
 		B309D23F25F06EA600A2AADF /* InviteMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteMessage.swift; sourceTree = "<group>"; };
 		B309D24D25F0717B00A2AADF /* UICallScreen.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UICallScreen.xib; sourceTree = "<group>"; };
 		B309D25225F071DD00A2AADF /* UICallScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UICallScreen.swift; sourceTree = "<group>"; };
+		B309D26125F1574C00A2AADF /* WebRTC.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebRTC.framework; path = Pods/GoogleWebRTC/Frameworks/frameworks/WebRTC.framework; sourceTree = "<group>"; };
 		B368BEC025EDDB610032AE52 /* WebRTCSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WebRTCSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B368BEC325EDDB610032AE52 /* WebRTCSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebRTCSDK.h; sourceTree = "<group>"; };
 		B368BEC425EDDB610032AE52 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -104,6 +121,7 @@
 			files = (
 				B3AF255625EEA6CD0062EDA9 /* Pods_WebRTCSDK.framework in Frameworks */,
 				B309D13D25EF119E00A2AADF /* Starscream.framework in Frameworks */,
+				B309D26225F1574C00A2AADF /* WebRTC.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -274,6 +292,7 @@
 			children = (
 				B309D11125EF107F00A2AADF /* Starscream.framework */,
 				6831A164C510407EBB5A919B /* Pods_TelnyxWebRTCDemo.framework */,
+				B309D26125F1574C00A2AADF /* WebRTC.framework */,
 				17397D6C67619E3AEBD7A4CA /* Pods_WebRTCSDK.framework */,
 				D50D648ABF71AA9BE2F93889 /* Pods_WebRTCSDK_WebRTCSDKTests.framework */,
 			);
@@ -303,6 +322,7 @@
 				B368BEBC25EDDB610032AE52 /* Sources */,
 				B368BEBD25EDDB610032AE52 /* Frameworks */,
 				B368BEBE25EDDB610032AE52 /* Resources */,
+				B309D26425F1574C00A2AADF /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -341,7 +361,7 @@
 				B368BEE425EDDD060032AE52 /* Sources */,
 				B368BEE525EDDD060032AE52 /* Frameworks */,
 				B368BEE625EDDD060032AE52 /* Resources */,
-				E2C9802024A3BCEF0C7ED085 /* [CP] Embed Pods Frameworks */,
+				42C91C7F4E49D69E158F8B6F /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -423,6 +443,23 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		42C91C7F4E49D69E158F8B6F /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		4F30CE38FF0BBD3FA4073E54 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -482,23 +519,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		E2C9802024A3BCEF0C7ED085 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		FDC1E2FDD8D07601DF902ADE /* [CP] Check Pods Manifest.lock */ = {
@@ -733,6 +753,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(BUILD_PRODUCTS_DIR)/Starscream",
+					"$(PROJECT_DIR)/Pods/GoogleWebRTC/Frameworks/frameworks",
 				);
 				INFOPLIST_FILE = WebRTCSDK/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -765,6 +786,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(BUILD_PRODUCTS_DIR)/Starscream",
+					"$(PROJECT_DIR)/Pods/GoogleWebRTC/Frameworks/frameworks",
 				);
 				INFOPLIST_FILE = WebRTCSDK/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
