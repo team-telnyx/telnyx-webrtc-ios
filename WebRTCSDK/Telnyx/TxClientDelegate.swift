@@ -15,4 +15,5 @@ public protocol TxClientDelegate {
     func onSessionUpdated(sessionId: String)
     func onCallStateUpdated(callState: CallState)
     func onIncomingCall(callInfo: TxCallInfo)
+    func onRemoteCallEnded(callId: UUID)
 }

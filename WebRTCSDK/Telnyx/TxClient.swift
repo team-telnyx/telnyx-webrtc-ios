@@ -74,6 +74,10 @@ extension TxClient {
         self.call?.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber)
     }
 
+    public func hangup() {
+        self.call?.hangup()
+    }
+
     public func answer() {
         self.call?.answerCall()
     }
@@ -145,6 +149,18 @@ extension TxClient : SocketDelegate {
             switch vertoMessage.method {
             case .CLIENT_READY:
                 self.delegate?.onClientReady()
+                break
+            
+            case .BYE:
+                //invite received
+                if let params = vertoMessage.params {
+                    guard let callId = params["callID"] as? String,
+                          let uuid = UUID(uuidString: callId) else {
+                        return
+                    }
+                    self.delegate?.onRemoteCallEnded(callId: uuid)
+                    self.call?.endCall()
+                }
                 break
             case .ANSWER:
                 //When the remote peer answers the call

@@ -72,6 +72,12 @@ class ViewController: UIViewController {
 // MARK: - TxClientDelegate
 extension ViewController: TxClientDelegate {
 
+    func onRemoteCallEnded(callId: UUID) {
+        print("ViewController:: TxClientDelegate onRemoteCallEnded() callId: \(callId)")
+        self.telnyxClient?.hangup()
+    }
+    
+
     func onSocketConnected() {
         print("ViewController:: TxClientDelegate onSocketConnected()")
         DispatchQueue.main.async {
@@ -168,7 +174,7 @@ extension ViewController : UIIncomingCallViewDelegate {
     }
 
     func onRejectButton() {
-        //TODO: implement hangup
+        self.telnyxClient?.hangup()
     }
 }
 // MARK: - UICallScreenDelegate
@@ -189,7 +195,7 @@ extension ViewController : UICallScreenDelegate {
     }
     
     func onEndCallButton() {
-        //TODO: Implement end call
+        self.telnyxClient?.hangup()
     }
     
     func onMuteUnmuteSwitch(isMuted: Bool) {

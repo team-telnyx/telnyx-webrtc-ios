@@ -79,7 +79,18 @@ class Call {
         }
         invite(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber)
     }
-    
+
+    /**
+     Sends a telnyx rtc.bye message through the socket
+     */
+    func hangup() {
+        guard let sessionId = self.sessionId, let callId = self.callInfo?.callId else { return }
+        let byeMessage = ByeMessage(sessionId: sessionId, callId: callId.uuidString, causeCode: .USER_BUSY)
+        let message = byeMessage.encode() ?? ""
+        self.socket?.sendMessage(message: message)
+        self.updateCallState(callState: .DONE)
+    }
+
     /**
         Creates an offer to start the calling process
      */
@@ -157,6 +168,10 @@ class Call {
             print("Answer completed >> SDP: \(sdp)")
             self.updateCallState(callState: .ACTIVE)
         })
+    }
+
+    func endCall() {
+        self.updateCallState(callState: .DONE)
     }
 
     private func updateCallState(callState: CallState) {
