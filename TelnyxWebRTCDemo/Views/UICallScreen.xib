@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="17506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17505"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="UICallScreen" customModule="TelnyxWebRTCDemo" customModuleProvider="target">
+            <connections>
+                <outlet property="callButton" destination="ala-vS-Hi1" id="ilV-uV-CAn"/>
+                <outlet property="callControlsSection" destination="IQU-Md-W0M" id="x4x-T6-sDD"/>
+                <outlet property="contentView" destination="iN0-l3-epB" id="EIk-YV-80K"/>
+                <outlet property="destinationNumberOrSip" destination="BfC-1W-DCV" id="vEE-Nm-9Zg"/>
+                <outlet property="endButton" destination="RQe-m3-Iqd" id="WLW-eK-MvT"/>
+                <outlet property="holdUnholdLabel" destination="OoR-vY-nFS" id="W66-9H-gkl"/>
+                <outlet property="holdUnholdSwitch" destination="VTP-0L-bxs" id="Klt-Tc-qlX"/>
+                <outlet property="muteUnmuteLabel" destination="RR2-e1-aaF" id="2ls-Cl-z3v"/>
+                <outlet property="muteUnmuteSwitch" destination="Bzm-fY-keM" id="5mE-3J-Ogz"/>
+                <outlet property="openVideo" destination="BB6-Bd-Mdb" id="j0x-Zp-zL6"/>
+                <outlet property="toggleSpeaker" destination="7Bw-UJ-xbE" id="oKz-Re-yDP"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="iN0-l3-epB">
+            <rect key="frame" x="0.0" y="0.0" width="414" height="349"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Enter phone number or SIP user" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="BfC-1W-DCV">
+                    <rect key="frame" x="10" y="54" width="394" height="40"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="40" id="UXU-oB-v2W"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                    <textInputTraits key="textInputTraits"/>
+                </textField>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="UQI-HD-tXP" userLabel="Buttons">
+                    <rect key="frame" x="10" y="114" width="394" height="120"/>
+                    <subviews>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="RQe-m3-Iqd">
+                            <rect key="frame" x="147" y="10" width="100" height="100"/>
+                            <color key="backgroundColor" red="1" green="0.30196078430000001" blue="0.30980392159999998" alpha="1" colorSpace="calibratedRGB"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="100" id="2dB-PY-J9n"/>
+                                <constraint firstAttribute="width" constant="100" id="Auc-nW-Oeg"/>
+                            </constraints>
+                            <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
+                            <state key="normal" title="End">
+                                <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            </state>
+                            <userDefinedRuntimeAttributes>
+                                <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                    <integer key="value" value="50"/>
+                                </userDefinedRuntimeAttribute>
+                                <userDefinedRuntimeAttribute type="boolean" keyPath="layer.masksToBounds" value="YES"/>
+                            </userDefinedRuntimeAttributes>
+                            <connections>
+                                <action selector="endButtonTapped:" destination="-1" eventType="touchUpInside" id="db9-Ak-JPD"/>
+                            </connections>
+                        </button>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ala-vS-Hi1" userLabel="Call">
+                            <rect key="frame" x="147" y="10" width="100" height="100"/>
+                            <color key="backgroundColor" red="0.094117647060000004" green="0.56470588239999997" blue="1" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="100" id="1Wf-LL-iEp"/>
+                                <constraint firstAttribute="width" constant="100" id="EHD-ag-cGV"/>
+                            </constraints>
+                            <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
+                            <state key="normal" title="Call">
+                                <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            </state>
+                            <userDefinedRuntimeAttributes>
+                                <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                    <integer key="value" value="50"/>
+                                </userDefinedRuntimeAttribute>
+                                <userDefinedRuntimeAttribute type="boolean" keyPath="layer.masksToBounds" value="YES"/>
+                            </userDefinedRuntimeAttributes>
+                            <connections>
+                                <action selector="callButtonTapped:" destination="-1" eventType="touchUpInside" id="wTP-6O-zWx"/>
+                            </connections>
+                        </button>
+                    </subviews>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    <constraints>
+                        <constraint firstItem="ala-vS-Hi1" firstAttribute="centerX" secondItem="UQI-HD-tXP" secondAttribute="centerX" id="2yb-CK-Odl"/>
+                        <constraint firstAttribute="height" constant="120" id="DVZ-qr-ZYT"/>
+                        <constraint firstItem="ala-vS-Hi1" firstAttribute="centerY" secondItem="UQI-HD-tXP" secondAttribute="centerY" id="kI3-1Q-aRz"/>
+                        <constraint firstItem="RQe-m3-Iqd" firstAttribute="centerX" secondItem="UQI-HD-tXP" secondAttribute="centerX" id="uxm-am-d7d"/>
+                        <constraint firstItem="RQe-m3-Iqd" firstAttribute="centerY" secondItem="UQI-HD-tXP" secondAttribute="centerY" id="vye-7H-OJJ"/>
+                    </constraints>
+                </view>
+                <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="IQU-Md-W0M">
+                    <rect key="frame" x="20" y="239" width="374" height="62"/>
+                    <subviews>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="BB6-Bd-Mdb" userLabel="Video">
+                            <rect key="frame" x="0.0" y="0.0" width="86" height="62"/>
+                            <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                            <color key="tintColor" red="0.1137254902" green="0.1333333333" blue="0.25490196079999999" alpha="1" colorSpace="calibratedRGB"/>
+                            <state key="normal" image="video" catalog="system"/>
+                            <connections>
+                                <action selector="videoButtonTapped:" destination="-1" eventType="touchUpInside" id="7El-la-aI4"/>
+                            </connections>
+                        </button>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7Bw-UJ-xbE" userLabel="Speaker">
+                            <rect key="frame" x="96" y="0.0" width="86" height="62"/>
+                            <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                            <color key="tintColor" red="0.1137254902" green="0.1333333333" blue="0.25490196079999999" alpha="1" colorSpace="calibratedRGB"/>
+                            <state key="normal" image="speaker" catalog="system"/>
+                            <connections>
+                                <action selector="toggleSpeaker:" destination="-1" eventType="touchUpInside" id="cpn-xq-BWD"/>
+                            </connections>
+                        </button>
+                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" alignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="nng-Qq-kgJ" userLabel="Mute / Unmute">
+                            <rect key="frame" x="192" y="0.0" width="86" height="62"/>
+                            <subviews>
+                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Mute" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="RR2-e1-aaF">
+                                    <rect key="frame" x="23.5" y="0.0" width="39" height="31"/>
+                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                    <nil key="textColor"/>
+                                    <nil key="highlightedColor"/>
+                                </label>
+                                <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="Bzm-fY-keM">
+                                    <rect key="frame" x="18.5" y="31" width="51" height="31"/>
+                                    <connections>
+                                        <action selector="muteUnmuteTapped:" destination="-1" eventType="valueChanged" id="61R-mP-JKp"/>
+                                    </connections>
+                                </switch>
+                            </subviews>
+                        </stackView>
+                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" alignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="46d-Yu-v4q" userLabel="Hold / Unhold">
+                            <rect key="frame" x="288" y="0.0" width="86" height="62"/>
+                            <subviews>
+                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Hold" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="OoR-vY-nFS">
+                                    <rect key="frame" x="25" y="0.0" width="36" height="31"/>
+                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                    <nil key="textColor"/>
+                                    <nil key="highlightedColor"/>
+                                </label>
+                                <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="VTP-0L-bxs">
+                                    <rect key="frame" x="18.5" y="31" width="51" height="31"/>
+                                    <connections>
+                                        <action selector="holdUnholdTapped:" destination="-1" eventType="valueChanged" id="YzB-HB-2zH"/>
+                                    </connections>
+                                </switch>
+                            </subviews>
+                        </stackView>
+                    </subviews>
+                    <constraints>
+                        <constraint firstAttribute="bottom" secondItem="46d-Yu-v4q" secondAttribute="bottom" id="Boa-3G-hK2"/>
+                        <constraint firstAttribute="bottom" secondItem="nng-Qq-kgJ" secondAttribute="bottom" id="DE0-0c-kcb"/>
+                        <constraint firstAttribute="trailing" secondItem="46d-Yu-v4q" secondAttribute="trailing" id="UWU-gj-hVO"/>
+                        <constraint firstItem="46d-Yu-v4q" firstAttribute="top" secondItem="IQU-Md-W0M" secondAttribute="top" id="WAG-s5-Y5F"/>
+                        <constraint firstItem="nng-Qq-kgJ" firstAttribute="top" secondItem="IQU-Md-W0M" secondAttribute="top" id="zac-Wk-VK1"/>
+                    </constraints>
+                </stackView>
+            </subviews>
+            <viewLayoutGuide key="safeArea" id="vUN-kp-3ea"/>
+            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+            <constraints>
+                <constraint firstItem="IQU-Md-W0M" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="20" id="20E-q6-JDf"/>
+                <constraint firstItem="BfC-1W-DCV" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="10" id="3ih-ln-TMH"/>
+                <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="IQU-Md-W0M" secondAttribute="trailing" constant="20" id="AF7-go-zfi"/>
+                <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="UQI-HD-tXP" secondAttribute="trailing" constant="10" id="G9o-JW-3Wj"/>
+                <constraint firstItem="UQI-HD-tXP" firstAttribute="top" secondItem="BfC-1W-DCV" secondAttribute="bottom" constant="20" id="Jha-Ma-Qxc"/>
+                <constraint firstItem="IQU-Md-W0M" firstAttribute="top" secondItem="UQI-HD-tXP" secondAttribute="bottom" constant="5" id="Uq6-AX-pxC"/>
+                <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="BfC-1W-DCV" secondAttribute="trailing" constant="10" id="Z64-Tv-1Qb"/>
+                <constraint firstItem="UQI-HD-tXP" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="10" id="r0j-eh-OSw"/>
+                <constraint firstItem="BfC-1W-DCV" firstAttribute="top" secondItem="vUN-kp-3ea" secondAttribute="top" constant="10" id="re1-Go-i8g"/>
+            </constraints>
+            <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+            <point key="canvasLocation" x="76.811594202898561" y="-126.22767857142857"/>
+        </view>
+    </objects>
+    <resources>
+        <image name="speaker" catalog="system" width="128" height="124"/>
+        <image name="video" catalog="system" width="128" height="83"/>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>
