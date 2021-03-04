@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="17506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17505"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="UISettingsView" customModule="TelnyxWebRTCDemo" customModuleProvider="target">
+            <connections>
+                <outlet property="callerIdNameLabel" destination="uN3-ie-ge1" id="gXm-HS-qtM"/>
+                <outlet property="callerIdNumberLabel" destination="6jO-g3-ZzP" id="kmw-Iq-Nuv"/>
+                <outlet property="contentView" destination="iN0-l3-epB" id="LQR-ff-1OG"/>
+                <outlet property="passwordUserNameLabel" destination="XgO-ys-zI4" id="E26-JL-OKP"/>
+                <outlet property="sipUsernameLabel" destination="gPv-K3-sHg" id="VAN-KN-U8x"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="iN0-l3-epB">
+            <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="SIP Username" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="gPv-K3-sHg">
+                    <rect key="frame" x="20" y="64" width="374" height="40"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="40" id="rDV-ND-Ein"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                    <textInputTraits key="textInputTraits"/>
+                </textField>
+                <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Password" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="XgO-ys-zI4">
+                    <rect key="frame" x="20" y="109" width="374" height="40"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="40" id="RiS-DS-BU8"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                    <textInputTraits key="textInputTraits" secureTextEntry="YES" textContentType="password"/>
+                </textField>
+                <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Caller ID Name" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="uN3-ie-ge1">
+                    <rect key="frame" x="20" y="154" width="374" height="40"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="40" id="gU4-ju-htc"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                    <textInputTraits key="textInputTraits"/>
+                </textField>
+                <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Caller ID Number" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="6jO-g3-ZzP">
+                    <rect key="frame" x="20" y="199" width="374" height="40"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="40" id="WsL-J3-WfV"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                    <textInputTraits key="textInputTraits" keyboardType="phonePad" textContentType="tel"/>
+                </textField>
+            </subviews>
+            <viewLayoutGuide key="safeArea" id="vUN-kp-3ea"/>
+            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+            <constraints>
+                <constraint firstItem="XgO-ys-zI4" firstAttribute="top" secondItem="gPv-K3-sHg" secondAttribute="bottom" constant="5" id="3YS-Gt-l8g"/>
+                <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="gPv-K3-sHg" secondAttribute="trailing" constant="20" id="7kh-qM-RCq"/>
+                <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="uN3-ie-ge1" secondAttribute="trailing" constant="20" id="CuC-XP-hN0"/>
+                <constraint firstItem="uN3-ie-ge1" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="20" id="HKN-ln-1Oi"/>
+                <constraint firstItem="XgO-ys-zI4" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="20" id="Her-ka-9uc"/>
+                <constraint firstItem="gPv-K3-sHg" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="20" id="QLQ-Nb-x8o"/>
+                <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="6jO-g3-ZzP" secondAttribute="trailing" constant="20" id="dFE-ZC-km9"/>
+                <constraint firstItem="6jO-g3-ZzP" firstAttribute="top" secondItem="uN3-ie-ge1" secondAttribute="bottom" constant="5" id="fHr-zg-MB5"/>
+                <constraint firstItem="uN3-ie-ge1" firstAttribute="top" secondItem="XgO-ys-zI4" secondAttribute="bottom" constant="5" id="jM8-2o-wBb"/>
+                <constraint firstItem="gPv-K3-sHg" firstAttribute="top" secondItem="vUN-kp-3ea" secondAttribute="top" constant="20" id="mYU-ie-Tsj"/>
+                <constraint firstItem="6jO-g3-ZzP" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="20" id="qjS-2o-k3N"/>
+                <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="XgO-ys-zI4" secondAttribute="trailing" constant="20" id="rPe-oK-CFT"/>
+            </constraints>
+            <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+            <point key="canvasLocation" x="77" y="40"/>
+        </view>
+    </objects>
+    <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>

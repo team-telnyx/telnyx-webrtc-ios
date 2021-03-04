@@ -11,4 +11,6 @@ public protocol TxClientDelegate {
     func onSocketConnected()
     func onSocketDisconnected()
     func onClientError(error: String)
+    func onClientReady()
+    func onSessionUpdated(sessionId: String)
 }
