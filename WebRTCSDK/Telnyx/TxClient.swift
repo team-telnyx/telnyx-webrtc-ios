@@ -50,7 +50,10 @@ public class TxClient {
 
 // MARK: - Call handling
 extension TxClient {
-    
+
+    public func getCallState() -> CallState {
+        return self.call?.callState ?? .NEW
+    }
     /**
         Creates a Call and starts the call sequence, negotiate the ICE Candidates and sends the invite.
         destinationNumber: Phone number or SIP address to call.

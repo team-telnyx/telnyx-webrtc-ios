@@ -24,6 +24,8 @@
 		B309D25325F071DD00A2AADF /* UICallScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D25225F071DD00A2AADF /* UICallScreen.swift */; };
 		B309D26225F1574C00A2AADF /* WebRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B309D26125F1574C00A2AADF /* WebRTC.framework */; };
 		B309D26325F1574C00A2AADF /* WebRTC.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B309D26125F1574C00A2AADF /* WebRTC.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		B309D27B25F17C1700A2AADF /* UIIncomingCallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D27925F17C1700A2AADF /* UIIncomingCallView.swift */; };
+		B309D27C25F17C1700A2AADF /* UIIncomingCallView.xib in Resources */ = {isa = PBXBuildFile; fileRef = B309D27A25F17C1700A2AADF /* UIIncomingCallView.xib */; };
 		B368BEC525EDDB610032AE52 /* WebRTCSDK.h in Headers */ = {isa = PBXBuildFile; fileRef = B368BEC325EDDB610032AE52 /* WebRTCSDK.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		B368BED425EDDBC90032AE52 /* WebRTCSDKTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B368BED325EDDBC90032AE52 /* WebRTCSDKTests.swift */; };
 		B368BED625EDDBC90032AE52 /* WebRTCSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B368BEC025EDDB610032AE52 /* WebRTCSDK.framework */; };
@@ -89,6 +91,8 @@
 		B309D24D25F0717B00A2AADF /* UICallScreen.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UICallScreen.xib; sourceTree = "<group>"; };
 		B309D25225F071DD00A2AADF /* UICallScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UICallScreen.swift; sourceTree = "<group>"; };
 		B309D26125F1574C00A2AADF /* WebRTC.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebRTC.framework; path = Pods/GoogleWebRTC/Frameworks/frameworks/WebRTC.framework; sourceTree = "<group>"; };
+		B309D27925F17C1700A2AADF /* UIIncomingCallView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIIncomingCallView.swift; sourceTree = "<group>"; };
+		B309D27A25F17C1700A2AADF /* UIIncomingCallView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = UIIncomingCallView.xib; sourceTree = "<group>"; };
 		B368BEC025EDDB610032AE52 /* WebRTCSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WebRTCSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B368BEC325EDDB610032AE52 /* WebRTCSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebRTCSDK.h; sourceTree = "<group>"; };
 		B368BEC425EDDB610032AE52 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -182,6 +186,8 @@
 		B309D1FB25F028F100A2AADF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				B309D27A25F17C1700A2AADF /* UIIncomingCallView.xib */,
+				B309D27925F17C1700A2AADF /* UIIncomingCallView.swift */,
 				B309D1FC25F0291100A2AADF /* UISettingsView.xib */,
 				B309D20125F0291B00A2AADF /* UISettingsView.swift */,
 				B309D24D25F0717B00A2AADF /* UICallScreen.xib */,
@@ -434,6 +440,7 @@
 			files = (
 				B368BEF725EDDD070032AE52 /* LaunchScreen.storyboard in Resources */,
 				B309D1FD25F0291100A2AADF /* UISettingsView.xib in Resources */,
+				B309D27C25F17C1700A2AADF /* UIIncomingCallView.xib in Resources */,
 				B368BEF425EDDD070032AE52 /* Assets.xcassets in Resources */,
 				B368BEF225EDDD060032AE52 /* Main.storyboard in Resources */,
 				B309D24E25F0717B00A2AADF /* UICallScreen.xib in Resources */,
@@ -581,6 +588,7 @@
 			files = (
 				B3AF24AA25EE84570062EDA9 /* UIViewControllerExtension.swift in Sources */,
 				B309D25325F071DD00A2AADF /* UICallScreen.swift in Sources */,
+				B309D27B25F17C1700A2AADF /* UIIncomingCallView.swift in Sources */,
 				B368BEEF25EDDD060032AE52 /* ViewController.swift in Sources */,
 				B368BEEB25EDDD060032AE52 /* AppDelegate.swift in Sources */,
 				B368BEED25EDDD060032AE52 /* SceneDelegate.swift in Sources */,

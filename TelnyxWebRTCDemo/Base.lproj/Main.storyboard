@@ -77,6 +77,10 @@
                                 <rect key="frame" x="0.0" y="234" width="414" height="497.5"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                             </view>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="z4d-Kt-WJs" customClass="UIIncomingCallView" customModule="TelnyxWebRTCDemo" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="234" width="414" height="497.5"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                            </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Sq2-dL-w4H" customClass="UISettingsView" customModule="TelnyxWebRTCDemo" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="234" width="414" height="497.5"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -112,11 +116,15 @@
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="HDL-DH-v9R" firstAttribute="top" secondItem="qhD-Ar-bVI" secondAttribute="bottom" constant="30" id="0qZ-5x-ott"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="z4d-Kt-WJs" secondAttribute="trailing" id="1wq-YM-3UP"/>
                             <constraint firstItem="GfE-v1-Dfm" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="30" id="2lp-T1-eVR"/>
                             <constraint firstItem="qhD-Ar-bVI" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="2t6-Ye-670"/>
+                            <constraint firstItem="z4d-Kt-WJs" firstAttribute="top" secondItem="GfE-v1-Dfm" secondAttribute="bottom" constant="30" id="5Fw-t4-0AB"/>
                             <constraint firstItem="MLh-Ll-Ryr" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="30" id="9am-oo-xrB"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="MLh-Ll-Ryr" secondAttribute="trailing" constant="30" id="CwS-bk-NGg"/>
+                            <constraint firstItem="HDL-DH-v9R" firstAttribute="top" secondItem="z4d-Kt-WJs" secondAttribute="bottom" constant="30" id="H7G-et-nzB"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="HDL-DH-v9R" secondAttribute="trailing" constant="30" id="IMG-fp-iXT"/>
+                            <constraint firstItem="z4d-Kt-WJs" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="MgJ-gZ-gtY"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="uDN-Lm-Lhn" secondAttribute="bottom" constant="20" id="PQK-rC-8H9"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="uDN-Lm-Lhn" secondAttribute="trailing" constant="10" id="R8q-Cj-mHP"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="GfE-v1-Dfm" secondAttribute="trailing" constant="30" id="UJE-Ni-Txm"/>
@@ -140,6 +148,7 @@
                     <connections>
                         <outlet property="callView" destination="qhD-Ar-bVI" id="mIz-Bj-zmd"/>
                         <outlet property="connectButton" destination="HDL-DH-v9R" id="DDG-vM-oNk"/>
+                        <outlet property="incomingCallView" destination="z4d-Kt-WJs" id="xkP-lK-Kxj"/>
                         <outlet property="sessionIdLabel" destination="QiW-C2-v1t" id="1Jq-zS-Mt2"/>
                         <outlet property="settingsView" destination="Sq2-dL-w4H" id="5cZ-1a-8aP"/>
                         <outlet property="socketStateLabel" destination="lhJ-I7-FaD" id="fPk-4D-Rhb"/>
