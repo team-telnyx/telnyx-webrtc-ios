@@ -99,7 +99,11 @@ extension ViewController: TxClientDelegate {
             self.sessionIdLabel.text = sessionId
         }
     }
-    
+
+    func onIncomingCall(callInfo: TxCallInfo) {
+
+    }
+
     func onCallStateUpdated(callState: CallState) {
         //TODO: Update call state on UI
     }

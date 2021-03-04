@@ -134,6 +134,31 @@ class Call {
         })
     }
 
+    /**
+     This function should be called to answer an incoming call
+     */
+    func answerCall() {
+        guard let remoteSdp = self.remoteSdp else {
+            return
+        }
+        self.peer = Peer(iceServers: self.config.webRTCIceServers)
+        self.peer?.delegate = self
+        self.incomingOffer(sdp: remoteSdp)
+        self.peer?.answer(completion: { (sdp, error)  in
+
+            if let error = error {
+                print("Error creating the answering: \(error)")
+                return
+            }
+
+            guard let sdp = sdp else {
+                return
+            }
+            print("Answer completed >> SDP: \(sdp)")
+            self.updateCallState(callState: .ACTIVE)
+        })
+    }
+
     private func updateCallState(callState: CallState) {
         self.callState = callState
         self.delegate?.callStateUpdated(callState: self.callState)
