@@ -14,6 +14,7 @@ class ViewController: UIViewController {
 
     @IBOutlet weak var sessionIdLabel: UILabel!
     @IBOutlet weak var socketStateLabel: UILabel!
+    @IBOutlet weak var callView: UICallScreen!
     @IBOutlet weak var settingsView: UISettingsView!
     @IBOutlet weak var versionLabel: UILabel!
     @IBOutlet weak var connectButton: UIButton!
@@ -24,9 +25,17 @@ class ViewController: UIViewController {
         
         self.telnyxClient = appDelegate.getTelnyxClient()
         self.telnyxClient?.delegate = self
-        versionLabel.text = self.telnyxClient?.getVersion()
-
+        initViews()
     }
+    
+    func initViews() {
+        self.callView.isHidden = true
+        self.callView.delegate = self
+        self.callView.hideEndButton(hide: true)
+        self.settingsView.isHidden = false
+        self.versionLabel.text = self.telnyxClient?.getVersion()
+    }
+    
     @IBAction func connectButtonTapped(_ sender: Any) {
         guard let telnyxClient = self.telnyxClient else {
             return
@@ -62,6 +71,9 @@ extension ViewController: TxClientDelegate {
         DispatchQueue.main.async {
             self.socketStateLabel.text = "Disconnected"
             self.connectButton.setTitle("Connect", for: .normal)
+            self.sessionIdLabel.text = "-"
+            self.settingsView.isHidden = false
+            self.callView.isHidden = true
         }
     }
     
@@ -76,6 +88,8 @@ extension ViewController: TxClientDelegate {
         print("ViewController:: TxClientDelegate onClientReady()")
         DispatchQueue.main.async {
             self.socketStateLabel.text = "Client ready"
+            self.settingsView.isHidden = true
+            self.callView.isHidden = false
         }
     }
     
@@ -86,4 +100,45 @@ extension ViewController: TxClientDelegate {
         }
     }
     
+    func onCallStateUpdated(callState: CallState) {
+        //TODO: Update call state on UI
+    }
+    
+}
+// MARK: - UICallScreenDelegate
+/**
+ Handle Call Screen events
+ */
+extension ViewController : UICallScreenDelegate {
+
+    func onCallButton() {
+        guard let destinationNumber = self.callView.destinationNumberOrSip.text else { return }
+        
+        let callerName = self.settingsView.callerIdNameLabel.text ?? ""
+        let callerNumber = self.settingsView.callerIdNumberLabel.text ?? ""
+        
+        //+18722348663
+        //sip:webrtcsquad44613@sip.telnyx.com
+        self.telnyxClient?.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, callId: UUID.init())
+    }
+    
+    func onEndCallButton() {
+        //TODO: Implement end call
+    }
+    
+    func onMuteUnmuteSwitch(isMuted: Bool) {
+        //TODO: Implement mute / unmute
+    }
+    
+    func onHoldUnholdSwitch(isOnHold: Bool) {
+        //TODO: Implement hold / unhold
+    }
+
+    func onVideoTapped() {
+        //TODO: Implement video
+    }
+
+    func onToggleSpeaker(isSpeakerActive: Bool) {
+        //TODO: change between speaker and headsets
+    }
 }

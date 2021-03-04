@@ -15,6 +15,7 @@ public class TxClient {
     
     private var sessionId : String?
     private var txConfig: TxConfig?
+    private var call: Call?
 
     public init() {}
     
@@ -45,6 +46,31 @@ public class TxClient {
         guard let isConnected = socket?.isConnected else { return false }
         return isConnected
     }
+}
+
+// MARK: - Call handling
+extension TxClient {
+    
+    /**
+        Creates a Call and starts the call sequence, negotiate the ICE Candidates and sends the invite.
+        destinationNumber: Phone number or SIP address to call.
+     */
+    public func newCall(callerName: String,
+                 callerNumber: String,
+                 destinationNumber: String,
+                 callId: UUID) {
+        guard let sessionId = self.sessionId else {
+            return
+        }
+        
+        guard let socket = self.socket else {
+            return
+        }
+
+        self.call = Call(callId: callId, sessionId: sessionId, socket: socket, delegate: self)
+        self.call?.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber)
+    }
+    
 }
 
 // MARK: - SocketDelegate
@@ -101,6 +127,11 @@ extension TxClient : SocketDelegate {
             }
         }
     }
-    
-    
+}
+
+// MARK: - CallProtocol
+extension TxClient: CallProtocol {
+    func callStateUpdated(callState: CallState) {
+        self.delegate?.onCallStateUpdated(callState: callState)
+    }
 }

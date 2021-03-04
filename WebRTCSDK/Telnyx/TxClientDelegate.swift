@@ -13,4 +13,5 @@ public protocol TxClientDelegate {
     func onClientError(error: String)
     func onClientReady()
     func onSessionUpdated(sessionId: String)
+    func onCallStateUpdated(callState: CallState)
 }

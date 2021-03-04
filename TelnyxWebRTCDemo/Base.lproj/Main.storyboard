@@ -73,6 +73,10 @@
                                     <constraint firstAttribute="height" constant="30" id="ysN-8f-35b"/>
                                 </constraints>
                             </stackView>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="qhD-Ar-bVI" userLabel="Call View" customClass="UICallScreen" customModule="TelnyxWebRTCDemo" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="234" width="414" height="497.5"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                            </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Sq2-dL-w4H" customClass="UISettingsView" customModule="TelnyxWebRTCDemo" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="234" width="414" height="497.5"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -107,7 +111,9 @@
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
+                            <constraint firstItem="HDL-DH-v9R" firstAttribute="top" secondItem="qhD-Ar-bVI" secondAttribute="bottom" constant="30" id="0qZ-5x-ott"/>
                             <constraint firstItem="GfE-v1-Dfm" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="30" id="2lp-T1-eVR"/>
+                            <constraint firstItem="qhD-Ar-bVI" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="2t6-Ye-670"/>
                             <constraint firstItem="MLh-Ll-Ryr" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="30" id="9am-oo-xrB"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="MLh-Ll-Ryr" secondAttribute="trailing" constant="30" id="CwS-bk-NGg"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="HDL-DH-v9R" secondAttribute="trailing" constant="30" id="IMG-fp-iXT"/>
@@ -117,8 +123,10 @@
                             <constraint firstItem="uDN-Lm-Lhn" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="10" id="XEF-SJ-UzS"/>
                             <constraint firstItem="GfE-v1-Dfm" firstAttribute="top" secondItem="MLh-Ll-Ryr" secondAttribute="bottom" id="bD7-2M-EJ3"/>
                             <constraint firstItem="wzw-DY-Om3" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="10" id="dww-CX-ZQh"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="qhD-Ar-bVI" secondAttribute="trailing" id="eMY-8H-PdX"/>
                             <constraint firstItem="Sq2-dL-w4H" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="ejm-Nz-vg5"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="wzw-DY-Om3" secondAttribute="trailing" constant="10" id="gkC-ve-nav"/>
+                            <constraint firstItem="qhD-Ar-bVI" firstAttribute="top" secondItem="GfE-v1-Dfm" secondAttribute="bottom" constant="30" id="lIa-NJ-GH1"/>
                             <constraint firstItem="Sq2-dL-w4H" firstAttribute="top" secondItem="GfE-v1-Dfm" secondAttribute="bottom" constant="30" id="lJQ-k2-pAF"/>
                             <constraint firstItem="HDL-DH-v9R" firstAttribute="top" secondItem="Sq2-dL-w4H" secondAttribute="bottom" constant="30" id="nyI-6s-0Ib"/>
                             <constraint firstItem="uDN-Lm-Lhn" firstAttribute="top" secondItem="HDL-DH-v9R" secondAttribute="bottom" constant="30" id="oMD-Nd-Hqg"/>
@@ -130,6 +138,7 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="callView" destination="qhD-Ar-bVI" id="mIz-Bj-zmd"/>
                         <outlet property="connectButton" destination="HDL-DH-v9R" id="DDG-vM-oNk"/>
                         <outlet property="sessionIdLabel" destination="QiW-C2-v1t" id="1Jq-zS-Mt2"/>
                         <outlet property="settingsView" destination="Sq2-dL-w4H" id="5cZ-1a-8aP"/>

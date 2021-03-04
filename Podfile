@@ -16,6 +16,7 @@ target 'WebRTCSDK' do
 
   # Pods for WebRTCSDK
   pod 'Starscream', '~> 4.0.0'
+  pod 'GoogleWebRTC', '~> 1.1'
 
   target 'WebRTCSDKTests' do
     # Pods for testing
