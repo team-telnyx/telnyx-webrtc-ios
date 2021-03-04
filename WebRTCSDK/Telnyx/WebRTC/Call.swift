@@ -213,6 +213,13 @@ extension Call : PeerDelegate {
             self.socket?.sendMessage(message: message)
             self.updateCallState(callState: .CONNECTING)
             print("Send invite >> \(message)")
+        } else {
+            //Build the telnyx_rtc.answer message and send it
+            let answerMessage = AnswerMessage(sessionId: sessionId, sdp: sdp.sdp, callInfo: callInfo, callOptions: callOptions)
+            let message = answerMessage.encode() ?? ""
+            self.socket?.sendMessage(message: message)
+            self.updateCallState(callState: .ACTIVE)
+            print("Send answer >> \(answerMessage)")
         }
     }
 }
