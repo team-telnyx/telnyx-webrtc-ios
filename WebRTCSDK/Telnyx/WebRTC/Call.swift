@@ -192,6 +192,41 @@ extension Call {
     }
 }
 
+// MARK: - Hold / Unhold functions
+extension Call {
+
+    func hold() {
+        guard let callId = self.callInfo?.callId,
+              let sessionId = self.sessionId else { return }
+        let hold = ModifyMessage(sessionId: sessionId, callId: callId.uuidString, action: .HOLD)
+        let message = hold.encode() ?? ""
+        self.socket?.sendMessage(message: message)
+        self.updateCallState(callState: .HELD)
+    }
+
+    func unhold() {
+        guard let callId = self.callInfo?.callId,
+              let sessionId = self.sessionId else { return }
+        let unhold = ModifyMessage(sessionId: sessionId, callId: callId.uuidString, action: .UNHOLD)
+        let message = unhold.encode() ?? ""
+        self.socket?.sendMessage(message: message)
+        self.updateCallState(callState: .ACTIVE)
+    }
+
+    func toggleHold() {
+        guard let callId = self.callInfo?.callId,
+              let sessionId = self.sessionId else { return }
+        let toggleHold = ModifyMessage(sessionId: sessionId, callId: callId.uuidString, action: .TOGGLE_HOLD)
+        let message = toggleHold.encode() ?? ""
+        self.socket?.sendMessage(message: message)
+
+        if (self.callState == .ACTIVE) {
+            self.updateCallState(callState: .HELD)
+        } else {
+            self.updateCallState(callState: .ACTIVE)
+        }
+    }
+}
 // MARK: - PeerDelegate
 /**
  Handle Peer events.
