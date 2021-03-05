@@ -45,6 +45,7 @@
 		B3AF24AA25EE84570062EDA9 /* UIViewControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3AF24A925EE84570062EDA9 /* UIViewControllerExtension.swift */; };
 		B3AF255625EEA6CD0062EDA9 /* Pods_WebRTCSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 17397D6C67619E3AEBD7A4CA /* Pods_WebRTCSDK.framework */; };
 		B3AF255F25EEA6EA0062EDA9 /* Pods_TelnyxWebRTCDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6831A164C510407EBB5A919B /* Pods_TelnyxWebRTCDemo.framework */; };
+		B3E1029A25F2C16500227DCE /* ModifyMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3E1029925F2C16500227DCE /* ModifyMessage.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -117,6 +118,7 @@
 		B3AF248A25EE7C350062EDA9 /* Socket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Socket.swift; sourceTree = "<group>"; };
 		B3AF249725EE7DC70062EDA9 /* SocketDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketDelegate.swift; sourceTree = "<group>"; };
 		B3AF24A925EE84570062EDA9 /* UIViewControllerExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIViewControllerExtension.swift; sourceTree = "<group>"; };
+		B3E1029925F2C16500227DCE /* ModifyMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifyMessage.swift; sourceTree = "<group>"; };
 		D50D648ABF71AA9BE2F93889 /* Pods_WebRTCSDK_WebRTCSDKTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_WebRTCSDK_WebRTCSDKTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC9BC1EDFFF9036F8CB56E1E /* Pods-WebRTCSDK-WebRTCSDKTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WebRTCSDK-WebRTCSDKTests.release.xcconfig"; path = "Target Support Files/Pods-WebRTCSDK-WebRTCSDKTests/Pods-WebRTCSDK-WebRTCSDKTests.release.xcconfig"; sourceTree = "<group>"; };
 		E416E72A202EB8794769F5F1 /* Pods-WebRTCSDK.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WebRTCSDK.debug.xcconfig"; path = "Target Support Files/Pods-WebRTCSDK/Pods-WebRTCSDK.debug.xcconfig"; sourceTree = "<group>"; };
@@ -175,6 +177,7 @@
 				B309D23F25F06EA600A2AADF /* InviteMessage.swift */,
 				B309D28125F1838700A2AADF /* ByeMessage.swift */,
 				B309D28525F184A100A2AADF /* AnswerMessage.swift */,
+				B3E1029925F2C16500227DCE /* ModifyMessage.swift */,
 			);
 			path = Verto;
 			sourceTree = "<group>";
@@ -575,6 +578,7 @@
 				B309D23625F06D2100A2AADF /* TxCallInfo.swift in Sources */,
 				B309D23B25F06DC000A2AADF /* TxCallOptions.swift in Sources */,
 				B3AF249825EE7DC70062EDA9 /* SocketDelegate.swift in Sources */,
+				B3E1029A25F2C16500227DCE /* ModifyMessage.swift in Sources */,
 				B309D24025F06EA600A2AADF /* InviteMessage.swift in Sources */,
 				B309D22925F06C6900A2AADF /* Call.swift in Sources */,
 				B309D1EC25F024B900A2AADF /* LoginMessage.swift in Sources */,

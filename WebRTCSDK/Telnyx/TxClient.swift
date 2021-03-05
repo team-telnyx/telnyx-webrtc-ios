@@ -215,6 +215,17 @@ extension TxClient {
         self.call?.unmuteAudio()
     }
 }
+// MARK: - Hold Unhold
+extension TxClient {
+
+    public func hold() {
+        self.call?.hold()
+    }
+
+    public func unhold() {
+        self.call?.unhold()
+    }
+}
 // MARK: - CallProtocol
 extension TxClient: CallProtocol {
     func callStateUpdated(callState: CallState) {
