@@ -202,7 +202,31 @@ class Peer : NSObject {
     }
     
 }
+// MARK: - Tracks handling
+extension Peer {
+    private func setTrackEnabled<T: RTCMediaStreamTrack>(_ type: T.Type, isEnabled: Bool) {
+        self.connection.transceivers
+            .compactMap { return $0.sender.track as? T }
+            .forEach { $0.isEnabled = isEnabled }
+    }
+}
 
+// MARK: - Audio handling
+extension Peer {
+    func muteUnmuteAudio(mute: Bool) {
+        //GetTransceivers is only supported with Unified Plan SdpSemantics.
+        //For planB let's use the stored audo track
+        if self.connection.configuration.sdpSemantics == .planB {
+            self.connection.senders
+                .compactMap { return $0.track as? RTCAudioTrack } // Search for Audio track
+                .forEach {
+                    $0.isEnabled = !mute // disable RTCAudioTrack
+                }
+        } else {
+            self.setTrackEnabled(RTCAudioTrack.self, isEnabled: !mute)
+        }
+    }
+}
 // MARK: -RTCPeerConnectionDelegate
 /**
  Here we receive the RTCPeer connection events.

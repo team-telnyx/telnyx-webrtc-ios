@@ -199,7 +199,11 @@ extension ViewController : UICallScreenDelegate {
     }
     
     func onMuteUnmuteSwitch(isMuted: Bool) {
-        //TODO: Implement mute / unmute
+        if (isMuted) {
+            self.telnyxClient?.muteAudio()
+        } else {
+            self.telnyxClient?.unmuteAudio()
+        }
     }
     
     func onHoldUnholdSwitch(isOnHold: Bool) {

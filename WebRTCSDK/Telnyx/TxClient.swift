@@ -204,7 +204,17 @@ extension TxClient : SocketDelegate {
         }
     }
 }
-
+// MARK: - Audio
+extension TxClient {
+    
+    public func muteAudio() {
+        self.call?.muteAudio()
+    }
+    
+    public func unmuteAudio() {
+        self.call?.unmuteAudio()
+    }
+}
 // MARK: - CallProtocol
 extension TxClient: CallProtocol {
     func callStateUpdated(callState: CallState) {

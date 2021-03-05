@@ -180,6 +180,18 @@ class Call {
     }
 }
 
+// MARK: - Audio handling
+extension Call {
+    
+    func muteAudio() {
+        self.peer?.muteUnmuteAudio(mute: true)
+    }
+    
+    func unmuteAudio() {
+        self.peer?.muteUnmuteAudio(mute: false)
+    }
+}
+
 // MARK: - PeerDelegate
 /**
  Handle Peer events.
