@@ -207,7 +207,11 @@ extension ViewController : UICallScreenDelegate {
     }
     
     func onHoldUnholdSwitch(isOnHold: Bool) {
-        //TODO: Implement hold / unhold
+        if (isOnHold) {
+            self.telnyxClient?.hold()
+        } else {
+            self.telnyxClient?.unhold()
+        }
     }
 
     func onVideoTapped() {
