@@ -11,31 +11,46 @@ import WebRTCSDK
 class ViewController: UIViewController {
 
     var telnyxClient: TxClient?
+    var incomingCall: Bool = false
 
     @IBOutlet weak var sessionIdLabel: UILabel!
     @IBOutlet weak var socketStateLabel: UILabel!
     @IBOutlet weak var callView: UICallScreen!
     @IBOutlet weak var settingsView: UISettingsView!
+    @IBOutlet weak var incomingCallView: UIIncomingCallView!
     @IBOutlet weak var versionLabel: UILabel!
     @IBOutlet weak var connectButton: UIButton!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         print("ViewController:: viewDidLoad()")
-        
+        overrideUserInterfaceStyle = .light
+
         self.telnyxClient = appDelegate.getTelnyxClient()
         self.telnyxClient?.delegate = self
         initViews()
     }
     
     func initViews() {
+        print("ViewController:: initViews()")
         self.callView.isHidden = true
         self.callView.delegate = self
         self.callView.hideEndButton(hide: true)
         self.settingsView.isHidden = false
         self.versionLabel.text = self.telnyxClient?.getVersion()
+
+        self.incomingCallView.isHidden = true
+        self.incomingCallView.delegate = self
     }
-    
+
+    func updateButtonsState() {
+        guard let callState = self.telnyxClient?.getCallState() else {
+            return
+        }
+        self.callView.updateButtonsState(callState: callState, incomingCall: self.incomingCall)
+        self.incomingCallView.updateButtonsState(callState: callState, incomingCall: incomingCall)
+    }
+
     @IBAction func connectButtonTapped(_ sender: Any) {
         guard let telnyxClient = self.telnyxClient else {
             return
@@ -57,6 +72,12 @@ class ViewController: UIViewController {
 // MARK: - TxClientDelegate
 extension ViewController: TxClientDelegate {
 
+    func onRemoteCallEnded(callId: UUID) {
+        print("ViewController:: TxClientDelegate onRemoteCallEnded() callId: \(callId)")
+        self.telnyxClient?.hangup()
+    }
+    
+
     func onSocketConnected() {
         print("ViewController:: TxClientDelegate onSocketConnected()")
         DispatchQueue.main.async {
@@ -74,6 +95,7 @@ extension ViewController: TxClientDelegate {
             self.sessionIdLabel.text = "-"
             self.settingsView.isHidden = false
             self.callView.isHidden = true
+            self.incomingCallView.isHidden = true
         }
     }
     
@@ -81,6 +103,7 @@ extension ViewController: TxClientDelegate {
         print("ViewController:: TxClientDelegate onClientError() error: \(error)")
         DispatchQueue.main.async {
             self.socketStateLabel.text = "Error"
+            self.incomingCallView.isHidden = true
         }
     }
     
@@ -90,6 +113,7 @@ extension ViewController: TxClientDelegate {
             self.socketStateLabel.text = "Client ready"
             self.settingsView.isHidden = true
             self.callView.isHidden = false
+            self.incomingCallView.isHidden = true
         }
     }
     
@@ -99,11 +123,59 @@ extension ViewController: TxClientDelegate {
             self.sessionIdLabel.text = sessionId
         }
     }
-    
+
+    func onIncomingCall(callInfo: TxCallInfo) {
+        print("ViewController:: TxClientDelegate onIncomingCall() callInfo: \(callInfo)")
+        DispatchQueue.main.async {
+            self.incomingCall = true
+            self.updateButtonsState()
+            self.incomingCallView.isHidden = false
+            self.callView.isHidden = true
+        }
+    }
+
     func onCallStateUpdated(callState: CallState) {
-        //TODO: Update call state on UI
+        DispatchQueue.main.async {
+            switch (callState) {
+            case .CONNECTING:
+                break
+            case .RINGING:
+                break
+            case .NEW:
+                break
+            case .ACTIVE:
+                self.incomingCallView.isHidden = true
+                self.callView.isHidden = false
+                break
+            case .DONE:
+                self.incomingCall = false
+                self.incomingCallView.isHidden = true
+                self.callView.isHidden = false
+                self.callView.muteUnmuteSwitch.setOn(false, animated: false)
+                self.callView.holdUnholdSwitch.setOn(false, animated: false)
+                self.callView.resetHoldUnholdState()
+                break
+            case .HELD:
+                break
+            }
+            self.updateButtonsState()
+        }
     }
     
+}
+// MARK: - UIIncomingCallViewDelegate
+/**
+ Handle Incoming Call Views events
+ */
+extension ViewController : UIIncomingCallViewDelegate {
+
+    func onAnswerButton() {
+        self.telnyxClient?.answer()
+    }
+
+    func onRejectButton() {
+        self.telnyxClient?.hangup()
+    }
 }
 // MARK: - UICallScreenDelegate
 /**
@@ -123,7 +195,7 @@ extension ViewController : UICallScreenDelegate {
     }
     
     func onEndCallButton() {
-        //TODO: Implement end call
+        self.telnyxClient?.hangup()
     }
     
     func onMuteUnmuteSwitch(isMuted: Bool) {

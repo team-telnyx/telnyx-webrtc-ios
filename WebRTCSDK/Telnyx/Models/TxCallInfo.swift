@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct TxCallInfo {
+public struct TxCallInfo {
     var callId: UUID
     var callerName:String?
     var callerNumber: String?

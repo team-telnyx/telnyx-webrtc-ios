@@ -79,7 +79,18 @@ class Call {
         }
         invite(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber)
     }
-    
+
+    /**
+     Sends a telnyx rtc.bye message through the socket
+     */
+    func hangup() {
+        guard let sessionId = self.sessionId, let callId = self.callInfo?.callId else { return }
+        let byeMessage = ByeMessage(sessionId: sessionId, callId: callId.uuidString, causeCode: .USER_BUSY)
+        let message = byeMessage.encode() ?? ""
+        self.socket?.sendMessage(message: message)
+        self.updateCallState(callState: .DONE)
+    }
+
     /**
         Creates an offer to start the calling process
      */
@@ -134,6 +145,35 @@ class Call {
         })
     }
 
+    /**
+     This function should be called to answer an incoming call
+     */
+    func answerCall() {
+        guard let remoteSdp = self.remoteSdp else {
+            return
+        }
+        self.peer = Peer(iceServers: self.config.webRTCIceServers)
+        self.peer?.delegate = self
+        self.incomingOffer(sdp: remoteSdp)
+        self.peer?.answer(completion: { (sdp, error)  in
+
+            if let error = error {
+                print("Error creating the answering: \(error)")
+                return
+            }
+
+            guard let sdp = sdp else {
+                return
+            }
+            print("Answer completed >> SDP: \(sdp)")
+            self.updateCallState(callState: .ACTIVE)
+        })
+    }
+
+    func endCall() {
+        self.updateCallState(callState: .DONE)
+    }
+
     private func updateCallState(callState: CallState) {
         self.callState = callState
         self.delegate?.callStateUpdated(callState: self.callState)
@@ -173,6 +213,13 @@ extension Call : PeerDelegate {
             self.socket?.sendMessage(message: message)
             self.updateCallState(callState: .CONNECTING)
             print("Send invite >> \(message)")
+        } else {
+            //Build the telnyx_rtc.answer message and send it
+            let answerMessage = AnswerMessage(sessionId: sessionId, sdp: sdp.sdp, callInfo: callInfo, callOptions: callOptions)
+            let message = answerMessage.encode() ?? ""
+            self.socket?.sendMessage(message: message)
+            self.updateCallState(callState: .ACTIVE)
+            print("Send answer >> \(answerMessage)")
         }
     }
 }

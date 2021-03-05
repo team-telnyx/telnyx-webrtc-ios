@@ -50,7 +50,10 @@ public class TxClient {
 
 // MARK: - Call handling
 extension TxClient {
-    
+
+    public func getCallState() -> CallState {
+        return self.call?.callState ?? .NEW
+    }
     /**
         Creates a Call and starts the call sequence, negotiate the ICE Candidates and sends the invite.
         destinationNumber: Phone number or SIP address to call.
@@ -70,7 +73,33 @@ extension TxClient {
         self.call = Call(callId: callId, sessionId: sessionId, socket: socket, delegate: self)
         self.call?.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber)
     }
-    
+
+    public func hangup() {
+        self.call?.hangup()
+    }
+
+    public func answer() {
+        self.call?.answerCall()
+    }
+
+    fileprivate func createIncomingCall(callerName: String, callerNumber: String, callId: UUID, remoteSdp: String) {
+
+        guard let sessionId = self.sessionId,
+              let socket = self.socket else {
+            return
+        }
+
+        self.call = Call(callId: callId, remoteSdp: remoteSdp, sessionId: sessionId, socket: socket, delegate: self)
+
+        self.call?.callInfo?.callerName = callerName
+        self.call?.callInfo?.callerNumber = callerNumber
+        self.call?.callOptions = TxCallOptions(audio: true)
+
+        guard let callInfo = self.call?.callInfo else { return }
+
+        self.delegate?.onIncomingCall(callInfo: callInfo)
+    }
+
 }
 
 // MARK: - SocketDelegate
@@ -121,6 +150,18 @@ extension TxClient : SocketDelegate {
             case .CLIENT_READY:
                 self.delegate?.onClientReady()
                 break
+            
+            case .BYE:
+                //invite received
+                if let params = vertoMessage.params {
+                    guard let callId = params["callID"] as? String,
+                          let uuid = UUID(uuidString: callId) else {
+                        return
+                    }
+                    self.delegate?.onRemoteCallEnded(callId: uuid)
+                    self.call?.endCall()
+                }
+                break
             case .ANSWER:
                 //When the remote peer answers the call
                 //Set the remote SDP into the current RTCPConnection and the call should start!
@@ -132,6 +173,30 @@ extension TxClient : SocketDelegate {
                     self.call?.answered(sdp: remoteSdp)
                 }
                 break;
+
+            case .INVITE:
+                //invite received
+                if let params = vertoMessage.params {
+                    guard let sdp = params["sdp"] as? String else {
+                        return
+                    }
+                    guard let callId = params["callID"] as? String,
+                          let uuid = UUID(uuidString: callId) else {
+                        return
+                    }
+
+                    guard let callerName = params["caller_id_name"] as? String else {
+                        return
+                    }
+
+                    guard let callerNumber = params["caller_id_number"] as? String else {
+                        return
+                    }
+
+                    self.createIncomingCall(callerName: callerName, callerNumber: callerNumber, callId: uuid, remoteSdp: sdp)
+                }
+                break;
+
             default:
                 print("TxClient:: SocketDelegate Default method")
                 break
