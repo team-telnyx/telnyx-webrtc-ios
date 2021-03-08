@@ -162,6 +162,30 @@ extension TxClient : SocketDelegate {
                     self.call?.endCall()
                 }
                 break
+
+            case .MEDIA:
+                //Whenever we place a call from a client and the "Generate ring back tone" is enabled in the portal,
+                //the Telnyx Cloud sends the telnyx_rtc.media Verto signaling message with an SDP.
+                //The incoming SDP must be set in the caller client as the remote SDP to start listening a ringback tone
+                //that is sent from the Telnyx cloud.
+                if let params = vertoMessage.params {
+                    guard let remoteSdp = params["sdp"] as? String else {
+                        return
+                    }
+                    guard let callId = params["callID"] as? String,
+                          let uuid = UUID(uuidString: callId) else {
+                        return
+                    }
+
+                    //Check if call ID is the same as the invite
+                    guard let call = self.call,
+                          let callUUID = call.callInfo?.callId,
+                          callUUID == uuid else { return }
+
+                    call.answered(sdp: remoteSdp)
+                }
+                break
+
             case .ANSWER:
                 //When the remote peer answers the call
                 //Set the remote SDP into the current RTCPConnection and the call should start!
