@@ -7,9 +7,14 @@
 
 import Foundation
 
+
+/// The `TelnyxRTC` client connects your application to the Telnyx backend,
+/// enabling you to make outgoing calls and handle incoming calls.
 public class TxClient {
     private let CURRENT_VERSION = "1.0.0"
     
+
+    /// Subscribe to TxClient delegate to receive Telnyx RTC events
     public var delegate: TxClientDelegate?
     private var socket : Socket?
     
@@ -18,11 +23,14 @@ public class TxClient {
     private var call: Call?
 
     public init() {}
-    
+
+    /// Gets the current Telnyx WebRTC SDK version
     public func getVersion() -> String {
         return CURRENT_VERSION
     }
-    
+
+    /// Connects to the iOS client to the Telnyx signaling server using the desired login credentials.
+    /// - Parameter txConfig: txConfig. The desired login credentials. See TxConfig docummentation for more information.
     public func connect(txConfig: TxConfig) {
         print("TxClient:: connect()")
         self.txConfig = txConfig
@@ -30,18 +38,23 @@ public class TxClient {
         self.socket?.delegate = self
         self.socket?.connect()
     }
-    
+
+    /// Disconnects the TxClient from the Telnyx signaling server.
     public func disconnect() {
         print("TxClient:: disconnect()")
         socket?.disconnect()
         socket = nil
         delegate?.onSocketDisconnected()
     }
-    
+
+    /// Obtaian the current session ID after loggin in to Telnyx server.
+    /// - Returns: The current sessionId. If this value is empty, that means that the client is not connected to Telnyx server.
     public func getSessionId() -> String {
         return sessionId ?? ""
     }
-    
+
+    /// Check if TxClient is connected to Telnyx servers.
+    /// - Returns: `true` if TxClient socket is connected, `false` otherwise.
     public func isConnected() -> Bool {
         guard let isConnected = socket?.isConnected else { return false }
         return isConnected
@@ -51,13 +64,19 @@ public class TxClient {
 // MARK: - Call handling
 extension TxClient {
 
+    
+    /// Get the current Call state.
+    /// - Returns: returns the current call state `CallState`. If there's no call, the returned value is `NEW`
     public func getCallState() -> CallState {
         return self.call?.callState ?? .NEW
     }
-    /**
-        Creates a Call and starts the call sequence, negotiate the ICE Candidates and sends the invite.
-        destinationNumber: Phone number or SIP address to call.
-     */
+
+    /// Creates a Call and starts the call sequence, negotiate the ICE Candidates and sends the invite.
+    /// - Parameters:
+    ///   - callerName: The caller name. This will be displayed as the caller name in the remote's client.
+    ///   - callerNumber: The caller Number. The phone number of the current user.
+    ///   - destinationNumber: The destination SIP user address or phone number.
+    ///   - callId: The current call UUID.
     public func newCall(callerName: String,
                  callerNumber: String,
                  destinationNumber: String,
