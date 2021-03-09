@@ -37,7 +37,7 @@ class ViewController: UIViewController {
         self.callView.delegate = self
         self.callView.hideEndButton(hide: true)
         self.settingsView.isHidden = false
-        self.versionLabel.text = self.telnyxClient?.getVersion()
+        self.versionLabel.text = ""
 
         self.incomingCallView.isHidden = true
         self.incomingCallView.delegate = self
