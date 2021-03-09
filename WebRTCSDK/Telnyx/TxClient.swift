@@ -160,12 +160,18 @@ extension TxClient : SocketDelegate {
         print("TxClient:: SocketDelegate onSocketConnected()")
         self.delegate?.onSocketConnected()
         
-        guard let sipUser = self.txConfig?.sipUser else { return }
-        guard let password = self.txConfig?.password else { return }
         //Login into the signaling server after the connection is produced.
-        //TODO: Implement login by Token
-        let vertoLogin = LoginMessage(user: sipUser, password: password)
-        self.socket?.sendMessage(message: vertoLogin.encode())
+        if let token = self.txConfig?.token  {
+            print("TxClient:: SocketDelegate onSocketConnected() login with Token")
+            let vertoLogin = LoginMessage(token: token)
+            self.socket?.sendMessage(message: vertoLogin.encode())
+        } else {
+            print("TxClient:: SocketDelegate onSocketConnected() login with SIP User and Password")
+            guard let sipUser = self.txConfig?.sipUser else { return }
+            guard let password = self.txConfig?.password else { return }
+            let vertoLogin = LoginMessage(user: sipUser, password: password)
+            self.socket?.sendMessage(message: vertoLogin.encode())
+        }
     }
     
     func onSocketDisconnected() {
