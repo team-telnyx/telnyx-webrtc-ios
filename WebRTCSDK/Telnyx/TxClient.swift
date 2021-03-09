@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import AVFoundation
 
 
 /// The `TelnyxRTC` client connects your application to the Telnyx backend,
@@ -19,6 +20,9 @@ public class TxClient {
     private var sessionId : String?
     private var txConfig: TxConfig?
     private var call: Call?
+
+    private var ringTonePlayer: AVAudioPlayer?
+    private var ringbackPlayer: AVAudioPlayer?
 
     public init() {}
 
@@ -88,12 +92,15 @@ extension TxClient {
 
     /// Call this function to hangup an ongoing call
     public func hangup() {
+        self.stopRingtone()
+        self.stopRingbackTone()
         self.call?.hangup()
     }
 
 
     /// Call this function to answer an incoming call
     public func answer() {
+        self.stopRingtone()
         self.call?.answerCall()
     }
 
@@ -141,6 +148,62 @@ extension TxClient {
     /// Unhold the Call
     public func unhold() {
         self.call?.unhold()
+    }
+}
+
+// MARK: - Ringtone and Ringback tone handling
+extension TxClient {
+
+    private func playRingtone() {
+        print("TxClient:: playRingtone()")
+        guard let ringtone = self.txConfig?.ringtone else { return }
+        if self.ringTonePlayer == nil {
+            self.ringTonePlayer = self.buildAudioPlayer(fileName: ringtone)
+        }
+        guard let ringtonePlayer = self.ringTonePlayer else { return  }
+
+        ringtonePlayer.numberOfLoops = -1 // infinite
+        ringtonePlayer.play()
+    }
+
+    private func stopRingtone() {
+        print("TxClient:: stopRingtone()")
+        self.ringTonePlayer?.stop()
+    }
+
+    private func playRingbackTone() {
+        print("TxClient:: playRingbackTone()")
+        guard let ringback = self.txConfig?.ringBackTone else { return }
+        if self.ringbackPlayer == nil {
+            self.ringbackPlayer = self.buildAudioPlayer(fileName: ringback)
+        }
+        guard let ringbackPlayer = self.ringbackPlayer else { return  }
+
+        ringbackPlayer.numberOfLoops = -1 // infinite
+        ringbackPlayer.play()
+    }
+
+    private func stopRingbackTone() {
+        print("TxClient:: stopRingbackTone()")
+        self.ringbackPlayer?.stop()
+    }
+
+    private func buildAudioPlayer(fileName: String) -> AVAudioPlayer? {
+        print("TxClient:: buildAudioPlayer fileName: \(fileName)")
+        guard let path = Bundle.main.path(forResource: fileName, ofType: nil ) else {
+            print("TxClient:: buildAudioPlayer() file not found: \(fileName).")
+            return nil
+        }
+        let url = URL(fileURLWithPath: path)
+        do {
+            let audioPlayer = try AVAudioPlayer(contentsOf: url)
+            try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.ambient)
+            try AVAudioSession.sharedInstance().setActive(true)
+            return audioPlayer
+        } catch{
+            print("TxClient:: buildAudioPlayer() error: \(error)")
+        }
+        return nil
     }
 }
 // MARK: - CallProtocol
@@ -214,6 +277,8 @@ extension TxClient : SocketDelegate {
                     }
                     self.call?.endCall()
                     self.delegate?.onRemoteCallEnded(callId: uuid)
+                    self.stopRingtone()
+                    self.stopRingbackTone()
                 }
                 break
 
@@ -247,6 +312,8 @@ extension TxClient : SocketDelegate {
                     }
                     //retrieve the remote SDP from the ANSWER verto message and set it to the current RTCPconnection
                     self.call?.answered(sdp: remoteSdp)
+                    self.stopRingtone()
+                    self.stopRingbackTone()
                 }
                 break;
 
@@ -263,9 +330,13 @@ extension TxClient : SocketDelegate {
                     let callerNumber = params["caller_id_number"] as? String ?? ""
 
                     self.createIncomingCall(callerName: callerName, callerNumber: callerNumber, callId: uuid, remoteSdp: sdp)
+                    self.playRingtone()
                 }
                 break;
 
+            case .RINGING:
+                self.playRingbackTone()
+                break
             default:
                 print("TxClient:: SocketDelegate Default method")
                 break

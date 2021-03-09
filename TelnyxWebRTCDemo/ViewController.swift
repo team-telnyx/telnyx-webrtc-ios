@@ -67,8 +67,12 @@ class ViewController: UIViewController {
             guard let sipUser = self.settingsView.sipUsernameLabel.text else { return }
             guard let password = self.settingsView.passwordUserNameLabel.text else { return }
 
+            //Sets the login credentials and the ringtone/ringback configurations if required.
+            //Ringtone / ringback tone files are not mandatory.
             let txConfig = TxConfig(sipUser: sipUser,
-                                    password: password)
+                                    password: password,
+                                    ringtone: "incoming_call.mp3",
+                                    ringBackTone: "ringback_tone.mp3")
 
             self.telnyxClient?.connect(txConfig: txConfig)
         }

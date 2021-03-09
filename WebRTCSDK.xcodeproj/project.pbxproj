@@ -46,6 +46,8 @@
 		B3AF255625EEA6CD0062EDA9 /* Pods_WebRTCSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 17397D6C67619E3AEBD7A4CA /* Pods_WebRTCSDK.framework */; };
 		B3AF255F25EEA6EA0062EDA9 /* Pods_TelnyxWebRTCDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6831A164C510407EBB5A919B /* Pods_TelnyxWebRTCDemo.framework */; };
 		B3E1029A25F2C16500227DCE /* ModifyMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3E1029925F2C16500227DCE /* ModifyMessage.swift */; };
+		B3E1033225F7F94900227DCE /* incoming_call.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B3E1033025F7F94900227DCE /* incoming_call.mp3 */; };
+		B3E1033325F7F94900227DCE /* ringback_tone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B3E1033125F7F94900227DCE /* ringback_tone.mp3 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -119,6 +121,8 @@
 		B3AF249725EE7DC70062EDA9 /* SocketDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketDelegate.swift; sourceTree = "<group>"; };
 		B3AF24A925EE84570062EDA9 /* UIViewControllerExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIViewControllerExtension.swift; sourceTree = "<group>"; };
 		B3E1029925F2C16500227DCE /* ModifyMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifyMessage.swift; sourceTree = "<group>"; };
+		B3E1033025F7F94900227DCE /* incoming_call.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = incoming_call.mp3; sourceTree = "<group>"; };
+		B3E1033125F7F94900227DCE /* ringback_tone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = ringback_tone.mp3; sourceTree = "<group>"; };
 		D50D648ABF71AA9BE2F93889 /* Pods_WebRTCSDK_WebRTCSDKTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_WebRTCSDK_WebRTCSDKTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC9BC1EDFFF9036F8CB56E1E /* Pods-WebRTCSDK-WebRTCSDKTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WebRTCSDK-WebRTCSDKTests.release.xcconfig"; path = "Target Support Files/Pods-WebRTCSDK-WebRTCSDKTests/Pods-WebRTCSDK-WebRTCSDKTests.release.xcconfig"; sourceTree = "<group>"; };
 		E416E72A202EB8794769F5F1 /* Pods-WebRTCSDK.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WebRTCSDK.debug.xcconfig"; path = "Target Support Files/Pods-WebRTCSDK/Pods-WebRTCSDK.debug.xcconfig"; sourceTree = "<group>"; };
@@ -258,6 +262,7 @@
 		B368BEE925EDDD060032AE52 /* TelnyxWebRTCDemo */ = {
 			isa = PBXGroup;
 			children = (
+				B3E1032F25F7F93000227DCE /* Resources */,
 				B309D1FB25F028F100A2AADF /* Views */,
 				B3AF24A825EE84410062EDA9 /* Extensions */,
 				B368BEEA25EDDD060032AE52 /* AppDelegate.swift */,
@@ -300,6 +305,15 @@
 				B3AF24A925EE84570062EDA9 /* UIViewControllerExtension.swift */,
 			);
 			path = Extensions;
+			sourceTree = "<group>";
+		};
+		B3E1032F25F7F93000227DCE /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				B3E1033025F7F94900227DCE /* incoming_call.mp3 */,
+				B3E1033125F7F94900227DCE /* ringback_tone.mp3 */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		EA45B40E24738E41F9F44AA0 /* Frameworks */ = {
@@ -450,7 +464,9 @@
 				B368BEF725EDDD070032AE52 /* LaunchScreen.storyboard in Resources */,
 				B309D1FD25F0291100A2AADF /* UISettingsView.xib in Resources */,
 				B309D27C25F17C1700A2AADF /* UIIncomingCallView.xib in Resources */,
+				B3E1033225F7F94900227DCE /* incoming_call.mp3 in Resources */,
 				B368BEF425EDDD070032AE52 /* Assets.xcassets in Resources */,
+				B3E1033325F7F94900227DCE /* ringback_tone.mp3 in Resources */,
 				B368BEF225EDDD060032AE52 /* Main.storyboard in Resources */,
 				B309D24E25F0717B00A2AADF /* UICallScreen.xib in Resources */,
 			);
