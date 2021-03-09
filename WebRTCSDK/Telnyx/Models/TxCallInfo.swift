@@ -7,6 +7,8 @@
 
 import Foundation
 
+
+/// `TxCallInfo` contains the required information of the current Call
 public struct TxCallInfo {
     var callId: UUID
     var callerName:String?
