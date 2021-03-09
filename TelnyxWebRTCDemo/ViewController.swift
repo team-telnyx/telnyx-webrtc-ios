@@ -59,11 +59,17 @@ class ViewController: UIViewController {
             telnyxClient.disconnect()
         } else {
             
+            //Here we are Login in with a SIP User and Password. In case token login is needed:
+            //1) Generate a token following https://developers.telnyx.com/docs/v2/webrtc/quickstart
+            //2) Pass the generated token to a TxConfig instance.
+            //   let txConfig = TxConfig(token: "My Token generated")
+            //3) Pass the txConfig object to the .connect() function.
             guard let sipUser = self.settingsView.sipUsernameLabel.text else { return }
             guard let password = self.settingsView.passwordUserNameLabel.text else { return }
 
             let txConfig = TxConfig(sipUser: sipUser,
                                     password: password)
+
             self.telnyxClient?.connect(txConfig: txConfig)
         }
     }
