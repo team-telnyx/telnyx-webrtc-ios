@@ -11,8 +11,6 @@ import Foundation
 /// The `TelnyxRTC` client connects your application to the Telnyx backend,
 /// enabling you to make outgoing calls and handle incoming calls.
 public class TxClient {
-    private let CURRENT_VERSION = "1.0.0"
-    
 
     /// Subscribe to TxClient delegate to receive Telnyx RTC events
     public var delegate: TxClientDelegate?
@@ -23,11 +21,6 @@ public class TxClient {
     private var call: Call?
 
     public init() {}
-
-    /// Gets the current Telnyx WebRTC SDK version
-    public func getVersion() -> String {
-        return CURRENT_VERSION
-    }
 
     /// Connects to the iOS client to the Telnyx signaling server using the desired login credentials.
     /// - Parameter txConfig: txConfig. The desired login credentials. See TxConfig docummentation for more information.
@@ -64,7 +57,6 @@ public class TxClient {
 // MARK: - Call handling
 extension TxClient {
 
-    
     /// Get the current Call state.
     /// - Returns: returns the current call state `CallState`. If there's no call, the returned value is `NEW`
     public func getCallState() -> CallState {
