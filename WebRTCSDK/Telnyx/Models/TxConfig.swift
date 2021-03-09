@@ -11,6 +11,7 @@ import Foundation
 public struct TxConfig {
     var sipUser: String?
     var password: String?
+    var token: String?
 
 
     /// Constructor of the Telnyx SDK configuration
@@ -22,5 +23,12 @@ public struct TxConfig {
     public init(sipUser: String, password: String) {
         self.sipUser = sipUser
         self.password = password
+    }
+
+    /// Constructor of the Telnyx SDK configuration
+    /// Login using a token.
+    /// - Parameter token: Token generated from https://developers.telnyx.com/docs/v2/webrtc/quickstart
+    public init(token: String) {
+        self.token = token
     }
 }
