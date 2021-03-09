@@ -117,6 +117,39 @@ extension TxClient {
 
 }
 
+// MARK: - Audio
+extension TxClient {
+
+    /// Mutes the audio of the active call.
+    public func muteAudio() {
+        self.call?.muteAudio()
+    }
+
+    /// Unmutes the audio of the active call.
+    public func unmuteAudio() {
+        self.call?.unmuteAudio()
+    }
+}
+// MARK: - Hold Unhold
+extension TxClient {
+
+    /// Hold the Call
+    public func hold() {
+        self.call?.hold()
+    }
+
+    /// Unhold the Call
+    public func unhold() {
+        self.call?.unhold()
+    }
+}
+// MARK: - CallProtocol
+extension TxClient: CallProtocol {
+    func callStateUpdated(callState: CallState) {
+        self.delegate?.onCallStateUpdated(callState: callState)
+    }
+}
+
 // MARK: - SocketDelegate
 /**
  Listen for wss socket events
@@ -151,7 +184,7 @@ extension TxClient : SocketDelegate {
     func onMessageReceived(message: String) {
         print("TxClient:: SocketDelegate onMessageReceived() message: \(message)")
         guard let vertoMessage = Message().decode(message: message) else { return }
-        
+
         //Check if we are getting the new sessionId in response to the "login" message.
         if let result = vertoMessage.result {
             //process result
@@ -173,8 +206,8 @@ extension TxClient : SocketDelegate {
                           let uuid = UUID(uuidString: callId) else {
                         return
                     }
-                    self.delegate?.onRemoteCallEnded(callId: uuid)
                     self.call?.endCall()
+                    self.delegate?.onRemoteCallEnded(callId: uuid)
                 }
                 break
 
@@ -184,10 +217,8 @@ extension TxClient : SocketDelegate {
                 //The incoming SDP must be set in the caller client as the remote SDP to start listening a ringback tone
                 //that is sent from the Telnyx cloud.
                 if let params = vertoMessage.params {
-                    guard let remoteSdp = params["sdp"] as? String else {
-                        return
-                    }
-                    guard let callId = params["callID"] as? String,
+                    guard let remoteSdp = params["sdp"] as? String,
+                          let callId = params["callID"] as? String,
                           let uuid = UUID(uuidString: callId) else {
                         return
                     }
@@ -216,21 +247,14 @@ extension TxClient : SocketDelegate {
             case .INVITE:
                 //invite received
                 if let params = vertoMessage.params {
-                    guard let sdp = params["sdp"] as? String else {
-                        return
-                    }
-                    guard let callId = params["callID"] as? String,
+                    guard let sdp = params["sdp"] as? String,
+                          let callId = params["callID"] as? String,
                           let uuid = UUID(uuidString: callId) else {
                         return
                     }
 
-                    guard let callerName = params["caller_id_name"] as? String else {
-                        return
-                    }
-
-                    guard let callerNumber = params["caller_id_number"] as? String else {
-                        return
-                    }
+                    let callerName = params["caller_id_name"] as? String ?? ""
+                    let callerNumber = params["caller_id_number"] as? String ?? ""
 
                     self.createIncomingCall(callerName: callerName, callerNumber: callerNumber, callId: uuid, remoteSdp: sdp)
                 }
@@ -241,37 +265,5 @@ extension TxClient : SocketDelegate {
                 break
             }
         }
-    }
-}
-// MARK: - Audio
-extension TxClient {
-
-    /// Mutes the audio of the active call.
-    public func muteAudio() {
-        self.call?.muteAudio()
-    }
-
-    /// Unmutes the audio of the active call.
-    public func unmuteAudio() {
-        self.call?.unmuteAudio()
-    }
-}
-// MARK: - Hold Unhold
-extension TxClient {
-
-    /// Hold the Call
-    public func hold() {
-        self.call?.hold()
-    }
-
-    /// Unhold the Call
-    public func unhold() {
-        self.call?.unhold()
-    }
-}
-// MARK: - CallProtocol
-extension TxClient: CallProtocol {
-    func callStateUpdated(callState: CallState) {
-        self.delegate?.onCallStateUpdated(callState: callState)
     }
 }
