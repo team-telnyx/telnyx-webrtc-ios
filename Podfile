@@ -15,8 +15,8 @@ target 'WebRTCSDK' do
   use_frameworks!
 
   # Pods for WebRTCSDK
-  pod 'Starscream', '~> 4.0.0'
-  pod 'GoogleWebRTC', '~> 1.1'
+  pod 'Starscream', '~> 4.0.4'
+  pod 'GoogleWebRTC', '~> 1.1.31999'
 
   target 'WebRTCSDKTests' do
     # Pods for testing
