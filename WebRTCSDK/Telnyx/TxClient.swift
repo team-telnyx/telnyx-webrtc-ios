@@ -93,10 +93,14 @@ extension TxClient {
         self.call?.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber)
     }
 
+
+    /// Call this function to hangup an ongoing call
     public func hangup() {
         self.call?.hangup()
     }
 
+
+    /// Call this function to answer an incoming call
     public func answer() {
         self.call?.answerCall()
     }
@@ -249,11 +253,13 @@ extension TxClient : SocketDelegate {
 }
 // MARK: - Audio
 extension TxClient {
-    
+
+    /// Mutes the audio of the active call.
     public func muteAudio() {
         self.call?.muteAudio()
     }
-    
+
+    /// Unmutes the audio of the active call.
     public func unmuteAudio() {
         self.call?.unmuteAudio()
     }
@@ -261,10 +267,12 @@ extension TxClient {
 // MARK: - Hold Unhold
 extension TxClient {
 
+    /// Hold the Call
     public func hold() {
         self.call?.hold()
     }
 
+    /// Unhold the Call
     public func unhold() {
         self.call?.unhold()
     }
