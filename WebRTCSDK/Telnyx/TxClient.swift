@@ -87,17 +87,17 @@ extension TxClient {
                  callId: UUID) throws {
         //User needs to be logged in to get a sessionId
         guard let sessionId = self.sessionId else {
-          throw TxErrors.sessionIdIsRequired
+            throw TxError.callFailed(reason: .sessionIdIsRequired)
         }
         //A socket connection is required
         guard let socket = self.socket,
               socket.isConnected else {
-          throw TxErrors.socketNotConnected
+            throw TxError.socketConnectionFailed(reason: .socketNotConnected)
         }
 
         //A destination number or sip address is required to start a call
         if destinationNumber.isEmpty {
-            throw TxErrors.destinationNumberIsRequired
+            throw TxError.callFailed(reason: .destinationNumberIsRequired)
         }
 
         self.call = Call(callId: callId, sessionId: sessionId, socket: socket, delegate: self)

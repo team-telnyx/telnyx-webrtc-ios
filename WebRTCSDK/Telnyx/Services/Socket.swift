@@ -69,7 +69,7 @@ extension Socket : WebSocketDelegate {
             
         case .cancelled:
             isConnected = false
-            self.delegate?.onSocketError(error: TxErrors.socketNotConnected)
+            self.delegate?.onSocketError(error: TxError.SocketFailureReason.socketCancelled)
             print("Socket:: WebSocketDelegate .cancelled")
             break
             

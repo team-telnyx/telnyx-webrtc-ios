@@ -49,16 +49,16 @@ public struct TxConfig {
         if let password = self.password,
            let user = self.sipUser {
             if (password.isEmpty) {
-                throw TxErrors.passwordIsRequired
+                throw TxError.clientConfigurationFailed(reason: .passwordIsRequired)
             }
             if (user.isEmpty) {
-                throw TxErrors.userNameIsRequired
+                throw TxError.clientConfigurationFailed(reason: .userNameIsRequired)
             }
         } else {
             //check if user has entered token as login
             if let token = self.token,
                token.isEmpty {
-                throw TxErrors.tokenIsRequired
+                throw TxError.clientConfigurationFailed(reason: .tokenIsRequired)
             }
         }
     }
