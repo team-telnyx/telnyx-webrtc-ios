@@ -74,7 +74,11 @@ class ViewController: UIViewController {
                                     ringtone: "incoming_call.mp3",
                                     ringBackTone: "ringback_tone.mp3")
 
-            self.telnyxClient?.connect(txConfig: txConfig)
+            do {
+                try telnyxClient.connect(txConfig: txConfig)
+            } catch let error {
+                print("ViewController:: connect Error \(error)")
+            }
         }
     }
 }
@@ -109,10 +113,10 @@ extension ViewController: TxClientDelegate {
         }
     }
     
-    func onClientError(error: String) {
+    func onClientError(error: Error) {
         print("ViewController:: TxClientDelegate onClientError() error: \(error)")
         DispatchQueue.main.async {
-            self.socketStateLabel.text = "Error"
+            self.socketStateLabel.text = error.localizedDescription
             self.incomingCallView.isHidden = true
         }
     }
@@ -199,9 +203,13 @@ extension ViewController : UICallScreenDelegate {
         let callerName = self.settingsView.callerIdNameLabel.text ?? ""
         let callerNumber = self.settingsView.callerIdNumberLabel.text ?? ""
         
-        //+18722348663
-        //sip:webrtcsquad44613@sip.telnyx.com
-        self.telnyxClient?.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, callId: UUID.init())
+        //+1XXXXXXXXXX
+        //sip:mySipUser@sip.telnyx.com
+        do {
+            try self.telnyxClient?.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, callId: UUID.init())
+        } catch let error {
+            print("ViewController:: newCall Error \(error)")
+        }
     }
     
     func onEndCallButton() {

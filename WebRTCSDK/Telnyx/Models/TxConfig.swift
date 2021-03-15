@@ -40,4 +40,26 @@ public struct TxConfig {
         self.ringBackTone = ringBackTone
         self.ringtone = ringtone
     }
+
+    /// Validate if TxConfig parameters are valid
+    /// - Throws: Throws TxConfig parameters errors
+    public func validateParams() throws {
+        print("TxConfig :: validateParams()")
+        //Check if user has entered username and password parameters
+        if let password = self.password,
+           let user = self.sipUser {
+            if (password.isEmpty) {
+                throw TxErrors.passwordIsRequired
+            }
+            if (user.isEmpty) {
+                throw TxErrors.userNameIsRequired
+            }
+        } else {
+            //check if user has entered token as login
+            if let token = self.token,
+               token.isEmpty {
+                throw TxErrors.tokenIsRequired
+            }
+        }
+    }
 }

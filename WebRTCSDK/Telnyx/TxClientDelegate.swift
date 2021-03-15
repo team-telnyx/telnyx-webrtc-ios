@@ -10,7 +10,7 @@ import Foundation
 public protocol TxClientDelegate {
     func onSocketConnected()
     func onSocketDisconnected()
-    func onClientError(error: String)
+    func onClientError(error: Error)
     func onClientReady()
     func onSessionUpdated(sessionId: String)
     func onCallStateUpdated(callState: CallState)

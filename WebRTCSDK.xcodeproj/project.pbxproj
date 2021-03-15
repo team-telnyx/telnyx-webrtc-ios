@@ -48,6 +48,7 @@
 		B3E1029A25F2C16500227DCE /* ModifyMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3E1029925F2C16500227DCE /* ModifyMessage.swift */; };
 		B3E1033225F7F94900227DCE /* incoming_call.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B3E1033025F7F94900227DCE /* incoming_call.mp3 */; };
 		B3E1033325F7F94900227DCE /* ringback_tone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B3E1033125F7F94900227DCE /* ringback_tone.mp3 */; };
+		F7B835FE25FEAD0700C393C6 /* TxErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7B835FD25FEAD0700C393C6 /* TxErrors.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -126,6 +127,7 @@
 		D50D648ABF71AA9BE2F93889 /* Pods_WebRTCSDK_WebRTCSDKTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_WebRTCSDK_WebRTCSDKTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC9BC1EDFFF9036F8CB56E1E /* Pods-WebRTCSDK-WebRTCSDKTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WebRTCSDK-WebRTCSDKTests.release.xcconfig"; path = "Target Support Files/Pods-WebRTCSDK-WebRTCSDKTests/Pods-WebRTCSDK-WebRTCSDKTests.release.xcconfig"; sourceTree = "<group>"; };
 		E416E72A202EB8794769F5F1 /* Pods-WebRTCSDK.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WebRTCSDK.debug.xcconfig"; path = "Target Support Files/Pods-WebRTCSDK/Pods-WebRTCSDK.debug.xcconfig"; sourceTree = "<group>"; };
+		F7B835FD25FEAD0700C393C6 /* TxErrors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxErrors.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -192,6 +194,7 @@
 				B309D1E325F0240200A2AADF /* TxConfig.swift */,
 				B309D23525F06D2100A2AADF /* TxCallInfo.swift */,
 				B309D23A25F06DC000A2AADF /* TxCallOptions.swift */,
+				F7B835FD25FEAD0700C393C6 /* TxErrors.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -584,6 +587,7 @@
 			files = (
 				B3AF248B25EE7C350062EDA9 /* Socket.swift in Sources */,
 				B309D1DB25F020D400A2AADF /* Method.swift in Sources */,
+				F7B835FE25FEAD0700C393C6 /* TxErrors.swift in Sources */,
 				B368BEE125EDDC7D0032AE52 /* TxClient.swift in Sources */,
 				B309D28625F184A100A2AADF /* AnswerMessage.swift in Sources */,
 				B309D23125F06CA800A2AADF /* Peer.swift in Sources */,

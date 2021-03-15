@@ -10,6 +10,6 @@ import Foundation
 protocol SocketDelegate {
     func onSocketConnected()
     func onSocketDisconnected()
-    func onSocketError()
+    func onSocketError(error: Error)
     func onMessageReceived(message: String)
 }
