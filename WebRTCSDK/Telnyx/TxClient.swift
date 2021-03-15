@@ -270,6 +270,14 @@ extension TxClient : SocketDelegate {
         print("TxClient:: SocketDelegate onMessageReceived() message: \(message)")
         guard let vertoMessage = Message().decode(message: message) else { return }
 
+        //Check if server is sending an error code
+        if let error = vertoMessage.serverError {
+            let message : String = error["message"] as? String ?? "Unknown"
+            let code : String = String(error["code"] as? Int ?? 0)
+            let err = TxError.serverError(reason: .signalingServerError(message: message, code: code))
+            self.delegate?.onClientError(error: err)
+        }
+
         //Check if we are getting the new sessionId in response to the "login" message.
         if let result = vertoMessage.result {
             //process result

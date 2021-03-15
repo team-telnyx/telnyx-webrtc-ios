@@ -77,7 +77,7 @@ class ViewController: UIViewController {
             do {
                 try telnyxClient.connect(txConfig: txConfig)
             } catch let error {
-                print("ViewController:: connect Error \(error.localizedDescription)")
+                print("ViewController:: connect Error \(error)")
             }
         }
     }

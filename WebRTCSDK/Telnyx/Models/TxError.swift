@@ -37,12 +37,20 @@ public enum TxError : Error {
         case sessionIdIsRequired
     }
 
+    /// The underlying reason of the server errors
+    public enum ServerErrorReason {
+        /// Any server signaling error. We get the message and code from the server
+        case signalingServerError(message: String, code: String)
+    }
+
     /// Socket connection failures.
     case socketConnectionFailed(reason: SocketFailureReason)
     /// There's an invalid parameter when setting up the SDK
     case clientConfigurationFailed(reason: ClientConfigurationFailureReason)
     /// There's an invalid parameter when starting a call
     case callFailed(reason: CallFailureReason)
+    /// When the signaling server sends an error
+    case serverError(reason: ServerErrorReason)
 }
 
 // MARK: - Underlying errors
@@ -77,6 +85,21 @@ extension TxError.CallFailureReason {
     }
 }
 
+extension TxError.ServerErrorReason {
+    var errorMessage: String? {
+        switch self {
+        case let .signalingServerError(message):
+            return "Message: \(message)"
+        }
+    }
+
+    var underlyingError: Error? {
+        switch self {
+        case .signalingServerError:
+            return nil
+        }
+    }
+}
 
 // MARK: - Error Descriptions
 extension TxError: LocalizedError {
@@ -88,6 +111,8 @@ extension TxError: LocalizedError {
             return "Client configuration error: \(reason.localizedDescription ?? "No description.")"
         case let .callFailed(reason):
             return "Call failed: \(reason.localizedDescription ?? "No description.")"
+        case let .serverError(reason):
+            return reason.errorMessage
         }
     }
 }
@@ -123,6 +148,15 @@ extension TxError.CallFailureReason {
             return "destinationNumber is missing. A destination number is required to start a call."
         case .sessionIdIsRequired:
             return "sessionId is missing, check that you have called .connect() first."
+        }
+    }
+}
+
+extension TxError.ServerErrorReason {
+    public var localizedDescription: String {
+        switch self {
+        case .signalingServerError(message: let message, code: let code):
+            return "Server error: \(message), code: \(code)"
         }
     }
 }
