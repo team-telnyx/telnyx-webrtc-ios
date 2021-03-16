@@ -17,6 +17,7 @@ class Message {
     var method: Method?
     var params: [String: Any]?
     var result: [String: Any]?
+    var serverError: [String: Any]?
     
     init() {}
     
@@ -50,7 +51,7 @@ class Message {
         self.method = Method(rawValue: jsonMessage["method"] as? String ?? "")
         self.result = jsonMessage["result"] as? [String: Any]
         self.params = jsonMessage["params"] as? [String: Any]
-
+        self.serverError = jsonMessage["error"] as? [String: Any]
         self.jsonMessage = jsonMessage
 
         print("Message:: decode() \(self.jsonMessage)")

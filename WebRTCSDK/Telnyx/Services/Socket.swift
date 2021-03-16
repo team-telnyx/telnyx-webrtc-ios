@@ -69,18 +69,17 @@ extension Socket : WebSocketDelegate {
             
         case .cancelled:
             isConnected = false
-            self.delegate?.onSocketError()
+            self.delegate?.onSocketError(error: TxError.SocketFailureReason.socketCancelled)
             print("Socket:: WebSocketDelegate .cancelled")
             break
             
         case .error(let error):
             isConnected = false
-            self.delegate?.onSocketError()
-
             guard let error = error else {
                 print("Socket:: WebSocketDelegate .error UNKNOWN")
                 return
             }
+            self.delegate?.onSocketError(error: error)
             print("Socket:: WebSocketDelegate .error \(error)")
             break;
             

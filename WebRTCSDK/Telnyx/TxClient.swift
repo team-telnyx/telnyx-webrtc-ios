@@ -28,8 +28,12 @@ public class TxClient {
 
     /// Connects to the iOS client to the Telnyx signaling server using the desired login credentials.
     /// - Parameter txConfig: txConfig. The desired login credentials. See TxConfig docummentation for more information.
-    public func connect(txConfig: TxConfig) {
+    /// - Throws: TxConfig parameters errors
+    public func connect(txConfig: TxConfig) throws {
         print("TxClient:: connect()")
+        //Check connetion parameters
+        try txConfig.validateParams()
+
         self.txConfig = txConfig
         self.socket = Socket()
         self.socket?.delegate = self
@@ -71,18 +75,29 @@ extension TxClient {
     /// - Parameters:
     ///   - callerName: The caller name. This will be displayed as the caller name in the remote's client.
     ///   - callerNumber: The caller Number. The phone number of the current user.
-    ///   - destinationNumber: The destination SIP user address or phone number.
+    ///   - destinationNumber: The destination `SIP user address` (sip:YourSipUser@sip.telnyx.com) or `phone number`.
     ///   - callId: The current call UUID.
+    /// - Throws:
+    ///   - sessionId is required if user is not logged in
+    ///   - socket connection error if socket is not connected
+    ///   - destination number is required to start a call.
     public func newCall(callerName: String,
                  callerNumber: String,
                  destinationNumber: String,
-                 callId: UUID) {
+                 callId: UUID) throws {
+        //User needs to be logged in to get a sessionId
         guard let sessionId = self.sessionId else {
-            return
+            throw TxError.callFailed(reason: .sessionIdIsRequired)
         }
-        
-        guard let socket = self.socket else {
-            return
+        //A socket connection is required
+        guard let socket = self.socket,
+              socket.isConnected else {
+            throw TxError.socketConnectionFailed(reason: .socketNotConnected)
+        }
+
+        //A destination number or sip address is required to start a call
+        if destinationNumber.isEmpty {
+            throw TxError.callFailed(reason: .destinationNumberIsRequired)
         }
 
         self.call = Call(callId: callId, sessionId: sessionId, socket: socket, delegate: self)
@@ -241,11 +256,12 @@ extension TxClient : SocketDelegate {
         print("TxClient:: SocketDelegate onSocketDisconnected()")
         self.delegate?.onSocketDisconnected()
     }
-    
-    func onSocketError() {
+
+    func onSocketError(error: Error) {
         print("TxClient:: SocketDelegate onSocketError()")
+        self.delegate?.onClientError(error: error)
     }
-    
+
     /**
      Each time we receive a message throught  the WSS this method will be called.
      Here we are checking the mesaging
@@ -253,6 +269,14 @@ extension TxClient : SocketDelegate {
     func onMessageReceived(message: String) {
         print("TxClient:: SocketDelegate onMessageReceived() message: \(message)")
         guard let vertoMessage = Message().decode(message: message) else { return }
+
+        //Check if server is sending an error code
+        if let error = vertoMessage.serverError {
+            let message : String = error["message"] as? String ?? "Unknown"
+            let code : String = String(error["code"] as? Int ?? 0)
+            let err = TxError.serverError(reason: .signalingServerError(message: message, code: code))
+            self.delegate?.onClientError(error: err)
+        }
 
         //Check if we are getting the new sessionId in response to the "login" message.
         if let result = vertoMessage.result {
