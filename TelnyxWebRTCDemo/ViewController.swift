@@ -202,9 +202,7 @@ extension ViewController : UICallScreenDelegate {
         
         let callerName = self.settingsView.callerIdNameLabel.text ?? ""
         let callerNumber = self.settingsView.callerIdNumberLabel.text ?? ""
-        
-        //+1XXXXXXXXXX
-        //sip:mySipUser@sip.telnyx.com
+
         do {
             try self.telnyxClient?.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, callId: UUID.init())
         } catch let error {

@@ -75,7 +75,7 @@ extension TxClient {
     /// - Parameters:
     ///   - callerName: The caller name. This will be displayed as the caller name in the remote's client.
     ///   - callerNumber: The caller Number. The phone number of the current user.
-    ///   - destinationNumber: The destination SIP user address or phone number.
+    ///   - destinationNumber: The destination `SIP user address` (sip:YourSipUser@sip.telnyx.com) or `phone number`.
     ///   - callId: The current call UUID.
     /// - Throws:
     ///   - sessionId is required if user is not logged in
