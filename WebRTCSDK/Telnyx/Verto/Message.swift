@@ -29,6 +29,8 @@ class Message {
         self.jsonMessage["id"] = self.id
         self.jsonMessage["method"] = self.method?.rawValue
         self.jsonMessage["params"] = params
+        self.params = params
+        self.method = method
 
     }
     
