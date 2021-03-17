@@ -99,4 +99,26 @@ class VertoMessagesTests: XCTestCase {
         XCTAssertEqual(dialogParams["caller_id_number"] as! String , callerNumber)
     }
 
+    /**
+     Test verto Bye
+     */
+    func testByeMessage() {
+        print("VertoMessagesTest :: testByeMessage()")
+
+        let sessionId = "<sessionId>"
+        let callId = UUID.init().uuidString.lowercased()
+        let causeCode = CauseCode.USER_BUSY
+        let byeMessage = ByeMessage(sessionId: sessionId, callId: callId, causeCode: causeCode)
+
+        //Encode and decode the Bye message
+        let encodedMessage: String = byeMessage.encode() ?? ""
+        let decodedMessage = Message().decode(message: encodedMessage)
+
+        XCTAssertEqual(decodedMessage?.params?["sessId"] as! String , sessionId)
+        XCTAssertEqual(decodedMessage?.params?["causeCode"] as! Int , causeCode.rawValue)
+
+        let dialogParams = decodedMessage?.params?["dialogParams"] as! [String: Any]
+        XCTAssertEqual(dialogParams["callID"] as! String , callId)
+    }
+
 }
