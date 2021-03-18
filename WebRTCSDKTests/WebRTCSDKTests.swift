@@ -9,12 +9,16 @@ import XCTest
 @testable import WebRTCSDK
 
 class WebRTCSDKTests: XCTestCase {
-    private var telnyxClient : TxClient?
+    private var expectation: XCTestExpectation!
+    private var telnyxClient: TxClient?
+    private var serverError: Error?
 
     override func setUpWithError() throws {
         print("WebRTCSDKTests:: setUpWithError")
         //Setup the SDK
         self.telnyxClient = TxClient()
+        self.telnyxClient?.delegate = self
+        self.serverError = nil
     }
 
     override func tearDownWithError() throws {
@@ -22,6 +26,8 @@ class WebRTCSDKTests: XCTestCase {
         self.telnyxClient?.delegate = nil
         self.telnyxClient?.disconnect()
         self.telnyxClient = nil
+        self.serverError = nil
+        self.expectation = nil
     }
 
     // MARK: - HELPER FUNCTIONS
@@ -37,7 +43,7 @@ class WebRTCSDKTests: XCTestCase {
         return error
     }
 
-    // MARK: - LOGIN RELATED TESTS
+    // MARK: - LOGIN RELATED ERROR TESTS
 
     /**
      Test login error when credentials are empty
@@ -93,4 +99,84 @@ class WebRTCSDKTests: XCTestCase {
                        TxError.clientConfigurationFailed(reason: .tokenIsRequired).localizedDescription)
     }
 
+    /**
+     Test login error when using wrong sip user and password.
+     - Connects to wss
+     - Sends an login message using user and password.
+     - Waits for server login error
+     */
+    func testLoginErrorInvalidCredentials() {
+        //This needs to be solved from the Server side
+        //Currently this test case will fail due that the server.
+        //is returning a success message:
+        //{"jsonrpc":"2.0","id":"3bdc03f2-03a3-44b0-aea3-326fcca9d066","result":{"message":"logged in","sessid":"9af493a1-2f9f-4f73-bffc-db2bc25f66f8"}}
+        expectation = expectation(description: "socketDisconnection")
+        let sipUser = "<userName>"
+        let sipPassword = "<password>"
+        let txConfig = TxConfig(sipUser: sipUser,
+                                password: sipPassword)
+
+        let error: Error? = self.connectAndReturnError(txConfig: txConfig)
+        XCTAssertNil(error)
+        waitForExpectations(timeout: 10)
+        //TODO: CHECK ERROR HERE. We should receive an error from the server in the future
+    }
+
+    /**
+     Test login error when using wrong sip user and password.
+     - Connects to wss
+     - Sends an login message using an invalid token
+     - Waits for server login error
+     */
+    func testLoginErrorInvalidToken() {
+        expectation = expectation(description: "socketDisconnection")
+        let token = "<token>"
+        let txConfig = TxConfig(token: token)
+        let error: Error? = self.connectAndReturnError(txConfig: txConfig)
+        XCTAssertNil(error)
+        waitForExpectations(timeout: 10)
+        XCTAssertNotNil(serverError)
+        //Check error returned by the server
+        XCTAssertEqual(serverError?.localizedDescription,
+                       TxError.serverError(reason:
+                                            .signalingServerError(message: "Authentication Required",
+                                                                  code: "-32000")).localizedDescription)
+    }
+
+}
+// MARK: - TxClientDelegate
+extension WebRTCSDKTests : TxClientDelegate {
+    func onSocketConnected() {
+        print("WebRTCSDKTests :: TxClientDelegate onSocketConnected()")
+    }
+
+    func onSocketDisconnected() {
+        print("WebRTCSDKTests :: TxClientDelegate onSocketDisconnected()")
+    }
+
+    func onClientError(error: Error) {
+        print("WebRTCSDKTests :: TxClientDelegate onClientError()")
+        self.serverError = error
+        self.expectation.fulfill()
+    }
+
+    func onClientReady() {
+        print("WebRTCSDKTests :: TxClientDelegate onClientReady()")
+    }
+
+    func onSessionUpdated(sessionId: String) {
+        print("WebRTCSDKTests :: TxClientDelegate onSessionUpdated()")
+    }
+
+    func onCallStateUpdated(callState: CallState) {
+        print("WebRTCSDKTests :: TxClientDelegate onCallStateUpdated()")
+    }
+
+    func onIncomingCall(callInfo: TxCallInfo) {
+        print("WebRTCSDKTests :: TxClientDelegate onIncomingCall()")
+    }
+
+    func onRemoteCallEnded(callId: UUID) {
+        print("WebRTCSDKTests :: TxClientDelegate onRemoteCallEnded()")
+    }
 }
