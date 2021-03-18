@@ -119,6 +119,8 @@ class VertoMessagesTests: XCTestCase {
         XCTAssertEqual(vars["dummy_var_1"] as! String , "dummy_var_1_value")
         XCTAssertEqual(vars["dummy_var_2"] as! String , "dummy_var_2_value")
 
+        let decodedMethod = decodedInviteMessage?.method
+        XCTAssertEqual(decodedMethod, Method.INVITE)
     }
 
     /**
@@ -141,6 +143,9 @@ class VertoMessagesTests: XCTestCase {
 
         let dialogParams = decodedMessage?.params?["dialogParams"] as! [String: Any]
         XCTAssertEqual(dialogParams["callID"] as! String , callId)
+
+        let decodedMethod = decodedMessage?.method
+        XCTAssertEqual(decodedMethod, Method.BYE)
     }
 
     /**
@@ -203,6 +208,9 @@ class VertoMessagesTests: XCTestCase {
         let vars = dialogParams["userVariables"] as! [String: Any]
         XCTAssertEqual(vars["dummy_var_1"] as! String , "dummy_var_1_value")
         XCTAssertEqual(vars["dummy_var_2"] as! String , "dummy_var_2_value")
+
+        let decodedMethod = decodedMessage?.method
+        XCTAssertEqual(decodedMethod, Method.ANSWER)
     }
 
 }
