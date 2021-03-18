@@ -213,4 +213,28 @@ class VertoMessagesTests: XCTestCase {
         XCTAssertEqual(decodedMethod, Method.ANSWER)
     }
 
+    /**
+     Test verto Modify
+     */
+    func testModifyMessage() {
+        print("VertoMessagesTest :: testByeMessage()")
+
+        let sessionId = "<sessionId>"
+        let callId = UUID.init().uuidString.lowercased()
+        let action = ModifyAction.HOLD
+        let modifyMessage = ModifyMessage(sessionId: sessionId, callId: callId, action: action)
+
+        //Encode and decode the Bye message
+        let encodedMessage: String = modifyMessage.encode() ?? ""
+        let decodedMessage = Message().decode(message: encodedMessage)
+
+        XCTAssertEqual(decodedMessage?.params?["sessionId"] as! String , sessionId)
+        XCTAssertEqual(decodedMessage?.params?["action"] as! String , action.rawValue)
+
+        let dialogParams = decodedMessage?.params?["dialogParams"] as! [String: Any]
+        XCTAssertEqual(dialogParams["callID"] as! String , callId)
+
+        let decodedMethod = decodedMessage?.method
+        XCTAssertEqual(decodedMethod, Method.MODIFY)
+    }
 }
