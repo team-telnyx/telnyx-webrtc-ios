@@ -77,9 +77,20 @@ class VertoMessagesTests: XCTestCase {
         let destinationNumber = "<destinationNumber>"
         let remoteCallerName = "<remoteCallerName>"
         let remoteCallerNumber = "<remoteCallerNumber>"
+
+        var userVariables = [String: Any]()
+        userVariables["dummy_var_1"] = "dummy_var_1_value"
+        userVariables["dummy_var_2"] = "dummy_var_2_value"
+
         let callOptions: TxCallOptions = TxCallOptions(destinationNumber: destinationNumber,
                                                        remoteCallerName: remoteCallerName,
-                                                       remoteCallerNumber: remoteCallerNumber)
+                                                       remoteCallerNumber: remoteCallerNumber,
+                                                       audio: true,
+                                                       video: false,
+                                                       attach: false,
+                                                       useStereo: false,
+                                                       screenShare: false,
+                                                       userVariables: userVariables)
 
         let inviteMessage: InviteMessage = InviteMessage(sessionId: sessionId, sdp: sdp, callInfo: callInfo, callOptions: callOptions)
 
@@ -92,11 +103,22 @@ class VertoMessagesTests: XCTestCase {
 
         let dialogParams = decodedInviteMessage?.params?["dialogParams"] as! [String: Any]
 
+        //TODO: Validate this with the JS SDK
         XCTAssertEqual(dialogParams["callID"] as! String , callId.uuidString.lowercased())
         XCTAssertEqual(dialogParams["destination_number"] as! String , destinationNumber)
         XCTAssertEqual(dialogParams["remote_caller_id_name"] as! String , remoteCallerName)
         XCTAssertEqual(dialogParams["caller_id_name"] as! String , callerName)
         XCTAssertEqual(dialogParams["caller_id_number"] as! String , callerNumber)
+        XCTAssertEqual(dialogParams["audio"] as! Bool , true)
+        XCTAssertEqual(dialogParams["video"] as! Bool , false)
+        XCTAssertEqual(dialogParams["attach"] as! Bool , false)
+        XCTAssertEqual(dialogParams["useStereo"] as! Bool , false)
+        XCTAssertEqual(dialogParams["screenShare"] as! Bool , false)
+
+        let vars = dialogParams["userVariables"] as! [String: Any]
+        XCTAssertEqual(vars["dummy_var_1"] as! String , "dummy_var_1_value")
+        XCTAssertEqual(vars["dummy_var_2"] as! String , "dummy_var_2_value")
+
     }
 
     /**
@@ -119,6 +141,68 @@ class VertoMessagesTests: XCTestCase {
 
         let dialogParams = decodedMessage?.params?["dialogParams"] as! [String: Any]
         XCTAssertEqual(dialogParams["callID"] as! String , callId)
+    }
+
+    /**
+     Test verto Answer
+     */
+    func testAnswerMessage() {
+        print("VertoMessagesTest :: testAnswerMessage()")
+
+        let sessionId = "<sessionId>"
+        let sdp = "<SDP>"
+
+        // Setup callInfo
+        let callId = UUID.init()
+        let callerName = "<callerName>"
+        let callerNumber = "<callerNumber>"
+        let callInfo: TxCallInfo = TxCallInfo(callId: callId,
+                                              callerName: callerName,
+                                              callerNumber: callerNumber)
+        // Setup callOptions
+        let destinationNumber = "<destinationNumber>"
+        let remoteCallerName = "<remoteCallerName>"
+        let remoteCallerNumber = "<remoteCallerNumber>"
+
+        var userVariables = [String: Any]()
+        userVariables["dummy_var_1"] = "dummy_var_1_value"
+        userVariables["dummy_var_2"] = "dummy_var_2_value"
+
+        let callOptions: TxCallOptions = TxCallOptions(destinationNumber: destinationNumber,
+                                                       remoteCallerName: remoteCallerName,
+                                                       remoteCallerNumber: remoteCallerNumber,
+                                                       audio: true,
+                                                       video: false,
+                                                       attach: false,
+                                                       useStereo: false,
+                                                       screenShare: false,
+                                                       userVariables: userVariables)
+
+        let answerMessage = AnswerMessage(sessionId: sessionId, sdp: sdp, callInfo: callInfo, callOptions: callOptions)
+
+        //Encode and decode the message
+        let encodedMessage: String = answerMessage.encode() ?? ""
+        let decodedMessage = Message().decode(message: encodedMessage)
+
+        XCTAssertEqual(decodedMessage?.params?["sessionId"] as! String , sessionId)
+        XCTAssertEqual(decodedMessage?.params?["sdp"] as! String , sdp)
+
+        let dialogParams = decodedMessage?.params?["dialogParams"] as! [String: Any]
+
+        //TODO: Validate this with the JS SDK
+        XCTAssertEqual(dialogParams["callID"] as! String , callId.uuidString.lowercased())
+        XCTAssertEqual(dialogParams["remote_caller_id_name"] as! String , remoteCallerName) //check this
+        XCTAssertEqual(dialogParams["caller_id_name"] as! String , callerName) // check this
+        XCTAssertEqual(dialogParams["caller_id_number"] as! String , remoteCallerNumber) //check this
+        XCTAssertEqual(dialogParams["audio"] as! Bool , true)
+        XCTAssertEqual(dialogParams["video"] as! Bool , false)
+        XCTAssertEqual(dialogParams["attach"] as! Bool , false)
+        XCTAssertEqual(dialogParams["useStereo"] as! Bool , false)
+        XCTAssertEqual(dialogParams["screenShare"] as! Bool , false)
+
+        let vars = dialogParams["userVariables"] as! [String: Any]
+        XCTAssertEqual(vars["dummy_var_1"] as! String , "dummy_var_1_value")
+        XCTAssertEqual(vars["dummy_var_2"] as! String , "dummy_var_2_value")
     }
 
 }
