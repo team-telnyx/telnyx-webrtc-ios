@@ -29,8 +29,10 @@ class WebRTCSDKTests: XCTestCase {
         self.serverError = nil
         self.expectation = nil
     }
+}
 
-    // MARK: - HELPER FUNCTIONS
+// MARK: - HELPER FUNCTIONS
+extension WebRTCSDKTests {
     func connectAndReturnError(txConfig: TxConfig) -> Error? {
         //We are expecting an error
         var error: Error? = nil
@@ -42,9 +44,10 @@ class WebRTCSDKTests: XCTestCase {
         }
         return error
     }
+}// WebRTCSDKTests helper functions
 
-    // MARK: - LOGIN RELATED ERROR TESTS
-
+// MARK: - LOGIN RELATED TESTS
+extension WebRTCSDKTests {
     /**
      Test login error when credentials are empty
      */
@@ -110,7 +113,7 @@ class WebRTCSDKTests: XCTestCase {
         //Currently this test case will fail due that the server.
         //is returning a success message:
         //{"jsonrpc":"2.0","id":"3bdc03f2-03a3-44b0-aea3-326fcca9d066","result":{"message":"logged in","sessid":"9af493a1-2f9f-4f73-bffc-db2bc25f66f8"}}
-        expectation = expectation(description: "socketDisconnection")
+        expectation = expectation(description: "loginTest")
         let sipUser = "<userName>"
         let sipPassword = "<password>"
         let txConfig = TxConfig(sipUser: sipUser,
@@ -119,6 +122,8 @@ class WebRTCSDKTests: XCTestCase {
         let error: Error? = self.connectAndReturnError(txConfig: txConfig)
         XCTAssertNil(error)
         waitForExpectations(timeout: 10)
+        let sessionId = self.telnyxClient?.getSessionId() ?? ""
+        XCTAssertFalse(sessionId.isEmpty) // We should get a session ID
         //TODO: CHECK ERROR HERE. We should receive an error from the server in the future
     }
 
@@ -129,7 +134,7 @@ class WebRTCSDKTests: XCTestCase {
      - Waits for server login error
      */
     func testLoginErrorInvalidToken() {
-        expectation = expectation(description: "socketDisconnection")
+        expectation = expectation(description: "loginTest")
         let token = "<token>"
         let txConfig = TxConfig(token: token)
         let error: Error? = self.connectAndReturnError(txConfig: txConfig)
@@ -143,7 +148,49 @@ class WebRTCSDKTests: XCTestCase {
                                                                   code: "-32000")).localizedDescription)
     }
 
-}
+    /**
+     Test login with valid credentials
+     - Connects to wss
+     - Sends an login message using valid credentials
+     - Waits for sessionId
+     */
+    func testLoginValidCredentials() {
+        //TODO: Replace sipUser and sipPassword with valid credentials.
+        //TODO: Implement custom Environment Variables.
+        //TODO: Currently this test is not failing with invalid credentials. The server is returning a sessionId.
+        expectation = expectation(description: "loginTest")
+        let sipUser = "<REPLACE_WITH_VALID_SIP_USER>"
+        let sipPassword = "<REPLACE_WITH_VALID_SIP_PASSWORD>"
+        let txConfig = TxConfig(sipUser: sipUser,
+                                password: sipPassword)
+
+        let error: Error? = self.connectAndReturnError(txConfig: txConfig)
+        XCTAssertNil(error) // We shouldn't get any error here
+        waitForExpectations(timeout: 10)
+        let sessionId = self.telnyxClient?.getSessionId() ?? ""
+        XCTAssertFalse(sessionId.isEmpty) //We should have a session id after login in
+    }
+
+    /**
+     Test login with valid token
+     - Connects to wss
+     - Sends an login message using a valid token
+     - Waits for sessionId
+     */
+    func testLoginValidToken() {
+        //TODO: We should request token through the SDK.
+        //TODO: Replace with a valid token
+        expectation = expectation(description: "loginTest")
+        let token = "<token>"
+        let txConfig = TxConfig(token: token)
+        let error: Error? = self.connectAndReturnError(txConfig: txConfig)
+        XCTAssertNil(error)
+        waitForExpectations(timeout: 10)
+        let sessionId = self.telnyxClient?.getSessionId() ?? ""
+        XCTAssertFalse(sessionId.isEmpty) //We should have a session id after login in
+    }
+}// End WebRTCSDKTests LOGIN TESTS
+
 // MARK: - TxClientDelegate
 extension WebRTCSDKTests : TxClientDelegate {
     func onSocketConnected() {
@@ -166,6 +213,7 @@ extension WebRTCSDKTests : TxClientDelegate {
 
     func onSessionUpdated(sessionId: String) {
         print("WebRTCSDKTests :: TxClientDelegate onSessionUpdated()")
+        self.expectation.fulfill()
     }
 
     func onCallStateUpdated(callState: CallState) {
