@@ -40,6 +40,7 @@
 		B368BEF725EDDD070032AE52 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B368BEF525EDDD070032AE52 /* LaunchScreen.storyboard */; };
 		B39121AF25FFCE680051E076 /* TxError.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39121AE25FFCE680051E076 /* TxError.swift */; };
 		B39121E72600F7B10051E076 /* VertoMessagesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39121E62600F7B10051E076 /* VertoMessagesTests.swift */; };
+		B39121ED2602F22F0051E076 /* SocketTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39121EC2602F22F0051E076 /* SocketTests.swift */; };
 		B3AF248025EE7B1F0062EDA9 /* TxClientDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3AF247F25EE7B1F0062EDA9 /* TxClientDelegate.swift */; };
 		B3AF248425EE7B6A0062EDA9 /* InternalConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3AF248325EE7B6A0062EDA9 /* InternalConfig.swift */; };
 		B3AF248B25EE7C350062EDA9 /* Socket.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3AF248A25EE7C350062EDA9 /* Socket.swift */; };
@@ -119,6 +120,7 @@
 		B368BEF825EDDD070032AE52 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B39121AE25FFCE680051E076 /* TxError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TxError.swift; sourceTree = "<group>"; };
 		B39121E62600F7B10051E076 /* VertoMessagesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VertoMessagesTests.swift; sourceTree = "<group>"; };
+		B39121EC2602F22F0051E076 /* SocketTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketTests.swift; sourceTree = "<group>"; };
 		B3AF247F25EE7B1F0062EDA9 /* TxClientDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxClientDelegate.swift; sourceTree = "<group>"; };
 		B3AF248325EE7B6A0062EDA9 /* InternalConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InternalConfig.swift; sourceTree = "<group>"; };
 		B3AF248A25EE7C350062EDA9 /* Socket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Socket.swift; sourceTree = "<group>"; };
@@ -258,8 +260,9 @@
 		B368BED225EDDBC90032AE52 /* WebRTCSDKTests */ = {
 			isa = PBXGroup;
 			children = (
+				B39121F32603AE670051E076 /* Verto */,
+				B39121F22603AD7B0051E076 /* Socket */,
 				B368BED325EDDBC90032AE52 /* WebRTCSDKTests.swift */,
-				B39121E62600F7B10051E076 /* VertoMessagesTests.swift */,
 				B368BED525EDDBC90032AE52 /* Info.plist */,
 			);
 			path = WebRTCSDKTests;
@@ -294,6 +297,22 @@
 				B3AF248325EE7B6A0062EDA9 /* InternalConfig.swift */,
 			);
 			path = Telnyx;
+			sourceTree = "<group>";
+		};
+		B39121F22603AD7B0051E076 /* Socket */ = {
+			isa = PBXGroup;
+			children = (
+				B39121EC2602F22F0051E076 /* SocketTests.swift */,
+			);
+			path = Socket;
+			sourceTree = "<group>";
+		};
+		B39121F32603AE670051E076 /* Verto */ = {
+			isa = PBXGroup;
+			children = (
+				B39121E62600F7B10051E076 /* VertoMessagesTests.swift */,
+			);
+			path = Verto;
 			sourceTree = "<group>";
 		};
 		B3AF248925EE7C0D0062EDA9 /* Services */ = {
@@ -614,6 +633,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B39121E72600F7B10051E076 /* VertoMessagesTests.swift in Sources */,
+				B39121ED2602F22F0051E076 /* SocketTests.swift in Sources */,
 				B368BED425EDDBC90032AE52 /* WebRTCSDKTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

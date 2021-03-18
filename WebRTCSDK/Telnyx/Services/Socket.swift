@@ -57,6 +57,7 @@ extension Socket : WebSocketDelegate {
             break;
             
         case .disconnected(let reason, let code):
+            //This are server side disconnections
             isConnected = false
             self.delegate?.onSocketDisconnected()
             print("Socket:: websocket is disconnected: \(reason) with code: \(code)")
@@ -66,8 +67,9 @@ extension Socket : WebSocketDelegate {
             print("Socket:: WebSocketDelegate .text \(message)")
             self.delegate?.onMessageReceived(message: message)
             break;
-            
+
         case .cancelled:
+            //TODO: THIS IS USER DISCONNECTED (IS NOT AN ERROR)
             isConnected = false
             self.delegate?.onSocketError(error: TxError.SocketFailureReason.socketCancelled)
             print("Socket:: WebSocketDelegate .cancelled")
