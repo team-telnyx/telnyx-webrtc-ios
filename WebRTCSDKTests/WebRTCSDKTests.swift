@@ -159,10 +159,9 @@ extension WebRTCSDKTests {
         //TODO: Implement custom Environment Variables.
         //TODO: Currently this test is not failing with invalid credentials. The server is returning a sessionId.
         expectation = expectation(description: "loginTest")
-        let sipUser = "<REPLACE_WITH_VALID_SIP_USER>"
-        let sipPassword = "<REPLACE_WITH_VALID_SIP_PASSWORD>"
-        let txConfig = TxConfig(sipUser: sipUser,
-                                password: sipPassword)
+
+        let txConfig = TxConfig(sipUser: TestConstants.sipUser,
+                                password: TestConstants.sipPassword)
 
         let error: Error? = self.connectAndReturnError(txConfig: txConfig)
         XCTAssertNil(error) // We shouldn't get any error here
@@ -181,7 +180,7 @@ extension WebRTCSDKTests {
         //TODO: We should request token through the SDK.
         //TODO: Replace with a valid token
         expectation = expectation(description: "loginTest")
-        let token = "<token>"
+        let token = TestConstants.token
         let txConfig = TxConfig(token: token)
         let error: Error? = self.connectAndReturnError(txConfig: txConfig)
         XCTAssertNil(error)
