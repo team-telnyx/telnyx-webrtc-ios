@@ -9,6 +9,7 @@ import Foundation
 import WebRTC
 
 protocol PeerDelegate {
+    //TODO: Rename this to "negotiationDidEnded"
     func onICECandidate(sdp: RTCSessionDescription?, iceCandidate: RTCIceCandidate)
 }
 
@@ -17,6 +18,7 @@ class Peer : NSObject {
     private let NEGOTIATION_TIMOUT = 0.3 //time in milliseconds
     private let AUDIO_TRACK_ID = "audio0"
     private let VIDEO_TRACK_ID = "video0"
+    //TODO: REMOVE THIS FOR V1
     private let VIDEO_DEMO_LOCAL_VIDEO = "local_video_streaming.mp4"
 
     private let mediaConstrains = [kRTCMediaConstraintsOfferToReceiveAudio: kRTCMediaConstraintsValueTrue, kRTCMediaConstraintsOfferToReceiveVideo: kRTCMediaConstraintsValueTrue]
@@ -163,6 +165,7 @@ class Peer : NSObject {
                                              optionalConstraints: nil)
         self.connection.answer(for: constrains) { (sdp, error) in
             
+            //TODO: we should return an error. We don't have a local SDP
             guard let sdp = sdp else { return }
             
             if let error = error {
