@@ -21,6 +21,8 @@ public enum TxError : Error {
 
     /// The underlying reason of client setup configuration errors
     public enum ClientConfigurationFailureReason {
+        /// `sip user`and `sip password` are  missing when using the USER / PASSWORD login method
+        case userNameAndPasswordAreRequired
         /// `sip user` is missing when using the USER / PASSWORD login method
         case userNameIsRequired
         /// `password` is missing when using the USER / PASSWORD login method
@@ -67,7 +69,8 @@ extension TxError.SocketFailureReason {
 extension TxError.ClientConfigurationFailureReason {
     var underlyingError: Error? {
         switch self {
-        case .passwordIsRequired,
+        case .userNameAndPasswordAreRequired,
+             .passwordIsRequired,
              .userNameIsRequired,
              .tokenIsRequired:
             return nil
@@ -131,6 +134,8 @@ extension TxError.SocketFailureReason: LocalizedError {
 extension TxError.ClientConfigurationFailureReason {
     public var localizedDescription: String? {
         switch self {
+        case .userNameAndPasswordAreRequired:
+            return "User name and password are required."
         case .userNameIsRequired:
             return "User name is required."
         case .passwordIsRequired:

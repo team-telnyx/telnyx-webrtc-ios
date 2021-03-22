@@ -26,4 +26,5 @@ enum Method : String {
     case PUNT = "telnyx_rtc.punt"
     case BROADCAST = "telnyx_rtc.broadcast"
     case UNSUBSCRIBE = "telnyx_rtc.unsubscribe"
+    case ECHO = "echo" //this is for testing
 }

@@ -48,6 +48,9 @@ public struct TxConfig {
         //Check if user has entered username and password parameters
         if let password = self.password,
            let user = self.sipUser {
+            if (password.isEmpty && user.isEmpty) {
+                throw TxError.clientConfigurationFailed(reason: .userNameAndPasswordAreRequired)
+            }
             if (password.isEmpty) {
                 throw TxError.clientConfigurationFailed(reason: .passwordIsRequired)
             }

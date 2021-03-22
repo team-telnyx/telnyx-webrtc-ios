@@ -142,13 +142,13 @@ class Call {
         })
     }
     
+    //TODO: We can move this inside the answer() function of the Peer class
     func incomingOffer(sdp: String) {
         let remoteDescription = RTCSessionDescription(type: .offer, sdp: sdp)
         self.peer?.connection.setRemoteDescription(remoteDescription, completionHandler: { (error) in
             guard let error = error else {
                 return
             }
-            
             print("Error setting remote description: \(error)")
         })
     }
@@ -157,6 +157,7 @@ class Call {
      This function should be called to answer an incoming call
      */
     func answerCall() {
+        //TODO: Create an error if there's no remote SDP
         guard let remoteSdp = self.remoteSdp else {
             return
         }
