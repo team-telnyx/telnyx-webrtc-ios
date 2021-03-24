@@ -96,7 +96,7 @@ public class Call {
         let byeMessage = ByeMessage(sessionId: sessionId, callId: callId.uuidString, causeCode: .USER_BUSY)
         let message = byeMessage.encode() ?? ""
         self.socket?.sendMessage(message: message)
-        self.updateCallState(callState: .DONE)
+        self.endCall()
     }
 
     /**
@@ -179,7 +179,8 @@ public class Call {
         })
     }
 
-    func endCall() {
+    private func endCall() {
+        self.peer?.dispose()
         self.updateCallState(callState: .DONE)
     }
 
