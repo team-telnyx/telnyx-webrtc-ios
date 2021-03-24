@@ -45,9 +45,10 @@ public class Call {
 
     var sessionId: String?
     var remoteSdp: String?
-    var callInfo: TxCallInfo?
     var callOptions: TxCallOptions?
-    var callState: CallState = .NEW
+
+    public var callInfo: TxCallInfo?
+    public var callState: CallState = .NEW
 
     private var ringTonePlayer: AVAudioPlayer?
     private var ringbackPlayer: AVAudioPlayer?
@@ -165,7 +166,9 @@ public class Call {
 }
 // MARK: - Call handling
 extension Call {
-    func newCall(callerName: String,
+
+    /// Creates a new oubound call
+    internal func newCall(callerName: String,
                  callerNumber: String,
                  destinationNumber: String) {
         if (destinationNumber.isEmpty) {
@@ -175,10 +178,9 @@ extension Call {
         invite(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber)
     }
 
-    /**
-     Sends a telnyx rtc.bye message through the socket
-     */
-    func hangup() {
+    /// Call this function to hangup an ongoing call
+    /// Sends a BYE message through the socket
+    public func hangup() {
         guard let sessionId = self.sessionId, let callId = self.callInfo?.callId else { return }
         let byeMessage = ByeMessage(sessionId: sessionId, callId: callId.uuidString, causeCode: .USER_BUSY)
         let message = byeMessage.encode() ?? ""
@@ -186,10 +188,8 @@ extension Call {
         self.endCall()
     }
 
-    /**
-     This function should be called to answer an incoming call
-     */
-    func answer() {
+    /// Call this function to answer an incoming call
+    public func answer() {
         self.stopRingtone()
         //TODO: Create an error if there's no remote SDP
         guard let remoteSdp = self.remoteSdp else {
@@ -216,11 +216,13 @@ extension Call {
 // MARK: - Audio handling
 extension Call {
     
-    func muteAudio() {
+    /// Mutes the audio of the active call.
+    public func muteAudio() {
         self.peer?.muteUnmuteAudio(mute: true)
     }
-    
-    func unmuteAudio() {
+
+    /// Unmutes the audio of the active call.
+    public func unmuteAudio() {
         self.peer?.muteUnmuteAudio(mute: false)
     }
 }
@@ -228,7 +230,8 @@ extension Call {
 // MARK: - Hold / Unhold functions
 extension Call {
 
-    func hold() {
+    /// Hold the Call
+    public func hold() {
         guard let callId = self.callInfo?.callId,
               let sessionId = self.sessionId else { return }
         let hold = ModifyMessage(sessionId: sessionId, callId: callId.uuidString, action: .HOLD)
@@ -237,7 +240,8 @@ extension Call {
         self.updateCallState(callState: .HELD)
     }
 
-    func unhold() {
+    /// Unhold the Call
+    public func unhold() {
         guard let callId = self.callInfo?.callId,
               let sessionId = self.sessionId else { return }
         let unhold = ModifyMessage(sessionId: sessionId, callId: callId.uuidString, action: .UNHOLD)
@@ -246,7 +250,8 @@ extension Call {
         self.updateCallState(callState: .ACTIVE)
     }
 
-    func toggleHold() {
+    /// Toggle hold  state of the call
+    public func toggleHold() {
         guard let callId = self.callInfo?.callId,
               let sessionId = self.sessionId else { return }
         let toggleHold = ModifyMessage(sessionId: sessionId, callId: callId.uuidString, action: .TOGGLE_HOLD)

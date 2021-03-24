@@ -79,6 +79,7 @@ extension TxClient {
     ///   - sessionId is required if user is not logged in
     ///   - socket connection error if socket is not connected
     ///   - destination number is required to start a call.
+    /// - Returns: The call that has been created
     public func newCall(callerName: String,
                  callerNumber: String,
                  destinationNumber: String,
@@ -110,18 +111,6 @@ extension TxClient {
         return call
     }
 
-
-    /// Call this function to hangup an ongoing call
-    public func hangup() {
-        self.calls.first?.value.hangup()
-    }
-
-
-    /// Call this function to answer an incoming call
-    public func answer() {
-        self.calls.first?.value.answer()
-    }
-
     fileprivate func createIncomingCall(callerName: String, callerNumber: String, callId: UUID, remoteSdp: String) {
 
         guard let sessionId = self.sessionId,
@@ -141,36 +130,7 @@ extension TxClient {
         call.callOptions = TxCallOptions(audio: true)
 
         self.calls[callId] = call
-        guard let callInfo = call.callInfo else { return }
-
-        self.delegate?.onIncomingCall(callInfo: callInfo)
-    }
-}
-
-// MARK: - Audio
-extension TxClient {
-
-    /// Mutes the audio of the active call.
-    public func muteAudio() {
-        self.calls.first?.value.muteAudio()
-    }
-
-    /// Unmutes the audio of the active call.
-    public func unmuteAudio() {
-        self.calls.first?.value.muteAudio()
-    }
-}
-// MARK: - Hold Unhold
-extension TxClient {
-
-    /// Hold the Call
-    public func hold() {
-        self.calls.first?.value.hold()
-    }
-
-    /// Unhold the Call
-    public func unhold() {
-        self.calls.first?.value.unhold()
+        self.delegate?.onIncomingCall(call: call)
     }
 }
 
@@ -178,8 +138,9 @@ extension TxClient {
 extension TxClient: CallProtocol {
 
     func callStateUpdated(call: Call) {
+        guard let callId = call.callInfo?.callId else { return }
         //Forward call state
-        self.delegate?.onCallStateUpdated(callState: call.callState)
+        self.delegate?.onCallStateUpdated(callState: call.callState, callId: callId)
 
         //Remove call if it has ended
         if call.callState == .DONE ,

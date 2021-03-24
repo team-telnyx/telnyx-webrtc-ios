@@ -192,6 +192,7 @@ extension WebRTCSDKTests {
 
 // MARK: - TxClientDelegate
 extension WebRTCSDKTests : TxClientDelegate {
+    
     func onSocketConnected() {
         print("WebRTCSDKTests :: TxClientDelegate onSocketConnected()")
     }
@@ -215,11 +216,11 @@ extension WebRTCSDKTests : TxClientDelegate {
         self.expectation.fulfill()
     }
 
-    func onCallStateUpdated(callState: CallState) {
+    func onCallStateUpdated(callState: CallState, callId: UUID) {
         print("WebRTCSDKTests :: TxClientDelegate onCallStateUpdated()")
     }
 
-    func onIncomingCall(callInfo: TxCallInfo) {
+    func onIncomingCall(call: Call) {
         print("WebRTCSDKTests :: TxClientDelegate onIncomingCall()")
     }
 

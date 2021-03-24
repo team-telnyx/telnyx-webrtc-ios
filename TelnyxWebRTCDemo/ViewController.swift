@@ -11,6 +11,7 @@ import WebRTCSDK
 class ViewController: UIViewController {
 
     var telnyxClient: TxClient?
+    var currentCall: Call?
     var incomingCall: Bool = false
 
     @IBOutlet weak var sessionIdLabel: UILabel!
@@ -88,7 +89,6 @@ extension ViewController: TxClientDelegate {
 
     func onRemoteCallEnded(callId: UUID) {
         print("ViewController:: TxClientDelegate onRemoteCallEnded() callId: \(callId)")
-        self.telnyxClient?.hangup()
     }
     
 
@@ -138,8 +138,14 @@ extension ViewController: TxClientDelegate {
         }
     }
 
-    func onIncomingCall(callInfo: TxCallInfo) {
-        print("ViewController:: TxClientDelegate onIncomingCall() callInfo: \(callInfo)")
+    func onIncomingCall(call: Call) {
+        guard let callId = call.callInfo?.callId else {
+            print("ViewController:: TxClientDelegate onIncomingCall() Error unknown call UUID")
+            return
+        }
+        print("ViewController:: TxClientDelegate onIncomingCall() Error unknown call UUID: \(callId)")
+        self.currentCall?.hangup() //Hangup the previous call if there's one active
+        self.currentCall = call //Update the current call with the incoming call
         DispatchQueue.main.async {
             self.incomingCall = true
             self.updateButtonsState()
@@ -148,7 +154,7 @@ extension ViewController: TxClientDelegate {
         }
     }
 
-    func onCallStateUpdated(callState: CallState) {
+    func onCallStateUpdated(callState: CallState, callId: UUID) {
         DispatchQueue.main.async {
             switch (callState) {
             case .CONNECTING:
@@ -162,6 +168,10 @@ extension ViewController: TxClientDelegate {
                 self.callView.isHidden = false
                 break
             case .DONE:
+                if let currentCallId = self.currentCall?.callInfo?.callId,
+                   currentCallId == callId {
+                    self.currentCall = nil // clear current call
+                }
                 self.incomingCall = false
                 self.incomingCallView.isHidden = true
                 self.callView.isHidden = false
@@ -175,7 +185,6 @@ extension ViewController: TxClientDelegate {
             self.updateButtonsState()
         }
     }
-    
 }
 // MARK: - UIIncomingCallViewDelegate
 /**
@@ -184,11 +193,11 @@ extension ViewController: TxClientDelegate {
 extension ViewController : UIIncomingCallViewDelegate {
 
     func onAnswerButton() {
-        self.telnyxClient?.answer()
+        self.currentCall?.answer()
     }
 
     func onRejectButton() {
-        self.telnyxClient?.hangup()
+        self.currentCall?.hangup()
     }
 }
 // MARK: - UICallScreenDelegate
@@ -204,29 +213,32 @@ extension ViewController : UICallScreenDelegate {
         let callerNumber = self.settingsView.callerIdNumberLabel.text ?? ""
 
         do {
-            try self.telnyxClient?.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, callId: UUID.init())
+            self.currentCall = try self.telnyxClient?.newCall(callerName: callerName,
+                                                              callerNumber: callerNumber,
+                                                              destinationNumber: destinationNumber,
+                                                              callId: UUID.init())
         } catch let error {
             print("ViewController:: newCall Error \(error)")
         }
     }
     
     func onEndCallButton() {
-        self.telnyxClient?.hangup()
+        self.currentCall?.hangup()
     }
     
     func onMuteUnmuteSwitch(isMuted: Bool) {
         if (isMuted) {
-            self.telnyxClient?.muteAudio()
+            self.currentCall?.muteAudio()
         } else {
-            self.telnyxClient?.unmuteAudio()
+            self.currentCall?.unmuteAudio()
         }
     }
     
     func onHoldUnholdSwitch(isOnHold: Bool) {
         if (isOnHold) {
-            self.telnyxClient?.hold()
+            self.currentCall?.hold()
         } else {
-            self.telnyxClient?.unhold()
+            self.currentCall?.unhold()
         }
     }
 
