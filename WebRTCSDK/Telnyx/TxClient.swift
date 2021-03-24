@@ -14,7 +14,7 @@ import AVFoundation
 public class TxClient {
 
     /// Keeps track of all the created calls by theirs UUIDs
-    public var calls: [UUID: Call] = [UUID: Call]()
+    public internal(set) var calls: [UUID: Call] = [UUID: Call]()
     /// Subscribe to TxClient delegate to receive Telnyx RTC events
     public var delegate: TxClientDelegate?
     private var socket : Socket?
