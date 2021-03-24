@@ -36,8 +36,6 @@ protocol CallProtocol {
 }
 
 public class Call {
-    
-    var negotiationEnded: Bool = false
 
     var direction: CallDirection = .OUTBOUND
     var config: InternalConfig = InternalConfig.default
@@ -50,53 +48,53 @@ public class Call {
     var callInfo: TxCallInfo?
     var callOptions: TxCallOptions?
     var callState: CallState = .NEW
-    
+
+    private var ringTonePlayer: AVAudioPlayer?
+    private var ringbackPlayer: AVAudioPlayer?
+
     init(callId: UUID,
          remoteSdp: String,
          sessionId: String,
          socket: Socket,
-         delegate: CallProtocol) {
+         delegate: CallProtocol,
+         ringtone: String? = nil,
+         ringbackTone: String? = nil) {
         self.direction = CallDirection.INBOUND
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
         //this is the signaling server socket
         self.socket = socket
-        
+
         self.remoteSdp = remoteSdp
         self.callInfo = TxCallInfo(callId: callId)
         self.delegate = delegate
+
+        //Ringtone and ringbacktone
+        self.ringTonePlayer = self.buildAudioPlayer(fileName: ringtone)
+        self.ringbackPlayer = self.buildAudioPlayer(fileName: ringbackTone)
+
+        self.playRingtone()
         updateCallState(callState: .NEW)
     }
-    
-    init(callId: UUID, sessionId: String, socket: Socket, delegate: CallProtocol) {
+
+    init(callId: UUID,
+         sessionId: String,
+         socket: Socket,
+         delegate: CallProtocol,
+         ringtone: String? = nil,
+         ringbackTone: String? = nil) {
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
         //this is the signaling server socket
         self.socket = socket
         self.callInfo = TxCallInfo(callId: callId)
         self.delegate = delegate
-        self.updateCallState(callState: .RINGING)
-    }
-    
-    func newCall(callerName: String,
-                 callerNumber: String,
-                 destinationNumber: String) {
-        if (destinationNumber.isEmpty) {
-            print("Please enter a destination number.")
-            return
-        }
-        invite(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber)
-    }
 
-    /**
-     Sends a telnyx rtc.bye message through the socket
-     */
-    func hangup() {
-        guard let sessionId = self.sessionId, let callId = self.callInfo?.callId else { return }
-        let byeMessage = ByeMessage(sessionId: sessionId, callId: callId.uuidString, causeCode: .USER_BUSY)
-        let message = byeMessage.encode() ?? ""
-        self.socket?.sendMessage(message: message)
-        self.endCall()
+        //Ringtone and ringbacktone
+        self.ringTonePlayer = self.buildAudioPlayer(fileName: ringtone)
+        self.ringbackPlayer = self.buildAudioPlayer(fileName: ringbackTone)
+
+        self.updateCallState(callState: .RINGING)
     }
 
     /**
@@ -131,7 +129,7 @@ public class Call {
         It sets the incoming sdp as the remoteDecription.
         sdp: Is the remote SDP to configure in the current RTCPeerConnection
      */
-    func answered(sdp: String) {
+    private func answered(sdp: String) {
         let remoteDescription = RTCSessionDescription(type: .answer, sdp: sdp)
         self.peer?.connection.setRemoteDescription(remoteDescription, completionHandler: { (error) in
             guard let error = error else {
@@ -141,9 +139,9 @@ public class Call {
             print("Error setting remote description: \(error)")
         })
     }
-    
+
     //TODO: We can move this inside the answer() function of the Peer class
-    func incomingOffer(sdp: String) {
+    private func incomingOffer(sdp: String) {
         let remoteDescription = RTCSessionDescription(type: .offer, sdp: sdp)
         self.peer?.connection.setRemoteDescription(remoteDescription, completionHandler: { (error) in
             guard let error = error else {
@@ -153,10 +151,46 @@ public class Call {
         })
     }
 
+    private func endCall() {
+        self.stopRingtone()
+        self.stopRingbackTone()
+        self.peer?.dispose()
+        self.updateCallState(callState: .DONE)
+    }
+
+    private func updateCallState(callState: CallState) {
+        self.callState = callState
+        self.delegate?.callStateUpdated(call: self)
+    }
+}
+// MARK: - Call handling
+extension Call {
+    func newCall(callerName: String,
+                 callerNumber: String,
+                 destinationNumber: String) {
+        if (destinationNumber.isEmpty) {
+            print("Please enter a destination number.")
+            return
+        }
+        invite(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber)
+    }
+
+    /**
+     Sends a telnyx rtc.bye message through the socket
+     */
+    func hangup() {
+        guard let sessionId = self.sessionId, let callId = self.callInfo?.callId else { return }
+        let byeMessage = ByeMessage(sessionId: sessionId, callId: callId.uuidString, causeCode: .USER_BUSY)
+        let message = byeMessage.encode() ?? ""
+        self.socket?.sendMessage(message: message)
+        self.endCall()
+    }
+
     /**
      This function should be called to answer an incoming call
      */
-    func answerCall() {
+    func answer() {
+        self.stopRingtone()
         //TODO: Create an error if there's no remote SDP
         guard let remoteSdp = self.remoteSdp else {
             return
@@ -178,18 +212,7 @@ public class Call {
             self.updateCallState(callState: .ACTIVE)
         })
     }
-
-    private func endCall() {
-        self.peer?.dispose()
-        self.updateCallState(callState: .DONE)
-    }
-
-    private func updateCallState(callState: CallState) {
-        self.callState = callState
-        self.delegate?.callStateUpdated(call: self)
-    }
 }
-
 // MARK: - Audio handling
 extension Call {
     
@@ -293,7 +316,6 @@ extension Call {
         case .BYE:
             //Close call
             self.endCall()
-            //TODO: Handle ringtone / ringback tone here.
             break
 
         case .MEDIA:
@@ -320,16 +342,65 @@ extension Call {
                 //retrieve the remote SDP from the ANSWER verto message and set it to the current RTCPconnection
                 self.answered(sdp: remoteSdp)
             }
+            self.stopRingtone()
+            self.stopRingbackTone()
             //TODO: handle error when there's no sdp
             break;
 
         case .RINGING:
-            //TODO: Handle ringtone /ringback tone
-            // self.playRingbackTone()
+            self.playRingbackTone()
             break
         default:
             print("TxClient:: SocketDelegate Default method")
             break
         }
+    }
+}
+
+// MARK: - Ringtone and Ringback tone handling
+extension Call {
+
+    private func playRingtone() {
+        print("TxClient:: playRingtone()")
+        guard let ringtonePlayer = self.ringTonePlayer else { return  }
+
+        ringtonePlayer.numberOfLoops = -1 // infinite
+        ringtonePlayer.play()
+    }
+
+    private func stopRingtone() {
+        print("Call:: stopRingtone()")
+        self.ringTonePlayer?.stop()
+    }
+
+    private func playRingbackTone() {
+        print("Call:: playRingbackTone()")
+        guard let ringbackPlayer = self.ringbackPlayer else { return  }
+
+        ringbackPlayer.numberOfLoops = -1 // infinite
+        ringbackPlayer.play()
+    }
+
+    private func stopRingbackTone() {
+        print("Call:: stopRingbackTone()")
+        self.ringbackPlayer?.stop()
+    }
+
+    private func buildAudioPlayer(fileName: String?) -> AVAudioPlayer? {
+        guard let file = fileName,
+              let path = Bundle.main.path(forResource: file, ofType: nil ) else {
+            print("Call:: buildAudioPlayer() file not found: \(fileName ?? "Unknown").")
+            return nil
+        }
+        let url = URL(fileURLWithPath: path)
+        do {
+            let audioPlayer = try AVAudioPlayer(contentsOf: url)
+            try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.ambient)
+            try AVAudioSession.sharedInstance().setActive(true)
+            return audioPlayer
+        } catch{
+            print("Call:: buildAudioPlayer() error: \(error)")
+        }
+        return nil
     }
 }
