@@ -32,10 +32,10 @@ enum CallDirection : String {
 
 
 protocol CallProtocol {
-    func callStateUpdated(callState: CallState)
+    func callStateUpdated(call: Call)
 }
 
-class Call {
+public class Call {
     
     var negotiationEnded: Bool = false
 
@@ -185,7 +185,7 @@ class Call {
 
     private func updateCallState(callState: CallState) {
         self.callState = callState
-        self.delegate?.callStateUpdated(callState: self.callState)
+        self.delegate?.callStateUpdated(call: self)
     }
 }
 
@@ -276,6 +276,59 @@ extension Call : PeerDelegate {
             self.socket?.sendMessage(message: message)
             self.updateCallState(callState: .ACTIVE)
             print("Send answer >> \(answerMessage)")
+        }
+    }
+}
+
+// MARK: - Hanlde Verto Messages
+/**
+ Handle verto messages
+ */
+extension Call {
+
+    internal func handleVertoMessage(message: Message) {
+
+        switch message.method {
+        case .BYE:
+            //Close call
+            self.endCall()
+            //TODO: Handle ringtone / ringback tone here.
+            break
+
+        case .MEDIA:
+            //Whenever we place a call from a client and the "Generate ring back tone" is enabled in the portal,
+            //the Telnyx Cloud sends the telnyx_rtc.media Verto signaling message with an SDP.
+            //The incoming SDP must be set in the caller client as the remote SDP to start listening a ringback tone
+            //that is sent from the Telnyx cloud.
+            if let params = message.params {
+                guard let remoteSdp = params["sdp"] as? String else {
+                    return
+                }
+                self.answered(sdp: remoteSdp)
+            }
+            //TODO: handle error when there's no SDP
+            break
+
+        case .ANSWER:
+            //When the remote peer answers the call
+            //Set the remote SDP into the current RTCPConnection and the call should start!
+            if let params = message.params {
+                guard let remoteSdp = params["sdp"] as? String else {
+                    return
+                }
+                //retrieve the remote SDP from the ANSWER verto message and set it to the current RTCPconnection
+                self.answered(sdp: remoteSdp)
+            }
+            //TODO: handle error when there's no sdp
+            break;
+
+        case .RINGING:
+            //TODO: Handle ringtone /ringback tone
+            // self.playRingbackTone()
+            break
+        default:
+            print("TxClient:: SocketDelegate Default method")
+            break
         }
     }
 }

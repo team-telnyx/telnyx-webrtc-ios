@@ -48,7 +48,7 @@ class CallTests: XCTestCase {
 
 // MARK: - CallProtocol
 extension CallTests : CallProtocol {
-    func callStateUpdated(callState: CallState) {
+    func callStateUpdated(call: Call) {
         print("CallTests :: CallProtocol callStateUpdated")
     }
 }

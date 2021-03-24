@@ -13,13 +13,14 @@ import AVFoundation
 /// enabling you to make outgoing calls and handle incoming calls.
 public class TxClient {
 
+    /// Keeps track of all the created calls by theirs UUIDs
+    public var calls: [UUID: Call] = [UUID: Call]()
     /// Subscribe to TxClient delegate to receive Telnyx RTC events
     public var delegate: TxClientDelegate?
     private var socket : Socket?
-    
+
     private var sessionId : String?
     private var txConfig: TxConfig?
-    private var call: Call?
 
     private var ringTonePlayer: AVAudioPlayer?
     private var ringbackPlayer: AVAudioPlayer?
@@ -68,7 +69,7 @@ extension TxClient {
     /// Get the current Call state.
     /// - Returns: returns the current call state `CallState`. If there's no call, the returned value is `NEW`
     public func getCallState() -> CallState {
-        return self.call?.callState ?? .NEW
+        return self.calls.first?.value.callState ?? .NEW
     }
 
     /// Creates a Call and starts the call sequence, negotiate the ICE Candidates and sends the invite.
@@ -84,7 +85,7 @@ extension TxClient {
     public func newCall(callerName: String,
                  callerNumber: String,
                  destinationNumber: String,
-                 callId: UUID) throws {
+                 callId: UUID) throws -> Call {
         //User needs to be logged in to get a sessionId
         guard let sessionId = self.sessionId else {
             throw TxError.callFailed(reason: .sessionIdIsRequired)
@@ -100,8 +101,11 @@ extension TxClient {
             throw TxError.callFailed(reason: .destinationNumberIsRequired)
         }
 
-        self.call = Call(callId: callId, sessionId: sessionId, socket: socket, delegate: self)
-        self.call?.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber)
+        let call = Call(callId: callId, sessionId: sessionId, socket: socket, delegate: self)
+        call.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber)
+
+        self.calls[callId] = call
+        return call
     }
 
 
@@ -109,14 +113,14 @@ extension TxClient {
     public func hangup() {
         self.stopRingtone()
         self.stopRingbackTone()
-        self.call?.hangup()
+        self.calls.first?.value.hangup()
     }
 
 
     /// Call this function to answer an incoming call
     public func answer() {
         self.stopRingtone()
-        self.call?.answerCall()
+        self.calls.first?.value.answerCall()
     }
 
     fileprivate func createIncomingCall(callerName: String, callerNumber: String, callId: UUID, remoteSdp: String) {
@@ -126,17 +130,16 @@ extension TxClient {
             return
         }
 
-        self.call = Call(callId: callId, remoteSdp: remoteSdp, sessionId: sessionId, socket: socket, delegate: self)
+        let call = Call(callId: callId, remoteSdp: remoteSdp, sessionId: sessionId, socket: socket, delegate: self)
+        call.callInfo?.callerName = callerName
+        call.callInfo?.callerNumber = callerNumber
+        call.callOptions = TxCallOptions(audio: true)
 
-        self.call?.callInfo?.callerName = callerName
-        self.call?.callInfo?.callerNumber = callerNumber
-        self.call?.callOptions = TxCallOptions(audio: true)
-
-        guard let callInfo = self.call?.callInfo else { return }
+        self.calls[callId] = call
+        guard let callInfo = call.callInfo else { return }
 
         self.delegate?.onIncomingCall(callInfo: callInfo)
     }
-
 }
 
 // MARK: - Audio
@@ -144,12 +147,12 @@ extension TxClient {
 
     /// Mutes the audio of the active call.
     public func muteAudio() {
-        self.call?.muteAudio()
+        self.calls.first?.value.muteAudio()
     }
 
     /// Unmutes the audio of the active call.
     public func unmuteAudio() {
-        self.call?.unmuteAudio()
+        self.calls.first?.value.muteAudio()
     }
 }
 // MARK: - Hold Unhold
@@ -157,12 +160,12 @@ extension TxClient {
 
     /// Hold the Call
     public func hold() {
-        self.call?.hold()
+        self.calls.first?.value.hold()
     }
 
     /// Unhold the Call
     public func unhold() {
-        self.call?.unhold()
+        self.calls.first?.value.unhold()
     }
 }
 
@@ -223,8 +226,16 @@ extension TxClient {
 }
 // MARK: - CallProtocol
 extension TxClient: CallProtocol {
-    func callStateUpdated(callState: CallState) {
-        self.delegate?.onCallStateUpdated(callState: callState)
+
+    func callStateUpdated(call: Call) {
+        //Forward call state
+        self.delegate?.onCallStateUpdated(callState: call.callState)
+
+        //Remove call if it has ended
+        if call.callState == .DONE ,
+           let callId = call.callInfo?.callId {
+            self.calls.removeValue(forKey: callId)
+        }
     }
 }
 
@@ -286,6 +297,15 @@ extension TxClient : SocketDelegate {
             self.sessionId = sessionId
             self.delegate?.onSessionUpdated(sessionId: sessionId)
         } else {
+
+            //Forward message to call based on it's uuid
+            if let params = vertoMessage.params,
+               let callUUIDString = params["callID"] as? String,
+               let callUUID = UUID(uuidString: callUUIDString),
+               let call = calls[callUUID] {
+                call.handleVertoMessage(message: vertoMessage)
+            }
+
             //Parse incoming Verto message
             switch vertoMessage.method {
             case .CLIENT_READY:
@@ -299,46 +319,17 @@ extension TxClient : SocketDelegate {
                           let uuid = UUID(uuidString: callId) else {
                         return
                     }
-                    self.call?.endCall()
                     self.delegate?.onRemoteCallEnded(callId: uuid)
                     self.stopRingtone()
                     self.stopRingbackTone()
                 }
                 break
 
-            case .MEDIA:
-                //Whenever we place a call from a client and the "Generate ring back tone" is enabled in the portal,
-                //the Telnyx Cloud sends the telnyx_rtc.media Verto signaling message with an SDP.
-                //The incoming SDP must be set in the caller client as the remote SDP to start listening a ringback tone
-                //that is sent from the Telnyx cloud.
-                if let params = vertoMessage.params {
-                    guard let remoteSdp = params["sdp"] as? String,
-                          let callId = params["callID"] as? String,
-                          let uuid = UUID(uuidString: callId) else {
-                        return
-                    }
-
-                    //Check if call ID is the same as the invite
-                    guard let call = self.call,
-                          let callUUID = call.callInfo?.callId,
-                          callUUID == uuid else { return }
-
-                    call.answered(sdp: remoteSdp)
-                }
-                break
-
             case .ANSWER:
                 //When the remote peer answers the call
                 //Set the remote SDP into the current RTCPConnection and the call should start!
-                if let params = vertoMessage.params {
-                    guard let remoteSdp = params["sdp"] as? String else {
-                        return
-                    }
-                    //retrieve the remote SDP from the ANSWER verto message and set it to the current RTCPconnection
-                    self.call?.answered(sdp: remoteSdp)
-                    self.stopRingtone()
-                    self.stopRingbackTone()
-                }
+                self.stopRingtone()
+                self.stopRingbackTone()
                 break;
 
             case .INVITE:
