@@ -29,6 +29,7 @@ class ViewController: UIViewController {
 
         self.telnyxClient = appDelegate.getTelnyxClient()
         self.telnyxClient?.delegate = self
+        self.telnyxClient?.getCall(callId: UUID.init())
         initViews()
     }
     
@@ -45,7 +46,9 @@ class ViewController: UIViewController {
     }
 
     func updateButtonsState() {
-        guard let callState = self.telnyxClient?.getCallState() else {
+        guard let callState = self.currentCall?.callState else {
+            self.callView.updateButtonsState(callState: .DONE, incomingCall: false)
+            self.incomingCallView.updateButtonsState(callState: .DONE, incomingCall: incomingCall)
             return
         }
         self.callView.updateButtonsState(callState: callState, incomingCall: self.incomingCall)

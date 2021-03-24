@@ -63,10 +63,12 @@ public class TxClient {
 // MARK: - Call handling
 extension TxClient {
 
-    /// Get the current Call state.
-    /// - Returns: returns the current call state `CallState`. If there's no call, the returned value is `NEW`
-    public func getCallState() -> CallState {
-        return self.calls.first?.value.callState ?? .NEW
+    /// This function can be used to access any active call tracked by the SDK.
+    ///  A call will be accessible until has ended (transitioned to the DONE state).
+    /// - Parameter callId: The unique identifier of a call.
+    /// - Returns: The` Call` object that matches the  requested `callId`. Returns `nil` if no call was found.
+    public func getCall(callId: UUID) -> Call? {
+        return self.calls[callId]
     }
 
     /// Creates a Call and starts the call sequence, negotiate the ICE Candidates and sends the invite.
