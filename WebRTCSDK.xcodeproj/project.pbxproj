@@ -44,6 +44,7 @@
 		B391220C2604D9C50051E076 /* PeerConnectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B391220B2604D9C50051E076 /* PeerConnectionTests.swift */; };
 		B39122122604FBC00051E076 /* TestConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39122112604FBC00051E076 /* TestConstants.swift */; };
 		B3912220260502650051E076 /* CallTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B391221F260502650051E076 /* CallTests.swift */; };
+		B3912264260F6A050051E076 /* WebRTCSDKMulticallTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3912263260F6A050051E076 /* WebRTCSDKMulticallTests.swift */; };
 		B3AF248025EE7B1F0062EDA9 /* TxClientDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3AF247F25EE7B1F0062EDA9 /* TxClientDelegate.swift */; };
 		B3AF248425EE7B6A0062EDA9 /* InternalConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3AF248325EE7B6A0062EDA9 /* InternalConfig.swift */; };
 		B3AF248B25EE7C350062EDA9 /* Socket.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3AF248A25EE7C350062EDA9 /* Socket.swift */; };
@@ -127,6 +128,7 @@
 		B391220B2604D9C50051E076 /* PeerConnectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeerConnectionTests.swift; sourceTree = "<group>"; };
 		B39122112604FBC00051E076 /* TestConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConstants.swift; sourceTree = "<group>"; };
 		B391221F260502650051E076 /* CallTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallTests.swift; sourceTree = "<group>"; };
+		B3912263260F6A050051E076 /* WebRTCSDKMulticallTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCSDKMulticallTests.swift; sourceTree = "<group>"; };
 		B3AF247F25EE7B1F0062EDA9 /* TxClientDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxClientDelegate.swift; sourceTree = "<group>"; };
 		B3AF248325EE7B6A0062EDA9 /* InternalConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InternalConfig.swift; sourceTree = "<group>"; };
 		B3AF248A25EE7C350062EDA9 /* Socket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Socket.swift; sourceTree = "<group>"; };
@@ -272,6 +274,7 @@
 				B368BED325EDDBC90032AE52 /* WebRTCSDKTests.swift */,
 				B39122112604FBC00051E076 /* TestConstants.swift */,
 				B368BED525EDDBC90032AE52 /* Info.plist */,
+				B3912263260F6A050051E076 /* WebRTCSDKMulticallTests.swift */,
 			);
 			path = WebRTCSDKTests;
 			sourceTree = "<group>";
@@ -654,6 +657,7 @@
 				B39122122604FBC00051E076 /* TestConstants.swift in Sources */,
 				B368BED425EDDBC90032AE52 /* WebRTCSDKTests.swift in Sources */,
 				B391220C2604D9C50051E076 /* PeerConnectionTests.swift in Sources */,
+				B3912264260F6A050051E076 /* WebRTCSDKMulticallTests.swift in Sources */,
 				B3912220260502650051E076 /* CallTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
