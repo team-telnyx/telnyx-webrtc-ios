@@ -9,12 +9,12 @@ import Foundation
 
 /// This structure is intended to used for Telnyx SDK configurations.
 public struct TxConfig {
-    var sipUser: String?
-    var password: String?
-    var token: String?
+    public internal(set) var sipUser: String?
+    public internal(set) var password: String?
+    public internal(set) var token: String?
 
-    var ringBackTone: String?
-    var ringtone: String?
+    public internal(set) var ringBackTone: String?
+    public internal(set) var ringtone: String?
 
 
     /// Constructor of the Telnyx SDK configuration: Login using sip user  and password.

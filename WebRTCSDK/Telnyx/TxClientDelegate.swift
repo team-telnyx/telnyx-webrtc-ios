@@ -13,7 +13,7 @@ public protocol TxClientDelegate {
     func onClientError(error: Error)
     func onClientReady()
     func onSessionUpdated(sessionId: String)
-    func onCallStateUpdated(callState: CallState)
-    func onIncomingCall(callInfo: TxCallInfo)
+    func onCallStateUpdated(callState: CallState, callId: UUID)
+    func onIncomingCall(call: Call)
     func onRemoteCallEnded(callId: UUID)
 }

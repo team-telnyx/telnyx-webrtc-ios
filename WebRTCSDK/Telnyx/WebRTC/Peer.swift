@@ -204,6 +204,22 @@ class Peer : NSObject {
         }
     }
     
+
+    /// Close connection and release resources
+    func dispose() {
+        //This should release all the connection resources
+        //including audio / video streams
+        self.connection.close()
+        self.delegate = nil
+
+        self.localAudioTrack = nil
+        self.localVideoTrack = nil
+        self.localDataChannel = nil
+
+        self.remoteVideoTrack = nil
+        self.remoteDataChannel = nil
+    }
+
 }
 // MARK: - Tracks handling
 extension Peer {
