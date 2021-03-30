@@ -28,7 +28,7 @@ public class TxClient {
     /// - Parameter txConfig: txConfig. The desired login credentials. See TxConfig docummentation for more information.
     /// - Throws: TxConfig parameters errors
     public func connect(txConfig: TxConfig) throws {
-        print("TxClient:: connect()")
+        Logger.log.i(message: "TxClient:: connect()")
         //Check connetion parameters
         try txConfig.validateParams()
 
@@ -40,7 +40,7 @@ public class TxClient {
 
     /// Disconnects the TxClient from the Telnyx signaling server.
     public func disconnect() {
-        print("TxClient:: disconnect()")
+        Logger.log.i(message: "TxClient:: disconnect()")
         socket?.disconnect()
         socket = nil
         delegate?.onSocketDisconnected()
@@ -161,16 +161,16 @@ extension TxClient: CallProtocol {
 extension TxClient : SocketDelegate {
     
     func onSocketConnected() {
-        print("TxClient:: SocketDelegate onSocketConnected()")
+        Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected()")
         self.delegate?.onSocketConnected()
         
         //Login into the signaling server after the connection is produced.
         if let token = self.txConfig?.token  {
-            print("TxClient:: SocketDelegate onSocketConnected() login with Token")
+            Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with Token")
             let vertoLogin = LoginMessage(token: token)
             self.socket?.sendMessage(message: vertoLogin.encode())
         } else {
-            print("TxClient:: SocketDelegate onSocketConnected() login with SIP User and Password")
+            Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with SIP User and Password")
             guard let sipUser = self.txConfig?.sipUser else { return }
             guard let password = self.txConfig?.password else { return }
             let vertoLogin = LoginMessage(user: sipUser, password: password)
@@ -179,12 +179,12 @@ extension TxClient : SocketDelegate {
     }
     
     func onSocketDisconnected() {
-        print("TxClient:: SocketDelegate onSocketDisconnected()")
+        Logger.log.i(message: "TxClient:: SocketDelegate onSocketDisconnected()")
         self.delegate?.onSocketDisconnected()
     }
 
     func onSocketError(error: Error) {
-        print("TxClient:: SocketDelegate onSocketError()")
+        Logger.log.i(message: "TxClient:: SocketDelegate onSocketError()")
         self.delegate?.onClientError(error: error)
     }
 
@@ -193,7 +193,7 @@ extension TxClient : SocketDelegate {
      Here we are checking the mesaging
      */
     func onMessageReceived(message: String) {
-        print("TxClient:: SocketDelegate onMessageReceived() message: \(message)")
+        Logger.log.i(message: "TxClient:: SocketDelegate onMessageReceived() message: \(message)")
         guard let vertoMessage = Message().decode(message: message) else { return }
 
         //Check if server is sending an error code
@@ -244,7 +244,7 @@ extension TxClient : SocketDelegate {
                 break;
 
             default:
-                print("TxClient:: SocketDelegate Default method")
+                Logger.log.i(message: "TxClient:: SocketDelegate Default method")
                 break
             }
         }

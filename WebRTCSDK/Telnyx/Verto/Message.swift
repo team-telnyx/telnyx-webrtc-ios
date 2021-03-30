@@ -37,17 +37,20 @@ class Message {
     func encode() -> String? {
         guard let jsonData = try? JSONSerialization.data(withJSONObject: jsonMessage, options: []),
               let jsonString = String(data: jsonData, encoding: .utf8) else {
-            print("Message:: encode() error")
+            Logger.log.e(message: "Message:: encode() error")
             return nil
         }
-        print("Message:: encode() " + jsonString)
+        Logger.log.i(message: "Message:: encode() " + jsonString)
         return jsonString
     }
     
     
     func decode(message: String) -> Message? {
         guard let data = message.data(using: .utf8) else { return nil }
-        guard let jsonMessage =  try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]  else { return nil }
+        guard let jsonMessage =  try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]  else {
+            Logger.log.e(message: "Message:: decode() error")
+            return nil
+        }
 
         self.id = jsonMessage["id"] as? String ?? ""
         self.method = Method(rawValue: jsonMessage["method"] as? String ?? "")
@@ -56,7 +59,7 @@ class Message {
         self.serverError = jsonMessage["error"] as? [String: Any]
         self.jsonMessage = jsonMessage
 
-        print("Message:: decode() \(self.jsonMessage)")
+        Logger.log.i(message: "Message:: decode() \(self.jsonMessage)")
         return self
     }
 }

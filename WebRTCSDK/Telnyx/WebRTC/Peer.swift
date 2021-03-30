@@ -103,7 +103,7 @@ class Peer : NSObject {
             try self.rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord.rawValue)
             try self.rtcAudioSession.setMode(AVAudioSession.Mode.voiceChat.rawValue)
         } catch let error {
-            debugPrint("Error changeing AVAudioSession category: \(error)")
+            Logger.log.e(message: "Peer:: Error changeing AVAudioSession category: \(error)")
         }
         self.rtcAudioSession.unlockForConfiguration()
     }
@@ -141,11 +141,13 @@ class Peer : NSObject {
         self.connection.offer(for: constrains) { (sdp, error) in
 
             if let error = error {
+                Logger.log.e(message: "Peer:: error creating offer \(error)")
                 completion(sdp, error)
                 return
             }
 
             guard let sdp = sdp else {
+                Logger.log.w(message: "Peer:: SDP is missing")
                 return
             }
 
@@ -165,11 +167,15 @@ class Peer : NSObject {
                                              optionalConstraints: nil)
         self.connection.answer(for: constrains) { (sdp, error) in
             
-            //TODO: we should return an error. We don't have a local SDP
-            guard let sdp = sdp else { return }
-            
             if let error = error {
+                Logger.log.e(message: "Peer:: error creating answer \(error)")
                 completion(sdp, error)
+                return
+            }
+            
+            //TODO: we should return an error. We don't have a local SDP
+            guard let sdp = sdp else {
+                Logger.log.w(message: "Peer:: SDP is missing")
                 return
             }
 
@@ -207,6 +213,7 @@ class Peer : NSObject {
 
     /// Close connection and release resources
     func dispose() {
+        Logger.log.i(message: "Peer:: dispose()")
         //This should release all the connection resources
         //including audio / video streams
         self.connection.close()
@@ -253,34 +260,34 @@ extension Peer {
  */
 extension Peer : RTCPeerConnectionDelegate {
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange stateChanged: RTCSignalingState) {
-        print("Peer connection didChange state: \(stateChanged)")
+        Logger.log.i(message: "Peer:: connection didChange state: \(stateChanged)")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didAdd stream: RTCMediaStream) {
-        print("Peer connection didaDD: \(stream)")
+        Logger.log.i(message: "Peer:: connection didaDD: \(stream)")
         if stream.videoTracks.count > 0 {
             self.remoteVideoTrack = stream.videoTracks[0]
         }
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didRemove stream: RTCMediaStream) {
-        print("Peer connection didRemove \(stream)")
+        Logger.log.i(message: "Peer:: connection didRemove \(stream)")
     }
 
     func peerConnectionShouldNegotiate(_ peerConnection: RTCPeerConnection) {
-        print("Peer connection should negotiate")
+        Logger.log.i(message: "Peer:: connection should negotiate")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceConnectionState) {
-        print("Peer connection didChange RTCIceConnectionState: \(newState)")
+        Logger.log.i(message: "Peer:: connection didChange RTCIceConnectionState: \(newState)")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {
-        print("Peer connection didChange RTCIceGatheringState: \(newState)")
+        Logger.log.i(message: "Peer:: connection didChange RTCIceGatheringState: \(newState)")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
-        print("Peer connection didGenerate RCIceCandidate: \(candidate)")
+        Logger.log.i(message: "Peer:: connection didGenerate RCIceCandidate: \(candidate)")
         //once an ICE candidate is generated, let's added into the peerConnection so the ICE Candidate
         //information is added to the local SDP.
         connection.add(candidate)
@@ -289,10 +296,10 @@ extension Peer : RTCPeerConnectionDelegate {
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didRemove candidates: [RTCIceCandidate]) {
-        print("Peer connection didRemove [RTCIceCandidate]: \(candidates)")
+        Logger.log.i(message: "Peer:: connection didRemove [RTCIceCandidate]: \(candidates)")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didOpen dataChannel: RTCDataChannel) {
-        print("Peer connection didOpen RTCDataChannel: \(dataChannel)")
+        Logger.log.i(message: "Peer:: connection didOpen RTCDataChannel: \(dataChannel)")
     }
 }
