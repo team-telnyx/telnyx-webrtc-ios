@@ -16,18 +16,19 @@ public struct TxConfig {
     public internal(set) var ringBackTone: String?
     public internal(set) var ringtone: String?
 
-
     /// Constructor of the Telnyx SDK configuration: Login using sip user  and password.
     /// - Parameters:
     ///   - sipUser: sipUser the SIP user
     ///   - password: password the password of the SIP user.
     ///   - ringtone: (Optional) The audio file name to be played when receiving an incoming call. e.g.: "my-ringtone.mp3"
     ///   - ringBackTone: (Optional) The audio file to be played when calling. e.g.: "my-ringbacktone.mp3"
-    public init(sipUser: String, password: String, ringtone: String? = nil, ringBackTone: String? = nil) {
+    ///   - logLevel: (Optional) Can select the verbosity level of the SDK logs. Is set to `.none` as default
+    public init(sipUser: String, password: String, ringtone: String? = nil, ringBackTone: String? = nil, logLevel: LogLevel = .none) {
         self.sipUser = sipUser
         self.password = password
         self.ringBackTone = ringBackTone
         self.ringtone = ringtone
+        Logger.log.verboseLevel = logLevel
     }
 
     /// Constructor of the Telnyx SDK configuration: Login using a token.
@@ -35,16 +36,18 @@ public struct TxConfig {
     ///   - token: Token generated from https://developers.telnyx.com/docs/v2/webrtc/quickstart
     ///   - ringtone: (Optional) The audio file name to be played when receiving an incoming call. e.g.: "my-ringtone.mp3"
     ///   - ringBackTone: (Optional) The audio file name to be played when calling. e.g.: "my-ringbacktone.mp3"
-    public init(token: String, ringtone: String? = nil, ringBackTone: String? = nil) {
+    ///   - logLevel: (Optional) Can select the verbosity level of the SDK logs. Is set to `.none` as default
+    public init(token: String, ringtone: String? = nil, ringBackTone: String? = nil, logLevel: LogLevel = .none) {
         self.token = token
         self.ringBackTone = ringBackTone
         self.ringtone = ringtone
+        Logger.log.verboseLevel = logLevel
     }
 
     /// Validate if TxConfig parameters are valid
     /// - Throws: Throws TxConfig parameters errors
     public func validateParams() throws {
-        print("TxConfig :: validateParams()")
+        Logger.log.i(message: "TxConfig :: validateParams()")
         //Check if user has entered username and password parameters
         if let password = self.password,
            let user = self.sipUser {

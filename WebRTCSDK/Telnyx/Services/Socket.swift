@@ -17,7 +17,7 @@ class Socket {
     private var socket : WebSocket?
     
     func connect() {
-        print("Socket:: connect()")
+        Logger.log.i(message: "Socket:: connect()")
         var request = URLRequest(url: config.signalingServerUrl)
         request.timeoutInterval = 5
         let pinner = FoundationSecurity(allowSelfSigned: true) // don't validate SSL certificates
@@ -28,18 +28,18 @@ class Socket {
     }
     
     func disconnect() {
-        print("Socket:: disconnect()")
+        Logger.log.i(message: "Socket:: disconnect()")
         self.socket?.disconnect()
     }
     
     func sendMessage(message: String?) {
-        print("Socket:: sendMessage() sending message...")
+        Logger.log.i(message: "Socket:: sendMessage() sending message...")
         if let message = message,
            let socket = self.socket {
             socket.write(string: message)
-            print("Socket:: sendMessage() message: \(message)")
+            Logger.log.verto(message: "Socket:: sendMessage() message: \(message)", direction: .outbound)
         } else {
-            print("Socket:: sendMessage() Error sending message...")
+            Logger.log.e(message: "Socket:: sendMessage() Error sending message...")
         }
     }
     
@@ -53,39 +53,40 @@ extension Socket : WebSocketDelegate {
         case .connected(let headers):
             isConnected = true
             self.delegate?.onSocketConnected()
-            print("Socket:: websocket is connected: \(headers)")
+            Logger.log.i(message: "Socket:: websocket is connected: \(headers)")
             break;
             
         case .disconnected(let reason, let code):
             //This are server side disconnections
             isConnected = false
             self.delegate?.onSocketDisconnected()
-            print("Socket:: websocket is disconnected: \(reason) with code: \(code)")
+            Logger.log.i(message: "Socket:: websocket is disconnected: \(reason) with code: \(code)")
             break;
             
         case .text(let message):
-            print("Socket:: WebSocketDelegate .text \(message)")
+            Logger.log.verto(message: "\(message)", direction: .inbound)
+            Logger.log.i(message: "Socket:: WebSocketDelegate .text \(message)")
             self.delegate?.onMessageReceived(message: message)
             break;
 
         case .cancelled:
             isConnected = false
             self.delegate?.onSocketDisconnected()
-            print("Socket:: WebSocketDelegate .cancelled")
+            Logger.log.i(message: "Socket:: WebSocketDelegate .cancelled")
             break
             
         case .error(let error):
             isConnected = false
             guard let error = error else {
-                print("Socket:: WebSocketDelegate .error UNKNOWN")
+                Logger.log.e(message: "Socket:: WebSocketDelegate .error UNKNOWN")
                 return
             }
             self.delegate?.onSocketError(error: error)
-            print("Socket:: WebSocketDelegate .error \(error)")
+            Logger.log.e(message: "Socket:: WebSocketDelegate .error \(error)")
             break;
             
         case .binary(let data):
-            print("Socket:: WebSocketDelegate .binary data: \(data.count)")
+            Logger.log.i(message: "Socket:: WebSocketDelegate .binary data: \(data.count)")
         case .ping(_):
             break
         case .pong(_):

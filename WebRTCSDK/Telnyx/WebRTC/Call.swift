@@ -113,14 +113,14 @@ public class Call {
         self.peer?.offer(completion: { (sdp, error)  in
             
             if let error = error {
-                print("Error creating the offer: \(error)")
+                Logger.log.i(message: "Call:: Error creating the offer: \(error)")
                 return
             }
             
             guard let sdp = sdp else {
                 return
             }
-            print("Offer compleated >> SDP: \(sdp)")
+            Logger.log.i(message: "Call:: Offer compleated >> SDP: \(sdp)")
             self.updateCallState(callState: .CONNECTING)
         })
     }
@@ -137,7 +137,7 @@ public class Call {
                 return
             }
             
-            print("Error setting remote description: \(error)")
+            Logger.log.e(message: "Call:: Error setting remote description: \(error)")
         })
     }
 
@@ -148,7 +148,7 @@ public class Call {
             guard let error = error else {
                 return
             }
-            print("Error setting remote description: \(error)")
+            Logger.log.e(message: "Call:: Error setting remote description: \(error)")
         })
     }
 
@@ -172,7 +172,7 @@ extension Call {
                  callerNumber: String,
                  destinationNumber: String) {
         if (destinationNumber.isEmpty) {
-            print("Please enter a destination number.")
+            Logger.log.e(message: "Call:: Please enter a destination number.")
             return
         }
         invite(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber)
@@ -181,6 +181,7 @@ extension Call {
     /// Call this function to hangup an ongoing call
     /// Sends a BYE message through the socket
     public func hangup() {
+        Logger.log.i(message: "Call:: hangup()")
         guard let sessionId = self.sessionId, let callId = self.callInfo?.callId else { return }
         let byeMessage = ByeMessage(sessionId: sessionId, callId: callId.uuidString, causeCode: .USER_BUSY)
         let message = byeMessage.encode() ?? ""
@@ -201,14 +202,14 @@ extension Call {
         self.peer?.answer(completion: { (sdp, error)  in
 
             if let error = error {
-                print("Error creating the answering: \(error)")
+                Logger.log.e(message: "Call:: Error creating the answering: \(error)")
                 return
             }
 
             guard let sdp = sdp else {
                 return
             }
-            print("Answer completed >> SDP: \(sdp)")
+            Logger.log.i(message: "Call:: Answer completed >> SDP: \(sdp)")
             self.updateCallState(callState: .ACTIVE)
         })
     }
@@ -218,11 +219,13 @@ extension Call {
     
     /// Mutes the audio of the active call.
     public func muteAudio() {
+        Logger.log.i(message: "Call:: muteAudio()")
         self.peer?.muteUnmuteAudio(mute: true)
     }
 
     /// Unmutes the audio of the active call.
     public func unmuteAudio() {
+        Logger.log.i(message: "Call:: unmuteAudio()")
         self.peer?.muteUnmuteAudio(mute: false)
     }
 }
@@ -232,26 +235,31 @@ extension Call {
 
     /// Hold the Call
     public func hold() {
+        Logger.log.i(message: "Call:: hold()")
         guard let callId = self.callInfo?.callId,
               let sessionId = self.sessionId else { return }
         let hold = ModifyMessage(sessionId: sessionId, callId: callId.uuidString, action: .HOLD)
         let message = hold.encode() ?? ""
         self.socket?.sendMessage(message: message)
         self.updateCallState(callState: .HELD)
+        Logger.log.s(message: "Call:: hold()")
     }
 
     /// Unhold the Call
     public func unhold() {
+        Logger.log.i(message: "Call:: unhold()")
         guard let callId = self.callInfo?.callId,
               let sessionId = self.sessionId else { return }
         let unhold = ModifyMessage(sessionId: sessionId, callId: callId.uuidString, action: .UNHOLD)
         let message = unhold.encode() ?? ""
         self.socket?.sendMessage(message: message)
         self.updateCallState(callState: .ACTIVE)
+        Logger.log.s(message: "Call:: unhold()")
     }
 
     /// Toggle hold  state of the call
     public func toggleHold() {
+        Logger.log.i(message: "Call:: toggleHold()")
         guard let callId = self.callInfo?.callId,
               let sessionId = self.sessionId else { return }
         let toggleHold = ModifyMessage(sessionId: sessionId, callId: callId.uuidString, action: .TOGGLE_HOLD)
@@ -263,6 +271,7 @@ extension Call {
         } else {
             self.updateCallState(callState: .ACTIVE)
         }
+        Logger.log.s(message: "Call:: toggleHold()")
     }
 }
 // MARK: - PeerDelegate
@@ -279,12 +288,13 @@ extension Call : PeerDelegate {
               let callInfo = self.callInfo,
               let callOptions = self.callOptions,
               let _ = self.callInfo?.callId else {
+            Logger.log.e(message: "Call:: onICECandidate missing arguments")
             return
         }
         
         if (self.direction == .OUTBOUND) {
             guard let _ = self.callOptions?.destinationNumber else {
-                print("Send invite error  >> NO DESTINATION NUMBER")
+                Logger.log.e(message: "Send invite error  >> NO DESTINATION NUMBER")
                 return
             }
 
@@ -297,14 +307,14 @@ extension Call : PeerDelegate {
             let message = inviteMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
             self.updateCallState(callState: .CONNECTING)
-            print("Send invite >> \(message)")
+            Logger.log.s(message: "Call:: Send invite >> \(message)")
         } else {
             //Build the telnyx_rtc.answer message and send it
             let answerMessage = AnswerMessage(sessionId: sessionId, sdp: sdp.sdp, callInfo: callInfo, callOptions: callOptions)
             let message = answerMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
             self.updateCallState(callState: .ACTIVE)
-            print("Send answer >> \(answerMessage)")
+            Logger.log.s(message:"Send answer >> \(answerMessage)")
         }
     }
 }
@@ -330,6 +340,7 @@ extension Call {
             //that is sent from the Telnyx cloud.
             if let params = message.params {
                 guard let remoteSdp = params["sdp"] as? String else {
+                    Logger.log.w(message: "Call:: .MEDIA missing SDP")
                     return
                 }
                 self.answered(sdp: remoteSdp)
@@ -342,6 +353,7 @@ extension Call {
             //Set the remote SDP into the current RTCPConnection and the call should start!
             if let params = message.params {
                 guard let remoteSdp = params["sdp"] as? String else {
+                    Logger.log.w(message: "Call:: .ANSWER missing SDP")
                     return
                 }
                 //retrieve the remote SDP from the ANSWER verto message and set it to the current RTCPconnection
@@ -356,7 +368,7 @@ extension Call {
             self.playRingbackTone()
             break
         default:
-            print("TxClient:: SocketDelegate Default method")
+            Logger.log.w(message: "TxClient:: SocketDelegate Default method")
             break
         }
     }
@@ -366,7 +378,7 @@ extension Call {
 extension Call {
 
     private func playRingtone() {
-        print("TxClient:: playRingtone()")
+        Logger.log.i(message: "Call:: playRingtone()")
         guard let ringtonePlayer = self.ringTonePlayer else { return  }
 
         ringtonePlayer.numberOfLoops = -1 // infinite
@@ -374,12 +386,12 @@ extension Call {
     }
 
     private func stopRingtone() {
-        print("Call:: stopRingtone()")
+        Logger.log.i(message: "Call:: stopRingtone()")
         self.ringTonePlayer?.stop()
     }
 
     private func playRingbackTone() {
-        print("Call:: playRingbackTone()")
+        Logger.log.i(message: "Call:: playRingbackTone()")
         guard let ringbackPlayer = self.ringbackPlayer else { return  }
 
         ringbackPlayer.numberOfLoops = -1 // infinite
@@ -387,14 +399,14 @@ extension Call {
     }
 
     private func stopRingbackTone() {
-        print("Call:: stopRingbackTone()")
+        Logger.log.i(message: "Call:: stopRingbackTone()")
         self.ringbackPlayer?.stop()
     }
 
     private func buildAudioPlayer(fileName: String?) -> AVAudioPlayer? {
         guard let file = fileName,
               let path = Bundle.main.path(forResource: file, ofType: nil ) else {
-            print("Call:: buildAudioPlayer() file not found: \(fileName ?? "Unknown").")
+            Logger.log.w(message: "Call:: buildAudioPlayer() file not found: \(fileName ?? "Unknown").")
             return nil
         }
         let url = URL(fileURLWithPath: path)
@@ -404,7 +416,7 @@ extension Call {
             try AVAudioSession.sharedInstance().setActive(true)
             return audioPlayer
         } catch{
-            print("Call:: buildAudioPlayer() error: \(error)")
+            Logger.log.e(message: "Call:: buildAudioPlayer() error: \(error)")
         }
         return nil
     }

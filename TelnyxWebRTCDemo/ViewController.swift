@@ -76,7 +76,9 @@ class ViewController: UIViewController {
             let txConfig = TxConfig(sipUser: sipUser,
                                     password: password,
                                     ringtone: "incoming_call.mp3",
-                                    ringBackTone: "ringback_tone.mp3")
+                                    ringBackTone: "ringback_tone.mp3",
+                                    //You can choose the appropriate verbosity level of the SDK.
+                                    logLevel: .all)
 
             do {
                 try telnyxClient.connect(txConfig: txConfig)
