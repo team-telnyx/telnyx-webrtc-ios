@@ -14,17 +14,31 @@ import Foundation
 -- `warning`: Message of level `warning`
 -- `success`: Message of level `success`
 -- `info`: Message of level `info`
+-- `verto`: Message of level `verto` messages.
 -- `all`:  Will print all level of messages
 -*/
 public enum LogLevel: Int {
+    /// Disable logs. SDK logs will not printed. This is the default configuration.
     case none = 0
+    /// Print `error` logs only
     case error
+    /// Print `warning` logs only
     case warning
+    /// Print `success` logs only
     case success
+    /// Print `info` logs only
     case info
+    /// Print `verto` messages. Incoming and outgoing verto messages are printed.
+    case verto
+    /// All the SDK logs are printed.
     case all
 }
 
+enum VertoDirection: Int {
+    case inbound = 0
+    case outbound
+    case none
+}
 
 class Logger {
 
@@ -32,6 +46,9 @@ class Logger {
 
     /// represents the current log level: `all` is set as default
     internal var verboseLevel: LogLevel = .all
+
+    private var rightArrowGlyph: String = "\u{25B6}"
+    private var leftArrowGlyph: String = "\u{25C0}"
 
     private var errorGlyph: String = "\u{1F6AB}"    // Glyph for messages of level .Error
     private var warningGlyph: String = "\u{1F514}"  // Glyph for messages of level .Warning
@@ -73,8 +90,19 @@ class Logger {
         }
     }
 
-    private func getLogGlyph(level: LogLevel) -> String {
+    /// Prints Success messages if `verboseLevel` is set to `.all` or `.verto`
+    /// - Parameters:
+    ///   - message: message to be printed
+    ///   - direction: direction of the message. Inbound-outbound
+    public func verto(message: String, direction: VertoDirection) {
+        if verboseLevel == .all || verboseLevel == .verto {
+            print(buildMessage(level: .verto, message: message, direction: direction))
+        }
+    }
+
+    private func getLogGlyph(level: LogLevel, direction: VertoDirection = .none) -> String {
         switch(level) {
+        case .verto: return direction == .inbound ? leftArrowGlyph : rightArrowGlyph
         case .all: return ""
         case .none: return ""
         case .error: return errorGlyph
@@ -84,8 +112,8 @@ class Logger {
         }
     }
 
-    private func buildMessage(level: LogLevel, message: String) -> String {
-        return getLogGlyph(level: level) + " " + message + "\n"
+    private func buildMessage(level: LogLevel, message: String, direction: VertoDirection = .none) -> String {
+        return getLogGlyph(level: level, direction: direction) + " " + message + "\n"
     }
 }
 

@@ -37,7 +37,7 @@ class Socket {
         if let message = message,
            let socket = self.socket {
             socket.write(string: message)
-            Logger.log.i(message: "Socket:: sendMessage() message: \(message)")
+            Logger.log.verto(message: "Socket:: sendMessage() message: \(message)", direction: .outbound)
         } else {
             Logger.log.e(message: "Socket:: sendMessage() Error sending message...")
         }
@@ -64,6 +64,7 @@ extension Socket : WebSocketDelegate {
             break;
             
         case .text(let message):
+            Logger.log.verto(message: "\(message)", direction: .inbound)
             Logger.log.i(message: "Socket:: WebSocketDelegate .text \(message)")
             self.delegate?.onMessageReceived(message: message)
             break;
