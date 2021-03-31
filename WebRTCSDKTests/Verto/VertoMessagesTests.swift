@@ -82,9 +82,13 @@ class VertoMessagesTests: XCTestCase {
         userVariables["dummy_var_1"] = "dummy_var_1_value"
         userVariables["dummy_var_2"] = "dummy_var_2_value"
 
+        //Client state must be base64 encoded
+        let CLIENT_STATE_DUMMY_STRING = "Hello my friend"
+        let clientState = CLIENT_STATE_DUMMY_STRING.base64Encoded()
         let callOptions: TxCallOptions = TxCallOptions(destinationNumber: destinationNumber,
                                                        remoteCallerName: remoteCallerName,
                                                        remoteCallerNumber: remoteCallerNumber,
+                                                       clientState: clientState,
                                                        audio: true,
                                                        video: false,
                                                        attach: false,
@@ -114,6 +118,8 @@ class VertoMessagesTests: XCTestCase {
         XCTAssertEqual(dialogParams["attach"] as! Bool , false)
         XCTAssertEqual(dialogParams["useStereo"] as! Bool , false)
         XCTAssertEqual(dialogParams["screenShare"] as! Bool , false)
+        XCTAssertEqual(dialogParams["clientState"] as? String , clientState)
+        XCTAssertEqual((dialogParams["clientState"] as! String).base64Decoded(), CLIENT_STATE_DUMMY_STRING)
 
         let vars = dialogParams["userVariables"] as! [String: Any]
         XCTAssertEqual(vars["dummy_var_1"] as! String , "dummy_var_1_value")
