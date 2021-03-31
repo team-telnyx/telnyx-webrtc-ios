@@ -77,6 +77,7 @@ extension TxClient {
     ///   - callerNumber: The caller Number. The phone number of the current user.
     ///   - destinationNumber: The destination `SIP user address` (sip:YourSipUser@sip.telnyx.com) or `phone number`.
     ///   - callId: The current call UUID.
+    ///   - clientState: (optional) Custom state in string format encoded in base64
     /// - Throws:
     ///   - sessionId is required if user is not logged in
     ///   - socket connection error if socket is not connected
@@ -85,7 +86,8 @@ extension TxClient {
     public func newCall(callerName: String,
                  callerNumber: String,
                  destinationNumber: String,
-                 callId: UUID) throws -> Call {
+                 callId: UUID,
+                 clientState: String? = nil) throws -> Call {
         //User needs to be logged in to get a sessionId
         guard let sessionId = self.sessionId else {
             throw TxError.callFailed(reason: .sessionIdIsRequired)
@@ -107,7 +109,7 @@ extension TxClient {
                         delegate: self,
                         ringtone: self.txConfig?.ringtone,
                         ringbackTone: self.txConfig?.ringBackTone)
-        call.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber)
+        call.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState)
 
         self.calls[callId] = call
         return call

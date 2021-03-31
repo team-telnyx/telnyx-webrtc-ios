@@ -75,6 +75,7 @@ public class Call {
         self.ringbackPlayer = self.buildAudioPlayer(fileName: ringbackTone)
 
         self.playRingtone()
+        
         updateCallState(callState: .NEW)
     }
 
@@ -101,13 +102,14 @@ public class Call {
     /**
         Creates an offer to start the calling process
      */
-    private func invite(callerName: String, callerNumber: String, destinationNumber: String) {
+    private func invite(callerName: String, callerNumber: String, destinationNumber: String, clientState: String? = nil) {
         self.direction = .OUTBOUND
         
         self.callInfo?.callerName = callerName
         self.callInfo?.callerNumber = callerNumber
-        self.callOptions = TxCallOptions(destinationNumber: destinationNumber)
-        
+        self.callOptions = TxCallOptions(destinationNumber: destinationNumber,
+                                         clientState: clientState)
+
         self.peer = Peer(iceServers: self.config.webRTCIceServers)
         self.peer?.delegate = self
         self.peer?.offer(completion: { (sdp, error)  in
@@ -170,12 +172,13 @@ extension Call {
     /// Creates a new oubound call
     internal func newCall(callerName: String,
                  callerNumber: String,
-                 destinationNumber: String) {
+                 destinationNumber: String,
+                 clientState: String? = nil) {
         if (destinationNumber.isEmpty) {
             Logger.log.e(message: "Call:: Please enter a destination number.")
             return
         }
-        invite(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber)
+        invite(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState)
     }
 
     /// Call this function to hangup an ongoing call
