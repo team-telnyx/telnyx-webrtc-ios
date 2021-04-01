@@ -1,0 +1,23 @@
+default_platform(:ios)
+
+before_all do
+	sh 'mkdir ../reports || true'
+	sh 'mkdir ../dist || true'
+end
+
+desc "Does a static analysis of the project. Configure the options in .swiftlint.yml"
+lane :lint do
+  swiftlint(
+      mode: :lint,
+      output_file: 'reports/swiftlint.txt',
+      config_file: 'fastlane/.swiftlint.yml'
+    )
+end
+  
+  
+desc "Run unit tests."
+lane :tests do
+   run_tests(workspace: "WebRTCSDK.xcworkspace",
+            devices: ["iPhone 8"],
+            scheme: "WebRTCSDK")
+end

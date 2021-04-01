@@ -14,3 +14,11 @@ xcuserdata/
 # Podfiles
 Pods/
 Podfile.lock
+
+#fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+Gemfile.lock
+reports/
