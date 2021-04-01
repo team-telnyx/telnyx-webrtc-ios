@@ -91,8 +91,8 @@ extension TxError.CallFailureReason {
 extension TxError.ServerErrorReason {
     var errorMessage: String? {
         switch self {
-        case let .signalingServerError(message):
-            return "Message: \(message)"
+        case let .signalingServerError(message: message, code: code):
+            return "Message: \(message), code: \(code)"
         }
     }
 
