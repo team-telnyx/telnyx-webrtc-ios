@@ -1,0 +1,39 @@
+name: ios_fastlane
+on:
+  pull_request:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+jobs:
+  tests:
+    name: Fastlane 
+    runs-on: macos-latest
+      
+    steps:      
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Select Xcode Version
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+    
+    - name: Setup ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 2.6.3
+        bundler-cache: true
+
+    - name: Setup Fastlane
+      run:  |
+          bundle install
+    - name: Install Pods
+      run:  |
+        pod install
+    - name: Sleep for 20 seconds
+      run: |
+        sleep 20
+    - name: Run tests 
+      run: |
+        bundle exec fastlane tests        
+    - name: Run Swift lint 
+      run: |
+        bundle exec fastlane lint
