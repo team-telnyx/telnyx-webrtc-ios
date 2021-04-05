@@ -585,7 +585,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nsed -i '' 's/SIP_USER/'${TELNYX_SIP_USER}'/g' WebRTCSDKTests/TestConstants.swift\nsed -i '' 's/SIP_PASSWORD/'${TELNYX_SIP_PASSWORD}'/g' WebRTCSDKTests/TestConstants.swift\nsed -i '' 's/SIP_TOKEN/'${TELNYX_SIP_TOKEN}'/g' WebRTCSDKTests/TestConstants.swift\n\necho \"SIP USER: ${TELNYX_SIP_USER}\"\necho \"SIP PASSWORD: ${TELNYX_SIP_PASSWORD}\"\necho \"SIP TOKEN: ${TELNYX_SIP_TOKEN}\"\n\n";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nsed -i '' 's/<SIP_USER>/'${TELNYX_SIP_USER}'/g' WebRTCSDKTests/TestConstants.swift\nsed -i '' 's/<SIP_PASSWORD>/'${TELNYX_SIP_PASSWORD}'/g' WebRTCSDKTests/TestConstants.swift\nsed -i '' 's/<SIP_TOKEN>/'${TELNYX_SIP_TOKEN}'/g' WebRTCSDKTests/TestConstants.swift\n\necho \"SIP USER: ${TELNYX_SIP_USER}\"\necho \"SIP PASSWORD: ${TELNYX_SIP_PASSWORD}\"\necho \"SIP TOKEN: ${TELNYX_SIP_TOKEN}\"\n\n";
 		};
 		CE15D24FDC4D3B3CCD548C73 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
