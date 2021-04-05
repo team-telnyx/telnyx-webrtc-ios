@@ -6,7 +6,7 @@ target 'TelnyxWebRTCDemo' do
   use_frameworks!
 
   # Pods for TelnyxWebRTCDemo
-  pod 'WebRTCSDK', :path => '.'
+  # pod 'WebRTCSDK', :path => '.'
 
 end
 
@@ -23,3 +23,13 @@ target 'WebRTCSDK' do
   end
 
 end
+
+#Disable bitecode -> WebRTC pod doesn't have bitcode enabled
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['ENABLE_BITCODE'] = 'NO'
+    end
+  end
+end
+
