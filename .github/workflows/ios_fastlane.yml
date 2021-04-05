@@ -25,9 +25,9 @@ jobs:
 
     - name: Set environment variables for testing
       run:  |
-          export TELNYX_SIP_USER= ${{ secrets.TELNYX_SIP_USER }}
+          export TELNYX_SIP_USER=${{ secrets.TELNYX_SIP_USER }}
           export TELNYX_SIP_PASSWORD=${{ secrets.TELNYX_SIP_PASSWORD }}
-          export TELNYX_SIP_TOKEN= ${{ secrets.TELNYX_SIP_TOKEN }}
+          export TELNYX_SIP_TOKEN=${{ secrets.TELNYX_SIP_TOKEN }}
           printenv
           
     - name: Setup Fastlane
