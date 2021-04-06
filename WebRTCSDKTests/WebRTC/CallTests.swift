@@ -10,7 +10,7 @@ import WebRTC
 @testable import WebRTCSDK
 
 class CallTests: XCTestCase {
-    private var expectation: XCTestExpectation!
+    private weak var expectation: XCTestExpectation!
     private var call: Call?
 
     override func setUpWithError() throws {

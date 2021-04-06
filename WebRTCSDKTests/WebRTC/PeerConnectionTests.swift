@@ -10,7 +10,8 @@ import WebRTC
 @testable import WebRTCSDK
 
 class PeerConnectionTests: XCTestCase {
-    private var expectation: XCTestExpectation!
+    private weak var createOfferExpectation: XCTestExpectation!
+    private weak var createAnswerExpectation: XCTestExpectation!
     private var peerConnection: Peer?
 
     override func setUpWithError() throws {
@@ -25,7 +26,8 @@ class PeerConnectionTests: XCTestCase {
         print("PeerConnectionTests:: tearDownWithError")
         self.peerConnection?.connection.close()
         self.peerConnection = nil
-        self.expectation = nil
+        self.createOfferExpectation = nil
+        self.createAnswerExpectation = nil
     }
 
     /**
@@ -57,7 +59,7 @@ class PeerConnectionTests: XCTestCase {
      - Wait until ICE negotiation finishes onICECandidate should be called after that
      */
     func testCreateOffer() {
-        expectation = expectation(description: "createOffer")
+        createOfferExpectation = expectation(description: "createOffer")
 
         //SDP should be nil when creating the first offer
         let sdpPreviousNegotiation = self.peerConnection?.connection.localDescription
@@ -100,7 +102,7 @@ class PeerConnectionTests: XCTestCase {
         })
 
         //Answer the call
-        expectation = expectation(description: "createAnswer")
+        createAnswerExpectation = expectation(description: "createAnswer")
         self.peerConnection?.answer(completion: { (sdp, error)  in
 
             if let error = error {
@@ -126,6 +128,12 @@ extension PeerConnectionTests : PeerDelegate {
 
     func onICECandidate(sdp: RTCSessionDescription?, iceCandidate: RTCIceCandidate) {
         print("PeerConnectionTests:: PeerDelegate onICECandidate")
-        self.expectation.fulfill()
+        if self.createOfferExpectation?.description == "createOffer" {
+            self.createOfferExpectation?.fulfill()
+        }
+
+        if self.createAnswerExpectation?.description == "createAnswer" {
+            self.createAnswerExpectation?.fulfill()
+        }
     }
 }
