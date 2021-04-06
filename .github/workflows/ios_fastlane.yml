@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 jobs:
   tests:
-    name: Fastlane 
+    name: sdk_tests 
     runs-on: macos-latest
       
     steps:      
@@ -42,7 +42,4 @@ jobs:
         sleep 10
     - name: Run tests 
       run: |
-        bundle exec fastlane tests        
-    - name: Run Swift lint 
-      run: |
-        bundle exec fastlane lint
+        bundle exec fastlane tests
