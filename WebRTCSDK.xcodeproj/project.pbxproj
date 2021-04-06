@@ -408,7 +408,6 @@
 				B368BEBD25EDDB610032AE52 /* Frameworks */,
 				B368BEBE25EDDB610032AE52 /* Resources */,
 				B309D26425F1574C00A2AADF /* Embed Frameworks */,
-				B3E171B6261BAD8A00B83038 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -569,23 +568,6 @@
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
-		};
-		B3E171B6261BAD8A00B83038 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nsed -i '' 's/<SIP_USER>/'${TELNYX_SIP_USER}'/g' WebRTCSDKTests/TestConstants.swift\nsed -i '' 's/<SIP_PASSWORD>/'${TELNYX_SIP_PASSWORD}'/g' WebRTCSDKTests/TestConstants.swift\nsed -i '' 's/<SIP_TOKEN>/'${TELNYX_SIP_TOKEN}'/g' WebRTCSDKTests/TestConstants.swift\n\necho \"SIP USER: ${TELNYX_SIP_USER}\"\necho \"SIP PASSWORD: ${TELNYX_SIP_PASSWORD}\"\necho \"SIP TOKEN: ${TELNYX_SIP_TOKEN}\"\n\n";
 		};
 		CE15D24FDC4D3B3CCD548C73 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
