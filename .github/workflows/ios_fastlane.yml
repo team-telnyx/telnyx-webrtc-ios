@@ -23,12 +23,13 @@ jobs:
         ruby-version: 2.6.3
         bundler-cache: true
 
-    - name: Set environment variables for testing
+    - shell: bash
+      env:
+          TELNYX_SIP_USER: ${{ secrets.TELNYX_SIP_USER }}
+          TELNYX_SIP_PASSWORD: ${{ secrets.TELNYX_SIP_PASSWORD }}
+          TELNYX_SIP_TOKEN: ${{ secrets.TELNYX_SIP_TOKEN }}
       run:  |
-          export TELNYX_SIP_USER=${{ secrets.TELNYX_SIP_USER }}
-          export TELNYX_SIP_PASSWORD=${{ secrets.TELNYX_SIP_PASSWORD }}
-          export TELNYX_SIP_TOKEN=${{ secrets.TELNYX_SIP_TOKEN }}
-          printenv
+          sh setup_env.sh -u "$TELNYX_SIP_USER" -p "$TELNYX_SIP_PASSWORD" -t "$TELNYX_SIP_TOKEN"
           
     - name: Setup Fastlane
       run:  |
@@ -36,9 +37,9 @@ jobs:
     - name: Install Pods
       run:  |
         pod install
-    - name: Sleep for 20 seconds
+    - name: Sleep for 10 seconds
       run: |
-        sleep 20
+        sleep 10
     - name: Run tests 
       run: |
         bundle exec fastlane tests        
