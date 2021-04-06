@@ -128,11 +128,13 @@ extension PeerConnectionTests : PeerDelegate {
 
     func onICECandidate(sdp: RTCSessionDescription?, iceCandidate: RTCIceCandidate) {
         print("PeerConnectionTests:: PeerDelegate onICECandidate")
-        if self.createOfferExpectation?.description == "createOffer" {
+        if self.createOfferExpectation?.description == "createOffer",
+           self.createOfferExpectation?.expectedFulfillmentCount ?? 0 > 0 {
             self.createOfferExpectation?.fulfill()
         }
 
-        if self.createAnswerExpectation?.description == "createAnswer" {
+        if self.createAnswerExpectation?.description == "createAnswer",
+           self.createAnswerExpectation?.expectedFulfillmentCount ?? 0 > 0 {
             self.createAnswerExpectation?.fulfill()
         }
     }
