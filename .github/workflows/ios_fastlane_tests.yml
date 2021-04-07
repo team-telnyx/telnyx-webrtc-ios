@@ -1,11 +1,12 @@
-name: ios_fastlane
+name: ios_fastlane_tests
 on:
+  push:
   pull_request:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 jobs:
   tests:
-    name: sdk_tests 
+    name: ios_fastlane_tests
     runs-on: macos-latest
       
     steps:      
@@ -19,7 +20,7 @@ jobs:
     - name: Setup ruby
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: 2.6.3
+        ruby-version: 2.7.0
         bundler-cache: true
 
     - shell: bash
@@ -28,7 +29,7 @@ jobs:
           TELNYX_SIP_PASSWORD: ${{ secrets.TELNYX_SIP_PASSWORD }}
           TELNYX_SIP_TOKEN: ${{ secrets.TELNYX_SIP_TOKEN }}
       run:  |
-          sh setup_env.sh -u "$TELNYX_SIP_USER" -p "$TELNYX_SIP_PASSWORD" -t "$TELNYX_SIP_TOKEN"
+          sh scripts/setup_env.sh -u "$TELNYX_SIP_USER" -p "$TELNYX_SIP_PASSWORD" -t "$TELNYX_SIP_TOKEN"
           
     - name: Setup Fastlane
       run:  |
