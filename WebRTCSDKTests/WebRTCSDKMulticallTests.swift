@@ -8,7 +8,7 @@ import XCTest
 @testable import WebRTCSDK
 
 class WebRTCSDKMulticallTests: XCTestCase {
-    private var expectation: XCTestExpectation!
+    private weak var expectation: XCTestExpectation!
     private var telnyxClient: TxClient?
     private var serverError: Error?
 
@@ -66,7 +66,8 @@ extension WebRTCSDKMulticallTests {
         expectation = expectation(description: "loginTest")
 
         let txConfig = TxConfig(sipUser: TestConstants.sipUser,
-                                password: TestConstants.sipPassword)
+                                password: TestConstants.sipPassword,
+                                logLevel: .info)
 
         let error: Error? = self.connectAndReturnError(txConfig: txConfig)
         XCTAssertNil(error) // We shouldn't get any error here
@@ -77,6 +78,7 @@ extension WebRTCSDKMulticallTests {
         //Generate a random number
         let numberOfCalls = Int.random(in: 2..<10)
 
+        print("testMultipleOutgoingCalls() Number of calls: \(numberOfCalls)")
         //Generate random number of calls
         for _ in 0...(numberOfCalls - 1) {
             let uuid = UUID.init()
@@ -84,6 +86,8 @@ extension WebRTCSDKMulticallTests {
                                        callerNumber: "<dummyCallerNumber>",
                                        destinationNumber: "<dummyDestinationNumber>",
                                        callId: uuid)
+            
+            print("testMultipleOutgoingCalls() added to myCallArray: \(myCallArray.count)")
         }
 
         XCTAssertTrue(myCallArray.count == numberOfCalls)
@@ -99,11 +103,15 @@ extension WebRTCSDKMulticallTests {
             //calls should tratition to DONE State
             //after hangup()
             call.hangup()
+            print("testMultipleOutgoingCalls() hangup")
         }
+        
+        //Wait until all call ends
+        sleep(20)
+        print("testMultipleOutgoingCalls() myCallArray count = \(myCallArray.count)")
+        print("testMultipleOutgoingCalls() Calls count = \(self.telnyxClient?.calls.count ?? -1)")
         //Check that all the calls has been removed.
-        XCTAssertTrue(myCallArray.count == 0)
-        XCTAssertTrue(self.telnyxClient?.calls.count == 0)
-
+        XCTAssertEqual(self.telnyxClient?.calls.count,myCallArray.count)
     }
 }
 
@@ -121,7 +129,7 @@ extension WebRTCSDKMulticallTests : TxClientDelegate {
     func onClientError(error: Error) {
         print("WebRTCSDKMulticallTests :: TxClientDelegate onClientError()")
         self.serverError = error
-        self.expectation.fulfill()
+        self.expectation?.fulfill()
     }
 
     func onClientReady() {
@@ -130,15 +138,11 @@ extension WebRTCSDKMulticallTests : TxClientDelegate {
 
     func onSessionUpdated(sessionId: String) {
         print("WebRTCSDKMulticallTests :: TxClientDelegate onSessionUpdated()")
-        self.expectation.fulfill()
+        self.expectation?.fulfill()
     }
 
     func onCallStateUpdated(callState: CallState, callId: UUID) {
         print("WebRTCSDKMulticallTests :: TxClientDelegate onCallStateUpdated()")
-        if (callState == .DONE) {
-            //Remove each call if exists
-            myCallArray.removeValue(forKey: callId)
-        }
     }
 
     func onIncomingCall(call: Call) {
@@ -147,5 +151,7 @@ extension WebRTCSDKMulticallTests : TxClientDelegate {
 
     func onRemoteCallEnded(callId: UUID) {
         print("WebRTCSDKMulticallTests :: TxClientDelegate onRemoteCallEnded()")
+        print("testMultipleOutgoingCalls() remove from myCallArray: \(myCallArray.count)")
+        myCallArray.removeValue(forKey: callId)
     }
 }

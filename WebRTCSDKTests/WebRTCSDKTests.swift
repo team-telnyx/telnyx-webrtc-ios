@@ -9,7 +9,7 @@ import XCTest
 @testable import WebRTCSDK
 
 class WebRTCSDKTests: XCTestCase {
-    private var expectation: XCTestExpectation!
+    private weak var expectation: XCTestExpectation!
     private var telnyxClient: TxClient?
     private var serverError: Error?
 

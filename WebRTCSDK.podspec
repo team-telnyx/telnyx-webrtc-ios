@@ -1,10 +1,3 @@
-#
-#  Be sure to run `pod spec lint WebRTCSDK.podspec' to ensure this is a
-#  valid spec and to remove all comments including this before submitting the spec.
-#
-#  To learn more about Podspec attributes see https://guides.cocoapods.org/syntax/podspec.html
-#  To see working Podspecs in the CocoaPods repo see https://github.com/CocoaPods/Specs/
-#
 
 Pod::Spec.new do |spec|
 
@@ -14,12 +7,17 @@ Pod::Spec.new do |spec|
   spec.description  = "This is the awesome Telnyx iOS WebRTC SDK. Enable VoIP to your iOS App."
   spec.homepage     = "https://github.com/team-telnyx/webrtc-ios-sdk"
   spec.license      = { :type => "MIT", :file => "LICENSE" }
-  spec.author             = { "Guillermo Battistel" => "guillermo@telnyx.com" }
-  spec.platform     = :ios, "10.0"
-  spec.pod_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64' }
-  spec.user_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64' }
-  spec.swift_version = "5.0"
+  spec.author             = { "Telnyx" => "guillermo@telnyx.com" }
   spec.source       = { :git => "https://github.com/team-telnyx/webrtc-ios-sdk.git", :tag => "#{spec.version}" }
+
+  spec.platform     = :ios, "10.0"
+  spec.swift_version = "5.0"
+
+  spec.pod_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64',
+			       'ENABLE_BITCODE' => 'NO'
+                             }
+  spec.user_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64' }
+
   spec.source_files  = "WebRTCSDK", "WebRTCSDK/**/*.{h,m,swift}"
   spec.exclude_files = "WebRTCSDK/Exclude"
   spec.dependency  "Starscream", "~> 4.0.4"

@@ -140,6 +140,8 @@ extension TxClient {
 extension TxClient: CallProtocol {
 
     func callStateUpdated(call: Call) {
+        Logger.log.i(message: "TxClient:: callStateUpdated()")
+
         guard let callId = call.callInfo?.callId else { return }
         //Forward call state
         self.delegate?.onCallStateUpdated(callState: call.callState, callId: callId)
@@ -147,6 +149,7 @@ extension TxClient: CallProtocol {
         //Remove call if it has ended
         if call.callState == .DONE ,
            let callId = call.callInfo?.callId {
+            Logger.log.i(message: "TxClient:: Remove call")
             self.calls.removeValue(forKey: callId)
             //Forward call ended state
             self.delegate?.onRemoteCallEnded(callId: callId)

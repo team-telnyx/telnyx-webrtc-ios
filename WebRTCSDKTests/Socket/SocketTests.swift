@@ -10,9 +10,9 @@ import XCTest
 
 class SocketTests : XCTestCase, SocketDelegate {
 
-    private var socketConnectedExpectation: XCTestExpectation!
-    private var socketDisconnectedExpectation: XCTestExpectation!
-    private var socketMessageExpectation: XCTestExpectation!
+    private weak var socketConnectedExpectation: XCTestExpectation!
+    private weak var socketDisconnectedExpectation: XCTestExpectation!
+    private weak var socketMessageExpectation: XCTestExpectation!
     private var errorResponse: [String: Any]? = nil
 
     func onSocketConnected() {
