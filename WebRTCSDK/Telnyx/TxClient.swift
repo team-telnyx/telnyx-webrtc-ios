@@ -129,7 +129,7 @@ public class TxClient {
     private var sessionId : String?
     private var txConfig: TxConfig?
 
-    // MARK: - Constructor
+    // MARK: - Initializers
     /// TxClient has to be instantiated.
     public init() {}
 

@@ -9,12 +9,17 @@ import Foundation
 
 /// This structure is intended to used for Telnyx SDK configurations.
 public struct TxConfig {
+    
+    // MARK: - Properties
+
     public internal(set) var sipUser: String?
     public internal(set) var password: String?
     public internal(set) var token: String?
 
     public internal(set) var ringBackTone: String?
     public internal(set) var ringtone: String?
+
+    // MARK: - Initializers
 
     /// Constructor of the Telnyx SDK configuration: Login using sip user  and password.
     /// - Parameters:
@@ -43,6 +48,8 @@ public struct TxConfig {
         self.ringtone = ringtone
         Logger.log.verboseLevel = logLevel
     }
+
+    // MARK: - Methods
 
     /// Validate if TxConfig parameters are valid
     /// - Throws: Throws TxConfig parameters errors

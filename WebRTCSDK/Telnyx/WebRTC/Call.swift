@@ -105,6 +105,7 @@ public class Call {
     private var ringTonePlayer: AVAudioPlayer?
     private var ringbackPlayer: AVAudioPlayer?
 
+    // MARK: - Initializers
     /// Constructor for incoming calls
     init(callId: UUID,
          remoteSdp: String,
@@ -152,6 +153,7 @@ public class Call {
         self.updateCallState(callState: .RINGING)
     }
 
+    // MARK: - Private functions
     /**
         Creates an offer to start the calling process
      */
@@ -217,7 +219,8 @@ public class Call {
         self.callState = callState
         self.delegate?.callStateUpdated(call: self)
     }
-}
+} // End Call class
+
 // MARK: - Call handling
 extension Call {
 
