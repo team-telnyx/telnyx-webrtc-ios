@@ -7,16 +7,14 @@
 
 import Foundation
 
-/**
-- Available Log levels for Logger
--- `none`: Print no message
--- `error`: Message of level `error`
--- `warning`: Message of level `warning`
--- `success`: Message of level `success`
--- `info`: Message of level `info`
--- `verto`: Message of level `verto` messages.
--- `all`:  Will print all level of messages
--*/
+/// Available Log levels:
+/// - `none`: Print no message
+/// - `error`: Message of level `error`
+/// - `warning`: Message of level `warning`
+/// - `success`: Message of level `success`
+/// - `info`: Message of level `info`
+/// - `verto`: Message of level `verto` messages.
+/// - `all`:  Will print all level of messages
 public enum LogLevel: Int {
     /// Disable logs. SDK logs will not printed. This is the default configuration.
     case none = 0

@@ -9,19 +9,19 @@ import Foundation
 import WebRTC
 
 
-/// `CallState` possible call states
+/// `CallState` represents the state of the call
 public enum CallState {
-    /// Call is created
+    /// New call has been created in the client.
     case NEW
-    /// Call is been connected to the remote client.
+    /// The outbound call is being sent to the server.
     case CONNECTING
-    /// Call is pending to be answered.
+    /// Call is pending to be answered. Someone is attempting to call you.
     case RINGING
     /// Call is active when two clients are fully connected.
     case ACTIVE
-    /// User has held the call
+    /// Call has been held.
     case HELD
-    /// When the call has  ended
+    /// Call has ended.
     case DONE
 }
 
