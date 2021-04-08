@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>ClientConfigurationFailureReason Enumeration Reference</title>
+    <link rel="stylesheet" type="text/css" href="../../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="../../js/jquery.min.js" defer></script>
+    <script src="../../js/jazzy.js" defer></script>
+    
+    <script src="../../js/lunr.min.js" defer></script>
+    <script src="../../js/typeahead.jquery.js" defer></script>
+    <script src="../../js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Enum/ClientConfigurationFailureReason" class="dashAnchor"></a>
+    <a title="ClientConfigurationFailureReason Enumeration Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="../../index.html">WebRTCSDK 0.0.1 Docs</a> (72% documented)</p>
+        <p class="header-right">
+          <form role="search" action="../../search.json">
+            <input type="text" placeholder="Search documentation" data-typeahead>
+          </form>
+        </p>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="../../index.html">WebRTCSDK Reference</a>
+        <img id="carat" src="../../img/carat.png" />
+        ClientConfigurationFailureReason Enumeration Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="../../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../../Classes/Call.html">Call</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/TxClient.html">TxClient</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../../Enums.html">Enumerations</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../../Enums/CallState.html">CallState</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Enums/LogLevel.html">LogLevel</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Enums/TxError.html">TxError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Enums/TxError/SocketFailureReason.html">– SocketFailureReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Enums/TxError/ClientConfigurationFailureReason.html">– ClientConfigurationFailureReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Enums/TxError/CallFailureReason.html">– CallFailureReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Enums/TxError/ServerErrorReason.html">– ServerErrorReason</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../../Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../../Protocols/TxClientDelegate.html">TxClientDelegate</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../../Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../../Structs/TxCallInfo.html">TxCallInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/TxConfig.html">TxConfig</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>ClientConfigurationFailureReason</h1>
+              <div class="declaration">
+                <div class="language">
+                  
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">ClientConfigurationFailureReason</span></code></pre>
+
+                </div>
+              </div>
+            <p>The underlying reason of client setup configuration errors</p>
+
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9WebRTCSDK7TxErrorO32ClientConfigurationFailureReasonO30userNameAndPasswordAreRequiredyA2EmF"></a>
+                    <a name="//apple_ref/swift/Element/userNameAndPasswordAreRequired" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9WebRTCSDK7TxErrorO32ClientConfigurationFailureReasonO30userNameAndPasswordAreRequiredyA2EmF">userNameAndPasswordAreRequired</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p><code>sip user</code>and <code>sip password</code> are  missing when using the USER / PASSWORD login method</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">userNameAndPasswordAreRequired</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9WebRTCSDK7TxErrorO32ClientConfigurationFailureReasonO18userNameIsRequiredyA2EmF"></a>
+                    <a name="//apple_ref/swift/Element/userNameIsRequired" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9WebRTCSDK7TxErrorO32ClientConfigurationFailureReasonO18userNameIsRequiredyA2EmF">userNameIsRequired</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p><code>sip user</code> is missing when using the USER / PASSWORD login method</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">userNameIsRequired</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9WebRTCSDK7TxErrorO32ClientConfigurationFailureReasonO18passwordIsRequiredyA2EmF"></a>
+                    <a name="//apple_ref/swift/Element/passwordIsRequired" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9WebRTCSDK7TxErrorO32ClientConfigurationFailureReasonO18passwordIsRequiredyA2EmF">passwordIsRequired</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p><code>password</code> is missing when using the USER / PASSWORD login method</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">passwordIsRequired</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9WebRTCSDK7TxErrorO32ClientConfigurationFailureReasonO15tokenIsRequiredyA2EmF"></a>
+                    <a name="//apple_ref/swift/Element/tokenIsRequired" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9WebRTCSDK7TxErrorO32ClientConfigurationFailureReasonO15tokenIsRequiredyA2EmF">tokenIsRequired</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p><code>token</code> is missing when using the Token login method.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">tokenIsRequired</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Error%20Descriptions"></a>
+                <a name="//apple_ref/swift/Section/Error Descriptions" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Error%20Descriptions"></a>
+                  <h3 class="section-name"><p>Error Descriptions</p>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9WebRTCSDK7TxErrorO32ClientConfigurationFailureReasonO20localizedDescriptionSSSgvp"></a>
+                    <a name="//apple_ref/swift/Property/localizedDescription" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9WebRTCSDK7TxErrorO32ClientConfigurationFailureReasonO20localizedDescriptionSSSgvp">localizedDescription</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">localizedDescription</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2021 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external">Telnyx</a>. All rights reserved. (Last updated: 2021-04-07)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.6</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</div>
+</html>

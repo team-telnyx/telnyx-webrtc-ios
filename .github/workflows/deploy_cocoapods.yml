@@ -1,0 +1,20 @@
+name: deploy_cocoapods
+on:
+   # Allows you to run this workflow manually from the Actions tab
+   workflow_dispatch:
+    
+jobs:
+  build:
+    name: deploy_cocoapods
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Ryb Podspec lint
+      run: |
+        pod lib lint
+    - name: Publish to CocoaPod register
+      env:
+        COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
+      run: |
+        pod trunk push WebRTCSDK.podspec

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>TxClient Class Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+    <script src="../js/lunr.min.js" defer></script>
+    <script src="../js/typeahead.jquery.js" defer></script>
+    <script src="../js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Class/TxClient" class="dashAnchor"></a>
+    <a title="TxClient Class Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="../index.html">WebRTCSDK 0.0.1 Docs</a> (72% documented)</p>
+        <p class="header-right">
+          <form role="search" action="../search.json">
+            <input type="text" placeholder="Search documentation" data-typeahead>
+          </form>
+        </p>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="../index.html">WebRTCSDK Reference</a>
+        <img id="carat" src="../img/carat.png" />
+        TxClient Class Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Classes/Call.html">Call</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TxClient.html">TxClient</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Enums.html">Enumerations</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Enums/CallState.html">CallState</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LogLevel.html">LogLevel</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/TxError.html">TxError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/TxError/SocketFailureReason.html">– SocketFailureReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/TxError/ClientConfigurationFailureReason.html">– ClientConfigurationFailureReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/TxError/CallFailureReason.html">– CallFailureReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/TxError/ServerErrorReason.html">– ServerErrorReason</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Protocols/TxClientDelegate.html">TxClientDelegate</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Structs/TxCallInfo.html">TxCallInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TxConfig.html">TxConfig</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>TxClient</h1>
+              <div class="declaration">
+                <div class="language">
+                  
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">TxClient</span></code></pre>
+
+                </div>
+              </div>
+            <p>The <code>TelnyxRTC</code> client connects your application to the Telnyx backend,
+enabling you to make outgoing calls and handle incoming calls.</p>
+
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9WebRTCSDK8TxClientC5callsSDy10Foundation4UUIDVAA4CallCGvp"></a>
+                    <a name="//apple_ref/swift/Property/calls" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9WebRTCSDK8TxClientC5callsSDy10Foundation4UUIDVAA4CallCGvp">calls</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Keeps track of all the created calls by theirs UUIDs</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">internal(set)</span> <span class="k">var</span> <span class="nv">calls</span><span class="p">:</span> <span class="p">[</span><span class="kt">UUID</span> <span class="p">:</span> <span class="kt"><a href="../Classes/Call.html">Call</a></span><span class="p">]</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9WebRTCSDK8TxClientC8delegateAA0cD8Delegate_pSgvp"></a>
+                    <a name="//apple_ref/swift/Property/delegate" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9WebRTCSDK8TxClientC8delegateAA0cD8Delegate_pSgvp">delegate</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Subscribe to TxClient delegate to receive Telnyx RTC events</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">delegate</span><span class="p">:</span> <span class="kt"><a href="../Protocols/TxClientDelegate.html">TxClientDelegate</a></span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9WebRTCSDK8TxClientCACycfc"></a>
+                    <a name="//apple_ref/swift/Method/init()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9WebRTCSDK8TxClientCACycfc">init()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9WebRTCSDK8TxClientC7connect8txConfigyAA0cG0V_tKF"></a>
+                    <a name="//apple_ref/swift/Method/connect(txConfig:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9WebRTCSDK8TxClientC7connect8txConfigyAA0cG0V_tKF">connect(txConfig:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Connects to the iOS client to the Telnyx signaling server using the desired login credentials.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    TxConfig parameters errors
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">connect</span><span class="p">(</span><span class="nv">txConfig</span><span class="p">:</span> <span class="kt"><a href="../Structs/TxConfig.html">TxConfig</a></span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>txConfig</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>txConfig. The desired login credentials. See TxConfig docummentation for more information.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9WebRTCSDK8TxClientC10disconnectyyF"></a>
+                    <a name="//apple_ref/swift/Method/disconnect()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9WebRTCSDK8TxClientC10disconnectyyF">disconnect()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Disconnects the TxClient from the Telnyx signaling server.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">disconnect</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9WebRTCSDK8TxClientC12getSessionIdSSyF"></a>
+                    <a name="//apple_ref/swift/Method/getSessionId()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9WebRTCSDK8TxClientC12getSessionIdSSyF">getSessionId()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Obtaian the current session ID after loggin in to Telnyx server.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getSessionId</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">String</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>The current sessionId. If this value is empty, that means that the client is not connected to Telnyx server.</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9WebRTCSDK8TxClientC11isConnectedSbyF"></a>
+                    <a name="//apple_ref/swift/Method/isConnected()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9WebRTCSDK8TxClientC11isConnectedSbyF">isConnected()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Check if TxClient is connected to Telnyx servers.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">isConnected</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p><code>true</code> if TxClient socket is connected, <code>false</code> otherwise.</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Call%20handling"></a>
+                <a name="//apple_ref/swift/Section/Call handling" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Call%20handling"></a>
+                  <h3 class="section-name"><p>Call handling</p>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9WebRTCSDK8TxClientC7getCall6callIdAA0F0CSg10Foundation4UUIDV_tF"></a>
+                    <a name="//apple_ref/swift/Method/getCall(callId:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9WebRTCSDK8TxClientC7getCall6callIdAA0F0CSg10Foundation4UUIDV_tF">getCall(callId:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>This function can be used to access any active call tracked by the SDK.
+ A call will be accessible until has ended (transitioned to the DONE state).</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getCall</span><span class="p">(</span><span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/Call.html">Call</a></span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>callId</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The unique identifier of a call.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>The<code><a href="../Classes/Call.html">Call</a></code> object that matches the  requested <code>callId</code>. Returns <code>nil</code> if no call was found.</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9WebRTCSDK8TxClientC7newCall10callerName0G6Number011destinationI06callIdAA0F0CSS_S2S10Foundation4UUIDVtKF"></a>
+                    <a name="//apple_ref/swift/Method/newCall(callerName:callerNumber:destinationNumber:callId:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9WebRTCSDK8TxClientC7newCall10callerName0G6Number011destinationI06callIdAA0F0CSS_S2S10Foundation4UUIDVtKF">newCall(callerName:<wbr>callerNumber:<wbr>destinationNumber:<wbr>callId:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates a Call and starts the call sequence, negotiate the ICE Candidates and sends the invite.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    <ul>
+<li>sessionId is required if user is not logged in</li>
+<li>socket connection error if socket is not connected</li>
+<li>destination number is required to start a call.</li>
+</ul>
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">newCall</span><span class="p">(</span><span class="nv">callerName</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
+             <span class="nv">callerNumber</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
+             <span class="nv">destinationNumber</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
+             <span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/Call.html">Call</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>callerName</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The caller name. This will be displayed as the caller name in the remote&rsquo;s client.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>callerNumber</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The caller Number. The phone number of the current user.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>destinationNumber</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The destination <code>SIP user address</code> (sip:<a href="mailto:YourSipUser@sip.telnyx.com">YourSipUser@sip.telnyx.com</a>) or <code>phone number</code>.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>callId</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The current call UUID.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>The call that has been created</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2021 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external">Telnyx</a>. All rights reserved. (Last updated: 2021-04-07)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.6</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</div>
+</html>
