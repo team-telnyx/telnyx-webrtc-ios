@@ -17,7 +17,7 @@
     <a title="TxClientDelegate Protocol Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">WebRTCSDK 0.0.1 Docs</a> (72% documented)</p>
+        <p><a href="../index.html">WebRTCSDK 0.0.1 Docs</a> (90% documented)</p>
         <p class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -104,7 +104,8 @@
 
                 </div>
               </div>
-            <p>Undocumented</p>
+            <p>Delegate protocol asociated with the TxClient
+Methods for receiving TxClient events.</p>
 
           </section>
           <section class="section task-group-section">
@@ -123,7 +124,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Tells the delegate when the Telnyx Client has successfully connected to the Telnyx Backend</p>
 
                       </div>
                       <div class="declaration">
@@ -150,7 +151,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Tells the delegate when the Telnyx Client has disconnected from the Telnyx Backend</p>
 
                       </div>
                       <div class="declaration">
@@ -177,7 +178,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Tells the delegate when there&rsquo;s an error in the Telnyx Client</p>
 
                       </div>
                       <div class="declaration">
@@ -187,6 +188,25 @@
                           <pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">onClientError</span><span class="p">(</span><span class="nv">error</span><span class="p">:</span> <span class="kt">Error</span><span class="p">)</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>error</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>error occurred inside the Telnyx Client</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </section>
                   </div>
@@ -204,7 +224,8 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Tells the delegate that the The Telnyx Client is ready to be used.
+Has successfully connected and logged in</p>
 
                       </div>
                       <div class="declaration">
@@ -231,7 +252,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Tells the delegate that the Telnyx Client session has been updated.</p>
 
                       </div>
                       <div class="declaration">
@@ -241,6 +262,25 @@
                           <pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">onSessionUpdated</span><span class="p">(</span><span class="nv">sessionId</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>sessionId</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The new sessionId assigned to the client connection.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </section>
                   </div>
@@ -258,7 +298,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Tells the delegate that a call has been updated.</p>
 
                       </div>
                       <div class="declaration">
@@ -268,6 +308,37 @@
                           <pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">onCallStateUpdated</span><span class="p">(</span><span class="nv">callState</span><span class="p">:</span> <span class="kt"><a href="../Enums/CallState.html">CallState</a></span><span class="p">,</span> <span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">)</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>callState</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The new call state</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>callId</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The UUID of the affected call</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </section>
                   </div>
@@ -285,7 +356,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Tells the delegate that someone is calling</p>
 
                       </div>
                       <div class="declaration">
@@ -295,6 +366,25 @@
                           <pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">onIncomingCall</span><span class="p">(</span><span class="nv">call</span><span class="p">:</span> <span class="kt"><a href="../Classes/Call.html">Call</a></span><span class="p">)</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>call</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The call object of the incoming call.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </section>
                   </div>
@@ -312,7 +402,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Tells the delegate that a call has ended</p>
 
                       </div>
                       <div class="declaration">
@@ -323,6 +413,25 @@
 
                         </div>
                       </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>callId</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>the UUID of the call that has ended.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
                     </section>
                   </div>
                 </li>
@@ -331,7 +440,7 @@
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2021 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external">Telnyx</a>. All rights reserved. (Last updated: 2021-04-07)</p>
+          <p>&copy; 2021 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external">Telnyx</a>. All rights reserved. (Last updated: 2021-04-26)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.6</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
