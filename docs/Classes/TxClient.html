@@ -17,7 +17,7 @@
     <a title="TxClient Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">WebRTCSDK 0.0.1 Docs</a> (72% documented)</p>
+        <p><a href="../index.html">WebRTCSDK 0.0.1 Docs</a> (90% documented)</p>
         <p class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -106,10 +106,119 @@
               </div>
             <p>The <code>TelnyxRTC</code> client connects your application to the Telnyx backend,
 enabling you to make outgoing calls and handle incoming calls.</p>
+<h2 id='examples' class='heading'>Examples</h2>
+<h3 id='connect-and-login' class='heading'>Connect and login:</h3>
+<pre class="highlight swift"><code><span class="c1">// Initialize the client</span>
+<span class="k">let</span> <span class="nv">telnyxClient</span> <span class="o">=</span> <span class="kt">TxClient</span><span class="p">()</span>
+
+<span class="c1">// Register to get SDK events</span>
+<span class="n">telnyxClient</span><span class="o">.</span><span class="n">delegate</span> <span class="o">=</span> <span class="k">self</span>
+
+<span class="c1">// Setup yor connection parameters.</span>
+
+<span class="c1">// Set the login credentials and the ringtone/ringback configurations if required.</span>
+<span class="c1">// Ringtone / ringback tone files are not mandatory.</span>
+<span class="c1">// You can user your sipUser and password</span>
+<span class="k">let</span> <span class="nv">txConfigUserAndPassowrd</span> <span class="o">=</span> <span class="kt">TxConfig</span><span class="p">(</span><span class="nv">sipUser</span><span class="p">:</span> <span class="n">sipUser</span><span class="p">,</span>
+                                       <span class="nv">password</span><span class="p">:</span> <span class="n">password</span><span class="p">,</span>
+                                       <span class="nv">ringtone</span><span class="p">:</span> <span class="s">"incoming_call.mp3"</span><span class="p">,</span>
+                                       <span class="nv">ringBackTone</span><span class="p">:</span> <span class="s">"ringback_tone.mp3"</span><span class="p">,</span>
+                                       <span class="c1">//You can choose the appropriate verbosity level of the SDK.</span>
+                                       <span class="c1">//Logs are disabled by default</span>
+                                       <span class="nv">logLevel</span><span class="p">:</span> <span class="o">.</span><span class="n">all</span><span class="p">)</span>
+
+<span class="c1">// Use a JWT Telnyx Token to authenticate (recommended)</span>
+<span class="k">let</span> <span class="nv">txConfigToken</span> <span class="o">=</span> <span class="kt">TxConfig</span><span class="p">(</span><span class="nv">token</span><span class="p">:</span> <span class="s">"MY_JWT_TELNYX_TOKEN"</span><span class="p">,</span>
+                             <span class="nv">ringtone</span><span class="p">:</span> <span class="s">"incoming_call.mp3"</span><span class="p">,</span>
+                             <span class="nv">ringBackTone</span><span class="p">:</span> <span class="s">"ringback_tone.mp3"</span><span class="p">,</span>
+                             <span class="c1">//You can choose the appropriate verbosity level of the SDK. Logs are disabled by default</span>
+                             <span class="nv">logLevel</span><span class="p">:</span> <span class="o">.</span><span class="n">all</span><span class="p">)</span>
+
+<span class="k">do</span> <span class="p">{</span>
+   <span class="c1">// Connect and login</span>
+   <span class="c1">// Use `txConfigUserAndPassowrd` or `txConfigToken`</span>
+   <span class="k">try</span> <span class="n">telnyxClient</span><span class="o">.</span><span class="nf">connect</span><span class="p">(</span><span class="nv">txConfig</span><span class="p">:</span> <span class="n">txConfigToken</span><span class="p">)</span>
+<span class="p">}</span> <span class="k">catch</span> <span class="k">let</span> <span class="nv">error</span> <span class="p">{</span>
+   <span class="nf">print</span><span class="p">(</span><span class="s">"ViewController:: connect Error </span><span class="se">\(</span><span class="n">error</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// You can call client.disconnect() when you're done.</span>
+<span class="kt">Note</span><span class="p">:</span> <span class="n">you</span> <span class="n">need</span> <span class="n">to</span> <span class="n">relese</span> <span class="n">the</span> <span class="n">delegate</span> <span class="n">manually</span> <span class="n">when</span> <span class="n">you</span> <span class="n">are</span> <span class="n">done</span><span class="o">.</span>
+
+<span class="c1">// Disconnecting and Removing listeners.</span>
+<span class="n">telnyxClient</span><span class="o">.</span><span class="nf">disconnect</span><span class="p">();</span>
+
+<span class="c1">// Release the delegate</span>
+<span class="n">telnyxClient</span><span class="o">.</span><span class="n">delegate</span> <span class="o">=</span> <span class="kc">nil</span>
+
+</code></pre>
+<h3 id='listen-txclient-delegate-events' class='heading'>Listen TxClient delegate events.</h3>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">ViewController</span><span class="p">:</span> <span class="kt">TxClientDelegate</span> <span class="p">{</span>
+
+    <span class="kd">func</span> <span class="nf">onRemoteCallEnded</span><span class="p">(</span><span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// Call has been removed internally.</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">onSocketConnected</span><span class="p">()</span> <span class="p">{</span>
+       <span class="c1">// When the client has successfully connected to the Telnyx Backend.</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">onSocketDisconnected</span><span class="p">()</span> <span class="p">{</span>
+       <span class="c1">// When the client from the Telnyx backend</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">onClientError</span><span class="p">(</span><span class="nv">error</span><span class="p">:</span> <span class="kt">Error</span><span class="p">)</span>  <span class="p">{</span>
+        <span class="c1">// Something went wrong.</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">onClientReady</span><span class="p">()</span>  <span class="p">{</span>
+       <span class="c1">// You can start receiving incoming calls or</span>
+       <span class="c1">// start making calls once the client was fully initialized.</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">onSessionUpdated</span><span class="p">(</span><span class="nv">sessionId</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span>  <span class="p">{</span>
+       <span class="c1">// This function will be executed when a sessionId is received.</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">onIncomingCall</span><span class="p">(</span><span class="nv">call</span><span class="p">:</span> <span class="kt">Call</span><span class="p">)</span>  <span class="p">{</span>
+       <span class="c1">// Someone is calling you.</span>
+    <span class="p">}</span>
+
+    <span class="c1">// You can update your UI from here base on the call states.</span>
+    <span class="c1">// Check that the callId is the same as your current call.</span>
+    <span class="kd">func</span> <span class="nf">onCallStateUpdated</span><span class="p">(</span><span class="nv">callState</span><span class="p">:</span> <span class="kt">CallState</span><span class="p">,</span> <span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">DispatchQueue</span><span class="o">.</span><span class="n">main</span><span class="o">.</span><span class="n">async</span> <span class="p">{</span>
+            <span class="k">switch</span> <span class="p">(</span><span class="n">callState</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">case</span> <span class="o">.</span><span class="kt">CONNECTING</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">case</span> <span class="o">.</span><span class="kt">RINGING</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">case</span> <span class="o">.</span><span class="kt">NEW</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">case</span> <span class="o">.</span><span class="kt">ACTIVE</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">case</span> <span class="o">.</span><span class="kt">DONE</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">case</span> <span class="o">.</span><span class="kt">HELD</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
 
           </section>
           <section class="section task-group-section">
             <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Properties"></a>
+                <a name="//apple_ref/swift/Section/Properties" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Properties"></a>
+                  <h3 class="section-name"><p>Properties</p>
+</h3>
+                </div>
+              </div>
               <ul>
                 <li class="item">
                   <div>
@@ -151,7 +260,7 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Subscribe to TxClient delegate to receive Telnyx RTC events</p>
+                        <p>Subscribe to TxClient delegate to receive Telnyx SDK events</p>
 
                       </div>
                       <div class="declaration">
@@ -165,6 +274,19 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                     </section>
                   </div>
                 </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Initializers"></a>
+                <a name="//apple_ref/swift/Section/Initializers" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Initializers"></a>
+                  <h3 class="section-name"><p>Initializers</p>
+</h3>
+                </div>
+              </div>
+              <ul>
                 <li class="item">
                   <div>
                     <code>
@@ -178,7 +300,7 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>TxClient has to be instantiated.</p>
 
                       </div>
                       <div class="declaration">
@@ -192,6 +314,19 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                     </section>
                   </div>
                 </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Connection%20handling"></a>
+                <a name="//apple_ref/swift/Section/Connection handling" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Connection%20handling"></a>
+                  <h3 class="section-name"><p>Connection handling</p>
+</h3>
+                </div>
+              </div>
+              <ul>
                 <li class="item">
                   <div>
                     <code>
@@ -233,7 +368,7 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                               </td>
                               <td>
                                 <div>
-                                  <p>txConfig. The desired login credentials. See TxConfig docummentation for more information.</p>
+                                  <p>The desired login credentials. See TxConfig docummentation for more information.</p>
                                 </div>
                               </td>
                             </tr>
@@ -273,37 +408,6 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9WebRTCSDK8TxClientC12getSessionIdSSyF"></a>
-                    <a name="//apple_ref/swift/Method/getSessionId()" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9WebRTCSDK8TxClientC12getSessionIdSSyF">getSessionId()</a>
-                    </code>
-                  </div>
-                  <div class="height-container">
-                    <div class="pointer-container"></div>
-                    <section class="section">
-                      <div class="pointer"></div>
-                      <div class="abstract">
-                        <p>Obtaian the current session ID after loggin in to Telnyx server.</p>
-
-                      </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getSessionId</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">String</span></code></pre>
-
-                        </div>
-                      </div>
-                      <div>
-                        <h4>Return Value</h4>
-                        <p>The current sessionId. If this value is empty, that means that the client is not connected to Telnyx server.</p>
-                      </div>
-                    </section>
-                  </div>
-                </li>
-                <li class="item">
-                  <div>
-                    <code>
                     <a name="/s:9WebRTCSDK8TxClientC11isConnectedSbyF"></a>
                     <a name="//apple_ref/swift/Method/isConnected()" class="dashAnchor"></a>
                     <a class="token" href="#/s:9WebRTCSDK8TxClientC11isConnectedSbyF">isConnected()</a>
@@ -314,7 +418,7 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Check if TxClient is connected to Telnyx servers.</p>
+                        <p>To check if TxClient is connected to Telnyx server.</p>
 
                       </div>
                       <div class="declaration">
@@ -328,6 +432,37 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p><code>true</code> if TxClient socket is connected, <code>false</code> otherwise.</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9WebRTCSDK8TxClientC12getSessionIdSSyF"></a>
+                    <a name="//apple_ref/swift/Method/getSessionId()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9WebRTCSDK8TxClientC12getSessionIdSSyF">getSessionId()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get the current session ID after logging into Telnyx Backend.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getSessionId</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">String</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>The current sessionId. If this value is empty, that means that the client is not connected to Telnyx server.</p>
                       </div>
                     </section>
                   </div>
@@ -409,7 +544,7 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Creates a Call and starts the call sequence, negotiate the ICE Candidates and sends the invite.</p>
+                        <p>Creates a new Call and starts the call sequence, negotiate the ICE Candidates and sends the invite.</p>
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     <ul>
@@ -499,7 +634,7 @@ enabling you to make outgoing calls and handle incoming calls.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2021 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external">Telnyx</a>. All rights reserved. (Last updated: 2021-04-07)</p>
+          <p>&copy; 2021 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external">Telnyx</a>. All rights reserved. (Last updated: 2021-04-26)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.6</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

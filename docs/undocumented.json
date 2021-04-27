@@ -1,180 +1,68 @@
 {
   "warnings": [
     {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/Models/TxConfig.swift",
-      "line": 12,
+      "file": "/Users/guillermo/Documents/Projects/Telnyx/iOS/webrtc-ios-sdk/WebRTCSDK/Telnyx/Models/TxConfig.swift",
+      "line": 15,
       "symbol": "TxConfig.sipUser",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/Models/TxConfig.swift",
-      "line": 13,
+      "file": "/Users/guillermo/Documents/Projects/Telnyx/iOS/webrtc-ios-sdk/WebRTCSDK/Telnyx/Models/TxConfig.swift",
+      "line": 16,
       "symbol": "TxConfig.password",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/Models/TxConfig.swift",
-      "line": 14,
+      "file": "/Users/guillermo/Documents/Projects/Telnyx/iOS/webrtc-ios-sdk/WebRTCSDK/Telnyx/Models/TxConfig.swift",
+      "line": 17,
       "symbol": "TxConfig.token",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/Models/TxConfig.swift",
-      "line": 16,
+      "file": "/Users/guillermo/Documents/Projects/Telnyx/iOS/webrtc-ios-sdk/WebRTCSDK/Telnyx/Models/TxConfig.swift",
+      "line": 19,
       "symbol": "TxConfig.ringBackTone",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/Models/TxConfig.swift",
-      "line": 17,
+      "file": "/Users/guillermo/Documents/Projects/Telnyx/iOS/webrtc-ios-sdk/WebRTCSDK/Telnyx/Models/TxConfig.swift",
+      "line": 20,
       "symbol": "TxConfig.ringtone",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/Models/TxError.swift",
+      "file": "/Users/guillermo/Documents/Projects/Telnyx/iOS/webrtc-ios-sdk/WebRTCSDK/Telnyx/Models/TxError.swift",
       "line": 124,
       "symbol": "TxError.SocketFailureReason.localizedDescription",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/Models/TxError.swift",
+      "file": "/Users/guillermo/Documents/Projects/Telnyx/iOS/webrtc-ios-sdk/WebRTCSDK/Telnyx/Models/TxError.swift",
       "line": 135,
       "symbol": "TxError.ClientConfigurationFailureReason.localizedDescription",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/Models/TxError.swift",
+      "file": "/Users/guillermo/Documents/Projects/Telnyx/iOS/webrtc-ios-sdk/WebRTCSDK/Telnyx/Models/TxError.swift",
       "line": 150,
       "symbol": "TxError.CallFailureReason.localizedDescription",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/Models/TxError.swift",
+      "file": "/Users/guillermo/Documents/Projects/Telnyx/iOS/webrtc-ios-sdk/WebRTCSDK/Telnyx/Models/TxError.swift",
       "line": 161,
       "symbol": "TxError.ServerErrorReason.localizedDescription",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
-    },
-    {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/TxClient.swift",
-      "line": 25,
-      "symbol": "TxClient.init()",
-      "symbol_kind": "source.lang.swift.decl.function.method.instance",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/TxClientDelegate.swift",
-      "line": 10,
-      "symbol": "TxClientDelegate",
-      "symbol_kind": "source.lang.swift.decl.protocol",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/TxClientDelegate.swift",
-      "line": 11,
-      "symbol": "TxClientDelegate.onSocketConnected()",
-      "symbol_kind": "source.lang.swift.decl.function.method.instance",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/TxClientDelegate.swift",
-      "line": 12,
-      "symbol": "TxClientDelegate.onSocketDisconnected()",
-      "symbol_kind": "source.lang.swift.decl.function.method.instance",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/TxClientDelegate.swift",
-      "line": 13,
-      "symbol": "TxClientDelegate.onClientError(error:)",
-      "symbol_kind": "source.lang.swift.decl.function.method.instance",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/TxClientDelegate.swift",
-      "line": 14,
-      "symbol": "TxClientDelegate.onClientReady()",
-      "symbol_kind": "source.lang.swift.decl.function.method.instance",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/TxClientDelegate.swift",
-      "line": 15,
-      "symbol": "TxClientDelegate.onSessionUpdated(sessionId:)",
-      "symbol_kind": "source.lang.swift.decl.function.method.instance",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/TxClientDelegate.swift",
-      "line": 16,
-      "symbol": "TxClientDelegate.onCallStateUpdated(callState:callId:)",
-      "symbol_kind": "source.lang.swift.decl.function.method.instance",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/TxClientDelegate.swift",
-      "line": 17,
-      "symbol": "TxClientDelegate.onIncomingCall(call:)",
-      "symbol_kind": "source.lang.swift.decl.function.method.instance",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/TxClientDelegate.swift",
-      "line": 18,
-      "symbol": "TxClientDelegate.onRemoteCallEnded(callId:)",
-      "symbol_kind": "source.lang.swift.decl.function.method.instance",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/WebRTC/Call.swift",
-      "line": 38,
-      "symbol": "Call",
-      "symbol_kind": "source.lang.swift.decl.class",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/WebRTC/Call.swift",
-      "line": 50,
-      "symbol": "Call.callInfo",
-      "symbol_kind": "source.lang.swift.decl.var.instance",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/WebRTC/Call.swift",
-      "line": 51,
-      "symbol": "Call.callState",
-      "symbol_kind": "source.lang.swift.decl.var.instance",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/WebRTC/Call.swift",
-      "line": 168,
-      "symbol": "Call",
-      "symbol_kind": "source.lang.swift.decl.extension",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/WebRTC/Call.swift",
-      "line": 218,
-      "symbol": "Call",
-      "symbol_kind": "source.lang.swift.decl.extension",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk/WebRTCSDK/Telnyx/WebRTC/Call.swift",
-      "line": 234,
-      "symbol": "Call",
-      "symbol_kind": "source.lang.swift.decl.extension",
-      "warning": "undocumented"
     }
   ],
-  "source_directory": "/Users/runner/work/webrtc-ios-sdk/webrtc-ios-sdk"
+  "source_directory": "/Users/guillermo/Documents/Projects/Telnyx/iOS/webrtc-ios-sdk"
 }

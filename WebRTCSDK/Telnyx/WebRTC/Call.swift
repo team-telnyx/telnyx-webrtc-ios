@@ -9,19 +9,19 @@ import Foundation
 import WebRTC
 
 
-/// `CallState` possible call states
+/// `CallState` represents the state of the call
 public enum CallState {
-    /// Call is created
+    /// New call has been created in the client.
     case NEW
-    /// Call is been connected to the remote client.
+    /// The outbound call is being sent to the server.
     case CONNECTING
-    /// Call is pending to be answered.
+    /// Call is pending to be answered. Someone is attempting to call you.
     case RINGING
     /// Call is active when two clients are fully connected.
     case ACTIVE
-    /// User has held the call
+    /// Call has been held.
     case HELD
-    /// When the call has  ended
+    /// Call has ended.
     case DONE
 }
 
@@ -35,6 +35,55 @@ protocol CallProtocol {
     func callStateUpdated(call: Call)
 }
 
+
+/// A Call is the representation of an audio or video call between two WebRTC Clients, SIP clients or phone numbers.
+/// The call object is created whenever a new call is initiated, either by you or the remote caller.
+/// You can access and act upon calls initiated by a remote caller by registering to TxClientDelegate of the TxClient
+///
+/// ## Examples:
+/// ### Create a call:
+///
+/// ```
+///    // Create a client instance
+///    self.telnyxClient = TxClient()
+///
+///    // Asign the delegate to get SDK events
+///    self.telnyxClient?.delegate = self
+///
+///    // Connect the client (Check TxClient class for more info)
+///    self.telnyxClient?.connect(....)
+///
+///    // Create the call and start calling
+///    self.currentCall = try self.telnyxClient?.newCall(callerName: "Caller name",
+///                                                      callerNumber: "155531234567",
+///                                                      // Destination is required and can be a phone number or SIP URI
+///                                                      destinationNumber: "18004377950",
+///                                                      callId: UUID.init())
+/// ```
+///
+/// ### Answer an incoming call:
+/// ```
+/// //Init your client
+/// func initTelnyxClient() {
+///    //
+///    self.telnyxClient = TxClient()
+///
+///    // Asign the delegate to get SDK events
+///    self.telnyxClient?.delegate = self
+///
+///    // Connect the client (Check TxClient class for more info)
+///    self.telnyxClient?.connect(....)
+/// }
+///
+/// extension ViewController: TxClientDelegate {
+///     //....
+///     func onIncomingCall(call: Call) {
+///         //We are automatically answering any incoming call as an example, but
+///         //maybe you want to store a reference of the call, and answer the call after a button press.
+///         self.myCall = call.answer()
+///     }
+/// }
+/// ```
 public class Call {
 
     var direction: CallDirection = .OUTBOUND
@@ -47,12 +96,17 @@ public class Call {
     var remoteSdp: String?
     var callOptions: TxCallOptions?
 
+    // MARK: - Properties
+    /// `TxCallInfo` Contains the required information of the current Call.
     public var callInfo: TxCallInfo?
+    /// `CallState` The actual state of the Call.
     public var callState: CallState = .NEW
 
     private var ringTonePlayer: AVAudioPlayer?
     private var ringbackPlayer: AVAudioPlayer?
 
+    // MARK: - Initializers
+    /// Constructor for incoming calls
     init(callId: UUID,
          remoteSdp: String,
          sessionId: String,
@@ -78,6 +132,7 @@ public class Call {
         updateCallState(callState: .NEW)
     }
 
+    /// Constructor for outgoing calls
     init(callId: UUID,
          sessionId: String,
          socket: Socket,
@@ -98,6 +153,7 @@ public class Call {
         self.updateCallState(callState: .RINGING)
     }
 
+    // MARK: - Private functions
     /**
         Creates an offer to start the calling process
      */
@@ -163,7 +219,8 @@ public class Call {
         self.callState = callState
         self.delegate?.callStateUpdated(call: self)
     }
-}
+} // End Call class
+
 // MARK: - Call handling
 extension Call {
 
@@ -178,8 +235,9 @@ extension Call {
         invite(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber)
     }
 
-    /// Call this function to hangup an ongoing call
-    /// Sends a BYE message through the socket
+    /// Hangup or reject an incoming call.
+    /// ### Example:
+    ///     call.hangup()
     public func hangup() {
         Logger.log.i(message: "Call:: hangup()")
         guard let sessionId = self.sessionId, let callId = self.callInfo?.callId else { return }
@@ -189,7 +247,9 @@ extension Call {
         self.endCall()
     }
 
-    /// Call this function to answer an incoming call
+    /// Starts the process to answer the incoming call.
+    /// ### Example:
+    ///     call.answer()
     public func answer() {
         self.stopRingtone()
         //TODO: Create an error if there's no remote SDP
@@ -217,23 +277,29 @@ extension Call {
 // MARK: - Audio handling
 extension Call {
     
-    /// Mutes the audio of the active call.
+    /// Turns off audio output, i.e. makes it so other call participants cannot hear your audio.
+    /// ### Example:
+    ///     call.muteAudio()
     public func muteAudio() {
         Logger.log.i(message: "Call:: muteAudio()")
         self.peer?.muteUnmuteAudio(mute: true)
     }
 
-    /// Unmutes the audio of the active call.
+    /// Turns on audio output, i.e. makes it so other call participants can hear your audio.
+    /// ### Example:
+    ///     call.unmuteAudio()
     public func unmuteAudio() {
         Logger.log.i(message: "Call:: unmuteAudio()")
         self.peer?.muteUnmuteAudio(mute: false)
     }
 }
 
-// MARK: - Hold / Unhold functions
+// MARK: - Hold / Unhold handling
 extension Call {
 
-    /// Hold the Call
+    /// Holds the call.
+    /// ### Example:
+    ///     call.hold()
     public func hold() {
         Logger.log.i(message: "Call:: hold()")
         guard let callId = self.callInfo?.callId,
@@ -245,7 +311,9 @@ extension Call {
         Logger.log.s(message: "Call:: hold()")
     }
 
-    /// Unhold the Call
+    /// Removes hold from the call.
+    /// ### Example:
+    ///     call.unhold()
     public func unhold() {
         Logger.log.i(message: "Call:: unhold()")
         guard let callId = self.callInfo?.callId,
@@ -257,7 +325,9 @@ extension Call {
         Logger.log.s(message: "Call:: unhold()")
     }
 
-    /// Toggle hold  state of the call
+    /// Toggles between `active` and `held`  state of the call.
+    /// ### Example:
+    ///     call.toggleHold()
     public func toggleHold() {
         Logger.log.i(message: "Call:: toggleHold()")
         guard let callId = self.callInfo?.callId,
