@@ -66,6 +66,7 @@ class UICallScreen: UIView {
         self.layer.cornerRadius = 0
         self.callControlsSection.isHidden = true
         self.toggleSpeaker(self)
+        self.destinationNumberOrSip.autocorrectionType = .no
     }
     
     private func loadViewFromNib() -> UIView! {
