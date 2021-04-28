@@ -74,19 +74,19 @@
                                 </constraints>
                             </stackView>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="qhD-Ar-bVI" userLabel="Call View" customClass="UICallScreen" customModule="TelnyxWebRTCDemo" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="294" width="414" height="437.5"/>
+                                <rect key="frame" x="0.0" y="294" width="414" height="468"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="z4d-Kt-WJs" customClass="UIIncomingCallView" customModule="TelnyxWebRTCDemo" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="294" width="414" height="437.5"/>
+                                <rect key="frame" x="0.0" y="294" width="414" height="468"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Sq2-dL-w4H" customClass="UISettingsView" customModule="TelnyxWebRTCDemo" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="294" width="414" height="437.5"/>
+                                <rect key="frame" x="0.0" y="294" width="414" height="468"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </view>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="HDL-DH-v9R">
-                                <rect key="frame" x="30" y="761.5" width="354" height="30"/>
+                                <rect key="frame" x="30" y="792" width="354" height="30"/>
                                 <color key="backgroundColor" red="0.60060590170000006" green="1" blue="0.82187082590000005" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="jjB-tD-GDu"/>
@@ -105,12 +105,6 @@
                                     <action selector="connectButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="wAP-ng-15X"/>
                                 </connections>
                             </button>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Version" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uDN-Lm-Lhn">
-                                <rect key="frame" x="10" y="821.5" width="394" height="20.5"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -125,11 +119,9 @@
                             <constraint firstItem="HDL-DH-v9R" firstAttribute="top" secondItem="z4d-Kt-WJs" secondAttribute="bottom" constant="30" id="H7G-et-nzB"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="HDL-DH-v9R" secondAttribute="trailing" constant="30" id="IMG-fp-iXT"/>
                             <constraint firstItem="z4d-Kt-WJs" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="MgJ-gZ-gtY"/>
-                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="uDN-Lm-Lhn" secondAttribute="bottom" constant="20" id="PQK-rC-8H9"/>
-                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="uDN-Lm-Lhn" secondAttribute="trailing" constant="10" id="R8q-Cj-mHP"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="GfE-v1-Dfm" secondAttribute="trailing" constant="30" id="UJE-Ni-Txm"/>
-                            <constraint firstItem="uDN-Lm-Lhn" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="10" id="XEF-SJ-UzS"/>
                             <constraint firstItem="GfE-v1-Dfm" firstAttribute="top" secondItem="MLh-Ll-Ryr" secondAttribute="bottom" id="bD7-2M-EJ3"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="HDL-DH-v9R" secondAttribute="bottom" constant="40" id="bKc-61-9Mx"/>
                             <constraint firstItem="wzw-DY-Om3" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="10" id="dww-CX-ZQh"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="qhD-Ar-bVI" secondAttribute="trailing" id="eMY-8H-PdX"/>
                             <constraint firstItem="Sq2-dL-w4H" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="ejm-Nz-vg5"/>
@@ -137,11 +129,9 @@
                             <constraint firstItem="qhD-Ar-bVI" firstAttribute="top" secondItem="GfE-v1-Dfm" secondAttribute="bottom" constant="60" id="lIa-NJ-GH1"/>
                             <constraint firstItem="Sq2-dL-w4H" firstAttribute="top" secondItem="GfE-v1-Dfm" secondAttribute="bottom" constant="60" id="lJQ-k2-pAF"/>
                             <constraint firstItem="HDL-DH-v9R" firstAttribute="top" secondItem="Sq2-dL-w4H" secondAttribute="bottom" constant="30" id="nyI-6s-0Ib"/>
-                            <constraint firstItem="uDN-Lm-Lhn" firstAttribute="top" secondItem="HDL-DH-v9R" secondAttribute="bottom" constant="30" id="oMD-Nd-Hqg"/>
                             <constraint firstItem="MLh-Ll-Ryr" firstAttribute="top" secondItem="wzw-DY-Om3" secondAttribute="bottom" constant="30" id="oMc-T6-fdx"/>
                             <constraint firstItem="HDL-DH-v9R" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="30" id="pzO-jA-MTe"/>
                             <constraint firstItem="wzw-DY-Om3" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="50" id="uQg-B1-8tM"/>
-                            <constraint firstItem="uDN-Lm-Lhn" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="xaG-Cn-gUc"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="Sq2-dL-w4H" secondAttribute="trailing" id="yZv-r3-hGl"/>
                         </constraints>
                     </view>
@@ -152,7 +142,6 @@
                         <outlet property="sessionIdLabel" destination="QiW-C2-v1t" id="1Jq-zS-Mt2"/>
                         <outlet property="settingsView" destination="Sq2-dL-w4H" id="5cZ-1a-8aP"/>
                         <outlet property="socketStateLabel" destination="lhJ-I7-FaD" id="fPk-4D-Rhb"/>
-                        <outlet property="versionLabel" destination="uDN-Lm-Lhn" id="beV-3d-7vv"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

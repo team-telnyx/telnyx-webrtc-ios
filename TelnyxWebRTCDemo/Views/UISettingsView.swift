@@ -107,7 +107,15 @@ extension UISettingsView {
     @objc func keyboardWillShow(notification: NSNotification) {
         if let keyboardSize = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
             if self.superview?.frame.origin.y == 0 {
-                self.superview?.frame.origin.y -= (keyboardSize.height)
+                if let field = activeField {
+                    let frame = field.convert(field.bounds, to: nil)
+                    let screenSize = UIScreen.main.bounds
+                    let yFromBottom: CGFloat = screenSize.height - frame.origin.y - field.frame.height
+                    if (yFromBottom < keyboardSize.height) {
+                        let offset = keyboardSize.height - yFromBottom
+                        self.superview?.frame.origin.y -= offset
+                   }
+                }
             }
         }
     }

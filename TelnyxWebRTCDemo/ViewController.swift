@@ -19,7 +19,6 @@ class ViewController: UIViewController {
     @IBOutlet weak var callView: UICallScreen!
     @IBOutlet weak var settingsView: UISettingsView!
     @IBOutlet weak var incomingCallView: UIIncomingCallView!
-    @IBOutlet weak var versionLabel: UILabel!
     @IBOutlet weak var connectButton: UIButton!
     
     override func viewDidLoad() {
@@ -39,7 +38,6 @@ class ViewController: UIViewController {
         self.callView.delegate = self
         self.callView.hideEndButton(hide: true)
         self.settingsView.isHidden = false
-        self.versionLabel.text = ""
 
         self.incomingCallView.isHidden = true
         self.incomingCallView.delegate = self
