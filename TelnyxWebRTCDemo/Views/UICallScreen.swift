@@ -13,7 +13,6 @@ protocol UICallScreenDelegate {
     func onEndCallButton()
     func onMuteUnmuteSwitch(isMuted: Bool)
     func onHoldUnholdSwitch(isOnHold: Bool)
-    func onVideoTapped()
     func onToggleSpeaker(isSpeakerActive: Bool)
 }
 
@@ -36,7 +35,6 @@ class UICallScreen: UIView {
     @IBOutlet weak var holdUnholdSwitch: UISwitch!
     @IBOutlet weak var holdUnholdLabel: UILabel!
     @IBOutlet weak var toggleSpeaker: UIButton!
-    @IBOutlet weak var openVideo: UIButton!
     
     
     override init(frame: CGRect) {
@@ -144,10 +142,6 @@ class UICallScreen: UIView {
             self.holdUnholdLabel.text = "Hold"
         }
         self.delegate?.onHoldUnholdSwitch(isOnHold: holdUnholdSwitch.isOn)
-    }
-
-    @IBAction func videoButtonTapped(_ sender: Any) {
-        self.delegate?.onVideoTapped()
     }
 
     @IBAction func toggleSpeaker(_ sender: Any) {

@@ -28,7 +28,6 @@ class ViewController: UIViewController {
 
         self.telnyxClient = appDelegate.getTelnyxClient()
         self.telnyxClient?.delegate = self
-        self.telnyxClient?.getCall(callId: UUID.init())
         initViews()
     }
     
@@ -245,10 +244,6 @@ extension ViewController : UICallScreenDelegate {
         } else {
             self.currentCall?.unhold()
         }
-    }
-
-    func onVideoTapped() {
-        //TODO: Implement video
     }
 
     func onToggleSpeaker(isSpeakerActive: Bool) {

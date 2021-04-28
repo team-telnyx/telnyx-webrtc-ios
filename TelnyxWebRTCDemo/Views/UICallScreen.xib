@@ -19,7 +19,6 @@
                 <outlet property="holdUnholdSwitch" destination="VTP-0L-bxs" id="Klt-Tc-qlX"/>
                 <outlet property="muteUnmuteLabel" destination="RR2-e1-aaF" id="2ls-Cl-z3v"/>
                 <outlet property="muteUnmuteSwitch" destination="Bzm-fY-keM" id="5mE-3J-Ogz"/>
-                <outlet property="openVideo" destination="BB6-Bd-Mdb" id="j0x-Zp-zL6"/>
                 <outlet property="toggleSpeaker" destination="7Bw-UJ-xbE" id="oKz-Re-yDP"/>
             </connections>
         </placeholder>
@@ -94,17 +93,8 @@
                 <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="IQU-Md-W0M">
                     <rect key="frame" x="20" y="239" width="374" height="62"/>
                     <subviews>
-                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="BB6-Bd-Mdb" userLabel="Video">
-                            <rect key="frame" x="0.0" y="0.0" width="86" height="62"/>
-                            <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                            <color key="tintColor" red="0.1137254902" green="0.1333333333" blue="0.25490196079999999" alpha="1" colorSpace="calibratedRGB"/>
-                            <state key="normal" image="video" catalog="system"/>
-                            <connections>
-                                <action selector="videoButtonTapped:" destination="-1" eventType="touchUpInside" id="7El-la-aI4"/>
-                            </connections>
-                        </button>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7Bw-UJ-xbE" userLabel="Speaker">
-                            <rect key="frame" x="96" y="0.0" width="86" height="62"/>
+                            <rect key="frame" x="0.0" y="0.0" width="118" height="62"/>
                             <fontDescription key="fontDescription" type="system" pointSize="15"/>
                             <color key="tintColor" red="0.1137254902" green="0.1333333333" blue="0.25490196079999999" alpha="1" colorSpace="calibratedRGB"/>
                             <state key="normal" image="speaker" catalog="system"/>
@@ -113,16 +103,16 @@
                             </connections>
                         </button>
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" alignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="nng-Qq-kgJ" userLabel="Mute / Unmute">
-                            <rect key="frame" x="192" y="0.0" width="86" height="62"/>
+                            <rect key="frame" x="128" y="0.0" width="118" height="62"/>
                             <subviews>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Mute" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="RR2-e1-aaF">
-                                    <rect key="frame" x="23.5" y="0.0" width="39" height="31"/>
+                                    <rect key="frame" x="39.5" y="0.0" width="39" height="31"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                     <nil key="textColor"/>
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="Bzm-fY-keM">
-                                    <rect key="frame" x="18.5" y="31" width="51" height="31"/>
+                                    <rect key="frame" x="34.5" y="31" width="51" height="31"/>
                                     <connections>
                                         <action selector="muteUnmuteTapped:" destination="-1" eventType="valueChanged" id="61R-mP-JKp"/>
                                     </connections>
@@ -130,16 +120,16 @@
                             </subviews>
                         </stackView>
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" alignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="46d-Yu-v4q" userLabel="Hold / Unhold">
-                            <rect key="frame" x="288" y="0.0" width="86" height="62"/>
+                            <rect key="frame" x="256" y="0.0" width="118" height="62"/>
                             <subviews>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Hold" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="OoR-vY-nFS">
-                                    <rect key="frame" x="25" y="0.0" width="36" height="31"/>
+                                    <rect key="frame" x="41" y="0.0" width="36" height="31"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                     <nil key="textColor"/>
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="VTP-0L-bxs">
-                                    <rect key="frame" x="18.5" y="31" width="51" height="31"/>
+                                    <rect key="frame" x="34.5" y="31" width="51" height="31"/>
                                     <connections>
                                         <action selector="holdUnholdTapped:" destination="-1" eventType="valueChanged" id="YzB-HB-2zH"/>
                                     </connections>
@@ -175,7 +165,6 @@
     </objects>
     <resources>
         <image name="speaker" catalog="system" width="32" height="32"/>
-        <image name="video" catalog="system" width="32" height="32"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
