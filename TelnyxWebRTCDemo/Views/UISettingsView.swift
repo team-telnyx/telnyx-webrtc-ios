@@ -77,23 +77,8 @@ class UISettingsView: UIView {
             textField.delegate = self
             textField.tag = i
             textField.returnKeyType = .done
+            textField.autocorrectionType = .no
         }
-    }
-    
-    /**
-     Listen to keyboard changes
-     */
-    private func subscribeKeyboardEvents() {
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
-    }
-    
-    /**
-     Stop listening keyboard events
-     */
-    private func unsubscribeKeyboardEvents() {
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
     }
 }
 
@@ -113,8 +98,9 @@ extension UISettingsView : UITextFieldDelegate {
     }
 }
 
+// MARK: - Keyboard handling
 extension UISettingsView {
-    
+
     /**
      This function executed when the keyboard will be displayed
      */
@@ -125,7 +111,7 @@ extension UISettingsView {
             }
         }
     }
-    
+
     /**
      This function is executed when the keyboard is being hidden
      */
@@ -134,6 +120,21 @@ extension UISettingsView {
             self.superview?.frame.origin.y = 0
         }
     }
-    
+
+    /**
+     Listen to keyboard changes
+     */
+    private func subscribeKeyboardEvents() {
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+
+    /**
+     Stop listening keyboard events
+     */
+    private func unsubscribeKeyboardEvents() {
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
 }
 

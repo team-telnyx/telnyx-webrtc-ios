@@ -43,6 +43,8 @@ class ViewController: UIViewController {
 
         self.incomingCallView.isHidden = true
         self.incomingCallView.delegate = self
+
+        self.hideKeyboardWhenTappedAround()
     }
 
     func updateButtonsState() {
