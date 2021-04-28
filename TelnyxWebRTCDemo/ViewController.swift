@@ -155,6 +155,8 @@ extension ViewController: TxClientDelegate {
             self.updateButtonsState()
             self.incomingCallView.isHidden = false
             self.callView.isHidden = true
+            //Hide the keyboard
+            self.view.endEditing(true)
         }
     }
 
