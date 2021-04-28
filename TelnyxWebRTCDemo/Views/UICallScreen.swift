@@ -67,6 +67,8 @@ class UICallScreen: UIView {
         self.callControlsSection.isHidden = true
         self.toggleSpeaker(self)
         self.destinationNumberOrSip.autocorrectionType = .no
+        self.destinationNumberOrSip.returnKeyType = .done
+        self.destinationNumberOrSip.delegate = self
     }
     
     private func loadViewFromNib() -> UIView! {
@@ -162,3 +164,10 @@ class UICallScreen: UIView {
 
 }
 
+// MARK: - UITextFieldDelegate
+extension UICallScreen : UITextFieldDelegate{
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        //Dismiss keyboard when done.
+        textField.resignFirstResponder()
+    }
+}
