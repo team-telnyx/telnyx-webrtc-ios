@@ -1,15 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "logo.png",
+      "filename" : "hangup_button@1.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
+      "filename" : "hangup_button@2.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
+      "filename" : "hangup_button@3.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

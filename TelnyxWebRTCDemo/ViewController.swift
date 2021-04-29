@@ -19,7 +19,6 @@ class ViewController: UIViewController {
     @IBOutlet weak var callView: UICallScreen!
     @IBOutlet weak var settingsView: UISettingsView!
     @IBOutlet weak var incomingCallView: UIIncomingCallView!
-    @IBOutlet weak var versionLabel: UILabel!
     @IBOutlet weak var connectButton: UIButton!
     
     override func viewDidLoad() {
@@ -29,7 +28,6 @@ class ViewController: UIViewController {
 
         self.telnyxClient = appDelegate.getTelnyxClient()
         self.telnyxClient?.delegate = self
-        self.telnyxClient?.getCall(callId: UUID.init())
         initViews()
     }
     
@@ -39,10 +37,11 @@ class ViewController: UIViewController {
         self.callView.delegate = self
         self.callView.hideEndButton(hide: true)
         self.settingsView.isHidden = false
-        self.versionLabel.text = ""
 
         self.incomingCallView.isHidden = true
         self.incomingCallView.delegate = self
+
+        self.hideKeyboardWhenTappedAround()
     }
 
     func updateButtonsState() {
@@ -156,6 +155,8 @@ extension ViewController: TxClientDelegate {
             self.updateButtonsState()
             self.incomingCallView.isHidden = false
             self.callView.isHidden = true
+            //Hide the keyboard
+            self.view.endEditing(true)
         }
     }
 
@@ -245,10 +246,6 @@ extension ViewController : UICallScreenDelegate {
         } else {
             self.currentCall?.unhold()
         }
-    }
-
-    func onVideoTapped() {
-        //TODO: Implement video
     }
 
     func onToggleSpeaker(isSpeakerActive: Bool) {

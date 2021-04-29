@@ -77,23 +77,8 @@ class UISettingsView: UIView {
             textField.delegate = self
             textField.tag = i
             textField.returnKeyType = .done
+            textField.autocorrectionType = .no
         }
-    }
-    
-    /**
-     Listen to keyboard changes
-     */
-    private func subscribeKeyboardEvents() {
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
-    }
-    
-    /**
-     Stop listening keyboard events
-     */
-    private func unsubscribeKeyboardEvents() {
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
     }
 }
 
@@ -113,19 +98,28 @@ extension UISettingsView : UITextFieldDelegate {
     }
 }
 
+// MARK: - Keyboard handling
 extension UISettingsView {
-    
+
     /**
      This function executed when the keyboard will be displayed
      */
     @objc func keyboardWillShow(notification: NSNotification) {
         if let keyboardSize = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
             if self.superview?.frame.origin.y == 0 {
-                self.superview?.frame.origin.y -= (keyboardSize.height)
+                if let field = activeField {
+                    let frame = field.convert(field.bounds, to: nil)
+                    let screenSize = UIScreen.main.bounds
+                    let yFromBottom: CGFloat = screenSize.height - frame.origin.y - field.frame.height
+                    if (yFromBottom < keyboardSize.height) {
+                        let offset = keyboardSize.height - yFromBottom
+                        self.superview?.frame.origin.y -= offset
+                   }
+                }
             }
         }
     }
-    
+
     /**
      This function is executed when the keyboard is being hidden
      */
@@ -134,6 +128,21 @@ extension UISettingsView {
             self.superview?.frame.origin.y = 0
         }
     }
-    
+
+    /**
+     Listen to keyboard changes
+     */
+    private func subscribeKeyboardEvents() {
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+
+    /**
+     Stop listening keyboard events
+     */
+    private func unsubscribeKeyboardEvents() {
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
 }
 

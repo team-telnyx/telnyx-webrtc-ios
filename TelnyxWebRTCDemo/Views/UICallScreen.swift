@@ -13,7 +13,6 @@ protocol UICallScreenDelegate {
     func onEndCallButton()
     func onMuteUnmuteSwitch(isMuted: Bool)
     func onHoldUnholdSwitch(isOnHold: Bool)
-    func onVideoTapped()
     func onToggleSpeaker(isSpeakerActive: Bool)
 }
 
@@ -36,7 +35,6 @@ class UICallScreen: UIView {
     @IBOutlet weak var holdUnholdSwitch: UISwitch!
     @IBOutlet weak var holdUnholdLabel: UILabel!
     @IBOutlet weak var toggleSpeaker: UIButton!
-    @IBOutlet weak var openVideo: UIButton!
     
     
     override init(frame: CGRect) {
@@ -66,6 +64,9 @@ class UICallScreen: UIView {
         self.layer.cornerRadius = 0
         self.callControlsSection.isHidden = true
         self.toggleSpeaker(self)
+        self.destinationNumberOrSip.autocorrectionType = .no
+        self.destinationNumberOrSip.returnKeyType = .done
+        self.destinationNumberOrSip.delegate = self
     }
     
     private func loadViewFromNib() -> UIView! {
@@ -143,10 +144,6 @@ class UICallScreen: UIView {
         self.delegate?.onHoldUnholdSwitch(isOnHold: holdUnholdSwitch.isOn)
     }
 
-    @IBAction func videoButtonTapped(_ sender: Any) {
-        self.delegate?.onVideoTapped()
-    }
-
     @IBAction func toggleSpeaker(_ sender: Any) {
         self.isSpeakerActive = !self.isSpeakerActive
         if (isSpeakerActive) {
@@ -161,3 +158,10 @@ class UICallScreen: UIView {
 
 }
 
+// MARK: - UITextFieldDelegate
+extension UICallScreen : UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        //Dismiss keyboard when done.
+        textField.resignFirstResponder()
+    }
+}
