@@ -159,7 +159,7 @@ class UICallScreen: UIView {
 }
 
 // MARK: - UITextFieldDelegate
-extension UICallScreen : UITextFieldDelegate{
+extension UICallScreen : UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         //Dismiss keyboard when done.
         textField.resignFirstResponder()
