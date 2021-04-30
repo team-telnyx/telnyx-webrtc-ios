@@ -3,7 +3,9 @@
 //  WebRTCSDKTests
 //
 //  Created by Guillermo Battistel on 27/03/2021.
+//  Copyright © 2021 Telnyx LLC. All rights reserved.
 //
+
 import XCTest
 @testable import WebRTCSDK
 
