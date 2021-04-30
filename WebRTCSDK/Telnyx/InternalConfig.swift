@@ -3,14 +3,9 @@
 //  WebRTCSDK
 //
 //  Created by Guillermo Battistel on 02/03/2021.
+//  Copyright © 2021 Telnyx LLC. All rights reserved.
 //
 
-//
-//  Config.swift
-//  TelnyxWebRTCDemo
-//
-//  Created by Guillermo Battistel on 08/01/2021.
-//
 import Foundation
 import WebRTC
 //Servers
