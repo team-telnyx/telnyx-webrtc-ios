@@ -3,6 +3,7 @@
 //  WebRTCSDK
 //
 //  Created by Guillermo Battistel on 01/03/2021.
+//  Copyright © 2021 Telnyx LLC. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
