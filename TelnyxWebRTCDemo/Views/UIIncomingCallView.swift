@@ -3,6 +3,7 @@
 //  TelnyxWebRTCDemo
 //
 //  Created by Guillermo Battistel on 19/01/2021.
+//  Copyright © 2021 Telnyx LLC. All rights reserved.
 //
 
 import Foundation
