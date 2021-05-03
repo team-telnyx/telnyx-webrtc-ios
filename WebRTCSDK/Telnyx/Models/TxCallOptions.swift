@@ -17,7 +17,7 @@ struct TxCallOptions {
     var remoteCallerNumber: String?
 
     var audio: Bool = true
-    var video: Bool = true
+    var video: Bool = false
     var attach: Bool = false
     var useStereo: Bool = false
     var screenShare: Bool = false
