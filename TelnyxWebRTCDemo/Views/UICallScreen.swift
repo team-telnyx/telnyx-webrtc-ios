@@ -148,11 +148,19 @@ class UICallScreen: UIView {
     @IBAction func toggleSpeaker(_ sender: Any) {
         self.isSpeakerActive = !self.isSpeakerActive
         if (isSpeakerActive) {
-            let image = UIImage(systemName: "speaker")
-            self.toggleSpeaker.setImage(image, for: .normal)
+            if #available(iOS 13.0, *) {
+                let image = UIImage(systemName: "speaker")
+                self.toggleSpeaker.setImage(image, for: .normal)
+            } else {
+                // Fallback on earlier versions
+            }
         } else {
-            let image = UIImage(systemName: "speaker.slash")
-            self.toggleSpeaker.setImage(image, for: .normal)
+            if #available(iOS 13.0, *) {
+                let image = UIImage(systemName: "speaker.slash")
+                self.toggleSpeaker.setImage(image, for: .normal)
+            } else {
+                // Fallback on earlier versions
+            }
         }
         self.delegate?.onToggleSpeaker(isSpeakerActive: self.isSpeakerActive)
     }

@@ -25,7 +25,6 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         print("ViewController:: viewDidLoad()")
-        overrideUserInterfaceStyle = .light
 
         self.telnyxClient = appDelegate.getTelnyxClient()
         self.telnyxClient?.delegate = self
