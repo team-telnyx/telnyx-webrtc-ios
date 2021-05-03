@@ -195,22 +195,26 @@ class Peer : NSObject {
      We need only Once ICE candidate in the SDP in order to start a webrtc connection.
      */
     fileprivate func startNegotiation(peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
-        if (self.negotiationEnded) {
-            return
-        }
+        Logger.log.i(message: "Peer:: ICE negotiation updated.")
         //Restart the negotiation timer
         self.negotiationTimer?.invalidate()
+        self.negotiationTimer = nil
         DispatchQueue.main.async {
             self.negotiationTimer = Timer.scheduledTimer(withTimeInterval: self.NEGOTIATION_TIMOUT, repeats: false) { timer in
-                //At this moment we should have at least one ICE candidate.
-                //Lets stop the ICE negotiation process and call the apropiate delegate
-                self.delegate?.onICECandidate(sdp: peerConnection.localDescription, iceCandidate: candidate)
+                // Check if the negotiation process has ended to avoid duplicated calls to the delegate method.
+                if (self.negotiationEnded) {
+                    Logger.log.w(message: "Peer:: ICE negotiation has ended.")
+                    return
+                }
                 self.negotiationTimer?.invalidate()
                 self.negotiationEnded = true
+                // At this moment we should have at least one ICE candidate.
+                // Lets stop the ICE negotiation process and call the apropiate delegate
+                self.delegate?.onICECandidate(sdp: peerConnection.localDescription, iceCandidate: candidate)
+                Logger.log.i(message: "Peer:: ICE negotiation ended.")
             }
         }
     }
-    
 
     /// Close connection and release resources
     func dispose() {
