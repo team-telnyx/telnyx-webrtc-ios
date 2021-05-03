@@ -7,7 +7,7 @@ Pod::Spec.new do |spec|
   spec.description  = "This is the awesome Telnyx iOS WebRTC SDK. Enable VoIP to your iOS App."
   spec.homepage     = "https://github.com/team-telnyx/webrtc-ios-sdk"
   spec.license      = { :type => "MIT", :file => "LICENSE" }
-  spec.author             = { "Telnyx" => "guillermo@telnyx.com" }
+  spec.author       = { "Telnyx LLC" => "mobile.app.eng.chapter@telnyx.com" }
   spec.source       = { :git => "https://github.com/team-telnyx/webrtc-ios-sdk.git", :tag => "#{spec.version}" }
 
   spec.platform     = :ios, "10.0"
