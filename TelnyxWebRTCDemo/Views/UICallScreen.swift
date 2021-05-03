@@ -25,7 +25,7 @@ class UICallScreen: UIView {
     private var textFields:[UITextField] = [UITextField]()
     
     var delegate: UICallScreenDelegate?
-    var isSpeakerActive: Bool = true
+
     @IBOutlet var contentView: UIView!
     @IBOutlet weak var endButton: UIButton!
     @IBOutlet weak var callButton: UIButton!
@@ -35,7 +35,7 @@ class UICallScreen: UIView {
     @IBOutlet weak var muteUnmuteSwitch: UISwitch!
     @IBOutlet weak var holdUnholdSwitch: UISwitch!
     @IBOutlet weak var holdUnholdLabel: UILabel!
-    @IBOutlet weak var toggleSpeaker: UIButton!
+    @IBOutlet weak var speakerOnOffSwitch: UISwitch!
     
     
     override init(frame: CGRect) {
@@ -146,23 +146,7 @@ class UICallScreen: UIView {
     }
 
     @IBAction func toggleSpeaker(_ sender: Any) {
-        self.isSpeakerActive = !self.isSpeakerActive
-        if (isSpeakerActive) {
-            if #available(iOS 13.0, *) {
-                let image = UIImage(systemName: "speaker")
-                self.toggleSpeaker.setImage(image, for: .normal)
-            } else {
-                // Fallback on earlier versions
-            }
-        } else {
-            if #available(iOS 13.0, *) {
-                let image = UIImage(systemName: "speaker.slash")
-                self.toggleSpeaker.setImage(image, for: .normal)
-            } else {
-                // Fallback on earlier versions
-            }
-        }
-        self.delegate?.onToggleSpeaker(isSpeakerActive: self.isSpeakerActive)
+        self.delegate?.onToggleSpeaker(isSpeakerActive: self.speakerOnOffSwitch.isOn)
     }
 
 }
