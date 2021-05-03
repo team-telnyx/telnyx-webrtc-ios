@@ -247,6 +247,29 @@ extension TxClient {
         self.delegate?.onIncomingCall(call: call)
     }
 }
+// MARK: - Audio
+extension TxClient {
+
+    /// Select the internal earpiece as the audio output
+    public func setEarpiece() {
+        do {
+            let audioSession = AVAudioSession.sharedInstance()
+            try audioSession.overrideOutputAudioPort(.none)
+        } catch let error {
+            Logger.log.e(message: "Error setting Earpiece \(error)")
+        }
+    }
+
+    /// Select the speaker as the audio output
+    public func setSpeaker() {
+        do {
+            let audioSession = AVAudioSession.sharedInstance()
+            try audioSession.overrideOutputAudioPort(.speaker)
+        } catch let error {
+            Logger.log.e(message: "Error setting Speaker \(error)")
+        }
+    }
+}
 
 // MARK: - CallProtocol
 extension TxClient: CallProtocol {

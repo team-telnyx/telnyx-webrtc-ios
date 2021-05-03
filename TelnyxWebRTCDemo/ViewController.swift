@@ -249,6 +249,10 @@ extension ViewController : UICallScreenDelegate {
     }
 
     func onToggleSpeaker(isSpeakerActive: Bool) {
-        //TODO: change between speaker and headsets
+        if (isSpeakerActive) {
+            self.telnyxClient?.setSpeaker()
+        } else {
+            self.telnyxClient?.setEarpiece()
+        }
     }
 }
