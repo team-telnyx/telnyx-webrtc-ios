@@ -28,6 +28,9 @@ class InviteMessage : Message {
         dialogParams["attach"] = callOptions.attach
         dialogParams["screenShare"] = callOptions.screenShare
         dialogParams["userVariables"] = callOptions.userVariables
+        if let clientState = callOptions.clientState {
+            dialogParams["clientState"] = clientState
+        }
 
         params["sessionId"] = sessionId
         params["sdp"] = sdp

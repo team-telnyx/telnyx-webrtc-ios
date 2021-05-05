@@ -28,6 +28,7 @@
 		B309D27C25F17C1700A2AADF /* UIIncomingCallView.xib in Resources */ = {isa = PBXBuildFile; fileRef = B309D27A25F17C1700A2AADF /* UIIncomingCallView.xib */; };
 		B309D28225F1838700A2AADF /* ByeMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D28125F1838700A2AADF /* ByeMessage.swift */; };
 		B309D28625F184A100A2AADF /* AnswerMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D28525F184A100A2AADF /* AnswerMessage.swift */; };
+		B366D3FB26150D1100156FE1 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B366D3FA26150D1100156FE1 /* StringExtension.swift */; };
 		B368BEC525EDDB610032AE52 /* WebRTCSDK.h in Headers */ = {isa = PBXBuildFile; fileRef = B368BEC325EDDB610032AE52 /* WebRTCSDK.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		B368BED425EDDBC90032AE52 /* WebRTCSDKTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B368BED325EDDBC90032AE52 /* WebRTCSDKTests.swift */; };
 		B368BED625EDDBC90032AE52 /* WebRTCSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B368BEC025EDDB610032AE52 /* WebRTCSDK.framework */; };
@@ -107,6 +108,7 @@
 		B309D27A25F17C1700A2AADF /* UIIncomingCallView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = UIIncomingCallView.xib; sourceTree = "<group>"; };
 		B309D28125F1838700A2AADF /* ByeMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ByeMessage.swift; sourceTree = "<group>"; };
 		B309D28525F184A100A2AADF /* AnswerMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnswerMessage.swift; sourceTree = "<group>"; };
+		B366D3FA26150D1100156FE1 /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		B368BEC025EDDB610032AE52 /* WebRTCSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WebRTCSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B368BEC325EDDB610032AE52 /* WebRTCSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebRTCSDK.h; sourceTree = "<group>"; };
 		B368BEC425EDDB610032AE52 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -233,6 +235,14 @@
 			path = WebRTC;
 			sourceTree = "<group>";
 		};
+		B366D3F926150D0300156FE1 /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				B366D3FA26150D1100156FE1 /* StringExtension.swift */,
+			);
+			path = Helpers;
+			sourceTree = "<group>";
+		};
 		B368BEB625EDDB610032AE52 = {
 			isa = PBXGroup;
 			children = (
@@ -268,6 +278,7 @@
 		B368BED225EDDBC90032AE52 /* WebRTCSDKTests */ = {
 			isa = PBXGroup;
 			children = (
+				B366D3F926150D0300156FE1 /* Helpers */,
 				B391221C260501C00051E076 /* WebRTC */,
 				B39121F32603AE670051E076 /* Verto */,
 				B39121F22603AD7B0051E076 /* Socket */,
@@ -665,6 +676,7 @@
 				B39121ED2602F22F0051E076 /* SocketTests.swift in Sources */,
 				B39122122604FBC00051E076 /* TestConstants.swift in Sources */,
 				B368BED425EDDBC90032AE52 /* WebRTCSDKTests.swift in Sources */,
+				B366D3FB26150D1100156FE1 /* StringExtension.swift in Sources */,
 				B391220C2604D9C50051E076 /* PeerConnectionTests.swift in Sources */,
 				B3912264260F6A050051E076 /* WebRTCSDKMulticallTests.swift in Sources */,
 				B3912220260502650051E076 /* CallTests.swift in Sources */,

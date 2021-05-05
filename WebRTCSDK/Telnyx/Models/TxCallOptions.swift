@@ -16,6 +16,9 @@ struct TxCallOptions {
     var remoteCallerName: String = "Outbound Call"
     var remoteCallerNumber: String?
 
+    /// Telnyx's Call Control client_state. Can be used with Connections with Advanced -> Events enabled.
+    /// `clientState` string should be base64 encoded.
+    var clientState: String?
     var audio: Bool = true
     var video: Bool = false
     var attach: Bool = false
