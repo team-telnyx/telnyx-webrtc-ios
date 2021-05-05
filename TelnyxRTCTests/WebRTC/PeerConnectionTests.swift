@@ -8,7 +8,7 @@
 
 import XCTest
 import WebRTC
-@testable import WebRTCSDK
+@testable import TelnyxRTC
 
 class PeerConnectionTests: XCTestCase {
     private weak var createOfferExpectation: XCTestExpectation!

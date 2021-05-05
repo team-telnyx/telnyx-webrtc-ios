@@ -1,21 +1,21 @@
 //
-//  WebRTCSDKTests.swift
-//  WebRTCSDKTests
+//  TelnyxRTCTests.swift
+//  TelnyxRTCTests
 //
 //  Created by Guillermo Battistel on 01/03/2021.
 //  Copyright © 2021 Telnyx LLC. All rights reserved.
 //
 
 import XCTest
-@testable import WebRTCSDK
+@testable import TelnyxRTC
 
-class WebRTCSDKTests: XCTestCase {
+class TelnyxRTCTests: XCTestCase {
     private weak var expectation: XCTestExpectation!
     private var telnyxClient: TxClient?
     private var serverError: Error?
 
     override func setUpWithError() throws {
-        print("WebRTCSDKTests:: setUpWithError")
+        print("TelnyxRTCTests:: setUpWithError")
         //Setup the SDK
         self.telnyxClient = TxClient()
         self.telnyxClient?.delegate = self
@@ -23,7 +23,7 @@ class WebRTCSDKTests: XCTestCase {
     }
 
     override func tearDownWithError() throws {
-        print("WebRTCSDKTests:: tearDownWithError")
+        print("TelnyxRTCTests:: tearDownWithError")
         self.telnyxClient?.delegate = nil
         self.telnyxClient?.disconnect()
         self.telnyxClient = nil
@@ -33,22 +33,22 @@ class WebRTCSDKTests: XCTestCase {
 }
 
 // MARK: - HELPER FUNCTIONS
-extension WebRTCSDKTests {
+extension TelnyxRTCTests {
     func connectAndReturnError(txConfig: TxConfig) -> Error? {
         //We are expecting an error
         var error: Error? = nil
         do {
             try self.telnyxClient?.connect(txConfig: txConfig)
         } catch let err {
-            print("ViewController:: connect Error \(err)")
+            print("TelnyxRTCTests:: connect Error \(err)")
             error = err
         }
         return error
     }
-}// WebRTCSDKTests helper functions
+}// TelnyxRTCTests helper functions
 
 // MARK: - LOGIN RELATED TESTS
-extension WebRTCSDKTests {
+extension TelnyxRTCTests {
     /**
      Test login error when credentials are empty
      */
@@ -189,43 +189,43 @@ extension WebRTCSDKTests {
         let sessionId = self.telnyxClient?.getSessionId() ?? ""
         XCTAssertFalse(sessionId.isEmpty) //We should have a session id after login in
     }
-}// End WebRTCSDKTests LOGIN TESTS
+}// End TelnyxRTCTests LOGIN TESTS
 
 // MARK: - TxClientDelegate
-extension WebRTCSDKTests : TxClientDelegate {
+extension TelnyxRTCTests : TxClientDelegate {
     
     func onSocketConnected() {
-        print("WebRTCSDKTests :: TxClientDelegate onSocketConnected()")
+        print("TelnyxRTCTests :: TxClientDelegate onSocketConnected()")
     }
 
     func onSocketDisconnected() {
-        print("WebRTCSDKTests :: TxClientDelegate onSocketDisconnected()")
+        print("TelnyxRTCTests :: TxClientDelegate onSocketDisconnected()")
     }
 
     func onClientError(error: Error) {
-        print("WebRTCSDKTests :: TxClientDelegate onClientError()")
+        print("TelnyxRTCTests :: TxClientDelegate onClientError()")
         self.serverError = error
         self.expectation.fulfill()
     }
 
     func onClientReady() {
-        print("WebRTCSDKTests :: TxClientDelegate onClientReady()")
+        print("TelnyxRTCTests :: TxClientDelegate onClientReady()")
     }
 
     func onSessionUpdated(sessionId: String) {
-        print("WebRTCSDKTests :: TxClientDelegate onSessionUpdated()")
+        print("TelnyxRTCTests :: TxClientDelegate onSessionUpdated()")
         self.expectation.fulfill()
     }
 
     func onCallStateUpdated(callState: CallState, callId: UUID) {
-        print("WebRTCSDKTests :: TxClientDelegate onCallStateUpdated()")
+        print("TelnyxRTCTests :: TxClientDelegate onCallStateUpdated()")
     }
 
     func onIncomingCall(call: Call) {
-        print("WebRTCSDKTests :: TxClientDelegate onIncomingCall()")
+        print("TelnyxRTCTests :: TxClientDelegate onIncomingCall()")
     }
 
     func onRemoteCallEnded(callId: UUID) {
-        print("WebRTCSDKTests :: TxClientDelegate onRemoteCallEnded()")
+        print("TelnyxRTCTests :: TxClientDelegate onRemoteCallEnded()")
     }
 }

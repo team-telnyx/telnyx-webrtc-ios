@@ -7,7 +7,7 @@
 //
 
 import XCTest
-@testable import WebRTCSDK
+@testable import TelnyxRTC
 
 class VertoMessagesTests: XCTestCase {
 

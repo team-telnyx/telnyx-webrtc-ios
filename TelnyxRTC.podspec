@@ -1,10 +1,10 @@
 
 Pod::Spec.new do |spec|
 
-  spec.name         = "WebRTCSDK"
+  spec.name         = "TelnyxRTC"
   spec.version      = "0.0.1"
-  spec.summary      = "This is the awesome Telnyx iOS WebRTC SDK."
-  spec.description  = "This is the awesome Telnyx iOS WebRTC SDK. Enable VoIP to your iOS App."
+  spec.summary      = "Enable Telnyx real-time communication services on iOS."
+  spec.description  = "The Telnyx iOS WebRTC Client SDK provides all the functionality you need to start making voice calls from an iPhone."
   spec.homepage     = "https://github.com/team-telnyx/webrtc-ios-sdk"
   spec.license      = { :type => "MIT", :file => "LICENSE" }
   spec.author       = { "Telnyx LLC" => "mobile.app.eng.chapter@telnyx.com" }
@@ -18,8 +18,8 @@ Pod::Spec.new do |spec|
                              }
   spec.user_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64' }
 
-  spec.source_files  = "WebRTCSDK", "WebRTCSDK/**/*.{h,m,swift}"
-  spec.exclude_files = "WebRTCSDK/Exclude"
+  spec.source_files  = "TelnyxRTC", "TelnyxRTC/**/*.{h,m,swift}"
+  spec.exclude_files = "TelnyxRTC/Exclude"
   spec.dependency  "Starscream", "~> 4.0.4"
   spec.dependency  "GoogleWebRTC", "~> 1.1.31999"
 

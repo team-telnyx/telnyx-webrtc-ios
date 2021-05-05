@@ -8,7 +8,7 @@
 
 import Foundation
 import UIKit
-import WebRTCSDK
+import TelnyxRTC
 
 protocol UIIncomingCallViewDelegate {
     func onAnswerButton()

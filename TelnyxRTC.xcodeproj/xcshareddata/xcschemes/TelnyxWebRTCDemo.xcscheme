@@ -17,7 +17,7 @@
                BlueprintIdentifier = "B368BEE725EDDD060032AE52"
                BuildableName = "TelnyxWebRTCDemo.app"
                BlueprintName = "TelnyxWebRTCDemo"
-               ReferencedContainer = "container:WebRTCSDK.xcodeproj">
+               ReferencedContainer = "container:TelnyxRTC.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -47,7 +47,7 @@
             BlueprintIdentifier = "B368BEE725EDDD060032AE52"
             BuildableName = "TelnyxWebRTCDemo.app"
             BlueprintName = "TelnyxWebRTCDemo"
-            ReferencedContainer = "container:WebRTCSDK.xcodeproj">
+            ReferencedContainer = "container:TelnyxRTC.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -64,7 +64,7 @@
             BlueprintIdentifier = "B368BEE725EDDD060032AE52"
             BuildableName = "TelnyxWebRTCDemo.app"
             BlueprintName = "TelnyxWebRTCDemo"
-            ReferencedContainer = "container:WebRTCSDK.xcodeproj">
+            ReferencedContainer = "container:TelnyxRTC.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

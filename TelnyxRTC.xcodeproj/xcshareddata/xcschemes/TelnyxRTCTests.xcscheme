@@ -17,9 +17,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "B368BED025EDDBC90032AE52"
-               BuildableName = "WebRTCSDKTests.xctest"
-               BlueprintName = "WebRTCSDKTests"
-               ReferencedContainer = "container:WebRTCSDK.xcodeproj">
+               BuildableName = "TelnyxRTCTests.xctest"
+               BlueprintName = "TelnyxRTCTests"
+               ReferencedContainer = "container:TelnyxRTC.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>

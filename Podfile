@@ -1,24 +1,24 @@
 # Uncomment the next line to define a global platform for your project
- platform :ios, '10.0'
+platform :ios, '10.0'
 
 target 'TelnyxWebRTCDemo' do
   # Comment the next line if you don't want to use dynamic frameworks
   use_frameworks!
 
   # Pods for TelnyxWebRTCDemo
-  pod 'WebRTCSDK', :path => '.'
+  pod 'TelnyxRTC', :path => '.'
 
 end
 
-target 'WebRTCSDK' do
+target 'TelnyxRTC' do
   # Comment the next line if you don't want to use dynamic frameworks
   use_frameworks!
 
-  # Pods for WebRTCSDK
+  # Pods for TelnyxRTC
   pod 'Starscream', '~> 4.0.4'
   pod 'GoogleWebRTC', '~> 1.1.31999'
 
-  target 'WebRTCSDKTests' do
+  target 'TelnyxRTCTests' do
     # Pods for testing
   end
 
@@ -32,4 +32,3 @@ post_install do |installer|
     end
   end
 end
-
