@@ -17,4 +17,4 @@ jobs:
       env:
         COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
       run: |
-        pod trunk push WebRTCSDK.podspec
+        pod trunk push TelnyxRTC.podspec
