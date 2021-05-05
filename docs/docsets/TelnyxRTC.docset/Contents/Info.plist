@@ -3,11 +3,11 @@
 <plist version="1.0">
   <dict>
     <key>CFBundleIdentifier</key>
-      <string>com.jazzy.webrtcsdk</string>
+      <string>com.jazzy.telnyxrtc</string>
     <key>CFBundleName</key>
-      <string>WebRTCSDK</string>
+      <string>TelnyxRTC</string>
     <key>DocSetPlatformFamily</key>
-      <string>webrtcsdk</string>
+      <string>telnyxrtc</string>
     <key>isDashDocset</key>
       <true/>
     <key>dashIndexFilePath</key>

@@ -8,6 +8,8 @@
 
 import Foundation
 
+
+/// 
 struct TxCallOptions {
     // Required
     var  destinationNumber: String?

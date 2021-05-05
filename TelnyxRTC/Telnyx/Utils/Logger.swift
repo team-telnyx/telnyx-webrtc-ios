@@ -9,7 +9,7 @@
 import Foundation
 
 /// Available Log levels:
-/// - `none`: Print no message
+/// - `none`: Print no messages
 /// - `error`: Message of level `error`
 /// - `warning`: Message of level `warning`
 /// - `success`: Message of level `success`
