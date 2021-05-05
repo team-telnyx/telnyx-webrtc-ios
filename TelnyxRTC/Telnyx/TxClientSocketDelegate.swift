@@ -1,6 +1,6 @@
 //
 //  TxClientSocketDelegate.swift
-//  WebRTCSDK
+//  TelnyxRTCTests
 //
 //  Created by Guillermo Battistel on 02/03/2021.
 //

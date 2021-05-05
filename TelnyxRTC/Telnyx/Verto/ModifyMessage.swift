@@ -1,6 +1,6 @@
 //
 //  ModifyMessage.swift
-//  WebRTCSDK
+//  TelnyxRTC
 //
 //  Created by Guillermo Battistel on 05/03/2021.
 //  Copyright © 2021 Telnyx LLC. All rights reserved.

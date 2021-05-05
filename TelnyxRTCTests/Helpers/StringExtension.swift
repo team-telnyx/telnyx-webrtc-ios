@@ -1,6 +1,6 @@
 //
 //  StringExtension.swift
-//  WebRTCSDKTests
+//  TelnyxRTCTests
 //
 //  Created by Guillermo Battistel on 31/03/2021.
 //
