@@ -13,21 +13,22 @@ Enable Telnyx real-time communication services on iOS. :telephone_receiver: :fir
 
 1. Clone the repository
 2. Run the command `pod install` to install de dependencies inside the project root folder. 
-3. Open the Workspace : `WebRTCSDK.xcworkspace`
+3. Open the Workspace : `TelnyxRTC.xcworkspace`
 4. You will find 3 targets to build: 
       - The SDK
       - The SDK Tests
       - The Demo App
       
 <p align="center">
-<img width="272" alt="Screen Shot 2021-04-30 at 16 42 49" src="https://user-images.githubusercontent.com/75636882/116746694-45d96200-a9d3-11eb-97cb-0b6031821c6b.png">
+<img width="247" alt="Screen Shot 2021-05-04 at 18 34 45" src="https://user-images.githubusercontent.com/75636882/117073153-e8f9e680-ad07-11eb-9d1f-685397b071a6.png">
 </p>
 
-5. Select the target `WebRTCSDK (WebRTCSDK Project)` to build the SDK
+5. Select the target `TelnyxRTC (TelnyxRTC Project)` to build the SDK
 <p align="center">
-<img width="269" alt="Screen Shot 2021-04-30 at 16 43 14" src="https://user-images.githubusercontent.com/75636882/116746788-69041180-a9d3-11eb-86c1-664fc5e841d2.png">
+<img width="243" alt="Screen Shot 2021-05-04 at 18 35 18" src="https://user-images.githubusercontent.com/75636882/117073140-e3040580-ad07-11eb-8ac6-dc99531550e3.png">
+
 </p>
-7. Select the target `WebRTCSDKTests` to run the tests. You will need to long press over the Run button and select `Build for testing`
+7. Select the target `TelnyxRTCTests` to run the tests. You will need to long press over the Run button and select `Build for testing`
 
 <p align="center">
 <img width="153" align="center" alt="Screen Shot 2021-03-03 at 10 04 05" src="https://user-images.githubusercontent.com/75636882/109810077-d4b24400-7c07-11eb-91ec-d81e72ae9069.png">

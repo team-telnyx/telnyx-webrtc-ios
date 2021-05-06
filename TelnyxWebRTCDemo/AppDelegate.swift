@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import WebRTCSDK
+import TelnyxRTC
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 

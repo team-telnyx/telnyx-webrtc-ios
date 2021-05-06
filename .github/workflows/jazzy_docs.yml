@@ -15,7 +15,7 @@ jobs:
     - name: Select Xcode Version
       uses: maxim-lobanov/setup-xcode@v1
       with:
-        xcode-version: '12.2'
+        xcode-version: '12.5'
 
     - name: Setup ruby
       uses: ruby/setup-ruby@v1
@@ -33,9 +33,9 @@ jobs:
       run:  |
           jazzy \
             --clean \
-            --author Telnyx \
+            --author Telnyx LLC\
             --author_url https://www.telnyx.com/ \
-            --xcodebuild-arguments -workspace,WebRTCSDK.xcworkspace,-scheme,WebRTCSDK,-sdk,iphoneos \
+            --xcodebuild-arguments -workspace,TelnyxRTC.xcworkspace,-scheme,TelnyxRTC,-sdk,iphoneos \
             --output docs
     - name: Setup Git user
       run: |

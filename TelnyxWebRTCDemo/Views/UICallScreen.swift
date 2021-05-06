@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import WebRTCSDK
+import TelnyxRTC
 
 protocol UICallScreenDelegate {
     func onCallButton()
