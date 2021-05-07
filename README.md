@@ -1,4 +1,4 @@
-# webrtc-ios-sdk
+# telnyx-webrtc-ios
 
 Enable Telnyx real-time communication services on iOS. :telephone_receiver: :fire:
 
@@ -37,7 +37,8 @@ Enable Telnyx real-time communication services on iOS. :telephone_receiver: :fir
 7.  Select target `TelnyxWebRTCDemo` to run the demo app. The SDK should be manually builded in order to get the app running (Step 5)
 
 8. Enjoy 😎
-
+</br>
+</br>
 <table>
   <tr>
     <td>Credentials</td>
@@ -51,7 +52,47 @@ Enable Telnyx real-time communication services on iOS. :telephone_receiver: :fir
   </tr>
  </table>
   
+  
 -----
+</br>
+
+## Adding Telnyx SDK to your iOS Client Application:
+Currently the iOS SDK is supported using cocoapods. 
+
+### Cocoapods
+
+If your xcode project is not using [cocoapods](https://cocoapods.org/) yet, you will need to configure it.
+
+1. Open your podfile and add the TelnyxRTC. 
+```
+pod 'TelnyxRTC', '~> 0.0.1'
+```
+2. Install your pods. You can add the flag --repo-update to ensure your cocoapods has the specs updated.
+```
+pod install --repo-update
+```
+3. Open your .xcworkspace 
+4. Import TelnyxRTC at the top level of your class:
+```
+import TelnyxRTC
+```
+5. Disable BITCODE (The GoogleWebRTC dependency has BITCODE disabled):  Go to the Build Settings tab of your app target, search for “bitcode” and set it to “NO”
+<p align="center">
+<img width="743" alt="Screen Shot 2021-05-07 at 17 46 08" src="https://user-images.githubusercontent.com/75636882/117506545-235bc180-af5c-11eb-91eb-00d60f5844fa.png">
+</p>
+
+6. Enable VoIP and Audio background modes: Go to Signing & Capabilities tab, press the +Capability button and add those background modes:
+<p align="center">
+<img width="719" alt="Screen Shot 2021-05-07 at 17 46 54" src="https://user-images.githubusercontent.com/75636882/117506607-3ff7f980-af5c-11eb-8df2-2f9170c12baf.png">
+</p>
+
+7. Go to your Info.plist file and add the “Privacy - Microphone Usage Description” key with a description that your app requires microphone access in order to make VoIP calls. 
+<p align="center">
+<img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://user-images.githubusercontent.com/75636882/117506706-6d44a780-af5c-11eb-87e2-d6be092474f2.png">
+</p>
+
+8. You are all set!
+</br>
 
 ## Usage
 
