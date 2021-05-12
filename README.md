@@ -52,7 +52,9 @@ Enable Telnyx real-time communication services on iOS. :telephone_receiver: :fir
   </tr>
  </table>
   
-  
+
+_Don't have SIP credentials? [Follow our guide](https://developers.telnyx.com/docs/v2/sip-trunking/quickstarts/portal-setup) to get set up on our portal and generate them._
+
 -----
 </br>
 
