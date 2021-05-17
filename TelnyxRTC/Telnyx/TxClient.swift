@@ -8,7 +8,7 @@
 
 import Foundation
 import AVFoundation
-
+import Bugsnag
 
 /// The `TelnyxRTC` client connects your application to the Telnyx backend,
 /// enabling you to make outgoing calls and handle incoming calls.
@@ -132,7 +132,9 @@ public class TxClient {
 
     // MARK: - Initializers
     /// TxClient has to be instantiated.
-    public init() {}
+    public init() {
+        Bugsnag.start()
+    }
 
     // MARK: - Connection handling
     /// Connects to the iOS client to the Telnyx signaling server using the desired login credentials.
@@ -147,6 +149,10 @@ public class TxClient {
         self.socket = Socket()
         self.socket?.delegate = self
         self.socket?.connect()
+        let exception = NSException(name:NSExceptionName(rawValue: "TestTelnyxRTCError"),
+                                    reason:"Test TelnyxRTC connection error",
+                                    userInfo:nil)
+        Bugsnag.notify(exception)
     }
 
     /// Disconnects the TxClient from the Telnyx signaling server.
