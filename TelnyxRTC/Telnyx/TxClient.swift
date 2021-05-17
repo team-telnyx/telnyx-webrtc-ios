@@ -133,6 +133,9 @@ public class TxClient {
     // MARK: - Initializers
     /// TxClient has to be instantiated.
     public init() {
+        let config = BugsnagConfiguration.loadConfig()
+        config.apiKey = "046a0602ac5080aee24906a0191f867d"
+        Bugsnag.start(with: config)
         Bugsnag.start()
     }
 

@@ -52,10 +52,5 @@
 	</array>
 	<key>UIUserInterfaceStyle</key>
 	<string>Light</string>
-	<key>bugsnag</key>
-	<dict>
-		<key>apiKey</key>
-		<string>046a0602ac5080aee24906a0191f867d</string>
-	</dict>
 </dict>
 </plist>
