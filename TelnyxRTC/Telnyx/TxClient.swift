@@ -8,7 +8,7 @@
 
 import Foundation
 import AVFoundation
-
+import Bugsnag
 
 /// The `TelnyxRTC` client connects your application to the Telnyx backend,
 /// enabling you to make outgoing calls and handle incoming calls.
@@ -132,7 +132,9 @@ public class TxClient {
 
     // MARK: - Initializers
     /// TxClient has to be instantiated.
-    public init() {}
+    public init() {
+        self.configure()
+    }
 
     // MARK: - Connection handling
     /// Connects to the iOS client to the Telnyx signaling server using the desired login credentials.
@@ -170,6 +172,25 @@ public class TxClient {
         return sessionId ?? ""
     }
 }
+
+// MARK: - SDK Initializations
+extension TxClient {
+
+    /// This function is called when the TxClient is instantiated. This funciton is intended to be used to initialize any
+    /// required tool.
+    private func configure() {
+        self.setupBugsnag()
+    }
+
+    /// Initialize Bugsnag
+    private func setupBugsnag() {
+        let config = BugsnagConfiguration.loadConfig()
+        config.apiKey = InternalConfig.default.bugsnagKey
+        config.context = "TelnyxRTC"
+        //TODO: check extra configurations.
+        Bugsnag.start(with: config)
+    }
+} //END SDK initializations
 
 // MARK: - Call handling
 extension TxClient {

@@ -20,6 +20,8 @@ Pod::Spec.new do |spec|
 
   spec.source_files  = "TelnyxRTC", "TelnyxRTC/**/*.{h,m,swift}"
   spec.exclude_files = "TelnyxRTC/Exclude"
+
+  spec.dependency  "Bugsnag", "~> 6.9.1"
   spec.dependency  "Starscream", "~> 4.0.4"
   spec.dependency  "GoogleWebRTC", "~> 1.1.31999"
 
