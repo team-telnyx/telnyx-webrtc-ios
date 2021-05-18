@@ -54,6 +54,7 @@
 		B3AF249825EE7DC70062EDA9 /* SocketDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3AF249725EE7DC70062EDA9 /* SocketDelegate.swift */; };
 		B3AF24AA25EE84570062EDA9 /* UIViewControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3AF24A925EE84570062EDA9 /* UIViewControllerExtension.swift */; };
 		B3AF255F25EEA6EA0062EDA9 /* Pods_TelnyxWebRTCDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6831A164C510407EBB5A919B /* Pods_TelnyxWebRTCDemo.framework */; };
+		B3B1D9A126542860008D28C9 /* TxPushConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B1D9A026542860008D28C9 /* TxPushConfig.swift */; };
 		B3E1029A25F2C16500227DCE /* ModifyMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3E1029925F2C16500227DCE /* ModifyMessage.swift */; };
 		B3E1033225F7F94900227DCE /* incoming_call.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B3E1033025F7F94900227DCE /* incoming_call.mp3 */; };
 		B3E1033325F7F94900227DCE /* ringback_tone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B3E1033125F7F94900227DCE /* ringback_tone.mp3 */; };
@@ -141,6 +142,7 @@
 		B3AF248A25EE7C350062EDA9 /* Socket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Socket.swift; sourceTree = "<group>"; };
 		B3AF249725EE7DC70062EDA9 /* SocketDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketDelegate.swift; sourceTree = "<group>"; };
 		B3AF24A925EE84570062EDA9 /* UIViewControllerExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIViewControllerExtension.swift; sourceTree = "<group>"; };
+		B3B1D9A026542860008D28C9 /* TxPushConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxPushConfig.swift; sourceTree = "<group>"; };
 		B3E1029925F2C16500227DCE /* ModifyMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifyMessage.swift; sourceTree = "<group>"; };
 		B3E1033025F7F94900227DCE /* incoming_call.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = incoming_call.mp3; sourceTree = "<group>"; };
 		B3E1033125F7F94900227DCE /* ringback_tone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = ringback_tone.mp3; sourceTree = "<group>"; };
@@ -219,6 +221,7 @@
 				B309D23525F06D2100A2AADF /* TxCallInfo.swift */,
 				B309D23A25F06DC000A2AADF /* TxCallOptions.swift */,
 				B39121AE25FFCE680051E076 /* TxError.swift */,
+				B3B1D9A026542860008D28C9 /* TxPushConfig.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -669,6 +672,7 @@
 				B3AF248025EE7B1F0062EDA9 /* TxClientDelegate.swift in Sources */,
 				B309D28225F1838700A2AADF /* ByeMessage.swift in Sources */,
 				B309D1D625F020B300A2AADF /* Message.swift in Sources */,
+				B3B1D9A126542860008D28C9 /* TxPushConfig.swift in Sources */,
 				B309D23625F06D2100A2AADF /* TxCallInfo.swift in Sources */,
 				B309D23B25F06DC000A2AADF /* TxCallOptions.swift in Sources */,
 				B3AF249825EE7DC70062EDA9 /* SocketDelegate.swift in Sources */,

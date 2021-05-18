@@ -324,17 +324,22 @@ extension TxClient : SocketDelegate {
     func onSocketConnected() {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected()")
         self.delegate?.onSocketConnected()
-        
+
+        // Get push token and push provider if available
+        let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
+        let pushProvider = self.txConfig?.pushNotificationConfig?.pushNotificationProvider
+
         //Login into the signaling server after the connection is produced.
         if let token = self.txConfig?.token  {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with Token")
-            let vertoLogin = LoginMessage(token: token)
+            let vertoLogin = LoginMessage(token: token, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider)
             self.socket?.sendMessage(message: vertoLogin.encode())
         } else {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with SIP User and Password")
             guard let sipUser = self.txConfig?.sipUser else { return }
             guard let password = self.txConfig?.password else { return }
-            let vertoLogin = LoginMessage(user: sipUser, password: password)
+            let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
+            let vertoLogin = LoginMessage(user: sipUser, password: password, pushDeviceToken: pushToken)
             self.socket?.sendMessage(message: vertoLogin.encode())
         }
     }
