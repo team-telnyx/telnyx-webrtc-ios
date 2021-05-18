@@ -133,10 +133,7 @@ public class TxClient {
     // MARK: - Initializers
     /// TxClient has to be instantiated.
     public init() {
-        let config = BugsnagConfiguration.loadConfig()
-        config.apiKey = "046a0602ac5080aee24906a0191f867d"
-        Bugsnag.start(with: config)
-        Bugsnag.start()
+        self.configure()
     }
 
     // MARK: - Connection handling
@@ -152,10 +149,6 @@ public class TxClient {
         self.socket = Socket()
         self.socket?.delegate = self
         self.socket?.connect()
-        let exception = NSException(name:NSExceptionName(rawValue: "TestTelnyxRTCError"),
-                                    reason:"Test TelnyxRTC connection error",
-                                    userInfo:nil)
-        Bugsnag.notify(exception)
     }
 
     /// Disconnects the TxClient from the Telnyx signaling server.
@@ -179,6 +172,25 @@ public class TxClient {
         return sessionId ?? ""
     }
 }
+
+// MARK: - SDK Initializations
+extension TxClient {
+
+    /// This function is called when the TxClient is instantiated. This funciton is intended to be used to initialize any
+    /// required tool.
+    private func configure() {
+        self.setupBugsnag()
+    }
+
+    /// Initialize Bugsnag
+    private func setupBugsnag() {
+        let config = BugsnagConfiguration.loadConfig()
+        config.apiKey = InternalConfig.default.bugsnagKey
+        config.context = "TelnyxRTC"
+        //TODO: check extra configurations.
+        Bugsnag.start(with: config)
+    }
+} //END SDK initializations
 
 // MARK: - Call handling
 extension TxClient {
