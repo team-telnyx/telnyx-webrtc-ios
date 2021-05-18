@@ -115,7 +115,7 @@
 		B366D3FA26150D1100156FE1 /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		B368BEC025EDDB610032AE52 /* TelnyxRTC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = TelnyxRTC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B368BEC325EDDB610032AE52 /* TelnyxRTC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TelnyxRTC.h; sourceTree = "<group>"; };
-		B368BEC425EDDB610032AE52 /* info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = info.plist; sourceTree = "<group>"; };
+		B368BEC425EDDB610032AE52 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B368BED125EDDBC90032AE52 /* TelnyxRTCTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TelnyxRTCTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B368BED325EDDBC90032AE52 /* TelnyxRTCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnyxRTCTests.swift; sourceTree = "<group>"; };
 		B368BED525EDDBC90032AE52 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -281,7 +281,7 @@
 			children = (
 				B368BF5225EE71A20032AE52 /* Telnyx */,
 				B368BEC325EDDB610032AE52 /* TelnyxRTC.h */,
-				B368BEC425EDDB610032AE52 /* info.plist */,
+				B368BEC425EDDB610032AE52 /* Info.plist */,
 			);
 			path = TelnyxRTC;
 			sourceTree = "<group>";
