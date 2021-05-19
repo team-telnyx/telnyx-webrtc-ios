@@ -7,23 +7,79 @@
 //
 
 import UIKit
+import PushKit
 import TelnyxRTC
+
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
     private var telnyxClient : TxClient?
+    private var pkRegistry = PKPushRegistry.init(queue: DispatchQueue.main)
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        //Instantiate the Telnyx Client SDK
+        // Instantiate the Telnyx Client SDK
         self.telnyxClient = TxClient()
 
+        //init pushkit to handle VoIP push notifications
+        self.initPushKit()
         return true
     }
 
-
     func getTelnyxClient() -> TxClient? {
         return self.telnyxClient
+    }
+
+    func initPushKit() {
+        pkRegistry.delegate = self
+        pkRegistry.desiredPushTypes = Set([.voIP])
+    }
+}
+
+// MARK: - PKPushRegistryDelegate
+extension AppDelegate: PKPushRegistryDelegate {
+
+    func pushRegistry(_ registry: PKPushRegistry, didUpdate credentials: PKPushCredentials, for type: PKPushType) {
+        print("pushRegistry:didUpdatePushCredentials:forType:")
+        if (type == .voIP) {
+            // Store incoming token in user defaults
+            let userDefaults = UserDefaults.standard
+            let deviceToken = credentials.token.map { String(format: "%02.2hhx", $0) }.joined()
+            userDefaults.savePushToken(pushToken: deviceToken)
+        }
+    }
+
+    func pushRegistry(_ registry: PKPushRegistry, didInvalidatePushTokenFor type: PKPushType) {
+        print("pushRegistry:didInvalidatePushTokenForType:")
+        if (type == .voIP) {
+            // Delete incoming token in user defaults
+            let userDefaults = UserDefaults.init()
+            userDefaults.deletePushToken()
+        }
+    }
+
+    /**
+     .According to the docs, this delegate method is deprecated by Apple.
+    */
+    func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType) {
+        print("pushRegistry:didReceiveIncomingPushWithPayload:forType:")
+        if (payload.type == .voIP) {
+            // TODO: Handle notification
+        }
+    }
+
+    /**
+     This delegate method is available on iOS 11 and above. Call the completion handler once the
+     */
+    func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
+        print("pushRegistry:didReceiveIncomingPushWithPayload:forType:completion:")
+        if (payload.type == .voIP) {
+            // TODO: Handle notification
+        }
+
+        if let version = Float(UIDevice.current.systemVersion), version >= 13.0 {
+            completion()
+        }
     }
 }
 
