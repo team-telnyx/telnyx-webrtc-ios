@@ -3,6 +3,7 @@
 //  TelnyxRTC
 //
 //  Created by Guillermo Battistel on 18/05/2021.
+//  Copyright © 2021 Telnyx LLC. All rights reserved.
 //
 
 import Foundation
