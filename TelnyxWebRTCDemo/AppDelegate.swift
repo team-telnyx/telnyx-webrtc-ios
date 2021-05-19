@@ -10,14 +10,27 @@ import UIKit
 import PushKit
 import TelnyxRTC
 
+
+protocol PushKitDelegate {
+    func onPushNotificationReceived(payload: PKPushPayload) -> Void
+    func onPushNotificationReceived(payload: PKPushPayload, completion: @escaping () -> Void) -> Void
+}
+
+
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
     private var telnyxClient : TxClient?
-    private var pkRegistry = PKPushRegistry.init(queue: DispatchQueue.main)
+    private var pushRegistry = PKPushRegistry.init(queue: DispatchQueue.main)
+    var pushKitDelegate: PushKitDelegate?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+
+        // Set delegate
+        let viewController = UIApplication.shared.windows.first?.rootViewController as? ViewController
+        self.pushKitDelegate = viewController
+
         // Instantiate the Telnyx Client SDK
         self.telnyxClient = TxClient()
 
@@ -31,8 +44,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func initPushKit() {
-        pkRegistry.delegate = self
-        pkRegistry.desiredPushTypes = Set([.voIP])
+        pushRegistry.delegate = self
+        pushRegistry.desiredPushTypes = Set([.voIP])
     }
 }
 
@@ -64,7 +77,7 @@ extension AppDelegate: PKPushRegistryDelegate {
     func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType) {
         print("pushRegistry:didReceiveIncomingPushWithPayload:forType:")
         if (payload.type == .voIP) {
-            // TODO: Handle notification
+            self.pushKitDelegate?.onPushNotificationReceived(payload: payload)
         }
     }
 
@@ -74,7 +87,7 @@ extension AppDelegate: PKPushRegistryDelegate {
     func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
         print("pushRegistry:didReceiveIncomingPushWithPayload:forType:completion:")
         if (payload.type == .voIP) {
-            // TODO: Handle notification
+            self.pushKitDelegate?.onPushNotificationReceived(payload: payload, completion: completion)
         }
 
         if let version = Float(UIDevice.current.systemVersion), version >= 13.0 {

@@ -5,10 +5,14 @@
 //  Created by Guillermo Battistel on 18/05/2021.
 //
 
+import UIKit
 import Foundation
 import AVFoundation
 import CallKit
+import PushKit
+import TelnyxRTC
 
+// CallKit related functions
 extension ViewController {
 
     /**
@@ -214,6 +218,45 @@ extension ViewController : CXProviderDelegate {
             self.callView.muteUnmuteSwitch.setOn(action.isMuted, animated: true)
             self.onMuteUnmuteSwitch(isMuted: action.isMuted)
             action.fulfill()
+        }
+    }
+}
+
+// MARK: - PushKitDelegate
+extension ViewController : PushKitDelegate {
+
+    func processPush(payload: PKPushPayload) {
+        // TODO: Process payload
+        let userDefaults = UserDefaults.init()
+        let sipUser = userDefaults.getSipUser()
+        let password = userDefaults.getSipUserPassword()
+        let deviceToken = UserDefaults.init().getPushToken()
+        //Sets the login credentials and the ringtone/ringback configurations if required.
+        //Ringtone / ringback tone files are not mandatory.
+        let txConfig = TxConfig(sipUser: sipUser,
+                                password: password,
+                                pushDeviceToken: deviceToken,
+                                ringtone: "incoming_call.mp3",
+                                ringBackTone: "ringback_tone.mp3",
+                                //You can choose the appropriate verbosity level of the SDK.
+                                logLevel: .all)
+
+        do {
+            try self.telnyxClient?.processVoIPNotification(txConfig: txConfig, pushAction: .ANSWER_CALL)
+        } catch let error {
+            print("ViewController:: processVoIPNotification Error \(error)")
+        }
+    }
+
+    func onPushNotificationReceived(payload: PKPushPayload) {
+        self.processPush(payload: payload)
+    }
+
+    func onPushNotificationReceived(payload: PKPushPayload, completion: @escaping () -> Void) {
+        self.processPush(payload: payload)
+        if let version = Float(UIDevice.current.systemVersion), version < 13.0 {
+            // Save for later when the notification is properly handled.
+            completion()
         }
     }
 }
