@@ -49,12 +49,17 @@ class ViewController: UIViewController {
         self.callView.isHidden = true
         self.callView.delegate = self
         self.callView.hideEndButton(hide: true)
-        self.settingsView.isHidden = false
 
         self.incomingCallView.isHidden = true
         self.incomingCallView.delegate = self
 
         self.hideKeyboardWhenTappedAround()
+
+        let userDefaults = UserDefaults.init()
+        // Restore last user credentials
+        self.settingsView.isHidden = false
+        self.settingsView.sipUsernameLabel.text = userDefaults.getSipUser()
+        self.settingsView.passwordUserNameLabel.text = userDefaults.getSipUserPassword()
     }
 
     func updateButtonsState() {
@@ -100,6 +105,9 @@ class ViewController: UIViewController {
             } catch let error {
                 print("ViewController:: connect Error \(error)")
             }
+            //store user / password in user defaults
+            let userDefaults = UserDefaults.init()
+            userDefaults.saveUser(sipUser: sipUser, password: password)
         }
     }
 }
