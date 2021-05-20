@@ -247,8 +247,13 @@ extension TxClient {
         return call
     }
 
-
-    fileprivate func createIncomingCall(callerName: String, callerNumber: String, callId: UUID, remoteSdp: String) {
+    /// Creates a call object when an invite is received.
+    /// - Parameters:
+    ///   - callerName: The name of the caller
+    ///   - callerNumber: The caller phone number
+    ///   - callId: The UUID of the incoming call
+    ///   - remoteSdp: The SDP of the remote peer
+    private func createIncomingCall(callerName: String, callerNumber: String, callId: UUID, remoteSdp: String) {
 
         guard let sessionId = self.sessionId,
               let socket = self.socket else {
@@ -267,9 +272,31 @@ extension TxClient {
         call.callOptions = TxCallOptions(audio: true)
 
         self.calls[callId] = call
+
+        // propagate the incoming call to the App
         self.delegate?.onIncomingCall(call: call)
     }
 }
+
+// MARK: - Push Notifications handling
+extension TxClient {
+
+    /// Call this function to process a VoIP push notification of an incoming call.
+    /// This function will be executed when the app was closed and the user executes an action over the VoIP push notification.
+    ///  You will need to
+    /// - Parameters:
+    ///   - txConfig: The desired configuration to login to B2B2UA. User credentials must be the same as the
+    /// - Throws: Error during the connection process
+    public func processVoIPNotification(txConfig: TxConfig) throws {
+        Logger.log.i(message: "TxClient:: processVoIPNotification()")
+        // Check if we are already connected and logged in
+        if !isConnected() &&
+            getSessionId().isEmpty {
+            try self.connect(txConfig: txConfig)
+        }
+    }
+}
+
 // MARK: - Audio
 extension TxClient {
 
@@ -324,17 +351,22 @@ extension TxClient : SocketDelegate {
     func onSocketConnected() {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected()")
         self.delegate?.onSocketConnected()
-        
+
+        // Get push token and push provider if available
+        let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
+        let pushProvider = self.txConfig?.pushNotificationConfig?.pushNotificationProvider
+
         //Login into the signaling server after the connection is produced.
         if let token = self.txConfig?.token  {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with Token")
-            let vertoLogin = LoginMessage(token: token)
+            let vertoLogin = LoginMessage(token: token, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider)
             self.socket?.sendMessage(message: vertoLogin.encode())
         } else {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with SIP User and Password")
             guard let sipUser = self.txConfig?.sipUser else { return }
             guard let password = self.txConfig?.password else { return }
-            let vertoLogin = LoginMessage(user: sipUser, password: password)
+            let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
+            let vertoLogin = LoginMessage(user: sipUser, password: password, pushDeviceToken: pushToken)
             self.socket?.sendMessage(message: vertoLogin.encode())
         }
     }

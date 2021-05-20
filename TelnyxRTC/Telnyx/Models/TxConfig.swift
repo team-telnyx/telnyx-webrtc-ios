@@ -12,13 +12,14 @@ import Foundation
 public struct TxConfig {
     
     // MARK: - Properties
-
     public internal(set) var sipUser: String?
     public internal(set) var password: String?
     public internal(set) var token: String?
+    public internal(set) var pushNotificationConfig: TxPushConfig?
 
     public internal(set) var ringBackTone: String?
     public internal(set) var ringtone: String?
+
 
     // MARK: - Initializers
 
@@ -26,12 +27,21 @@ public struct TxConfig {
     /// - Parameters:
     ///   - sipUser: sipUser the SIP user
     ///   - password: password the password of the SIP user.
+    ///   - pushDeviceToken: (Optional) the device push notification token. This is required to receive Inbound calls notifications.
     ///   - ringtone: (Optional) The audio file name to be played when receiving an incoming call. e.g.: "my-ringtone.mp3"
     ///   - ringBackTone: (Optional) The audio file to be played when calling. e.g.: "my-ringbacktone.mp3"
     ///   - logLevel: (Optional) Can select the verbosity level of the SDK logs. Is set to `.none` as default
-    public init(sipUser: String, password: String, ringtone: String? = nil, ringBackTone: String? = nil, logLevel: LogLevel = .none) {
+    public init(sipUser: String, password: String,
+                pushDeviceToken: String? = nil,
+                ringtone: String? = nil,
+                ringBackTone: String? = nil,
+                logLevel: LogLevel = .none) {
         self.sipUser = sipUser
         self.password = password
+        if let pushToken = pushDeviceToken {
+            //Create a notification configuration if there's an available a device push notification token
+            pushNotificationConfig = TxPushConfig(pushDeviceToken: pushToken)
+        }
         self.ringBackTone = ringBackTone
         self.ringtone = ringtone
         Logger.log.verboseLevel = logLevel
@@ -40,11 +50,20 @@ public struct TxConfig {
     /// Constructor of the Telnyx SDK configuration: Login using a token.
     /// - Parameters:
     ///   - token: Token generated from https://developers.telnyx.com/docs/v2/webrtc/quickstart
+    ///   - pushDeviceToken: (Optional) the device push notification token. This is required to receive Inbound calls notifications.
     ///   - ringtone: (Optional) The audio file name to be played when receiving an incoming call. e.g.: "my-ringtone.mp3"
     ///   - ringBackTone: (Optional) The audio file name to be played when calling. e.g.: "my-ringbacktone.mp3"
     ///   - logLevel: (Optional) Can select the verbosity level of the SDK logs. Is set to `.none` as default
-    public init(token: String, ringtone: String? = nil, ringBackTone: String? = nil, logLevel: LogLevel = .none) {
+    public init(token: String,
+                pushDeviceToken: String? = nil,
+                ringtone: String? = nil,
+                ringBackTone: String? = nil,
+                logLevel: LogLevel = .none) {
         self.token = token
+        if let pushToken = pushDeviceToken {
+            //Create a notification configuration if there's an available a device push notification token
+            pushNotificationConfig = TxPushConfig(pushDeviceToken: pushToken)
+        }
         self.ringBackTone = ringBackTone
         self.ringtone = ringtone
         Logger.log.verboseLevel = logLevel

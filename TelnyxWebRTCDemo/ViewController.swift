@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CallKit
 import TelnyxRTC
 
 class ViewController: UIViewController {
@@ -14,6 +15,9 @@ class ViewController: UIViewController {
     var telnyxClient: TxClient?
     var currentCall: Call?
     var incomingCall: Bool = false
+
+    var callKitProvider: CXProvider?
+    let callKitCallController = CXCallController()
 
     @IBOutlet weak var sessionIdLabel: UILabel!
     @IBOutlet weak var socketStateLabel: UILabel!
@@ -28,20 +32,34 @@ class ViewController: UIViewController {
 
         self.telnyxClient = appDelegate.getTelnyxClient()
         self.telnyxClient?.delegate = self
-        initViews()
+        self.initViews()
+
+        self.initCallKit()
     }
-    
+
+    deinit {
+        // CallKit has an odd API contract where the developer must call invalidate or the CXProvider is leaked.
+        if let provider = callKitProvider {
+            provider.invalidate()
+        }
+    }
+
     func initViews() {
         print("ViewController:: initViews()")
         self.callView.isHidden = true
         self.callView.delegate = self
         self.callView.hideEndButton(hide: true)
-        self.settingsView.isHidden = false
 
         self.incomingCallView.isHidden = true
         self.incomingCallView.delegate = self
 
         self.hideKeyboardWhenTappedAround()
+
+        let userDefaults = UserDefaults.init()
+        // Restore last user credentials
+        self.settingsView.isHidden = false
+        self.settingsView.sipUsernameLabel.text = userDefaults.getSipUser()
+        self.settingsView.passwordUserNameLabel.text = userDefaults.getSipUserPassword()
     }
 
     func updateButtonsState() {
@@ -61,7 +79,7 @@ class ViewController: UIViewController {
         if (telnyxClient.isConnected()) {
             telnyxClient.disconnect()
         } else {
-            
+
             //Here we are Login in with a SIP User and Password. In case token login is needed:
             //1) Generate a token following https://developers.telnyx.com/docs/v2/webrtc/quickstart
             //2) Pass the generated token to a TxConfig instance.
@@ -70,10 +88,13 @@ class ViewController: UIViewController {
             guard let sipUser = self.settingsView.sipUsernameLabel.text else { return }
             guard let password = self.settingsView.passwordUserNameLabel.text else { return }
 
+            let deviceToken = UserDefaults.init().getPushToken() //Get stored token from APNS
+
             //Sets the login credentials and the ringtone/ringback configurations if required.
             //Ringtone / ringback tone files are not mandatory.
             let txConfig = TxConfig(sipUser: sipUser,
                                     password: password,
+                                    pushDeviceToken: deviceToken,
                                     ringtone: "incoming_call.mp3",
                                     ringBackTone: "ringback_tone.mp3",
                                     //You can choose the appropriate verbosity level of the SDK.
@@ -84,17 +105,15 @@ class ViewController: UIViewController {
             } catch let error {
                 print("ViewController:: connect Error \(error)")
             }
+            //store user / password in user defaults
+            let userDefaults = UserDefaults.init()
+            userDefaults.saveUser(sipUser: sipUser, password: password)
         }
     }
 }
 
 // MARK: - TxClientDelegate
 extension ViewController: TxClientDelegate {
-
-    func onRemoteCallEnded(callId: UUID) {
-        print("ViewController:: TxClientDelegate onRemoteCallEnded() callId: \(callId)")
-    }
-    
 
     func onSocketConnected() {
         print("ViewController:: TxClientDelegate onSocketConnected()")
@@ -148,15 +167,28 @@ extension ViewController: TxClientDelegate {
             return
         }
         print("ViewController:: TxClientDelegate onIncomingCall() Error unknown call UUID: \(callId)")
-        self.currentCall?.hangup() //Hangup the previous call if there's one active
+
+        if let currentCallUUID = self.currentCall?.callInfo?.callId {
+            self.executeEndCallAction(uuid: currentCallUUID) //Hangup the previous call if there's one active
+        }
         self.currentCall = call //Update the current call with the incoming call
+        self.incomingCall = true
         DispatchQueue.main.async {
-            self.incomingCall = true
             self.updateButtonsState()
             self.incomingCallView.isHidden = false
             self.callView.isHidden = true
             //Hide the keyboard
             self.view.endEditing(true)
+        }
+
+        self.newIncomingCall(from: call.callInfo?.callerName ?? "Unknown", uuid: callId)
+    }
+
+    func onRemoteCallEnded(callId: UUID) {
+        print("ViewController:: TxClientDelegate onRemoteCallEnded() callId: \(callId)")
+        let reason = CXCallEndedReason.remoteEnded
+        if let provider = callKitProvider {
+            provider.reportCall(with: callId, endedAt: Date(), reason: reason)
         }
     }
 
@@ -213,23 +245,15 @@ extension ViewController : UIIncomingCallViewDelegate {
 extension ViewController : UICallScreenDelegate {
 
     func onCallButton() {
-        guard let destinationNumber = self.callView.destinationNumberOrSip.text else { return }
+        let uuid = UUID()
+        let handle = "Telnyx"
         
-        let callerName = self.settingsView.callerIdNameLabel.text ?? ""
-        let callerNumber = self.settingsView.callerIdNumberLabel.text ?? ""
-
-        do {
-            self.currentCall = try self.telnyxClient?.newCall(callerName: callerName,
-                                                              callerNumber: callerNumber,
-                                                              destinationNumber: destinationNumber,
-                                                              callId: UUID.init())
-        } catch let error {
-            print("ViewController:: newCall Error \(error)")
-        }
+        self.executeStartCallAction(uuid: uuid, handle: handle)
     }
     
     func onEndCallButton() {
-        self.currentCall?.hangup()
+        guard let uuid = self.currentCall?.callInfo?.callId else { return }
+        self.executeEndCallAction(uuid: uuid)
     }
     
     func onMuteUnmuteSwitch(isMuted: Bool) {
