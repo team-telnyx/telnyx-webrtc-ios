@@ -17,4 +17,12 @@ public struct TxCallInfo {
     public internal(set) var callerName:String?
     /// The caller number of the call
     public internal(set) var callerNumber: String?
+
+    func encode() -> [String : Any] {
+        var dictionary = [String : Any]()
+        dictionary["callID"] = callId.uuidString.lowercased()
+        dictionary["caller_id_name"] = callerName ?? ""
+        dictionary["caller_id_number"] = callerNumber ?? ""
+        return dictionary
+    }
 }
