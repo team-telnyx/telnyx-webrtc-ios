@@ -130,9 +130,6 @@ public class TxClient {
     private var sessionId : String?
     private var txConfig: TxConfig?
 
-    /// Pending push notification action to be executed
-    private var pendingPushNotifications: TxPushNotification? = nil
-
     // MARK: - Initializers
     /// TxClient has to be instantiated.
     public init() {
@@ -276,11 +273,8 @@ extension TxClient {
 
         self.calls[callId] = call
 
-        // If there's no push action pending, execute the normal flow and
         // propagate the incoming call to the App
-        if !self.isPushActionPendingForCall(call: call) {
-            self.delegate?.onIncomingCall(call: call)
-        }
+        self.delegate?.onIncomingCall(call: call)
     }
 }
 
@@ -292,40 +286,14 @@ extension TxClient {
     ///  You will need to
     /// - Parameters:
     ///   - txConfig: The desired configuration to login to B2B2UA. User credentials must be the same as the
-    ///   - pushAction: The action to be executed when the Call is resumed from B2BUA.
-    ///   - callUUID: (Optional) The UUID of the call associated with the incoming push notification
     /// - Throws: Error during the connection process
-    public func processVoIPNotification(txConfig: TxConfig,
-                                        pushAction: PushNotificationAction,
-                                        callUUID: UUID? = nil) throws {
+    public func processVoIPNotification(txConfig: TxConfig) throws {
         Logger.log.i(message: "TxClient:: processVoIPNotification()")
         // Check if we are already connected and logged in
-        if isConnected() &&
-            !getSessionId().isEmpty {
-            /// We can process only the last push action.
-            self.pendingPushNotifications = TxPushNotification(action: pushAction, callUUID: callUUID)
+        if !isConnected() &&
+            getSessionId().isEmpty {
             try self.connect(txConfig: txConfig)
         }
-    }
-
-    /// Check if there's a pending notification action to be processed and executes it.
-    /// - Parameter call: The call object on which we want to execute the pending action
-    /// - Returns: `True` if a Push Notification Action was pending to be processed and executed. `False` otherwise
-    private func isPushActionPendingForCall(call: Call) -> Bool {
-        Logger.log.i(message: "TxClient:: isPushActionPendingForCall()")
-        // Check if we have pending notification actions to be executed
-        if let pendingNotification = self.pendingPushNotifications {
-            switch pendingNotification.action {
-            case .ANSWER_CALL:
-                call.answer()
-            case .REJECT_CALL:
-                call.hangup()
-            case .NONE:
-                break
-            }
-            return true
-        }
-        return false
     }
 }
 
