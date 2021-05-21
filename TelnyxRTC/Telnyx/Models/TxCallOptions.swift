@@ -27,4 +27,17 @@ struct TxCallOptions {
     var useStereo: Bool = false
     var screenShare: Bool = false
     var userVariables: [String: Any]?
+
+    func encode() -> [String : Any] {
+        var dictionary = [String: Any]()
+        dictionary["remote_caller_id_name"] = remoteCallerName
+        dictionary["caller_id_number"] = remoteCallerNumber
+        dictionary["audio"] = audio
+        dictionary["video"] = video
+        dictionary["useStereo"] = useStereo
+        dictionary["attach"] = attach
+        dictionary["screenShare"] = screenShare
+        dictionary["userVariables"] = userVariables
+        return dictionary
+    }
 }

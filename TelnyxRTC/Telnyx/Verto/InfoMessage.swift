@@ -1,30 +1,28 @@
 //
-//  AnswerMessage.swift
+//  InfoMessage.swift
 //  TelnyxRTC
 //
-//  Created by Guillermo Battistel on 04/03/2021.
+//  Created by Guillermo Battistel on 20/05/2021.
 //  Copyright © 2021 Telnyx LLC. All rights reserved.
 //
 
-import Foundation
-
-class AnswerMessage : Message {
+class InfoMessage : Message {
 
     init(sessionId: String,
-         sdp: String,
+         dtmf: String,
          callInfo: TxCallInfo,
          callOptions: TxCallOptions) {
-
         var params = [String: Any]()
+        params["sessid"] = sessionId
+        params["dtmf"] = dtmf
+
         var dialogParams = [String: Any]()
         // Merge callInfo into dialogParams
         callInfo.encode().forEach { (key, value) in dialogParams[key] = value }
         // Merge callOptions into dialogParams
         callOptions.encode().forEach { (key, value) in dialogParams[key] = value }
 
-        params["sessionId"] = sessionId
-        params["sdp"] = sdp
         params["dialogParams"] = dialogParams
-        super.init(params, method: .ANSWER)
+        super.init(params, method: .INFO)
     }
 }

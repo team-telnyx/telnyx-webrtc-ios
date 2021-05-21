@@ -278,6 +278,34 @@ extension Call {
         })
     }
 }
+
+// MARK: - DTMF
+extension Call {
+
+    /// Sends dual-tone multi-frequency (DTMF) signal
+    /// - Parameter dtmf: Single DTMF key
+    /// ## Examples:
+    /// ### Send DTMF signals:
+    ///
+    /// ```
+    ///    currentCall?.dtmf("0")
+    ///    currentCall?.dtmf("1")
+    ///    currentCall?.dtmf("*")
+    ///    currentCall?.dtmf("#")
+    /// ```
+    public func dtmf(dtmf: String) {
+        Logger.log.i(message: "Call:: dtmf() \(dtmf)")
+        guard let sessionId = self.sessionId,
+              let callInfo = self.callInfo,
+              let callOptions = self.callOptions else { return }
+
+        let dtmfMessage = InfoMessage(sessionId: sessionId, dtmf: dtmf, callInfo: callInfo, callOptions: callOptions)
+        guard let message = dtmfMessage.encode(),
+              let socket = self.socket else { return }
+        socket.sendMessage(message: message)
+        Logger.log.s(message: "Call:: dtmf() \(dtmf)")
+    }
+}
 // MARK: - Audio handling
 extension Call {
     

@@ -18,9 +18,8 @@ enum Method : String {
     case BYE = "telnyx_rtc.bye"
     case MODIFY = "telnyx_rtc.modify"
     case MEDIA = "telnyx_rtc.media"
-
-    //not implemented
     case INFO = "telnyx_rtc.info"
+    //not implemented
     case ATTACH = "telnyx_rtc.attach"
     case DISPLAY = "telnyx_rtc.display"
     case EVENT = "telnyx_rtc.event"

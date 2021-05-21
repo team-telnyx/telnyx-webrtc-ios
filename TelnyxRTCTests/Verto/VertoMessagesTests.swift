@@ -273,4 +273,34 @@ class VertoMessagesTests: XCTestCase {
         let decodedMethod = decodedMessage?.method
         XCTAssertEqual(decodedMethod, Method.MODIFY)
     }
+
+    /**
+     Test dtmf message
+     */
+    func testDtmfMessage() {
+        print("VertoMessagesTest :: testDtmfMessage()")
+
+        let sessionId = "<sessionId>"
+        let callId = UUID.init()
+        let dtmf = "1"
+
+        let callInfo = TxCallInfo(callId: callId, callerName: "<caller_name>", callerNumber: "<caller_number>")
+        let callOptions = TxCallOptions(destinationNumber: "<destination_number>", audio: true)
+        let infoMessage = InfoMessage(sessionId: sessionId, dtmf: dtmf, callInfo: callInfo, callOptions: callOptions)
+
+        //Encode and decode the Bye message
+        let encodedMessage: String = infoMessage.encode() ?? ""
+        let decodedMessage = Message().decode(message: encodedMessage)
+
+        XCTAssertEqual(decodedMessage?.params?["sessid"] as! String, sessionId)
+        XCTAssertEqual(decodedMessage?.params?["dtmf"] as! String, dtmf)
+
+        let dialogParams = decodedMessage?.params?["dialogParams"] as! [String: Any]
+        XCTAssertEqual(dialogParams["callID"] as! String , callInfo.callId.uuidString.lowercased())
+        XCTAssertEqual(dialogParams["remote_caller_id_number"] as? String , callOptions.remoteCallerNumber)
+        XCTAssertEqual(dialogParams["audio"] as? Bool , callOptions.audio)
+
+        let decodedMethod = decodedMessage?.method
+        XCTAssertEqual(decodedMethod, Method.INFO)
+    }
 }
