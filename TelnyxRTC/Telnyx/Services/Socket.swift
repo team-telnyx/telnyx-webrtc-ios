@@ -9,15 +9,28 @@
 import Foundation
 import Starscream
 
+// TODO What is the purpose/behavior of this class?
+// holds a ref to websocket
+// tracks state of connection to that websocket
+// connecting to a websocket on a url
+// disconnecting from that websocket
+// sends a message down the socket
+
+// TODO Does it add value to have a Socket wrapper class?
+// Can this be moved up to the client?
+// It is used by the Call object.
 class Socket {
     
     var delegate: SocketDelegate?
     var isConnected : Bool = false
-
-    private let config = InternalConfig.default
-    private var socket : WebSocket?
     
-    func connect() {
+    
+    // TODO We should inject this
+    private let config = InternalConfig.default
+    // TODO By default callbacks are executed on the main thread - not sure we want that?
+    private var socket : WebSocket?
+        
+    func connect() {        
         Logger.log.i(message: "Socket:: connect()")
         var request = URLRequest(url: config.signalingServerUrl)
         request.timeoutInterval = 5

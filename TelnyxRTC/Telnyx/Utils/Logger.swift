@@ -39,8 +39,17 @@ enum VertoDirection: Int {
     case none
 }
 
+// Logging
+// Logger is modeled of of Timber which makes logging easier in Android
+// It's a utility for the android.util.log class
+// TODO Make this a protocol so the consumer (developer) can decide how logging happens
+// I understand that we need to write to the device logs internally as well. But the developer might want to pipe the logs / log events
+// somewhere else too.
+// TODO Answer: What does the consumer (developer) expect from the logs? What the standard for logging to the device logs in iOS??
+// TODO We may have to think about marking this internal
 class Logger {
 
+    // TODO I think it's best practice to use an instance property
     internal static let log = Logger()
 
     /// represents the current log level: `all` is set as default
@@ -93,6 +102,7 @@ class Logger {
     /// - Parameters:
     ///   - message: message to be printed
     ///   - direction: direction of the message. Inbound-outbound
+    // TODO I kow this
     public func verto(message: String, direction: VertoDirection) {
         if verboseLevel == .all || verboseLevel == .verto {
             print(buildMessage(level: .verto, message: message, direction: direction))

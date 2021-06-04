@@ -128,11 +128,26 @@ public class TxClient {
     private var socket : Socket?
 
     private var sessionId : String?
+    // TODO What's the value in a TxConfig plain ole/data object
+    // It's only being used to validate a token or a credential
+    // It's important given it's part of the public API when connecting
+    
+    // TODO Any future plans to support additional configurations?
+    // What other configurations would we support?
+    // Android use a base TelnyxConfig data class to create two types:
+    // TokenConfig and CredentialConfig
+    
+    // TODO Best practice not to abbrievate
+    // This could be named something like: ConnectionConfiguration
+    // The name Telnyx is implied because of the TelnyxRTC namespace
     private var txConfig: TxConfig?
 
     // MARK: - Initializers
     /// TxClient has to be instantiated.
     public init() {
+        // TODO Don't call methods inside constructors
+        // If we need to configure services like Bugsnap we can make a call in a consumer or externally
+        // Especially because developers may want to hook in as well, given that the SDK is open source
         self.configure()
     }
 
@@ -140,12 +155,17 @@ public class TxClient {
     /// Connects to the iOS client to the Telnyx signaling server using the desired login credentials.
     /// - Parameter txConfig: The desired login credentials. See TxConfig docummentation for more information.
     /// - Throws: TxConfig parameters errors
+    // TODO Value in TxConfig here? (See TxConfig questions)
     public func connect(txConfig: TxConfig) throws {
         Logger.log.i(message: "TxClient:: connect()")
-        //Check connetion parameters
+        // Check connetion parameters
+        
+        // TODO I think we can validate parameters inside this method
+        // Not sure that beloings in the config object.
         try txConfig.validateParams()
 
         self.txConfig = txConfig
+        // TODO We should inject the Socket in the constructor
         self.socket = Socket()
         self.socket?.delegate = self
         self.socket?.connect()

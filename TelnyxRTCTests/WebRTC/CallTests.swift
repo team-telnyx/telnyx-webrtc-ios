@@ -43,7 +43,7 @@ class CallTests: XCTestCase {
         //Wait to send invite message.
         expectation = expectation(description: "newCall")
         self.call?.newCall(callerName: "callerName", callerNumber: "callerNumber", destinationNumber: "destinationNumber")
-        waitForExpectations(timeout: 10)
+        waitForExpectations(timeout: 10)        
     }
 }
 
