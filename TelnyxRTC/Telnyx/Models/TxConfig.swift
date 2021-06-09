@@ -62,6 +62,7 @@ public struct TxConfig {
         self.token = token
         if let pushToken = pushDeviceToken {
             //Create a notification configuration if there's an available a device push notification token
+            // TODO Where is this being used?
             pushNotificationConfig = TxPushConfig(pushDeviceToken: pushToken)
         }
         self.ringBackTone = ringBackTone

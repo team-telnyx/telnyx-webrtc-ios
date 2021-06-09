@@ -148,6 +148,11 @@ public class TxClient {
         // TODO Don't call methods inside constructors
         // If we need to configure services like Bugsnap we can make a call in a consumer or externally
         // Especially because developers may want to hook in as well, given that the SDK is open source
+        // TODO We make to make initialization or configuration public it's clear what happens to a developer
+        // We can do things like:
+        // Configure logging
+        // Setup bugsnag
+        // Configure push notifications
         self.configure()
     }
 
@@ -161,7 +166,7 @@ public class TxClient {
         // Check connetion parameters
         
         // TODO I think we can validate parameters inside this method
-        // Not sure that beloings in the config object.
+        // Not sure that behavior belongs in the config object
         try txConfig.validateParams()
 
         self.txConfig = txConfig
@@ -202,6 +207,7 @@ extension TxClient {
         self.setupBugsnag()
     }
 
+    // TODO Intialize internal services in a consisent place so it's clear what's happening to a developer (see above)
     /// Initialize Bugsnag
     private func setupBugsnag() {
         let config = BugsnagConfiguration.loadConfig()
@@ -372,13 +378,17 @@ extension TxClient : SocketDelegate {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected()")
         self.delegate?.onSocketConnected()
 
+        // TODO This should be part of initializaton
         // Get push token and push provider if available
         let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
         let pushProvider = self.txConfig?.pushNotificationConfig?.pushNotificationProvider
 
         //Login into the signaling server after the connection is produced.
+        // TODO Is there a way to refactor this to remove this code branch?
         if let token = self.txConfig?.token  {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with Token")
+            // TODO Seems like it would make sure to encapsulate this into a behavior on a Verto object
+            // TODO Thinking
             let vertoLogin = LoginMessage(token: token, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider)
             self.socket?.sendMessage(message: vertoLogin.encode())
         } else {

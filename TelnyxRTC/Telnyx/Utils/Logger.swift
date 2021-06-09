@@ -102,7 +102,7 @@ class Logger {
     /// - Parameters:
     ///   - message: message to be printed
     ///   - direction: direction of the message. Inbound-outbound
-    // TODO I kow this
+    // TODO What's the purpose of a seperate log level for verto?
     public func verto(message: String, direction: VertoDirection) {
         if verboseLevel == .all || verboseLevel == .verto {
             print(buildMessage(level: .verto, message: message, direction: direction))
