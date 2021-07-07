@@ -125,7 +125,7 @@ extension ViewController: TxClientDelegate {
     }
     
     func onSocketDisconnected() {
-        print("ViewController:: TxClientDelegate onSocketConnected()")
+        print("ViewController:: TxClientDelegate onSocketDisconnected()")
         DispatchQueue.main.async {
             self.socketStateLabel.text = "Disconnected"
             self.connectButton.setTitle("Connect", for: .normal)

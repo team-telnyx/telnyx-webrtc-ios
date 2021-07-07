@@ -155,6 +155,12 @@ public class TxClient {
     public func disconnect() {
         Logger.log.i(message: "TxClient:: disconnect()")
         socket?.disconnect()
+
+		// Let's cancell all the current calls
+		for (_ ,call) in self.calls {
+			call.hangup()
+		}
+
         socket = nil
         delegate?.onSocketDisconnected()
     }
