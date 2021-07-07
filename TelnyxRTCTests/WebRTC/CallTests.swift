@@ -29,7 +29,7 @@ class CallTests: XCTestCase {
 
     /**
      Test that the invite message is sent through the socket.
-     - Wait socket connection to be compleated.
+     - Wait socket connection to be completed.
      - Starts the call process by creating an offer
      - Once the ICE candidates negotiation finishes, we send an invite through the socket.
      - Wait for a server response onMessageReceived.

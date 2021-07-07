@@ -179,7 +179,7 @@ public class Call {
             guard let sdp = sdp else {
                 return
             }
-            Logger.log.i(message: "Call:: Offer compleated >> SDP: \(sdp)")
+            Logger.log.i(message: "Call:: Offer completed >> SDP: \(sdp)")
             self.updateCallState(callState: .CONNECTING)
         })
     }
