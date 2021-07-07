@@ -110,6 +110,15 @@ class ViewController: UIViewController {
             userDefaults.saveUser(sipUser: sipUser, password: password)
         }
     }
+
+    func resetCallStates() {
+        self.incomingCall = false
+        self.incomingCallView.isHidden = true
+        self.callView.isHidden = false
+        self.callView.resetMuteUnmuteState()
+        self.callView.resetHoldUnholdState()
+        self.callView.resetSpeakerState()
+    }
 }
 
 // MARK: - TxClientDelegate
@@ -127,6 +136,7 @@ extension ViewController: TxClientDelegate {
     func onSocketDisconnected() {
         print("ViewController:: TxClientDelegate onSocketDisconnected()")
         DispatchQueue.main.async {
+            self.resetCallStates()
             self.socketStateLabel.text = "Disconnected"
             self.connectButton.setTitle("Connect", for: .normal)
             self.sessionIdLabel.text = "-"
@@ -210,12 +220,7 @@ extension ViewController: TxClientDelegate {
                    currentCallId == callId {
                     self.currentCall = nil // clear current call
                 }
-                self.incomingCall = false
-                self.incomingCallView.isHidden = true
-                self.callView.isHidden = false
-                self.callView.muteUnmuteSwitch.setOn(false, animated: false)
-                self.callView.holdUnholdSwitch.setOn(false, animated: false)
-                self.callView.resetHoldUnholdState()
+                self.resetCallStates()
                 break
             case .HELD:
                 break
