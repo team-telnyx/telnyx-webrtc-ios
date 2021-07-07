@@ -291,13 +291,13 @@ extension Call {
 
     /// Obtain the  call telnyx_session_id
     /// - Returns: the telnyx_session_id
-    func getTelnyxSessionId() -> UUID? {
+    public func getTelnyxSessionId() -> UUID? {
         return self.telnyxSessionId
     }
 
     /// Obtain the  call telnyx_leg_id
     /// - Returns: the telnyx leg ID
-    func getTelnyxLegId() -> UUID? {
+    public func getTelnyxLegId() -> UUID? {
         return self.telnyxLegId
     }
 }
