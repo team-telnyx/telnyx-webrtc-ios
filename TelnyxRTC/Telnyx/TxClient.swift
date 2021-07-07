@@ -160,6 +160,7 @@ public class TxClient {
             call.hangup()
         }
 
+        self.calls.removeAll()
         socket?.disconnect()
         socket = nil
         delegate?.onSocketDisconnected()
