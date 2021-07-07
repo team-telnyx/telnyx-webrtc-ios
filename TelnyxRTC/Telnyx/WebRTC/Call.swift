@@ -97,6 +97,9 @@ public class Call {
     var remoteSdp: String?
     var callOptions: TxCallOptions?
 
+    var telnyxSessionId: UUID?
+    var telnyxLegId: UUID?
+
     // MARK: - Properties
     /// `TxCallInfo` Contains the required information of the current Call.
     public var callInfo: TxCallInfo?
@@ -113,6 +116,8 @@ public class Call {
          sessionId: String,
          socket: Socket,
          delegate: CallProtocol,
+         telnyxSessionId: UUID? = nil,
+         telnyxLegId: UUID? = nil,
          ringtone: String? = nil,
          ringbackTone: String? = nil) {
         self.direction = CallDirection.INBOUND
@@ -120,6 +125,9 @@ public class Call {
         self.sessionId = sessionId
         //this is the signaling server socket
         self.socket = socket
+
+        self.telnyxSessionId = telnyxSessionId
+        self.telnyxLegId = telnyxLegId
 
         self.remoteSdp = remoteSdp
         self.callInfo = TxCallInfo(callId: callId)
@@ -278,7 +286,21 @@ extension Call {
         })
     }
 }
+// MARK: - Class getters
+extension Call {
 
+    /// Obtain the  call telnyx_session_id
+    /// - Returns: the telnyx_session_id
+    func getTelnyxSessionId() -> UUID? {
+        return self.telnyxSessionId
+    }
+
+    /// Obtain the  call telnyx_leg_id
+    /// - Returns: the telnyx leg ID
+    func getTelnyxLegId() -> UUID? {
+        return self.telnyxLegId
+    }
+}
 // MARK: - DTMF
 extension Call {
 
@@ -467,6 +489,18 @@ extension Call {
             break;
 
         case .RINGING:
+
+            if let params = message.params {
+                if let telnyxSessionId = params["telnyx_session_id"] as? String,
+                   let telnyxSessionUUID = UUID(uuidString: telnyxSessionId) {
+                    self.telnyxSessionId = telnyxSessionUUID
+                }
+
+                if let telnyxLegId = params["telnyx_leg_id"] as? String,
+                   let telnyxLegIdUUID = UUID(uuidString: telnyxLegId) {
+                    self.telnyxLegId = telnyxLegIdUUID
+                }
+            }
             self.playRingbackTone()
             break
         default:
