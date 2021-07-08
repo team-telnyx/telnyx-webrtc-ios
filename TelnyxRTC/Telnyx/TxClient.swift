@@ -443,6 +443,12 @@ extension TxClient : SocketDelegate {
                     let telnyxSessionId = params["telnyx_session_id"] as? String ?? ""
                     let telnyxLegId = params["telnyx_leg_id"] as? String ?? ""
 
+                    if telnyxSessionId.isEmpty {
+                        Logger.log.w(message: "TxClient:: Telnyx Session ID unabailable on INVITE message")
+                    }
+                    if telnyxLegId.isEmpty {
+                        Logger.log.w(message: "TxClient:: Telnyx Leg ID unabailable on INVITE message")
+                    }
                     self.createIncomingCall(callerName: callerName,
                                             callerNumber: callerNumber,
                                             callId: uuid,
