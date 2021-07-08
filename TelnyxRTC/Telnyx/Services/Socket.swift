@@ -31,7 +31,6 @@ class Socket {
     func disconnect() {
         Logger.log.i(message: "Socket:: disconnect()")
         self.socket?.disconnect()
-        self.socket?.forceDisconnect()
     }
     
     func sendMessage(message: String?) {
