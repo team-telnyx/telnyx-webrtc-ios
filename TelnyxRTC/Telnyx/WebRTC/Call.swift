@@ -484,14 +484,14 @@ extension Call {
                    let telnyxSessionUUID = UUID(uuidString: telnyxSessionId) {
                     self.telnyxSessionId = telnyxSessionUUID
                 } else {
-                    Logger.log.w(message: "Call:: Telnyx Session ID unabailable on RINGING message")
+                    Logger.log.w(message: "Call:: Telnyx Session ID unavailable on RINGING message")
                 }
 
                 if let telnyxLegId = params["telnyx_leg_id"] as? String,
                    let telnyxLegIdUUID = UUID(uuidString: telnyxLegId) {
                     self.telnyxLegId = telnyxLegIdUUID
                 } else {
-                    Logger.log.w(message: "Call:: Telnyx Leg ID unabailable on RINGING message")
+                    Logger.log.w(message: "Call:: Telnyx Leg ID unavailable on RINGING message")
                 }
             }
             self.playRingbackTone()
