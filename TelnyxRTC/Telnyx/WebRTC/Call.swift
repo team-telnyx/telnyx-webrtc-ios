@@ -93,12 +93,15 @@ public class Call {
     var socket: Socket?
     var delegate: CallProtocol?
 
-    var sessionId: String?
     var remoteSdp: String?
     var callOptions: TxCallOptions?
 
-    var telnyxSessionId: UUID?
-    var telnyxLegId: UUID?
+    /// The Session ID of the current connection
+    public internal(set) var sessionId: String?
+    /// Telnyx call session ID.
+    public internal(set) var telnyxSessionId: UUID?
+    /// Telnyx call leg ID
+    public internal(set) var telnyxLegId: UUID?
 
     // MARK: - Properties
     /// `TxCallInfo` Contains the required information of the current Call.
@@ -286,21 +289,7 @@ extension Call {
         })
     }
 }
-// MARK: - Class getters
-extension Call {
 
-    /// Obtain the  call telnyx_session_id
-    /// - Returns: the telnyx_session_id
-    public func getTelnyxSessionId() -> UUID? {
-        return self.telnyxSessionId
-    }
-
-    /// Obtain the  call telnyx_leg_id
-    /// - Returns: the telnyx leg ID
-    public func getTelnyxLegId() -> UUID? {
-        return self.telnyxLegId
-    }
-}
 // MARK: - DTMF
 extension Call {
 

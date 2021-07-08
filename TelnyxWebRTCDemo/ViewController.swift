@@ -167,7 +167,7 @@ extension ViewController: TxClientDelegate {
             return
         }
         print("ViewController:: TxClientDelegate onIncomingCall() Error unknown call UUID: \(callId)")
-
+        
         if let currentCallUUID = self.currentCall?.callInfo?.callId {
             self.executeEndCallAction(uuid: currentCallUUID) //Hangup the previous call if there's one active
         }
