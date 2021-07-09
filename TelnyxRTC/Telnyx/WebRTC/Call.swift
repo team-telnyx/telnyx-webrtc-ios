@@ -93,9 +93,15 @@ public class Call {
     var socket: Socket?
     var delegate: CallProtocol?
 
-    var sessionId: String?
     var remoteSdp: String?
     var callOptions: TxCallOptions?
+
+    /// The Session ID of the current connection
+    public internal(set) var sessionId: String?
+    /// Telnyx call session ID.
+    public internal(set) var telnyxSessionId: UUID?
+    /// Telnyx call leg ID
+    public internal(set) var telnyxLegId: UUID?
 
     // MARK: - Properties
     /// `TxCallInfo` Contains the required information of the current Call.
@@ -113,6 +119,8 @@ public class Call {
          sessionId: String,
          socket: Socket,
          delegate: CallProtocol,
+         telnyxSessionId: UUID? = nil,
+         telnyxLegId: UUID? = nil,
          ringtone: String? = nil,
          ringbackTone: String? = nil) {
         self.direction = CallDirection.INBOUND
@@ -120,6 +128,9 @@ public class Call {
         self.sessionId = sessionId
         //this is the signaling server socket
         self.socket = socket
+
+        self.telnyxSessionId = telnyxSessionId
+        self.telnyxLegId = telnyxLegId
 
         self.remoteSdp = remoteSdp
         self.callInfo = TxCallInfo(callId: callId)
@@ -467,6 +478,22 @@ extension Call {
             break;
 
         case .RINGING:
+
+            if let params = message.params {
+                if let telnyxSessionId = params["telnyx_session_id"] as? String,
+                   let telnyxSessionUUID = UUID(uuidString: telnyxSessionId) {
+                    self.telnyxSessionId = telnyxSessionUUID
+                } else {
+                    Logger.log.w(message: "Call:: Telnyx Session ID unavailable on RINGING message")
+                }
+
+                if let telnyxLegId = params["telnyx_leg_id"] as? String,
+                   let telnyxLegIdUUID = UUID(uuidString: telnyxLegId) {
+                    self.telnyxLegId = telnyxLegIdUUID
+                } else {
+                    Logger.log.w(message: "Call:: Telnyx Leg ID unavailable on RINGING message")
+                }
+            }
             self.playRingbackTone()
             break
         default:

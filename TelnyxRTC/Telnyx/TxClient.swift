@@ -253,7 +253,14 @@ extension TxClient {
     ///   - callerNumber: The caller phone number
     ///   - callId: The UUID of the incoming call
     ///   - remoteSdp: The SDP of the remote peer
-    private func createIncomingCall(callerName: String, callerNumber: String, callId: UUID, remoteSdp: String) {
+    ///   - telnyxSessionId: The incoming call Telnyx Session ID
+    ///   - telnyxLegId: The incoming call Leg ID
+    private func createIncomingCall(callerName: String,
+                                    callerNumber: String,
+                                    callId: UUID,
+                                    remoteSdp: String,
+                                    telnyxSessionId: String,
+                                    telnyxLegId: String) {
 
         guard let sessionId = self.sessionId,
               let socket = self.socket else {
@@ -265,6 +272,8 @@ extension TxClient {
                         sessionId: sessionId,
                         socket: socket,
                         delegate: self,
+                        telnyxSessionId: UUID(uuidString: telnyxSessionId),
+                        telnyxLegId: UUID(uuidString: telnyxLegId),
                         ringtone: self.txConfig?.ringtone,
                         ringbackTone: self.txConfig?.ringBackTone)
         call.callInfo?.callerName = callerName
@@ -431,8 +440,21 @@ extension TxClient : SocketDelegate {
 
                     let callerName = params["caller_id_name"] as? String ?? ""
                     let callerNumber = params["caller_id_number"] as? String ?? ""
+                    let telnyxSessionId = params["telnyx_session_id"] as? String ?? ""
+                    let telnyxLegId = params["telnyx_leg_id"] as? String ?? ""
 
-                    self.createIncomingCall(callerName: callerName, callerNumber: callerNumber, callId: uuid, remoteSdp: sdp)
+                    if telnyxSessionId.isEmpty {
+                        Logger.log.w(message: "TxClient:: Telnyx Session ID unavailable on INVITE message")
+                    }
+                    if telnyxLegId.isEmpty {
+                        Logger.log.w(message: "TxClient:: Telnyx Leg ID unavailable on INVITE message")
+                    }
+                    self.createIncomingCall(callerName: callerName,
+                                            callerNumber: callerNumber,
+                                            callId: uuid,
+                                            remoteSdp: sdp,
+                                            telnyxSessionId: telnyxSessionId,
+                                            telnyxLegId: telnyxLegId)
                 }
                 break;
 
