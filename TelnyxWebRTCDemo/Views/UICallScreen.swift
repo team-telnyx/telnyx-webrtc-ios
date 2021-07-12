@@ -113,10 +113,19 @@ class UICallScreen: UIView {
             }
         }
     }
-    
+
+    func resetSpeakerState() {
+        self.speakerOnOffSwitch.setOn(false, animated: false)
+    }
+
     func resetHoldUnholdState() {
         self.holdUnholdSwitch.setOn(false, animated: false)
         self.holdUnholdLabel.text = "Hold"
+    }
+
+    func resetMuteUnmuteState() {
+        self.muteUnmuteSwitch.setOn(false, animated: false)
+        self.muteUnmuteLabel.text = "Mute"
     }
 
     @IBAction func callButtonTapped(_ sender: Any) {

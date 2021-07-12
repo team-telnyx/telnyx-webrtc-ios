@@ -269,7 +269,7 @@ extension Peer : RTCPeerConnectionDelegate {
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didAdd stream: RTCMediaStream) {
-        Logger.log.i(message: "Peer:: connection didaDD: \(stream)")
+        Logger.log.i(message: "Peer:: connection didAdd: \(stream)")
         if stream.videoTracks.count > 0 {
             self.remoteVideoTrack = stream.videoTracks[0]
         }

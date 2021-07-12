@@ -154,8 +154,14 @@ public class TxClient {
     /// Disconnects the TxClient from the Telnyx signaling server.
     public func disconnect() {
         Logger.log.i(message: "TxClient:: disconnect()")
+
+        // Let's cancell all the current calls
+        for (_ ,call) in self.calls {
+            call.hangup()
+        }
+
+        self.calls.removeAll()
         socket?.disconnect()
-        socket = nil
         delegate?.onSocketDisconnected()
     }
 
@@ -382,6 +388,7 @@ extension TxClient : SocketDelegate {
     
     func onSocketDisconnected() {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketDisconnected()")
+        self.socket = nil
         self.delegate?.onSocketDisconnected()
     }
 
