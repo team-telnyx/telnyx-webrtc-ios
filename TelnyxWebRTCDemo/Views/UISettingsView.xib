@@ -110,6 +110,7 @@
                             <constraints>
                                 <constraint firstAttribute="width" constant="50" id="vHY-PH-3de"/>
                             </constraints>
+                            <color key="onTintColor" red="0.0" green="0.75294117650000003" blue="0.5450980392" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                             <connections>
                                 <action selector="onTokenLoginSelected:" destination="-1" eventType="valueChanged" id="mB3-V5-VC5"/>
                             </connections>
