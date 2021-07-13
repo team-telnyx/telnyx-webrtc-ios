@@ -267,6 +267,7 @@ extension Call {
     ///     call.answer()
     public func answer() {
         self.stopRingtone()
+        self.stopRingbackTone()
         //TODO: Create an error if there's no remote SDP
         guard let remoteSdp = self.remoteSdp else {
             return
@@ -447,6 +448,8 @@ extension Call {
             break
 
         case .MEDIA:
+            self.stopRingtone()
+            self.stopRingbackTone()
             //Whenever we place a call from a client and the "Generate ring back tone" is enabled in the portal,
             //the Telnyx Cloud sends the telnyx_rtc.media Verto signaling message with an SDP.
             //The incoming SDP must be set in the caller client as the remote SDP to start listening a ringback tone
@@ -462,6 +465,8 @@ extension Call {
             break
 
         case .ANSWER:
+            self.stopRingtone()
+            self.stopRingbackTone()
             //When the remote peer answers the call
             //Set the remote SDP into the current RTCPConnection and the call should start!
             if let params = message.params {
@@ -472,8 +477,6 @@ extension Call {
                 //retrieve the remote SDP from the ANSWER verto message and set it to the current RTCPconnection
                 self.answered(sdp: remoteSdp)
             }
-            self.stopRingtone()
-            self.stopRingbackTone()
             //TODO: handle error when there's no sdp
             break;
 
