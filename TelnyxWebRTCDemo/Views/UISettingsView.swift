@@ -27,6 +27,7 @@ class UISettingsView: UIView {
     @IBOutlet weak var callerIdNameLabel: UITextField!
     @IBOutlet weak var passwordUserNameLabel: UITextField!
     @IBOutlet weak var tokenLabel: UITextField!
+    @IBOutlet weak var loginSelector: UISwitch!
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -60,6 +61,7 @@ class UISettingsView: UIView {
         
         self.setupTextFields()
         self.subscribeKeyboardEvents()
+        self.tokenLoginView.isHidden = true
     }
     
     private func loadViewFromNib() -> UIView! {
@@ -94,6 +96,10 @@ class UISettingsView: UIView {
             self.credentialsLoginViewHeightConstraint.constant = 85
             self.tokenLoginView.isHidden = true
         }
+    }
+
+    public func isTokenLoginSelected() -> Bool {
+        return self.loginSelector.isOn
     }
 }
 

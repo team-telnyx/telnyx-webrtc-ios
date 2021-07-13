@@ -80,34 +80,44 @@ class ViewController: UIViewController {
             telnyxClient.disconnect()
         } else {
 
-            //Here we are Login in with a SIP User and Password. In case token login is needed:
-            //1) Generate a token following https://developers.telnyx.com/docs/v2/webrtc/quickstart
-            //2) Pass the generated token to a TxConfig instance.
-            //   let txConfig = TxConfig(token: "My Token generated")
-            //3) Pass the txConfig object to the .connect() function.
-            guard let sipUser = self.settingsView.sipUsernameLabel.text else { return }
-            guard let password = self.settingsView.passwordUserNameLabel.text else { return }
-
             let deviceToken = UserDefaults.init().getPushToken() //Get stored token from APNS
 
-            //Sets the login credentials and the ringtone/ringback configurations if required.
-            //Ringtone / ringback tone files are not mandatory.
-            let txConfig = TxConfig(sipUser: sipUser,
-                                    password: password,
+            var txConfig: TxConfig? = nil
+            // Set the connection configuration object.
+            // We can login with a user token: https://developers.telnyx.com/docs/v2/webrtc/quickstart
+            // Or we can use SIP credentials (SIP user and password)
+            if self.settingsView.isTokenLoginSelected() {
+                guard let telnyxToken = self.settingsView.tokenLabel.text, !telnyxToken.isEmpty else { return }
+                txConfig = TxConfig(token: telnyxToken,
                                     pushDeviceToken: deviceToken,
                                     ringtone: "incoming_call.mp3",
                                     ringBackTone: "ringback_tone.mp3",
                                     //You can choose the appropriate verbosity level of the SDK.
                                     logLevel: .all)
+            } else {
+                // To obtain SIP credentials, please go to https://portal.telnyx.com
+                guard let sipUser = self.settingsView.sipUsernameLabel.text, !sipUser.isEmpty,
+                      let password = self.settingsView.passwordUserNameLabel.text, !password.isEmpty else { return }
+
+                txConfig = TxConfig(sipUser: sipUser,
+                         password: password,
+                         pushDeviceToken: deviceToken,
+                         ringtone: "incoming_call.mp3",
+                         ringBackTone: "ringback_tone.mp3",
+                         //You can choose the appropriate verbosity level of the SDK.
+                         logLevel: .all)
+
+                //store user / password in user defaults
+                let userDefaults = UserDefaults.init()
+                userDefaults.saveUser(sipUser: sipUser, password: password)
+            }
 
             do {
+                guard let txConfig = txConfig else { return }
                 try telnyxClient.connect(txConfig: txConfig)
             } catch let error {
                 print("ViewController:: connect Error \(error)")
             }
-            //store user / password in user defaults
-            let userDefaults = UserDefaults.init()
-            userDefaults.saveUser(sipUser: sipUser, password: password)
         }
     }
 

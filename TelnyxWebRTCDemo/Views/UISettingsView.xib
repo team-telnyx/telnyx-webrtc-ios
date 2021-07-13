@@ -16,6 +16,7 @@
                 <outlet property="contentView" destination="iN0-l3-epB" id="LQR-ff-1OG"/>
                 <outlet property="credentialsLoginView" destination="Yvd-Fr-v9A" id="UMp-BT-3W5"/>
                 <outlet property="credentialsLoginViewHeightConstraint" destination="dTg-cC-rBC" id="aDR-oz-8Ch"/>
+                <outlet property="loginSelector" destination="qgF-Gg-7So" id="LaQ-jf-Oij"/>
                 <outlet property="passwordUserNameLabel" destination="XgO-ys-zI4" id="E26-JL-OKP"/>
                 <outlet property="sipUsernameLabel" destination="gPv-K3-sHg" id="VAN-KN-U8x"/>
                 <outlet property="tokenLabel" destination="HNl-BA-gMe" id="ilR-u0-qud"/>
