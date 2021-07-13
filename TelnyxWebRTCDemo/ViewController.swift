@@ -260,6 +260,11 @@ extension ViewController : UIIncomingCallViewDelegate {
 extension ViewController : UICallScreenDelegate {
 
     func onCallButton() {
+        guard let destinationNumber = self.callView.destinationNumberOrSip.text, !destinationNumber.isEmpty else {
+            print("ViewController:: onCallButton() ERROR: destination number or SIP user should not be empty")
+            return
+        }
+
         let uuid = UUID()
         let handle = "Telnyx"
         
