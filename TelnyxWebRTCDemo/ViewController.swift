@@ -12,6 +12,7 @@ import TelnyxRTC
 
 class ViewController: UIViewController {
 
+    var userDefaults: UserDefaults = UserDefaults.init()
     var telnyxClient: TxClient?
     var currentCall: Call?
     var incomingCall: Bool = false
@@ -55,7 +56,6 @@ class ViewController: UIViewController {
 
         self.hideKeyboardWhenTappedAround()
 
-        let userDefaults = UserDefaults.init()
         // Restore last user credentials
         self.settingsView.isHidden = false
         self.settingsView.sipUsernameLabel.text = userDefaults.getSipUser()
@@ -80,7 +80,7 @@ class ViewController: UIViewController {
             telnyxClient.disconnect()
         } else {
 
-            let deviceToken = UserDefaults.init().getPushToken() //Get stored token from APNS
+            let deviceToken = userDefaults.getPushToken() //Get stored token from APNS
 
             var txConfig: TxConfig? = nil
             // Set the connection configuration object.
@@ -108,7 +108,6 @@ class ViewController: UIViewController {
                          logLevel: .all)
 
                 //store user / password in user defaults
-                let userDefaults = UserDefaults.init()
                 userDefaults.saveUser(sipUser: sipUser, password: password)
             }
 
