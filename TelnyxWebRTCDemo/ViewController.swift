@@ -118,8 +118,7 @@ class ViewController: UIViewController {
             }
 
             do {
-                guard let txConfig = txConfig else { return }
-                try telnyxClient.connect(txConfig: txConfig)
+                try telnyxClient.connect(txConfig: txConfig!)
             } catch let error {
                 print("ViewController:: connect Error \(error)")
             }
