@@ -87,7 +87,10 @@ class ViewController: UIViewController {
             // We can login with a user token: https://developers.telnyx.com/docs/v2/webrtc/quickstart
             // Or we can use SIP credentials (SIP user and password)
             if self.settingsView.isTokenSelected {
-                guard let telnyxToken = self.settingsView.tokenLabel.text, !telnyxToken.isEmpty else { return }
+                guard let telnyxToken = self.settingsView.tokenLabel.text, !telnyxToken.isEmpty else {
+                    print("ViewController:: connectButtonTapped() ERROR: Telnyx Token should not be empty. Go to https://developers.telnyx.com/docs/v2/webrtc/quickstart to learn on how to create On-demand tokens.")
+                    return
+                }
                 txConfig = TxConfig(token: telnyxToken,
                                     pushDeviceToken: deviceToken,
                                     ringtone: "incoming_call.mp3",
@@ -97,7 +100,10 @@ class ViewController: UIViewController {
             } else {
                 // To obtain SIP credentials, please go to https://portal.telnyx.com
                 guard let sipUser = self.settingsView.sipUsernameLabel.text, !sipUser.isEmpty,
-                      let password = self.settingsView.passwordUserNameLabel.text, !password.isEmpty else { return }
+                      let password = self.settingsView.passwordUserNameLabel.text, !password.isEmpty else {
+                    print("ViewController:: connectButtonTapped() ERROR: SIP User and Password should not be empty.")
+                    return
+                }
 
                 txConfig = TxConfig(sipUser: sipUser,
                          password: password,
