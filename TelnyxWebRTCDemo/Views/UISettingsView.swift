@@ -16,6 +16,10 @@ class UISettingsView: UIView {
     private var textFields:[UITextField] = [UITextField]()
     private var activeField: UITextField?
 
+    public var isTokenSelected: Bool {
+        get { return self.loginSelector.isOn }
+    }
+
     @IBOutlet var contentView: UIView!
 
     @IBOutlet weak var tokenLoginView: UIView!
@@ -96,10 +100,6 @@ class UISettingsView: UIView {
             self.credentialsLoginViewHeightConstraint.constant = 85
             self.tokenLoginView.isHidden = true
         }
-    }
-
-    public func isTokenLoginSelected() -> Bool {
-        return self.loginSelector.isOn
     }
 }
 

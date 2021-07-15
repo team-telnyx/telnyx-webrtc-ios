@@ -86,7 +86,7 @@ class ViewController: UIViewController {
             // Set the connection configuration object.
             // We can login with a user token: https://developers.telnyx.com/docs/v2/webrtc/quickstart
             // Or we can use SIP credentials (SIP user and password)
-            if self.settingsView.isTokenLoginSelected() {
+            if self.settingsView.isTokenSelected {
                 guard let telnyxToken = self.settingsView.tokenLabel.text, !telnyxToken.isEmpty else { return }
                 txConfig = TxConfig(token: telnyxToken,
                                     pushDeviceToken: deviceToken,
