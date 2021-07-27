@@ -16,13 +16,23 @@ class UISettingsView: UIView {
     private var textFields:[UITextField] = [UITextField]()
     private var activeField: UITextField?
 
+    public var isTokenSelected: Bool {
+        get { return self.loginSelector.isOn }
+    }
+
     @IBOutlet var contentView: UIView!
+
+    @IBOutlet weak var tokenLoginView: UIView!
+    @IBOutlet weak var credentialsLoginView: UIView!
+    @IBOutlet weak var credentialsLoginViewHeightConstraint: NSLayoutConstraint!
+
     @IBOutlet weak var sipUsernameLabel: UITextField!
     @IBOutlet weak var callerIdNumberLabel: UITextField!
     @IBOutlet weak var callerIdNameLabel: UITextField!
     @IBOutlet weak var passwordUserNameLabel: UITextField!
-    
-    
+    @IBOutlet weak var tokenLabel: UITextField!
+    @IBOutlet weak var loginSelector: UISwitch!
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         commonInit()
@@ -55,7 +65,7 @@ class UISettingsView: UIView {
         
         self.setupTextFields()
         self.subscribeKeyboardEvents()
-        
+        self.tokenLoginView.isHidden = true
     }
     
     private func loadViewFromNib() -> UIView! {
@@ -79,6 +89,16 @@ class UISettingsView: UIView {
             textField.tag = i
             textField.returnKeyType = .done
             textField.autocorrectionType = .no
+        }
+    }
+
+    @IBAction func onTokenLoginSelected(_ sender: UISwitch) {
+        if sender.isOn {
+            self.credentialsLoginViewHeightConstraint.constant = 40
+            self.tokenLoginView.isHidden = false
+        } else {
+            self.credentialsLoginViewHeightConstraint.constant = 85
+            self.tokenLoginView.isHidden = true
         }
     }
 }

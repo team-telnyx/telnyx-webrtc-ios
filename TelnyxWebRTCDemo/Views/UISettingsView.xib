@@ -2,6 +2,7 @@
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="18122" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
+        <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="18093"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
@@ -13,8 +14,13 @@
                 <outlet property="callerIdNameLabel" destination="uN3-ie-ge1" id="gXm-HS-qtM"/>
                 <outlet property="callerIdNumberLabel" destination="6jO-g3-ZzP" id="kmw-Iq-Nuv"/>
                 <outlet property="contentView" destination="iN0-l3-epB" id="LQR-ff-1OG"/>
+                <outlet property="credentialsLoginView" destination="Yvd-Fr-v9A" id="UMp-BT-3W5"/>
+                <outlet property="credentialsLoginViewHeightConstraint" destination="dTg-cC-rBC" id="aDR-oz-8Ch"/>
+                <outlet property="loginSelector" destination="qgF-Gg-7So" id="LaQ-jf-Oij"/>
                 <outlet property="passwordUserNameLabel" destination="XgO-ys-zI4" id="E26-JL-OKP"/>
                 <outlet property="sipUsernameLabel" destination="gPv-K3-sHg" id="VAN-KN-U8x"/>
+                <outlet property="tokenLabel" destination="HNl-BA-gMe" id="ilR-u0-qud"/>
+                <outlet property="tokenLoginView" destination="BZx-gd-B7S" id="BhD-61-ENv"/>
             </connections>
         </placeholder>
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
@@ -22,24 +28,60 @@
             <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="SIP Username" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="gPv-K3-sHg">
-                    <rect key="frame" x="20" y="64" width="374" height="40"/>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Yvd-Fr-v9A" userLabel="Credentials Login">
+                    <rect key="frame" x="0.0" y="50" width="414" height="85"/>
+                    <subviews>
+                        <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Password" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="XgO-ys-zI4">
+                            <rect key="frame" x="20" y="45" width="374" height="40"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="40" id="RiS-DS-BU8"/>
+                            </constraints>
+                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                            <textInputTraits key="textInputTraits" secureTextEntry="YES" textContentType="password"/>
+                        </textField>
+                        <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="SIP Username" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="gPv-K3-sHg">
+                            <rect key="frame" x="20" y="0.0" width="374" height="40"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="40" id="rDV-ND-Ein"/>
+                            </constraints>
+                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                            <textInputTraits key="textInputTraits"/>
+                        </textField>
+                    </subviews>
+                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     <constraints>
-                        <constraint firstAttribute="height" constant="40" id="rDV-ND-Ein"/>
+                        <constraint firstItem="gPv-K3-sHg" firstAttribute="leading" secondItem="Yvd-Fr-v9A" secondAttribute="leading" constant="20" id="2VZ-KU-5JD"/>
+                        <constraint firstItem="XgO-ys-zI4" firstAttribute="leading" secondItem="Yvd-Fr-v9A" secondAttribute="leading" constant="20" id="8hV-8Q-Zz2"/>
+                        <constraint firstItem="XgO-ys-zI4" firstAttribute="top" secondItem="gPv-K3-sHg" secondAttribute="bottom" constant="5" id="BnJ-hR-z8E"/>
+                        <constraint firstAttribute="bottom" secondItem="XgO-ys-zI4" secondAttribute="bottom" id="FfL-rq-e5B"/>
+                        <constraint firstAttribute="trailing" secondItem="XgO-ys-zI4" secondAttribute="trailing" constant="20" id="VK8-84-4Sw"/>
+                        <constraint firstAttribute="trailing" secondItem="gPv-K3-sHg" secondAttribute="trailing" constant="20" id="bDC-uf-arG"/>
+                        <constraint firstAttribute="height" constant="85" id="dTg-cC-rBC"/>
+                        <constraint firstItem="gPv-K3-sHg" firstAttribute="top" secondItem="Yvd-Fr-v9A" secondAttribute="top" id="hKC-pw-DxH"/>
                     </constraints>
-                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                    <textInputTraits key="textInputTraits"/>
-                </textField>
-                <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Password" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="XgO-ys-zI4">
-                    <rect key="frame" x="20" y="109" width="374" height="40"/>
+                </view>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="BZx-gd-B7S" userLabel="Token Login">
+                    <rect key="frame" x="0.0" y="45" width="414" height="50"/>
+                    <subviews>
+                        <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Token" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="HNl-BA-gMe" userLabel="token">
+                            <rect key="frame" x="20" y="5" width="374" height="40"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="40" id="1pm-xS-0fc"/>
+                            </constraints>
+                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                            <textInputTraits key="textInputTraits"/>
+                        </textField>
+                    </subviews>
+                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     <constraints>
-                        <constraint firstAttribute="height" constant="40" id="RiS-DS-BU8"/>
+                        <constraint firstAttribute="height" constant="50" id="BzT-90-pUq"/>
+                        <constraint firstAttribute="trailing" secondItem="HNl-BA-gMe" secondAttribute="trailing" constant="20" id="DH4-Ez-reh"/>
+                        <constraint firstItem="HNl-BA-gMe" firstAttribute="top" secondItem="BZx-gd-B7S" secondAttribute="top" constant="5" id="XTr-TG-cYU"/>
+                        <constraint firstItem="HNl-BA-gMe" firstAttribute="leading" secondItem="BZx-gd-B7S" secondAttribute="leading" constant="20" id="q3v-pz-LAD"/>
                     </constraints>
-                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                    <textInputTraits key="textInputTraits" secureTextEntry="YES" textContentType="password"/>
-                </textField>
+                </view>
                 <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Caller ID Name" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="uN3-ie-ge1">
-                    <rect key="frame" x="20" y="154" width="374" height="40"/>
+                    <rect key="frame" x="20" y="140" width="374" height="40"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="40" id="gU4-ju-htc"/>
                     </constraints>
@@ -47,29 +89,63 @@
                     <textInputTraits key="textInputTraits"/>
                 </textField>
                 <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Caller ID Number" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="6jO-g3-ZzP">
-                    <rect key="frame" x="20" y="199" width="374" height="40"/>
+                    <rect key="frame" x="20" y="185" width="374" height="40"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="40" id="WsL-J3-WfV"/>
                     </constraints>
                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                     <textInputTraits key="textInputTraits" keyboardType="phonePad" textContentType="tel"/>
                 </textField>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="v42-cu-6zj" userLabel="Login selector">
+                    <rect key="frame" x="20" y="5" width="374" height="40"/>
+                    <subviews>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Token Login" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="It9-Aq-D11">
+                            <rect key="frame" x="0.0" y="0.0" width="73" height="40"/>
+                            <fontDescription key="fontDescription" type="system" pointSize="13"/>
+                            <nil key="textColor"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                        <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="qgF-Gg-7So">
+                            <rect key="frame" x="93" y="4.5" width="52" height="31"/>
+                            <constraints>
+                                <constraint firstAttribute="width" constant="50" id="vHY-PH-3de"/>
+                            </constraints>
+                            <color key="onTintColor" red="0.0" green="0.75294117650000003" blue="0.5450980392" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                            <connections>
+                                <action selector="onTokenLoginSelected:" destination="-1" eventType="valueChanged" id="mB3-V5-VC5"/>
+                            </connections>
+                        </switch>
+                    </subviews>
+                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    <constraints>
+                        <constraint firstItem="qgF-Gg-7So" firstAttribute="leading" secondItem="It9-Aq-D11" secondAttribute="trailing" constant="20" id="52k-WF-Sqv"/>
+                        <constraint firstItem="It9-Aq-D11" firstAttribute="top" secondItem="v42-cu-6zj" secondAttribute="top" id="6jX-fE-bwq"/>
+                        <constraint firstAttribute="height" constant="40" id="Krn-Cb-iN9"/>
+                        <constraint firstItem="It9-Aq-D11" firstAttribute="centerY" secondItem="v42-cu-6zj" secondAttribute="centerY" id="KtU-kE-t6H"/>
+                        <constraint firstItem="It9-Aq-D11" firstAttribute="leading" secondItem="v42-cu-6zj" secondAttribute="leading" id="Mzp-1V-hMM"/>
+                        <constraint firstItem="qgF-Gg-7So" firstAttribute="centerY" secondItem="v42-cu-6zj" secondAttribute="centerY" id="kN6-n1-0qe"/>
+                        <constraint firstAttribute="bottom" secondItem="It9-Aq-D11" secondAttribute="bottom" id="nvK-2i-h2W"/>
+                    </constraints>
+                </view>
             </subviews>
             <viewLayoutGuide key="safeArea" id="vUN-kp-3ea"/>
             <color key="backgroundColor" systemColor="systemBackgroundColor"/>
             <constraints>
-                <constraint firstItem="XgO-ys-zI4" firstAttribute="top" secondItem="gPv-K3-sHg" secondAttribute="bottom" constant="5" id="3YS-Gt-l8g"/>
-                <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="gPv-K3-sHg" secondAttribute="trailing" constant="20" id="7kh-qM-RCq"/>
+                <constraint firstItem="Yvd-Fr-v9A" firstAttribute="top" secondItem="v42-cu-6zj" secondAttribute="bottom" constant="5" id="32h-0S-WlT"/>
                 <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="uN3-ie-ge1" secondAttribute="trailing" constant="20" id="CuC-XP-hN0"/>
+                <constraint firstItem="v42-cu-6zj" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" constant="5" id="EY9-zS-Lb0"/>
+                <constraint firstItem="uN3-ie-ge1" firstAttribute="top" secondItem="Yvd-Fr-v9A" secondAttribute="bottom" constant="5" id="EbR-iY-bb7"/>
                 <constraint firstItem="uN3-ie-ge1" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="20" id="HKN-ln-1Oi"/>
-                <constraint firstItem="XgO-ys-zI4" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="20" id="Her-ka-9uc"/>
-                <constraint firstItem="gPv-K3-sHg" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="20" id="QLQ-Nb-x8o"/>
+                <constraint firstItem="Yvd-Fr-v9A" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" id="KC9-j9-O8Y"/>
+                <constraint firstItem="BZx-gd-B7S" firstAttribute="trailing" secondItem="vUN-kp-3ea" secondAttribute="trailing" id="PZi-Cv-Kw1"/>
+                <constraint firstItem="BZx-gd-B7S" firstAttribute="top" secondItem="v42-cu-6zj" secondAttribute="bottom" id="Wxt-97-RtV"/>
+                <constraint firstItem="Yvd-Fr-v9A" firstAttribute="trailing" secondItem="vUN-kp-3ea" secondAttribute="trailing" id="bz3-Q2-ZJj"/>
                 <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="6jO-g3-ZzP" secondAttribute="trailing" constant="20" id="dFE-ZC-km9"/>
                 <constraint firstItem="6jO-g3-ZzP" firstAttribute="top" secondItem="uN3-ie-ge1" secondAttribute="bottom" constant="5" id="fHr-zg-MB5"/>
-                <constraint firstItem="uN3-ie-ge1" firstAttribute="top" secondItem="XgO-ys-zI4" secondAttribute="bottom" constant="5" id="jM8-2o-wBb"/>
-                <constraint firstItem="gPv-K3-sHg" firstAttribute="top" secondItem="vUN-kp-3ea" secondAttribute="top" constant="20" id="mYU-ie-Tsj"/>
+                <constraint firstItem="v42-cu-6zj" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" constant="20" id="gC0-IB-Ydd"/>
+                <constraint firstItem="BZx-gd-B7S" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" id="psc-Np-E3m"/>
                 <constraint firstItem="6jO-g3-ZzP" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="20" id="qjS-2o-k3N"/>
-                <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="XgO-ys-zI4" secondAttribute="trailing" constant="20" id="rPe-oK-CFT"/>
+                <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="v42-cu-6zj" secondAttribute="trailing" constant="20" id="vGm-Z0-Zba"/>
             </constraints>
             <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
             <point key="canvasLocation" x="77" y="40"/>

@@ -227,10 +227,9 @@ extension ViewController : PushKitDelegate {
 
     func processPush(payload: PKPushPayload) {
         // TODO: Process payload
-        let userDefaults = UserDefaults.init()
         let sipUser = userDefaults.getSipUser()
         let password = userDefaults.getSipUserPassword()
-        let deviceToken = UserDefaults.init().getPushToken()
+        let deviceToken = userDefaults.getPushToken()
         //Sets the login credentials and the ringtone/ringback configurations if required.
         //Ringtone / ringback tone files are not mandatory.
         let txConfig = TxConfig(sipUser: sipUser,
