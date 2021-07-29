@@ -18,15 +18,18 @@ class LoginMessage : Message {
         var params = [String: Any]()
         params["login"] = user
         params["passwd"] = password
+
         //Setup push variables
+        var userVariables = [String: Any]()
         if let pushDeviceToken = pushDeviceToken {
-            params["push_device_token"] = pushDeviceToken
+            userVariables["push_device_token"] = pushDeviceToken
         }
         if let provider = pushNotificationProvider {
-            params["push_notification_provider"] = provider
+            userVariables["push_notification_provider"] = provider
         }
+
         params["loginParams"] = [String: String]()
-        params["userVariables"] = [String: String]()
+        params["userVariables"] = userVariables
         super.init(params, method: .LOGIN)
     }
     
@@ -36,14 +39,18 @@ class LoginMessage : Message {
          pushNotificationProvider: String? = nil) {
         var params = [String: Any]()
         params["login_token"] = token
+
+        //Setup push variables
+        var userVariables = [String: Any]()
         if let pushDeviceToken = pushDeviceToken {
-            params["push_device_token"] = pushDeviceToken
+            userVariables["push_device_token"] = pushDeviceToken
         }
         if let provider = pushNotificationProvider {
-            params["push_notification_provider"] = provider
+            userVariables["push_notification_provider"] = provider
         }
-        params["loginParams"] = [String: String]()
-        params["userVariables"] = [String: String]()
+
+		params["loginParams"] = [String: String]()
+        params["userVariables"] = userVariables
         super.init(params, method: .LOGIN)
     }
     
