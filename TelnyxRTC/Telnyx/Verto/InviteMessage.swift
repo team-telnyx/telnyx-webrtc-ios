@@ -10,12 +10,18 @@ import Foundation
 
 class InviteMessage : Message {
         
+    private static let CLIENT_TYPE = "iOS"
+
     init(sessionId: String,
          sdp: String,
          callInfo: TxCallInfo,
          callOptions: TxCallOptions) {
         var params = [String: Any]()
         var dialogParams = [String: Any]()
+
+        // Get the SDK version
+        dialogParams["client_version"] = Bundle(for: InviteMessage.self).infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        dialogParams["client_type"] = InviteMessage.CLIENT_TYPE
 
         dialogParams["callID"] = callInfo.callId.uuidString.lowercased()
         dialogParams["destination_number"] = callOptions.destinationNumber
@@ -27,6 +33,7 @@ class InviteMessage : Message {
         dialogParams["useStereo"] = callOptions.useStereo
         dialogParams["attach"] = callOptions.attach
         dialogParams["screenShare"] = callOptions.screenShare
+
         dialogParams["userVariables"] = callOptions.userVariables
         if let clientState = callOptions.clientState {
             dialogParams["clientState"] = clientState
