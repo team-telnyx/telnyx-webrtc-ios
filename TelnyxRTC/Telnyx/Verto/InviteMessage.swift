@@ -20,8 +20,9 @@ class InviteMessage : Message {
         var dialogParams = [String: Any]()
 
         // Get the SDK version
-        dialogParams["client_version"] = Bundle(for: InviteMessage.self).infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
-        dialogParams["client_type"] = InviteMessage.CLIENT_TYPE
+        let version = Bundle(for: InviteMessage.self).infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        let type = InviteMessage.CLIENT_TYPE
+        params["User-Agent"] = type + "-" + version
 
         dialogParams["callID"] = callInfo.callId.uuidString.lowercased()
         dialogParams["destination_number"] = callOptions.destinationNumber
