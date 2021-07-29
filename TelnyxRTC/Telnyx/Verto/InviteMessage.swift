@@ -34,7 +34,6 @@ class InviteMessage : Message {
         dialogParams["useStereo"] = callOptions.useStereo
         dialogParams["attach"] = callOptions.attach
         dialogParams["screenShare"] = callOptions.screenShare
-
         dialogParams["userVariables"] = callOptions.userVariables
         if let clientState = callOptions.clientState {
             dialogParams["clientState"] = clientState
