@@ -9,8 +9,6 @@
 import Foundation
 
 class InviteMessage : Message {
-        
-    private static let CLIENT_TYPE = "iOS"
 
     init(sessionId: String,
          sdp: String,
@@ -18,11 +16,6 @@ class InviteMessage : Message {
          callOptions: TxCallOptions) {
         var params = [String: Any]()
         var dialogParams = [String: Any]()
-
-        // Get the SDK version
-        let version = Bundle(for: InviteMessage.self).infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
-        let type = InviteMessage.CLIENT_TYPE
-        params["User-Agent"] = type + "-" + version
 
         dialogParams["callID"] = callInfo.callId.uuidString.lowercased()
         dialogParams["destination_number"] = callOptions.destinationNumber
@@ -38,6 +31,11 @@ class InviteMessage : Message {
         if let clientState = callOptions.clientState {
             dialogParams["clientState"] = clientState
         }
+
+        // Get the SDK version
+        let version = Bundle(for: InviteMessage.self).infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        let type = Message.CLIENT_TYPE
+        params["User-Agent"] = type + "-" + version
 
         params["sessionId"] = sessionId
         params["sdp"] = sdp

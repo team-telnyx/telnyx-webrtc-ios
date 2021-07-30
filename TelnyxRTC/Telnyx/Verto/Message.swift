@@ -11,6 +11,7 @@ import Foundation
 private let PROTOCOL_VERSION: String = "2.0"
 
 class Message {
+    internal static let CLIENT_TYPE = "iOS"
     private var jsonMessage: [String: Any] = [String: Any]()
 
     let jsonrpc = PROTOCOL_VERSION
