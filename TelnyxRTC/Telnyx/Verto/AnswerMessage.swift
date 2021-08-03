@@ -22,10 +22,7 @@ class AnswerMessage : Message {
         // Merge callOptions into dialogParams
         callOptions.encode().forEach { (key, value) in dialogParams[key] = value }
 
-        // Get the SDK version
-        let version = Bundle(for: Message.self).infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
-        let type = Message.CLIENT_TYPE
-        params["User-Agent"] = type + "-" + version
+        params["User-Agent"] = Message.USER_AGENT
 
         params["sessionId"] = sessionId
         params["sdp"] = sdp

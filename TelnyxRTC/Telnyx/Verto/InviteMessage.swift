@@ -32,10 +32,7 @@ class InviteMessage : Message {
             dialogParams["clientState"] = clientState
         }
 
-        // Get the SDK version
-        let version = Bundle(for: InviteMessage.self).infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
-        let type = Message.CLIENT_TYPE
-        params["User-Agent"] = type + "-" + version
+        params["User-Agent"] = Message.USER_AGENT
 
         params["sessionId"] = sessionId
         params["sdp"] = sdp
