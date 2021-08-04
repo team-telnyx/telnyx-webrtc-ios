@@ -432,6 +432,19 @@ extension TxClient : SocketDelegate {
 
             //Parse incoming Verto message
             switch vertoMessage.method {
+                case .GATEWAY_STATE:
+                    if let params = vertoMessage.params,
+                       let state = params["state"] as? String {
+                        switch state {
+                            case "REGED":
+                                break
+                            case "FAIL":
+                                break
+                            default:
+                                break
+                        }
+                    }
+                    break
             case .CLIENT_READY:
                 self.delegate?.onClientReady()
                 break
