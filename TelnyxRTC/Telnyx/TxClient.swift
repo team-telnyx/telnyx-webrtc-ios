@@ -445,42 +445,42 @@ extension TxClient : SocketDelegate {
                         }
                     }
                     break
-            case .CLIENT_READY:
-                self.delegate?.onClientReady()
-                break
+                case .CLIENT_READY:
+                    self.delegate?.onClientReady()
+                    break
 
-            case .INVITE:
-                //invite received
-                if let params = vertoMessage.params {
-                    guard let sdp = params["sdp"] as? String,
-                          let callId = params["callID"] as? String,
-                          let uuid = UUID(uuidString: callId) else {
-                        return
+                case .INVITE:
+                    //invite received
+                    if let params = vertoMessage.params {
+                        guard let sdp = params["sdp"] as? String,
+                              let callId = params["callID"] as? String,
+                              let uuid = UUID(uuidString: callId) else {
+                            return
+                        }
+
+                        let callerName = params["caller_id_name"] as? String ?? ""
+                        let callerNumber = params["caller_id_number"] as? String ?? ""
+                        let telnyxSessionId = params["telnyx_session_id"] as? String ?? ""
+                        let telnyxLegId = params["telnyx_leg_id"] as? String ?? ""
+                        
+                        if telnyxSessionId.isEmpty {
+                            Logger.log.w(message: "TxClient:: Telnyx Session ID unavailable on INVITE message")
+                        }
+                        if telnyxLegId.isEmpty {
+                            Logger.log.w(message: "TxClient:: Telnyx Leg ID unavailable on INVITE message")
+                        }
+                        self.createIncomingCall(callerName: callerName,
+                                                callerNumber: callerNumber,
+                                                callId: uuid,
+                                                remoteSdp: sdp,
+                                                telnyxSessionId: telnyxSessionId,
+                                                telnyxLegId: telnyxLegId)
                     }
+                    break;
 
-                    let callerName = params["caller_id_name"] as? String ?? ""
-                    let callerNumber = params["caller_id_number"] as? String ?? ""
-                    let telnyxSessionId = params["telnyx_session_id"] as? String ?? ""
-                    let telnyxLegId = params["telnyx_leg_id"] as? String ?? ""
-
-                    if telnyxSessionId.isEmpty {
-                        Logger.log.w(message: "TxClient:: Telnyx Session ID unavailable on INVITE message")
-                    }
-                    if telnyxLegId.isEmpty {
-                        Logger.log.w(message: "TxClient:: Telnyx Leg ID unavailable on INVITE message")
-                    }
-                    self.createIncomingCall(callerName: callerName,
-                                            callerNumber: callerNumber,
-                                            callId: uuid,
-                                            remoteSdp: sdp,
-                                            telnyxSessionId: telnyxSessionId,
-                                            telnyxLegId: telnyxLegId)
-                }
-                break;
-
-            default:
-                Logger.log.i(message: "TxClient:: SocketDelegate Default method")
-                break
+                default:
+                    Logger.log.i(message: "TxClient:: SocketDelegate Default method")
+                    break
             }
         }
     }
