@@ -10,7 +10,7 @@ import Foundation
 
 /// Delegate protocol asociated with the TxClient
 /// Methods for receiving TxClient events.
-public protocol TxClientDelegate {
+public protocol TxClientDelegate: AnyObject {
 
     /// Tells the delegate when the Telnyx Client has successfully connected to the Telnyx Backend
     func onSocketConnected()

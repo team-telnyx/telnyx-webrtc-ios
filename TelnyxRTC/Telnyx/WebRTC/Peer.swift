@@ -9,7 +9,7 @@
 import Foundation
 import WebRTC
 
-protocol PeerDelegate {
+protocol PeerDelegate: AnyObject {
     //TODO: Rename this to "negotiationDidEnded"
     func onICECandidate(sdp: RTCSessionDescription?, iceCandidate: RTCIceCandidate)
 }
@@ -24,7 +24,7 @@ class Peer : NSObject {
 
     private let mediaConstrains = [kRTCMediaConstraintsOfferToReceiveAudio: kRTCMediaConstraintsValueTrue, kRTCMediaConstraintsOfferToReceiveVideo: kRTCMediaConstraintsValueTrue]
 
-    var delegate: PeerDelegate?
+    weak var delegate: PeerDelegate?
     var connection : RTCPeerConnection
 
     //Audio
