@@ -11,6 +11,15 @@ import Foundation
 private let PROTOCOL_VERSION: String = "2.0"
 
 class Message {
+    internal static let CLIENT_TYPE = "iOS"
+    internal static var USER_AGENT: String {
+        get {
+            let version = Bundle(for: Message.self).infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+            let type = Message.CLIENT_TYPE
+            return type + "-" + version
+        }
+    }
+
     private var jsonMessage: [String: Any] = [String: Any]()
 
     let jsonrpc = PROTOCOL_VERSION
@@ -19,7 +28,7 @@ class Message {
     var params: [String: Any]?
     var result: [String: Any]?
     var serverError: [String: Any]?
-    
+
     init() {}
     
     init(_ params: [String: Any], method: Method) {

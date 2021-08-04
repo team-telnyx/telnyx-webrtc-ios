@@ -9,7 +9,7 @@
 import Foundation
 
 class InviteMessage : Message {
-        
+
     init(sessionId: String,
          sdp: String,
          callInfo: TxCallInfo,
@@ -31,6 +31,8 @@ class InviteMessage : Message {
         if let clientState = callOptions.clientState {
             dialogParams["clientState"] = clientState
         }
+
+        params["User-Agent"] = Message.USER_AGENT
 
         params["sessionId"] = sessionId
         params["sdp"] = sdp

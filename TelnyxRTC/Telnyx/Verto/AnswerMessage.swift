@@ -22,6 +22,8 @@ class AnswerMessage : Message {
         // Merge callOptions into dialogParams
         callOptions.encode().forEach { (key, value) in dialogParams[key] = value }
 
+        params["User-Agent"] = Message.USER_AGENT
+
         params["sessionId"] = sessionId
         params["sdp"] = sdp
         params["dialogParams"] = dialogParams
