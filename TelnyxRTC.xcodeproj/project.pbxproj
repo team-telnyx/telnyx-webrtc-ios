@@ -57,6 +57,7 @@
 		B3B1D9A126542860008D28C9 /* TxPushConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B1D9A026542860008D28C9 /* TxPushConfig.swift */; };
 		B3B1D9A426545807008D28C9 /* UserDefaultExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B1D9A326545807008D28C9 /* UserDefaultExtension.swift */; };
 		B3B1D9A626545E2C008D28C9 /* ViewControllerCallKitExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B1D9A526545E2C008D28C9 /* ViewControllerCallKitExtension.swift */; };
+		B3BB8FA026BC076000DDCB84 /* GatewayMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3BB8F9F26BC076000DDCB84 /* GatewayMessage.swift */; };
 		B3E0B0662656ED73005E7431 /* InfoMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3E0B0652656ED73005E7431 /* InfoMessage.swift */; };
 		B3E1029A25F2C16500227DCE /* ModifyMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3E1029925F2C16500227DCE /* ModifyMessage.swift */; };
 		B3E1033225F7F94900227DCE /* incoming_call.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B3E1033025F7F94900227DCE /* incoming_call.mp3 */; };
@@ -149,6 +150,7 @@
 		B3B1D9A22654546E008D28C9 /* TelnyxWebRTCDemo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TelnyxWebRTCDemo.entitlements; sourceTree = "<group>"; };
 		B3B1D9A326545807008D28C9 /* UserDefaultExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultExtension.swift; sourceTree = "<group>"; };
 		B3B1D9A526545E2C008D28C9 /* ViewControllerCallKitExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerCallKitExtension.swift; sourceTree = "<group>"; };
+		B3BB8F9F26BC076000DDCB84 /* GatewayMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GatewayMessage.swift; sourceTree = "<group>"; };
 		B3E0B0652656ED73005E7431 /* InfoMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoMessage.swift; sourceTree = "<group>"; };
 		B3E1029925F2C16500227DCE /* ModifyMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifyMessage.swift; sourceTree = "<group>"; };
 		B3E1033025F7F94900227DCE /* incoming_call.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = incoming_call.mp3; sourceTree = "<group>"; };
@@ -218,6 +220,7 @@
 				B309D28525F184A100A2AADF /* AnswerMessage.swift */,
 				B3E1029925F2C16500227DCE /* ModifyMessage.swift */,
 				B3E0B0652656ED73005E7431 /* InfoMessage.swift */,
+				B3BB8F9F26BC076000DDCB84 /* GatewayMessage.swift */,
 			);
 			path = Verto;
 			sourceTree = "<group>";
@@ -674,6 +677,7 @@
 			files = (
 				B36FC8C02612794A00A30BC4 /* Logger.swift in Sources */,
 				B3AF248B25EE7C350062EDA9 /* Socket.swift in Sources */,
+				B3BB8FA026BC076000DDCB84 /* GatewayMessage.swift in Sources */,
 				B309D1DB25F020D400A2AADF /* Method.swift in Sources */,
 				B39121AF25FFCE680051E076 /* TxError.swift in Sources */,
 				B368BEE125EDDC7D0032AE52 /* TxClient.swift in Sources */,

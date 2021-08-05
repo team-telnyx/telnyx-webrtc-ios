@@ -130,6 +130,15 @@ public class TxClient {
     private var sessionId : String?
     private var txConfig: TxConfig?
 
+    private static let DEFAULT_REGISTER_INTERVAL = 3.0 // In seconds
+    private var registerTimer: Timer = Timer()
+    private var gatewayState: GatewayStates = .NOREG
+    public var isRegistered: Bool {
+        get {
+            return gatewayState == .REGED
+        }
+    }
+
     // MARK: - Initializers
     /// TxClient has to be instantiated.
     public init() {
@@ -145,6 +154,7 @@ public class TxClient {
         //Check connetion parameters
         try txConfig.validateParams()
 
+        self.gatewayState = .NOREG
         self.txConfig = txConfig
         self.socket = Socket()
         self.socket?.delegate = self
@@ -154,6 +164,7 @@ public class TxClient {
     /// Disconnects the TxClient from the Telnyx signaling server.
     public func disconnect() {
         Logger.log.i(message: "TxClient:: disconnect()")
+        self.gatewayState = .NOREG
 
         // Let's cancell all the current calls
         for (_ ,call) in self.calls {
@@ -176,6 +187,33 @@ public class TxClient {
     /// - Returns: The current sessionId. If this value is empty, that means that the client is not connected to Telnyx server.
     public func getSessionId() -> String {
         return sessionId ?? ""
+    }
+
+    /// This function check the gateway status updates to determine if the current user has been successfully
+    /// registered and can start receiving and/or making calls.
+    /// - Parameter newState: The new gateway state received from B2BUA
+    private func registerCheck(newState: GatewayStates) {
+        Logger.log.i(message: "TxClient registerCheck() newState [\(newState)] gatewayState [\(self.gatewayState)]")
+
+        if self.gatewayState == .REGED { return }
+        self.gatewayState = newState
+        switch newState {
+            case .REGED:
+                Logger.log.i(message: "TxClient registerCheck() REGED")
+                self.registerTimer.invalidate()
+                self.delegate?.onClientReady()
+                break
+            default:
+                DispatchQueue.main.async {
+                    self.registerTimer.invalidate()
+                    self.registerTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(TxClient.DEFAULT_REGISTER_INTERVAL), repeats: false) { [weak self] _ in
+                        Logger.log.i(message: "TxClient registerCheck() registerTimer elapsed.")
+                        self?.gatewayState = .REGED
+                        self?.delegate?.onClientReady()
+                    }
+                }
+                break
+        }
     }
 }
 
@@ -434,19 +472,13 @@ extension TxClient : SocketDelegate {
             switch vertoMessage.method {
                 case .GATEWAY_STATE:
                     if let params = vertoMessage.params,
-                       let state = params["state"] as? String {
-                        switch state {
-                            case "REGED":
-                                break
-                            case "FAIL":
-                                break
-                            default:
-                                break
-                        }
+                       let state = params["state"] as? GatewayStates {
+                        self.registerCheck(newState: state)
                     }
                     break
                 case .CLIENT_READY:
-                    self.delegate?.onClientReady()
+                    // Start checking the gateway registration states
+                    self.registerCheck(newState: .NOREG)
                     break
 
                 case .INVITE:
