@@ -16,3 +16,9 @@ internal enum GatewayStates : String {
     case EXPIRED = "EXPIRED"
     case NOREG = "NOREG"
 }
+
+class GatewayMessage : Message {
+    override init() {
+        super.init([String: Any](), method: .GATEWAY_STATE)
+    }
+}
