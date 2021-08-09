@@ -233,6 +233,8 @@ public class TxClient {
                             if self?.registerRetryCount ?? 0 > 0 {
                                 self?.requestGatewayState()
                             } else {
+                                let notRegisteredError = TxError.serverError(reason: .gatewayNotRegistered)
+                                self?.delegate?.onClientError(error: notRegisteredError)
                                 Logger.log.e(message: "TxClient:: updateGatewayState() client not registered")
                             }
                         }

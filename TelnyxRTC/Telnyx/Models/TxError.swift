@@ -44,6 +44,8 @@ public enum TxError : Error {
     public enum ServerErrorReason {
         /// Any server signaling error. We get the message and code from the server
         case signalingServerError(message: String, code: String)
+        /// Gateway is not registered.
+        case gatewayNotRegistered
     }
 
     /// Socket connection failures.
@@ -92,14 +94,17 @@ extension TxError.CallFailureReason {
 extension TxError.ServerErrorReason {
     var errorMessage: String? {
         switch self {
-        case let .signalingServerError(message: message, code: code):
-            return "Message: \(message), code: \(code)"
+            case let .signalingServerError(message: message, code: code):
+                return "Message: \(message), code: \(code)"
+            case .gatewayNotRegistered:
+                return nil
         }
     }
 
     var underlyingError: Error? {
         switch self {
-        case .signalingServerError:
+            case .signalingServerError,
+                 .gatewayNotRegistered:
             return nil
         }
     }
@@ -161,8 +166,10 @@ extension TxError.CallFailureReason {
 extension TxError.ServerErrorReason {
     public var localizedDescription: String {
         switch self {
-        case .signalingServerError(message: let message, code: let code):
-            return "Server error: \(message), code: \(code)"
+            case .signalingServerError(message: let message, code: let code):
+                return "Server error: \(message), code: \(code)"
+            case let .gatewayNotRegistered:
+                return "Gateway not registered."
         }
     }
 }

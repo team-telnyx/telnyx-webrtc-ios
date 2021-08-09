@@ -18,7 +18,7 @@ fileprivate let DEFAULT_TURN = RTCIceServer(urlStrings: ["turn:turn.telnyx.com:3
 fileprivate let DEFAULT_STUN = RTCIceServer(urlStrings: ["stun:stun.telnyx.com:3843"])
 
 // Set this to the machine's address which runs the signaling server
-fileprivate let defaultSignalingServerUrl = URL(string: DEVELOPMENT_HOST)!
+fileprivate let defaultSignalingServerUrl = URL(string: PROD_HOST)!
 fileprivate let defaultIceServers = [DEFAULT_TURN, DEFAULT_STUN]
 
 struct InternalConfig {
