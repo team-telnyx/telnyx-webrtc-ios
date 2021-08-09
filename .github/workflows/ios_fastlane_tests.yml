@@ -6,6 +6,11 @@ jobs:
   tests:
     name: ios_fastlane_tests
     runs-on: macos-latest
+    env:
+        TELNYX_SIP_API_KEY: ${{ secrets.TELNYX_SIP_API_KEY }}
+        TELNYX_SIP_CONNECTION_ID: ${{ secrets.TELNYX_SIP_CONNECTION_ID }}
+        TELNYX_SIP_USER: ${{ secrets.TELNYX_SIP_USER }}
+        TELNYX_SIP_PASSWORD: ${{ secrets.TELNYX_SIP_PASSWORD }}
       
     steps:      
     - name: Checkout
@@ -21,13 +26,29 @@ jobs:
         ruby-version: 2.7.0
         bundler-cache: true
 
+    - name: On-demand Credentials
+      id: ondemand_creds
+      run: |
+        echo "::set-output name=response::$(curl -X POST \
+        --header "Content-Type: application/json" \
+        --header "Authorization: Bearer $TELNYX_SIP_API_KEY" \
+        --data '{
+          "connection_id": "$TELNYX_SIP_CONNECTION_ID"
+        }' \
+        --url 'https://api.telnyx.com/v2/telephony_credentials')"
+
+    - name: Generate Token
+      id: generate_token
+      run: |
+        echo "::set-output name=response::$(curl -X POST \
+        --header "Content-Type: application/json" \
+        --header "Authorization: Bearer $TELNYX_SIP_API_KEY" \
+        --data '{}' \
+        --url "https://api.telnyx.com/v2/telephony_credentials/${{ fromJson(steps.ondemand_creds.outputs.response).data.id }}/token")"
+
     - shell: bash
-      env:
-          TELNYX_SIP_USER: ${{ secrets.TELNYX_SIP_USER }}
-          TELNYX_SIP_PASSWORD: ${{ secrets.TELNYX_SIP_PASSWORD }}
-          TELNYX_SIP_TOKEN: ${{ secrets.TELNYX_SIP_TOKEN }}
       run:  |
-          sh scripts/setup_env.sh -u "$TELNYX_SIP_USER" -p "$TELNYX_SIP_PASSWORD" -t "$TELNYX_SIP_TOKEN"
+          sh scripts/setup_env.sh -u "$TELNYX_SIP_USER" -p "$TELNYX_SIP_PASSWORD" -t "${{ steps.generate_token.outputs.response }}"
           
     - name: Setup Fastlane
       run:  |
