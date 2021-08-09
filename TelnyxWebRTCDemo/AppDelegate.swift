@@ -11,7 +11,7 @@ import PushKit
 import TelnyxRTC
 
 
-protocol PushKitDelegate {
+protocol PushKitDelegate: AnyObject {
     func onPushNotificationReceived(payload: PKPushPayload) -> Void
     func onPushNotificationReceived(payload: PKPushPayload, completion: @escaping () -> Void) -> Void
 }
@@ -23,7 +23,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     private var telnyxClient : TxClient?
     private var pushRegistry = PKPushRegistry.init(queue: DispatchQueue.main)
-    var pushKitDelegate: PushKitDelegate?
+    weak var pushKitDelegate: PushKitDelegate?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 

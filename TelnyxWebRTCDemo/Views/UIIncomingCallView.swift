@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 import TelnyxRTC
 
-protocol UIIncomingCallViewDelegate {
+protocol UIIncomingCallViewDelegate: AnyObject {
     func onAnswerButton()
     func onRejectButton()
 }
@@ -22,7 +22,7 @@ class UIIncomingCallView: UIView {
 
     private var textFields:[UITextField] = [UITextField]()
 
-    var delegate: UIIncomingCallViewDelegate?
+    weak var delegate: UIIncomingCallViewDelegate?
     @IBOutlet var contentView: UIView!
     @IBOutlet weak var endButton: UIButton!
     @IBOutlet weak var answerButton: UIButton!

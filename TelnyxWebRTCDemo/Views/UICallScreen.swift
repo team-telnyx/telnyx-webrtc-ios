@@ -9,7 +9,7 @@
 import UIKit
 import TelnyxRTC
 
-protocol UICallScreenDelegate {
+protocol UICallScreenDelegate: AnyObject {
     func onCallButton()
     func onEndCallButton()
     func onMuteUnmuteSwitch(isMuted: Bool)
@@ -24,7 +24,7 @@ class UICallScreen: UIView {
     
     private var textFields:[UITextField] = [UITextField]()
     
-    var delegate: UICallScreenDelegate?
+    weak var delegate: UICallScreenDelegate?
 
     @IBOutlet var contentView: UIView!
     @IBOutlet weak var endButton: UIButton!

@@ -124,7 +124,7 @@ public class TxClient {
     /// Keeps track of all the created calls by theirs UUIDs
     public internal(set) var calls: [UUID: Call] = [UUID: Call]()
     /// Subscribe to TxClient delegate to receive Telnyx SDK events
-    public var delegate: TxClientDelegate?
+    public weak var delegate: TxClientDelegate?
     private var socket : Socket?
 
     private var sessionId : String?

@@ -8,7 +8,7 @@
 
 import Foundation
 
-protocol SocketDelegate {
+protocol SocketDelegate: AnyObject {
     func onSocketConnected()
     func onSocketDisconnected()
     func onSocketError(error: Error)

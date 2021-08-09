@@ -32,7 +32,7 @@ enum CallDirection : String {
 }
 
 
-protocol CallProtocol {
+protocol CallProtocol: AnyObject {
     func callStateUpdated(call: Call)
 }
 
@@ -90,8 +90,8 @@ public class Call {
     var direction: CallDirection = .OUTBOUND
     var config: InternalConfig = InternalConfig.default
     var peer: Peer?
-    var socket: Socket?
-    var delegate: CallProtocol?
+    weak var socket: Socket?
+    weak var delegate: CallProtocol?
 
     var remoteSdp: String?
     var callOptions: TxCallOptions?

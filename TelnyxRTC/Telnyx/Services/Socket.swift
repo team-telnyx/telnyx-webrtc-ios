@@ -11,7 +11,7 @@ import Starscream
 
 class Socket {
     
-    var delegate: SocketDelegate?
+    weak var delegate: SocketDelegate?
     var isConnected : Bool = false
 
     private let config = InternalConfig.default
