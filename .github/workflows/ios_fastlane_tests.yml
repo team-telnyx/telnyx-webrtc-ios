@@ -35,9 +35,9 @@ jobs:
         --header "Content-Type: application/json" \
         --header "Authorization: Bearer $TELNYX_SIP_API_KEY" \
         --data '{
-          "connection_id": "$TELNYX_SIP_CONNECTION_ID"
+            "connection_id": "${{ env.TELNYX_SIP_CONNECTION_ID }}"
         }' \
-        --url 'https://api.telnyx.com/v2/telephony_credentials')"
+        https://api.telnyx.com/v2/telephony_credentials)"
 
     - name: Generate Token
       id: generate_token
