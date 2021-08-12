@@ -13,12 +13,14 @@ import WebRTC
 class CallTests: XCTestCase {
     private weak var expectation: XCTestExpectation!
     private var call: Call?
+    private var socket: Socket?
 
     override func setUpWithError() throws {
         print("CallTests:: setUpWithError")
-        let socket = Socket()
-        socket.connect()
-        socket.delegate = self
+        self.socket = Socket()
+        self.socket?.delegate = self
+        self.socket?.connect()
+        guard let socket = self.socket else { return }
         self.call = Call(callId: UUID.init(), sessionId: "<sessionId>", socket: socket, delegate: self)
     }
 
