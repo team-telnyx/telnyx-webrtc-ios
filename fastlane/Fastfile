@@ -19,5 +19,5 @@ desc "Run unit tests."
 lane :tests do
    run_tests(workspace: "TelnyxRTC.xcworkspace",
             devices: ["iPhone 8"],
-            scheme: "TelnyxRTC")
+            scheme: "TelnyxRTCSDK")
 end
