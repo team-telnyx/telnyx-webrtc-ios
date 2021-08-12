@@ -66,8 +66,10 @@ class VertoMessagesTests: XCTestCase {
                                                                     pushNotificationProvider: pushNotificationProvider)
         let loginUser : String = loginWidthUserAndPassoword.params?["login"] as! String
         let loginPassword : String = loginWidthUserAndPassoword.params?["passwd"] as! String
-        let loginEncodedPushToken : String = loginWidthUserAndPassoword.params?["push_device_token"] as! String
-        let loginEncodedPushProvider : String = loginWidthUserAndPassoword.params?["push_notification_provider"] as! String
+
+        let userVariables = loginWidthUserAndPassoword.params?["userVariables"] as? [String: Any]
+        let loginEncodedPushToken : String = userVariables?["push_device_token"] as! String
+        let loginEncodedPushProvider : String = userVariables?["push_notification_provider"] as! String
 
         XCTAssertEqual(loginUser, userName)
         XCTAssertEqual(loginPassword, password)
@@ -78,8 +80,10 @@ class VertoMessagesTests: XCTestCase {
         let decodeLogin = Message().decode(message: encodedLogin)
         let decodedUser : String = decodeLogin?.params?["login"] as! String
         let decodedPassword : String = decodeLogin?.params?["passwd"] as! String
-        let decodedPushToken : String = decodeLogin?.params?["push_device_token"] as! String
-        let decodedPushProvider : String = decodeLogin?.params?["push_notification_provider"] as! String
+
+        let userVariablesDecoded = decodeLogin?.params?["userVariables"] as? [String: Any]
+        let decodedPushToken : String = userVariablesDecoded?["push_device_token"] as! String
+        let decodedPushProvider : String = userVariablesDecoded?["push_notification_provider"] as! String
 
         XCTAssertEqual(decodedUser, userName)
         XCTAssertEqual(decodedPassword, password)
