@@ -25,8 +25,9 @@ class VertoMessagesTests: XCTestCase {
                                                         pushDeviceToken: pushDeviceToken,
                                                         pushNotificationProvider: pushNotificationProvider)
         let loginEncodedToken : String = loginWithToken.params?["login_token"] as! String
-        let loginEncodedPushToken : String = loginWithToken.params?["push_device_token"] as! String
-        let loginEncodedPushProvider : String = loginWithToken.params?["push_notification_provider"] as! String
+        let userVariables = loginWithToken.params?["userVariables"] as? [String: Any]
+        let loginEncodedPushToken : String = userVariables?["push_device_token"] as! String
+        let loginEncodedPushProvider : String = userVariables?["push_notification_provider"] as! String
 
         XCTAssertEqual(loginEncodedToken, loginToken)
         XCTAssertEqual(loginEncodedPushToken, pushDeviceToken)
@@ -35,8 +36,10 @@ class VertoMessagesTests: XCTestCase {
         let encodedLogin: String = loginWithToken.encode() ?? ""
         let decodeLogin = Message().decode(message: encodedLogin)
         let decodedToken : String  = decodeLogin?.params?["login_token"] as! String
-        let decodedPushToken : String = decodeLogin?.params?["push_device_token"] as! String
-        let decodedPushProvider : String = decodeLogin?.params?["push_notification_provider"] as! String
+
+        let userVariablesDecoded = decodeLogin?.params?["userVariables"] as? [String: Any]
+        let decodedPushToken : String = userVariablesDecoded?["push_device_token"] as! String
+        let decodedPushProvider : String = userVariablesDecoded?["push_notification_provider"] as! String
 
         XCTAssertEqual(decodedToken, loginToken)
         XCTAssertEqual(decodedPushToken, pushDeviceToken)
@@ -57,26 +60,30 @@ class VertoMessagesTests: XCTestCase {
         let pushNotificationProvider = TxPushConfig.PUSH_NOTIFICATION_PROVIDER
 
         print("VertoMessagesTest :: Testing LoginMessage username and password constructor")
-        let loginWidthUserAndPassoword: LoginMessage = LoginMessage(user: userName,
+        let loginWithUserAndPassoword: LoginMessage = LoginMessage(user: userName,
                                                                     password: password,
                                                                     pushDeviceToken: pushDeviceToken,
                                                                     pushNotificationProvider: pushNotificationProvider)
-        let loginUser : String = loginWidthUserAndPassoword.params?["login"] as! String
-        let loginPassword : String = loginWidthUserAndPassoword.params?["passwd"] as! String
-        let loginEncodedPushToken : String = loginWidthUserAndPassoword.params?["push_device_token"] as! String
-        let loginEncodedPushProvider : String = loginWidthUserAndPassoword.params?["push_notification_provider"] as! String
+        let loginUser : String = loginWithUserAndPassoword.params?["login"] as! String
+        let loginPassword : String = loginWithUserAndPassoword.params?["passwd"] as! String
+
+        let userVariables = loginWithUserAndPassoword.params?["userVariables"] as? [String: Any]
+        let loginEncodedPushToken : String = userVariables?["push_device_token"] as! String
+        let loginEncodedPushProvider : String = userVariables?["push_notification_provider"] as! String
 
         XCTAssertEqual(loginUser, userName)
         XCTAssertEqual(loginPassword, password)
         XCTAssertEqual(loginEncodedPushToken, pushDeviceToken)
         XCTAssertEqual(loginEncodedPushProvider, pushNotificationProvider)
 
-        let encodedLogin: String = loginWidthUserAndPassoword.encode() ?? ""
+        let encodedLogin: String = loginWithUserAndPassoword.encode() ?? ""
         let decodeLogin = Message().decode(message: encodedLogin)
         let decodedUser : String = decodeLogin?.params?["login"] as! String
         let decodedPassword : String = decodeLogin?.params?["passwd"] as! String
-        let decodedPushToken : String = decodeLogin?.params?["push_device_token"] as! String
-        let decodedPushProvider : String = decodeLogin?.params?["push_notification_provider"] as! String
+
+        let userVariablesDecoded = decodeLogin?.params?["userVariables"] as? [String: Any]
+        let decodedPushToken : String = userVariablesDecoded?["push_device_token"] as! String
+        let decodedPushProvider : String = userVariablesDecoded?["push_notification_provider"] as! String
 
         XCTAssertEqual(decodedUser, userName)
         XCTAssertEqual(decodedPassword, password)

@@ -11,8 +11,6 @@ import WebRTC
 @testable import TelnyxRTC
 
 class PeerConnectionTests: XCTestCase {
-    private weak var createOfferExpectation: XCTestExpectation!
-    private weak var createAnswerExpectation: XCTestExpectation!
     private var peerConnection: Peer?
 
     override func setUpWithError() throws {
@@ -20,15 +18,12 @@ class PeerConnectionTests: XCTestCase {
         //Setup the SDK
         let config = InternalConfig.default
         self.peerConnection = Peer(iceServers: config.webRTCIceServers)
-        self.peerConnection?.delegate = self
     }
 
     override func tearDownWithError() throws {
         print("PeerConnectionTests:: tearDownWithError")
         self.peerConnection?.connection.close()
         self.peerConnection = nil
-        self.createOfferExpectation = nil
-        self.createAnswerExpectation = nil
     }
 
     /**
@@ -60,8 +55,6 @@ class PeerConnectionTests: XCTestCase {
      - Wait until ICE negotiation finishes onICECandidate should be called after that
      */
     func testCreateOffer() {
-        createOfferExpectation = expectation(description: "createOffer")
-
         //SDP should be nil when creating the first offer
         let sdpPreviousNegotiation = self.peerConnection?.connection.localDescription
         XCTAssertNil(sdpPreviousNegotiation)
@@ -78,7 +71,8 @@ class PeerConnectionTests: XCTestCase {
             print("Error creating the offer: \(sdp)")
         })
 
-        waitForExpectations(timeout: 10)
+        // Creating an offer takes a short time, lets wait a few seconds for it.
+        sleep(5)
         //SDP should contain ICE Candidates. At least one is required to start calling
         let sdpAfterNegotiation = self.peerConnection?.connection.localDescription
         XCTAssertNotNil(sdpAfterNegotiation)
@@ -103,7 +97,6 @@ class PeerConnectionTests: XCTestCase {
         })
 
         //Answer the call
-        createAnswerExpectation = expectation(description: "createAnswer")
         self.peerConnection?.answer(completion: { (sdp, error)  in
 
             if let error = error {
@@ -116,27 +109,13 @@ class PeerConnectionTests: XCTestCase {
             }
             print("Answer completed >> SDP: \(sdp)")
         })
-        waitForExpectations(timeout: 10)
+
+        // Creating an offer takes a short time, lets wait a few seconds for it.
+        sleep(5)
+
         //SDP should contain ICE Candidates. At least one is required to start calling
         let sdpAfterNegotiation = self.peerConnection?.connection.localDescription
         XCTAssertNotNil(sdpAfterNegotiation)
         XCTAssertTrue(sdpAfterNegotiation?.sdp.contains("ice-") ?? false)
-    }
-}
-
-// MARK: - PeerDelegate
-extension PeerConnectionTests : PeerDelegate {
-
-    func onICECandidate(sdp: RTCSessionDescription?, iceCandidate: RTCIceCandidate) {
-        print("PeerConnectionTests:: PeerDelegate onICECandidate")
-        if self.createOfferExpectation?.description == "createOffer",
-           self.createOfferExpectation?.expectedFulfillmentCount ?? 0 > 0 {
-            self.createOfferExpectation?.fulfill()
-        }
-
-        if self.createAnswerExpectation?.description == "createAnswer",
-           self.createAnswerExpectation?.expectedFulfillmentCount ?? 0 > 0 {
-            self.createAnswerExpectation?.fulfill()
-        }
     }
 }
