@@ -19,6 +19,7 @@ class ViewController: UIViewController {
 
     var callKitProvider: CXProvider?
     let callKitCallController = CXCallController()
+    var loadingView: UIAlertController?
 
     @IBOutlet weak var sessionIdLabel: UILabel!
     @IBOutlet weak var socketStateLabel: UILabel!
@@ -119,6 +120,7 @@ class ViewController: UIViewController {
 
             do {
                 try telnyxClient.connect(txConfig: txConfig!)
+                self.showLoadingView()
             } catch let error {
                 print("ViewController:: connect Error \(error)")
             }
@@ -150,6 +152,7 @@ extension ViewController: TxClientDelegate {
     func onSocketDisconnected() {
         print("ViewController:: TxClientDelegate onSocketDisconnected()")
         DispatchQueue.main.async {
+            self.removeLoadingView()
             self.resetCallStates()
             self.socketStateLabel.text = "Disconnected"
             self.connectButton.setTitle("Connect", for: .normal)
@@ -163,14 +166,22 @@ extension ViewController: TxClientDelegate {
     func onClientError(error: Error) {
         print("ViewController:: TxClientDelegate onClientError() error: \(error)")
         DispatchQueue.main.async {
-            self.socketStateLabel.text = error.localizedDescription
+            self.removeLoadingView()
             self.incomingCallView.isHidden = true
+            self.telnyxClient?.disconnect()
+
+            let alert = UIAlertController(title: "WebRTC error", message: error.localizedDescription, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: {_ in
+                self.navigationController?.popViewController(animated: true)
+            }))
+            self.present(alert, animated: true)
         }
     }
     
     func onClientReady() {
         print("ViewController:: TxClientDelegate onClientReady()")
         DispatchQueue.main.async {
+            self.removeLoadingView()
             self.socketStateLabel.text = "Client ready"
             self.settingsView.isHidden = true
             self.callView.isHidden = false

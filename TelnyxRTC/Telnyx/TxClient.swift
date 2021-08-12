@@ -121,6 +121,9 @@ import Bugsnag
 public class TxClient {
 
     // MARK: - Properties
+    private static let DEFAULT_REGISTER_INTERVAL = 3.0 // In seconds
+    private static let MAX_REGISTER_RETRY = 3 // Number of retry
+
     /// Keeps track of all the created calls by theirs UUIDs
     public internal(set) var calls: [UUID: Call] = [UUID: Call]()
     /// Subscribe to TxClient delegate to receive Telnyx SDK events
@@ -129,6 +132,17 @@ public class TxClient {
 
     private var sessionId : String?
     private var txConfig: TxConfig?
+
+    private var registerRetryCount: Int = MAX_REGISTER_RETRY
+    private var registerTimer: Timer = Timer()
+    private var gatewayState: GatewayStates = .NOREG
+
+    /// Client must be registered in order to receive or place calls.
+    public var isRegistered: Bool {
+        get {
+            return gatewayState == .REGED
+        }
+    }
 
     // MARK: - Initializers
     /// TxClient has to be instantiated.
@@ -145,6 +159,8 @@ public class TxClient {
         //Check connetion parameters
         try txConfig.validateParams()
 
+        self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
+        self.gatewayState = .NOREG
         self.txConfig = txConfig
         self.socket = Socket()
         self.socket?.delegate = self
@@ -154,6 +170,8 @@ public class TxClient {
     /// Disconnects the TxClient from the Telnyx signaling server.
     public func disconnect() {
         Logger.log.i(message: "TxClient:: disconnect()")
+        self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
+        self.gatewayState = .NOREG
 
         // Let's cancell all the current calls
         for (_ ,call) in self.calls {
@@ -176,6 +194,61 @@ public class TxClient {
     /// - Returns: The current sessionId. If this value is empty, that means that the client is not connected to Telnyx server.
     public func getSessionId() -> String {
         return sessionId ?? ""
+    }
+
+    /// This function check the gateway status updates to determine if the current user has been successfully
+    /// registered and can start receiving and/or making calls.
+    /// - Parameter newState: The new gateway state received from B2BUA
+    private func updateGatewayState(newState: GatewayStates) {
+        Logger.log.i(message: "TxClient:: updateGatewayState() newState [\(newState)] gatewayState [\(self.gatewayState)]")
+
+        if self.gatewayState == .REGED {
+            // If the client is already registered, we don't need to do anything else.
+            Logger.log.i(message: "TxClient:: updateGatewayState() already registered")
+            return
+        }
+        // Keep the new state.
+        self.gatewayState = newState
+        switch newState {
+            case .REGED:
+                // If the client is now registered:
+                // - Stop the timer
+                // - Propagate the client state to the app.
+                self.registerTimer.invalidate()
+                self.delegate?.onClientReady()
+                Logger.log.i(message: "TxClient:: updateGatewayState() clientReady")
+                break
+            default:
+                // The gateway state can transition through multiple states before changing to REGED (Registered).
+                Logger.log.i(message: "TxClient:: updateGatewayState() no registered")
+                self.registerTimer.invalidate()
+                DispatchQueue.main.async {
+                    self.registerTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(TxClient.DEFAULT_REGISTER_INTERVAL), repeats: false) { [weak self] _ in
+                        Logger.log.i(message: "TxClient:: updateGatewayState() registerTimer elapsed: gatewayState [\(String(describing: self?.gatewayState))] registerRetryCount [\(String(describing: self?.registerRetryCount))]")
+
+                        if self?.gatewayState == .REGED {
+                            self?.delegate?.onClientReady()
+                        } else {
+                            self?.registerRetryCount -= 1
+                            if self?.registerRetryCount ?? 0 > 0 {
+                                self?.requestGatewayState()
+                            } else {
+                                let notRegisteredError = TxError.serverError(reason: .gatewayNotRegistered)
+                                self?.delegate?.onClientError(error: notRegisteredError)
+                                Logger.log.e(message: "TxClient:: updateGatewayState() client not registered")
+                            }
+                        }
+                    }
+                }
+                break
+        }
+    }
+
+    private func requestGatewayState() {
+        let gatewayMessage = GatewayMessage()
+        let message = gatewayMessage.encode() ?? ""
+        // Request gateway state
+        self.socket?.sendMessage(message: message)
     }
 }
 
@@ -415,13 +488,19 @@ extension TxClient : SocketDelegate {
 
         //Check if we are getting the new sessionId in response to the "login" message.
         if let result = vertoMessage.result {
-            //process result
+            // Process gateway state result.
+            if let params = result["params"] as? [String: Any],
+               let state = params["state"] as? String,
+               let gatewayState = GatewayStates(rawValue: state) {
+                Logger.log.i(message: "GATEWAY_STATE RESULT: \(state)")
+                self.updateGatewayState(newState: gatewayState)
+            }
+
             guard let sessionId = result["sessid"] as? String else { return }
             //keep the sessionId
             self.sessionId = sessionId
             self.delegate?.onSessionUpdated(sessionId: sessionId)
         } else {
-
             //Forward message to call based on it's uuid
             if let params = vertoMessage.params,
                let callUUIDString = params["callID"] as? String,
@@ -432,42 +511,46 @@ extension TxClient : SocketDelegate {
 
             //Parse incoming Verto message
             switch vertoMessage.method {
-            case .CLIENT_READY:
-                self.delegate?.onClientReady()
-                break
+                case .CLIENT_READY:
+                    // Once the client logs into the backend, a registration process starts.
+                    // Clients can receive or place calls when they are fully registered into the backend.
+                    // If a client try to call beforw been registered, a GATEWAY_DOWN error is received.
+                    // Therefore, we need to check the gateway state once we have successfully loged in:
+                    self.requestGatewayState()
+                    break
 
-            case .INVITE:
-                //invite received
-                if let params = vertoMessage.params {
-                    guard let sdp = params["sdp"] as? String,
-                          let callId = params["callID"] as? String,
-                          let uuid = UUID(uuidString: callId) else {
-                        return
+                case .INVITE:
+                    //invite received
+                    if let params = vertoMessage.params {
+                        guard let sdp = params["sdp"] as? String,
+                              let callId = params["callID"] as? String,
+                              let uuid = UUID(uuidString: callId) else {
+                            return
+                        }
+
+                        let callerName = params["caller_id_name"] as? String ?? ""
+                        let callerNumber = params["caller_id_number"] as? String ?? ""
+                        let telnyxSessionId = params["telnyx_session_id"] as? String ?? ""
+                        let telnyxLegId = params["telnyx_leg_id"] as? String ?? ""
+                        
+                        if telnyxSessionId.isEmpty {
+                            Logger.log.w(message: "TxClient:: Telnyx Session ID unavailable on INVITE message")
+                        }
+                        if telnyxLegId.isEmpty {
+                            Logger.log.w(message: "TxClient:: Telnyx Leg ID unavailable on INVITE message")
+                        }
+                        self.createIncomingCall(callerName: callerName,
+                                                callerNumber: callerNumber,
+                                                callId: uuid,
+                                                remoteSdp: sdp,
+                                                telnyxSessionId: telnyxSessionId,
+                                                telnyxLegId: telnyxLegId)
                     }
+                    break;
 
-                    let callerName = params["caller_id_name"] as? String ?? ""
-                    let callerNumber = params["caller_id_number"] as? String ?? ""
-                    let telnyxSessionId = params["telnyx_session_id"] as? String ?? ""
-                    let telnyxLegId = params["telnyx_leg_id"] as? String ?? ""
-
-                    if telnyxSessionId.isEmpty {
-                        Logger.log.w(message: "TxClient:: Telnyx Session ID unavailable on INVITE message")
-                    }
-                    if telnyxLegId.isEmpty {
-                        Logger.log.w(message: "TxClient:: Telnyx Leg ID unavailable on INVITE message")
-                    }
-                    self.createIncomingCall(callerName: callerName,
-                                            callerNumber: callerNumber,
-                                            callId: uuid,
-                                            remoteSdp: sdp,
-                                            telnyxSessionId: telnyxSessionId,
-                                            telnyxLegId: telnyxLegId)
-                }
-                break;
-
-            default:
-                Logger.log.i(message: "TxClient:: SocketDelegate Default method")
-                break
+                default:
+                    Logger.log.i(message: "TxClient:: SocketDelegate Default method")
+                    break
             }
         }
     }
