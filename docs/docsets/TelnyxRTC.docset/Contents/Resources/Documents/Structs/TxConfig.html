@@ -17,7 +17,7 @@
     <a title="TxConfig Structure Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">TelnyxRTC 0.0.1 Docs</a> (90% documented)</p>
+        <p><a href="../index.html">TelnyxRTC 0.0.4 Docs</a> (88% documented)</p>
         <p class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -88,6 +88,9 @@
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/TxConfig.html">TxConfig</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TxPushConfig.html">TxPushConfig</a>
               </li>
             </ul>
           </li>
@@ -203,6 +206,33 @@
                 <li class="item">
                   <div>
                     <code>
+                    <a name="/s:9TelnyxRTC8TxConfigV016pushNotificationD0AA0c4PushD0VSgvp"></a>
+                    <a name="//apple_ref/swift/Property/pushNotificationConfig" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV016pushNotificationD0AA0c4PushD0VSgvp">pushNotificationConfig</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">internal(set)</span> <span class="k">var</span> <span class="nv">pushNotificationConfig</span><span class="p">:</span> <span class="kt"><a href="../Structs/TxPushConfig.html">TxPushConfig</a></span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
                     <a name="/s:9TelnyxRTC8TxConfigV12ringBackToneSSSgvp"></a>
                     <a name="//apple_ref/swift/Property/ringBackTone" class="dashAnchor"></a>
                     <a class="token" href="#/s:9TelnyxRTC8TxConfigV12ringBackToneSSSgvp">ringBackTone</a>
@@ -270,9 +300,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC8TxConfigV7sipUser8password8ringtone12ringBackTone8logLevelACSS_S2SSgAiA03LogM0Otcfc"></a>
-                    <a name="//apple_ref/swift/Method/init(sipUser:password:ringtone:ringBackTone:logLevel:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV7sipUser8password8ringtone12ringBackTone8logLevelACSS_S2SSgAiA03LogM0Otcfc">init(sipUser:<wbr>password:<wbr>ringtone:<wbr>ringBackTone:<wbr>logLevel:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone8logLevelACSS_S2SSgA2jA03LogP0Otcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:logLevel:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone8logLevelACSS_S2SSgA2jA03LogP0Otcfc">init(sipUser:<wbr>password:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>logLevel:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -287,7 +317,11 @@
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">sipUser</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">password</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">ringtone</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">ringBackTone</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">logLevel</span><span class="p">:</span> <span class="kt"><a href="../Enums/LogLevel.html">LogLevel</a></span> <span class="o">=</span> <span class="o">.</span><span class="k">none</span><span class="p">)</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">sipUser</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">password</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
+            <span class="nv">pushDeviceToken</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+            <span class="nv">ringtone</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+            <span class="nv">ringBackTone</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+            <span class="nv">logLevel</span><span class="p">:</span> <span class="kt"><a href="../Enums/LogLevel.html">LogLevel</a></span> <span class="o">=</span> <span class="o">.</span><span class="k">none</span><span class="p">)</span></code></pre>
 
                         </div>
                       </div>
@@ -316,6 +350,18 @@
                               <td>
                                 <div>
                                   <p>password the password of the SIP user.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>pushDeviceToken</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) the device push notification token. This is required to receive Inbound calls notifications.</p>
                                 </div>
                               </td>
                             </tr>
@@ -364,9 +410,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC8TxConfigV5token8ringtone12ringBackTone8logLevelACSS_SSSgAhA03LogK0Otcfc"></a>
-                    <a name="//apple_ref/swift/Method/init(token:ringtone:ringBackTone:logLevel:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV5token8ringtone12ringBackTone8logLevelACSS_SSSgAhA03LogK0Otcfc">init(token:<wbr>ringtone:<wbr>ringBackTone:<wbr>logLevel:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone8logLevelACSS_SSSgA2iA03LogN0Otcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(token:pushDeviceToken:ringtone:ringBackTone:logLevel:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone8logLevelACSS_SSSgA2iA03LogN0Otcfc">init(token:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>logLevel:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -381,7 +427,11 @@
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">token</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">ringtone</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">ringBackTone</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">logLevel</span><span class="p">:</span> <span class="kt"><a href="../Enums/LogLevel.html">LogLevel</a></span> <span class="o">=</span> <span class="o">.</span><span class="k">none</span><span class="p">)</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">token</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
+            <span class="nv">pushDeviceToken</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+            <span class="nv">ringtone</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+            <span class="nv">ringBackTone</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+            <span class="nv">logLevel</span><span class="p">:</span> <span class="kt"><a href="../Enums/LogLevel.html">LogLevel</a></span> <span class="o">=</span> <span class="o">.</span><span class="k">none</span><span class="p">)</span></code></pre>
 
                         </div>
                       </div>
@@ -398,6 +448,18 @@
                               <td>
                                 <div>
                                   <p>Token generated from <a href="https://developers.telnyx.com/docs/v2/webrtc/quickstart">https://developers.telnyx.com/docs/v2/webrtc/quickstart</a></p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>pushDeviceToken</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) the device push notification token. This is required to receive Inbound calls notifications.</p>
                                 </div>
                               </td>
                             </tr>
@@ -493,7 +555,7 @@
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2021 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external">Telnyx</a>. All rights reserved. (Last updated: 2021-05-05)</p>
+          <p>&copy; 2021 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external">Telnyx</a>. All rights reserved. (Last updated: 2021-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.6</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
