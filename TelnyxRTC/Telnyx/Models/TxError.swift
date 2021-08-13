@@ -168,7 +168,7 @@ extension TxError.ServerErrorReason {
         switch self {
             case .signalingServerError(message: let message, code: let code):
                 return "Server error: \(message), code: \(code)"
-            case let .gatewayNotRegistered:
+            case .gatewayNotRegistered:
                 return "Gateway not registered."
         }
     }
