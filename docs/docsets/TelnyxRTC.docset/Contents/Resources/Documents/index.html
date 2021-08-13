@@ -16,7 +16,7 @@
     <a title="TelnyxRTC  Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="index.html">TelnyxRTC 0.0.1 Docs</a> (90% documented)</p>
+        <p><a href="index.html">TelnyxRTC 0.0.4 Docs</a> (88% documented)</p>
         <p class="header-right">
           <form role="search" action="search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -88,6 +88,9 @@
               <li class="nav-group-task">
                 <a href="Structs/TxConfig.html">TxConfig</a>
               </li>
+              <li class="nav-group-task">
+                <a href="Structs/TxPushConfig.html">TxPushConfig</a>
+              </li>
             </ul>
           </li>
         </ul>
@@ -96,7 +99,7 @@
         <section>
           <section class="section">
             
-            <h1 id='webrtc-ios-sdk' class='heading'>webrtc-ios-sdk</h1>
+            <h1 id='telnyx-webrtc-ios' class='heading'>telnyx-webrtc-ios</h1>
 
 <p>Enable Telnyx real-time communication services on iOS. :telephone_receiver: :fire:</p>
 <h2 id='project-structure' class='heading'>Project structure:</h2>
@@ -143,24 +146,66 @@
 
 <ol>
 <li><p>Select target <code>TelnyxWebRTCDemo</code> to run the demo app. The SDK should be manually builded in order to get the app running (Step 5)</p></li>
-<li><p>Enjoy 😎</p></li>
-</ol>
+<li><p>Enjoy 😎
+</br>
+</br></p>
 
 <table>
-  <tr>
-    <td>Credentials</td>
-     <td>Outbound call</td>
-     <td>Incoming call</td>
-  </tr>
-  <tr>
-    <td><img src="https://user-images.githubusercontent.com/75636882/116748486-eaf53a00-a9d5-11eb-9093-968e8f2bde6e.gif" width=270></td>
-    <td><img src="https://user-images.githubusercontent.com/75636882/116748473-e597ef80-a9d5-11eb-94a3-2a4a044ea4ff.gif" width=270></td>
-    <td><img src="https://user-images.githubusercontent.com/75636882/116748481-e92b7680-a9d5-11eb-9fb5-6fe4cb10b797.gif" width=270></td>
-  </tr>
- </table>
-  
+<tr>
+<td>Credentials</td>
+ <td>Outbound call</td>
+ <td>Incoming call</td>
+</tr>
+<tr>
+<td><img src="https://user-images.githubusercontent.com/75636882/116748486-eaf53a00-a9d5-11eb-9093-968e8f2bde6e.gif" width=270></td>
+<td><img src="https://user-images.githubusercontent.com/75636882/116748473-e597ef80-a9d5-11eb-94a3-2a4a044ea4ff.gif" width=270></td>
+<td><img src="https://user-images.githubusercontent.com/75636882/116748481-e92b7680-a9d5-11eb-9fb5-6fe4cb10b797.gif" width=270></td>
+</tr>
+</table></li>
+</ol>
 
 <hr>
+
+<p></br></p>
+<h2 id='adding-telnyx-sdk-to-your-ios-client-application' class='heading'>Adding Telnyx SDK to your iOS Client Application:</h2>
+
+<p>Currently the iOS SDK is supported using cocoapods. </p>
+<h3 id='cocoapods' class='heading'>Cocoapods</h3>
+
+<p>If your xcode project is not using <a href="https://cocoapods.org/">cocoapods</a> yet, you will need to configure it.</p>
+
+<ol>
+<li>Open your podfile and add the TelnyxRTC. 
+<code>
+pod &#39;TelnyxRTC&#39;, &#39;~&gt; 0.0.4&#39;
+</code></li>
+<li>Install your pods. You can add the flag &ndash;repo-update to ensure your cocoapods has the specs updated.
+<code>
+pod install --repo-update
+</code></li>
+<li>Open your .xcworkspace</li>
+<li>Import TelnyxRTC at the top level of your class:
+<code>
+import TelnyxRTC
+</code></li>
+<li><p>Disable BITCODE (The GoogleWebRTC dependency has BITCODE disabled):  Go to the Build Settings tab of your app target, search for “bitcode” and set it to “NO”</p>
+
+<p align="center">
+<img width="743" alt="Screen Shot 2021-05-07 at 17 46 08" src="https://user-images.githubusercontent.com/75636882/117506545-235bc180-af5c-11eb-91eb-00d60f5844fa.png">
+</p></li>
+<li><p>Enable VoIP and Audio background modes: Go to Signing &amp; Capabilities tab, press the +Capability button and add those background modes:</p>
+
+<p align="center">
+<img width="719" alt="Screen Shot 2021-05-07 at 17 46 54" src="https://user-images.githubusercontent.com/75636882/117506607-3ff7f980-af5c-11eb-8df2-2f9170c12baf.png">
+</p></li>
+<li><p>Go to your Info.plist file and add the “Privacy - Microphone Usage Description” key with a description that your app requires microphone access in order to make VoIP calls. </p>
+
+<p align="center">
+<img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://user-images.githubusercontent.com/75636882/117506706-6d44a780-af5c-11eb-87e2-d6be092474f2.png">
+</p></li>
+<li><p>You are all set!
+</br></p></li>
+</ol>
 <h2 id='usage' class='heading'>Usage</h2>
 <h3 id='telnyx-client-setup' class='heading'>Telnyx client setup</h3>
 <pre class="highlight plaintext"><code>// Initialize the client
@@ -332,7 +377,7 @@ extension ViewController: TxClientDelegate {
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2021 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external">Telnyx</a>. All rights reserved. (Last updated: 2021-05-05)</p>
+          <p>&copy; 2021 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external">Telnyx</a>. All rights reserved. (Last updated: 2021-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.6</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

@@ -65,7 +65,7 @@ If your xcode project is not using [cocoapods](https://cocoapods.org/) yet, you 
 
 1. Open your podfile and add the TelnyxRTC. 
 ```
-pod 'TelnyxRTC', '~> 0.0.1'
+pod 'TelnyxRTC', '~> 0.0.4'
 ```
 2. Install your pods. You can add the flag --repo-update to ensure your cocoapods has the specs updated.
 ```

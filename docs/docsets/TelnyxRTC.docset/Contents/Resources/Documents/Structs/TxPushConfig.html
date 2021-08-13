@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>CallState Enumeration Reference</title>
+    <title>TxPushConfig Structure Reference</title>
     <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
     <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
     <meta charset='utf-8'>
@@ -13,8 +13,8 @@
     <script src="../js/jazzy.search.js" defer></script>
   </head>
   <body>
-    <a name="//apple_ref/swift/Enum/CallState" class="dashAnchor"></a>
-    <a title="CallState Enumeration Reference"></a>
+    <a name="//apple_ref/swift/Struct/TxPushConfig" class="dashAnchor"></a>
+    <a title="TxPushConfig Structure Reference"></a>
     <header>
       <div class="content-wrapper">
         <p><a href="../index.html">TelnyxRTC 0.0.4 Docs</a> (88% documented)</p>
@@ -29,7 +29,7 @@
       <p id="breadcrumbs">
         <a href="../index.html">TelnyxRTC Reference</a>
         <img id="carat" src="../img/carat.png" />
-        CallState Enumeration Reference
+        TxPushConfig Structure Reference
       </p>
     </div>
     <div class="content-wrapper">
@@ -99,15 +99,15 @@
       <article class="main-content">
         <section>
           <section class="section">
-            <h1>CallState</h1>
+            <h1>TxPushConfig</h1>
               <div class="declaration">
                 <div class="language">
                   
-                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">CallState</span></code></pre>
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">TxPushConfig</span></code></pre>
 
                 </div>
               </div>
-            <p><code>CallState</code> represents the state of the call</p>
+            <p>This class contains all the properties related to Push Notifications</p>
 
           </section>
           <section class="section task-group-section">
@@ -116,9 +116,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC9CallStateO3NEWyA2CmF"></a>
-                    <a name="//apple_ref/swift/Element/NEW" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC9CallStateO3NEWyA2CmF">NEW</a>
+                    <a name="/s:9TelnyxRTC12TxPushConfigV26PUSH_NOTIFICATION_PROVIDERSSvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/PUSH_NOTIFICATION_PROVIDER" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC12TxPushConfigV26PUSH_NOTIFICATION_PROVIDERSSvpZ">PUSH_NOTIFICATION_PROVIDER</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -126,14 +126,14 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>New call has been created in the client.</p>
+                        <p>Undocumented</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="k">case</span> <span class="kt">NEW</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">PUSH_NOTIFICATION_PROVIDER</span><span class="p">:</span> <span class="kt">String</span></code></pre>
 
                         </div>
                       </div>
@@ -143,9 +143,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC9CallStateO10CONNECTINGyA2CmF"></a>
-                    <a name="//apple_ref/swift/Element/CONNECTING" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC9CallStateO10CONNECTINGyA2CmF">CONNECTING</a>
+                    <a name="/s:9TelnyxRTC12TxPushConfigV15pushDeviceTokenSSSgvp"></a>
+                    <a name="//apple_ref/swift/Property/pushDeviceToken" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC12TxPushConfigV15pushDeviceTokenSSSgvp">pushDeviceToken</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -153,14 +153,14 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>The outbound call is being sent to the server.</p>
+                        <p>Undocumented</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="k">case</span> <span class="kt">CONNECTING</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">internal(set)</span> <span class="k">var</span> <span class="nv">pushDeviceToken</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
 
                         </div>
                       </div>
@@ -170,9 +170,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC9CallStateO7RINGINGyA2CmF"></a>
-                    <a name="//apple_ref/swift/Element/RINGING" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC9CallStateO7RINGINGyA2CmF">RINGING</a>
+                    <a name="/s:9TelnyxRTC12TxPushConfigV24pushNotificationProviderSSvp"></a>
+                    <a name="//apple_ref/swift/Property/pushNotificationProvider" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC12TxPushConfigV24pushNotificationProviderSSvp">pushNotificationProvider</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -180,95 +180,14 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Call is pending to be answered. Someone is attempting to call you.</p>
+                        <p>Undocumented</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="k">case</span> <span class="kt">RINGING</span></code></pre>
-
-                        </div>
-                      </div>
-                    </section>
-                  </div>
-                </li>
-                <li class="item">
-                  <div>
-                    <code>
-                    <a name="/s:9TelnyxRTC9CallStateO6ACTIVEyA2CmF"></a>
-                    <a name="//apple_ref/swift/Element/ACTIVE" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC9CallStateO6ACTIVEyA2CmF">ACTIVE</a>
-                    </code>
-                  </div>
-                  <div class="height-container">
-                    <div class="pointer-container"></div>
-                    <section class="section">
-                      <div class="pointer"></div>
-                      <div class="abstract">
-                        <p>Call is active when two clients are fully connected.</p>
-
-                      </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="k">case</span> <span class="kt">ACTIVE</span></code></pre>
-
-                        </div>
-                      </div>
-                    </section>
-                  </div>
-                </li>
-                <li class="item">
-                  <div>
-                    <code>
-                    <a name="/s:9TelnyxRTC9CallStateO4HELDyA2CmF"></a>
-                    <a name="//apple_ref/swift/Element/HELD" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC9CallStateO4HELDyA2CmF">HELD</a>
-                    </code>
-                  </div>
-                  <div class="height-container">
-                    <div class="pointer-container"></div>
-                    <section class="section">
-                      <div class="pointer"></div>
-                      <div class="abstract">
-                        <p>Call has been held.</p>
-
-                      </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="k">case</span> <span class="kt">HELD</span></code></pre>
-
-                        </div>
-                      </div>
-                    </section>
-                  </div>
-                </li>
-                <li class="item">
-                  <div>
-                    <code>
-                    <a name="/s:9TelnyxRTC9CallStateO4DONEyA2CmF"></a>
-                    <a name="//apple_ref/swift/Element/DONE" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC9CallStateO4DONEyA2CmF">DONE</a>
-                    </code>
-                  </div>
-                  <div class="height-container">
-                    <div class="pointer-container"></div>
-                    <section class="section">
-                      <div class="pointer"></div>
-                      <div class="abstract">
-                        <p>Call has ended.</p>
-
-                      </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="k">case</span> <span class="kt">DONE</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">internal(set)</span> <span class="k">var</span> <span class="nv">pushNotificationProvider</span><span class="p">:</span> <span class="kt">String</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
 
                         </div>
                       </div>
