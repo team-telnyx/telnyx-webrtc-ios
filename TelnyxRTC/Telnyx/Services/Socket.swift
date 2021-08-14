@@ -9,15 +9,28 @@
 import Foundation
 import Starscream
 
+// TODO What is the purpose/behavior of this class?
+// holds a ref to websocket
+// tracks state of connection to that websocket
+// connecting to a websocket on a url
+// disconnecting from that websocket
+// sends a message down the socket
+
+// TODO Does it add value to have a Socket wrapper class?
+// Can this be moved up to the client?
+// It is used by the Call object.
+
 class Socket {
     
     weak var delegate: SocketDelegate?
     var isConnected : Bool = false
-
+    
+    
+    // TODO We should inject this
     private let config = InternalConfig.default
     private var socket : WebSocket?
-    
-    func connect() {
+        
+    func connect() {        
         Logger.log.i(message: "Socket:: connect()")
         var request = URLRequest(url: config.signalingServerUrl)
         request.timeoutInterval = 5
@@ -27,7 +40,7 @@ class Socket {
         self.socket?.delegate = self
         self.socket?.connect()
     }
-    
+        
     func disconnect() {
         Logger.log.i(message: "Socket:: disconnect()")
         self.socket?.disconnect()
@@ -69,7 +82,6 @@ extension Socket : WebSocketDelegate {
             Logger.log.i(message: "Socket:: WebSocketDelegate .text \(message)")
             self.delegate?.onMessageReceived(message: message)
             break;
-
         case .cancelled:
             isConnected = false
             self.delegate?.onSocketDisconnected()
@@ -88,12 +100,17 @@ extension Socket : WebSocketDelegate {
             
         case .binary(let data):
             Logger.log.i(message: "Socket:: WebSocketDelegate .binary data: \(data.count)")
+            
+        // TODO Do we want to impl these?
         case .ping(_):
             break
         case .pong(_):
             break
         case .viabilityChanged(_):
             break
+        // TODO Does a reconnect happen automatically if the socket is disconnected?
+        // TODO What happens if the socket disconnected during a call?
+        // We should notify the consumer of that and attempt to reconnect
         case .reconnectSuggested(_):
             break
         }

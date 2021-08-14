@@ -36,7 +36,9 @@ class Peer : NSObject {
     private var localVideoTrack: RTCVideoTrack?
     private var remoteVideoTrack: RTCVideoTrack?
 
-    //Data channel
+    // TODO We're not using the data channel?
+    // How come?
+    // Data channel
     private var localDataChannel: RTCDataChannel?
     private var remoteDataChannel: RTCDataChannel?
 
@@ -290,7 +292,8 @@ extension Peer : RTCPeerConnectionDelegate {
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {
         Logger.log.i(message: "Peer:: connection didChange RTCIceGatheringState: \(newState)")
     }
-
+    
+    
     func peerConnection(_ peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
         Logger.log.i(message: "Peer:: connection didGenerate RCIceCandidate: \(candidate)")
         //once an ICE candidate is generated, let's added into the peerConnection so the ICE Candidate
