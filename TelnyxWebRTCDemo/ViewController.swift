@@ -77,20 +77,26 @@ class ViewController: UIViewController {
     @objc func handleLongPress(gesture: UILongPressGestureRecognizer) {
         if gesture.state == UIGestureRecognizer.State.began {
             // Internal use only
-            self.showWebRTCEnvironmentSelector()
+            self.showHiddenOptions()
         }
     }
 
-    func showWebRTCEnvironmentSelector() {
-        let alert = UIAlertController(title: "Select WebRTC environment", message: "", preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: "Development", style: .default , handler:{ (UIAlertAction)in
+    func showHiddenOptions() {
+        let alert = UIAlertController(title: "Options", message: "", preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "Development Environment", style: .default , handler:{ (UIAlertAction)in
             self.serverConfig = TxServerConfiguration(environment: .development)
             self.updateEnvironment()
         }))
         
-        alert.addAction(UIAlertAction(title: "Production", style: .default , handler:{ (UIAlertAction)in
+        alert.addAction(UIAlertAction(title: "Production Environment", style: .default , handler:{ (UIAlertAction)in
             self.serverConfig = nil
             self.updateEnvironment()
+        }))
+
+        alert.addAction(UIAlertAction(title: "Copy APNS token", style: .default , handler:{ (UIAlertAction)in
+            // To copy the APNS push token to pasteboard
+            let token = UserDefaults.init().getPushToken()
+            UIPasteboard.general.string = token
         }))
         self.present(alert, animated: true, completion: nil)
     }
