@@ -29,6 +29,7 @@
 		B309D27C25F17C1700A2AADF /* UIIncomingCallView.xib in Resources */ = {isa = PBXBuildFile; fileRef = B309D27A25F17C1700A2AADF /* UIIncomingCallView.xib */; };
 		B309D28225F1838700A2AADF /* ByeMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D28125F1838700A2AADF /* ByeMessage.swift */; };
 		B309D28625F184A100A2AADF /* AnswerMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D28525F184A100A2AADF /* AnswerMessage.swift */; };
+		B32AE8B326CD4F9200C7C6F4 /* TxServerConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = B32AE8B226CD4F9200C7C6F4 /* TxServerConfiguration.swift */; };
 		B366D3FB26150D1100156FE1 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B366D3FA26150D1100156FE1 /* StringExtension.swift */; };
 		B368BEC525EDDB610032AE52 /* TelnyxRTC.h in Headers */ = {isa = PBXBuildFile; fileRef = B368BEC325EDDB610032AE52 /* TelnyxRTC.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		B368BED425EDDBC90032AE52 /* TelnyxRTCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B368BED325EDDBC90032AE52 /* TelnyxRTCTests.swift */; };
@@ -118,6 +119,7 @@
 		B309D27A25F17C1700A2AADF /* UIIncomingCallView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = UIIncomingCallView.xib; sourceTree = "<group>"; };
 		B309D28125F1838700A2AADF /* ByeMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ByeMessage.swift; sourceTree = "<group>"; };
 		B309D28525F184A100A2AADF /* AnswerMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnswerMessage.swift; sourceTree = "<group>"; };
+		B32AE8B226CD4F9200C7C6F4 /* TxServerConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxServerConfiguration.swift; sourceTree = "<group>"; };
 		B366D3FA26150D1100156FE1 /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		B368BEC025EDDB610032AE52 /* TelnyxRTC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = TelnyxRTC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B368BEC325EDDB610032AE52 /* TelnyxRTC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TelnyxRTC.h; sourceTree = "<group>"; };
@@ -235,6 +237,7 @@
 				B309D23A25F06DC000A2AADF /* TxCallOptions.swift */,
 				B39121AE25FFCE680051E076 /* TxError.swift */,
 				B3B1D9A026542860008D28C9 /* TxPushConfig.swift */,
+				B32AE8B226CD4F9200C7C6F4 /* TxServerConfiguration.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -683,6 +686,7 @@
 				B3BB8FA026BC076000DDCB84 /* GatewayMessage.swift in Sources */,
 				B309D1DB25F020D400A2AADF /* Method.swift in Sources */,
 				B39121AF25FFCE680051E076 /* TxError.swift in Sources */,
+				B32AE8B326CD4F9200C7C6F4 /* TxServerConfiguration.swift in Sources */,
 				B368BEE125EDDC7D0032AE52 /* TxClient.swift in Sources */,
 				B309D28625F184A100A2AADF /* AnswerMessage.swift in Sources */,
 				B309D23125F06CA800A2AADF /* Peer.swift in Sources */,

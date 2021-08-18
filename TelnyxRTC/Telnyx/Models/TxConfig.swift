@@ -20,7 +20,6 @@ public struct TxConfig {
     public internal(set) var ringBackTone: String?
     public internal(set) var ringtone: String?
 
-
     // MARK: - Initializers
 
     /// Constructor of the Telnyx SDK configuration: Login using sip user  and password.
@@ -54,6 +53,7 @@ public struct TxConfig {
     ///   - ringtone: (Optional) The audio file name to be played when receiving an incoming call. e.g.: "my-ringtone.mp3"
     ///   - ringBackTone: (Optional) The audio file name to be played when calling. e.g.: "my-ringbacktone.mp3"
     ///   - logLevel: (Optional) Can select the verbosity level of the SDK logs. Is set to `.none` as default
+    ///   - serverConfiguration: (Optional) To define a custom `signaling server` and `TURN/ STUN servers`. As default we use the internal Telnyx Production servers.
     public init(token: String,
                 pushDeviceToken: String? = nil,
                 ringtone: String? = nil,

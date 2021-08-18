@@ -14,12 +14,11 @@ class Socket {
     weak var delegate: SocketDelegate?
     var isConnected : Bool = false
 
-    private let config = InternalConfig.default
     private var socket : WebSocket?
-    
-    func connect() {
+
+    func connect(signalingServer: URL) {
         Logger.log.i(message: "Socket:: connect()")
-        var request = URLRequest(url: config.signalingServerUrl)
+        var request = URLRequest(url: signalingServer)
         request.timeoutInterval = 5
         let pinner = FoundationSecurity(allowSelfSigned: true) // don't validate SSL certificates
         
