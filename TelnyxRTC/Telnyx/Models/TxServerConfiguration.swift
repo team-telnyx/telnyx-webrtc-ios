@@ -33,6 +33,7 @@ public struct TxServerConfiguration {
             } else {
                 self.signalingServer = InternalConfig.default.developmentSignalingServer
             }
+            self.environment = environment
         }
 
         if let webRTCIceServers = webRTCIceServers {
