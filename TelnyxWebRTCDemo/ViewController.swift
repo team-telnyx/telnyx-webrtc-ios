@@ -10,6 +10,7 @@ import UIKit
 import CallKit
 import TelnyxRTC
 
+
 class ViewController: UIViewController {
 
     var userDefaults: UserDefaults = UserDefaults.init()
@@ -21,6 +22,7 @@ class ViewController: UIViewController {
     let callKitCallController = CXCallController()
     var loadingView: UIAlertController?
 
+    @IBOutlet weak var logo: UIImageView!
     @IBOutlet weak var sessionIdLabel: UILabel!
     @IBOutlet weak var socketStateLabel: UILabel!
     @IBOutlet weak var callView: UICallScreen!
@@ -28,6 +30,8 @@ class ViewController: UIViewController {
     @IBOutlet weak var incomingCallView: UIIncomingCallView!
     @IBOutlet weak var connectButton: UIButton!
     
+    var serverConfig: TxServerConfiguration?
+
     override func viewDidLoad() {
         super.viewDidLoad()
         print("ViewController:: viewDidLoad()")
@@ -61,6 +65,30 @@ class ViewController: UIViewController {
         self.settingsView.isHidden = false
         self.settingsView.sipUsernameLabel.text = userDefaults.getSipUser()
         self.settingsView.passwordUserNameLabel.text = userDefaults.getSipUserPassword()
+
+        // Environment Selector
+        let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.handleLongPress))
+        self.logo.addGestureRecognizer(longPressRecognizer)
+        self.logo.isUserInteractionEnabled = true
+    }
+    
+    @objc func handleLongPress(gesture: UILongPressGestureRecognizer) {
+        if gesture.state == UIGestureRecognizer.State.began {
+            // Internal use only
+            self.showWebRTCEnvironmentSelector()
+        }
+    }
+
+    func showWebRTCEnvironmentSelector() {
+        let alert = UIAlertController(title: "Select WebRTC environment", message: "", preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "Development", style: .default , handler:{ (UIAlertAction)in
+            self.serverConfig = TxServerConfiguration(environment: .development)
+        }))
+        
+        alert.addAction(UIAlertAction(title: "Production", style: .default , handler:{ (UIAlertAction)in
+            self.serverConfig = nil
+        }))
+        self.present(alert, animated: true, completion: nil)
     }
 
     func updateButtonsState() {
@@ -119,7 +147,7 @@ class ViewController: UIViewController {
             }
 
             do {
-                try telnyxClient.connect(txConfig: txConfig!)
+                try telnyxClient.connect(txConfig: txConfig!, serverConfiguration: self.serverConfig)
                 self.showLoadingView()
             } catch let error {
                 print("ViewController:: connect Error \(error)")

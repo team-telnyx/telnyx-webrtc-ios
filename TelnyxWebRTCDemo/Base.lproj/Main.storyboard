@@ -140,6 +140,7 @@
                         <outlet property="callView" destination="qhD-Ar-bVI" id="mIz-Bj-zmd"/>
                         <outlet property="connectButton" destination="HDL-DH-v9R" id="DDG-vM-oNk"/>
                         <outlet property="incomingCallView" destination="z4d-Kt-WJs" id="xkP-lK-Kxj"/>
+                        <outlet property="logo" destination="wzw-DY-Om3" id="5Uq-64-HAS"/>
                         <outlet property="sessionIdLabel" destination="QiW-C2-v1t" id="1Jq-zS-Mt2"/>
                         <outlet property="settingsView" destination="Sq2-dL-w4H" id="5cZ-1a-8aP"/>
                         <outlet property="socketStateLabel" destination="lhJ-I7-FaD" id="fPk-4D-Rhb"/>
