@@ -169,8 +169,10 @@ public class TxClient {
 
         if let serverConfiguration = serverConfiguration {
             self.serverConfiguration = serverConfiguration
-            Logger.log.i(message: "TxClient:: serverConfiguration server: [\(serverConfiguration.signalingServer)] ICE Servers [\(serverConfiguration.webRTCIceServers)]")
+        } else {
+            self.serverConfiguration = TxServerConfiguration()
         }
+        Logger.log.i(message: "TxClient:: serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
 
         self.socket = Socket()
         self.socket?.delegate = self
