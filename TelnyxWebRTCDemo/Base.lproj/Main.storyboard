@@ -106,6 +106,12 @@
                                     <action selector="connectButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="wAP-ng-15X"/>
                                 </connections>
                             </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Environment" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="V6p-hr-IUE">
+                                <rect key="frame" x="10" y="840" width="394" height="12"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="10"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -116,8 +122,10 @@
                             <constraint firstItem="qhD-Ar-bVI" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="2t6-Ye-670"/>
                             <constraint firstItem="z4d-Kt-WJs" firstAttribute="top" secondItem="GfE-v1-Dfm" secondAttribute="bottom" constant="10" id="5Fw-t4-0AB"/>
                             <constraint firstItem="MLh-Ll-Ryr" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="30" id="9am-oo-xrB"/>
+                            <constraint firstItem="V6p-hr-IUE" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" constant="-10" id="CrX-Dy-c99"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="MLh-Ll-Ryr" secondAttribute="trailing" constant="30" id="CwS-bk-NGg"/>
                             <constraint firstItem="HDL-DH-v9R" firstAttribute="top" secondItem="z4d-Kt-WJs" secondAttribute="bottom" constant="30" id="H7G-et-nzB"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="V6p-hr-IUE" secondAttribute="trailing" constant="10" id="I7O-jO-cOJ"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="HDL-DH-v9R" secondAttribute="trailing" constant="30" id="IMG-fp-iXT"/>
                             <constraint firstItem="z4d-Kt-WJs" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="MgJ-gZ-gtY"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="GfE-v1-Dfm" secondAttribute="trailing" constant="30" id="UJE-Ni-Txm"/>
@@ -134,11 +142,13 @@
                             <constraint firstItem="HDL-DH-v9R" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="30" id="pzO-jA-MTe"/>
                             <constraint firstItem="wzw-DY-Om3" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="50" id="uQg-B1-8tM"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="Sq2-dL-w4H" secondAttribute="trailing" id="yZv-r3-hGl"/>
+                            <constraint firstItem="V6p-hr-IUE" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="10" id="yuE-rw-NKO"/>
                         </constraints>
                     </view>
                     <connections>
                         <outlet property="callView" destination="qhD-Ar-bVI" id="mIz-Bj-zmd"/>
                         <outlet property="connectButton" destination="HDL-DH-v9R" id="DDG-vM-oNk"/>
+                        <outlet property="environment" destination="V6p-hr-IUE" id="lrC-vY-gWt"/>
                         <outlet property="incomingCallView" destination="z4d-Kt-WJs" id="xkP-lK-Kxj"/>
                         <outlet property="logo" destination="wzw-DY-Om3" id="5Uq-64-HAS"/>
                         <outlet property="sessionIdLabel" destination="QiW-C2-v1t" id="1Jq-zS-Mt2"/>

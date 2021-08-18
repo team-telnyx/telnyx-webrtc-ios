@@ -22,6 +22,7 @@ class ViewController: UIViewController {
     let callKitCallController = CXCallController()
     var loadingView: UIAlertController?
 
+    @IBOutlet weak var environment: UILabel!
     @IBOutlet weak var logo: UIImageView!
     @IBOutlet weak var sessionIdLabel: UILabel!
     @IBOutlet weak var socketStateLabel: UILabel!
@@ -70,6 +71,7 @@ class ViewController: UIViewController {
         let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.handleLongPress))
         self.logo.addGestureRecognizer(longPressRecognizer)
         self.logo.isUserInteractionEnabled = true
+        self.updateEnvironment()
     }
     
     @objc func handleLongPress(gesture: UILongPressGestureRecognizer) {
@@ -83,12 +85,20 @@ class ViewController: UIViewController {
         let alert = UIAlertController(title: "Select WebRTC environment", message: "", preferredStyle: .actionSheet)
         alert.addAction(UIAlertAction(title: "Development", style: .default , handler:{ (UIAlertAction)in
             self.serverConfig = TxServerConfiguration(environment: .development)
+            self.updateEnvironment()
         }))
         
         alert.addAction(UIAlertAction(title: "Production", style: .default , handler:{ (UIAlertAction)in
             self.serverConfig = nil
+            self.updateEnvironment()
         }))
         self.present(alert, animated: true, completion: nil)
+    }
+
+    func updateEnvironment() {
+        DispatchQueue.main.async {
+            self.environment.text = (self.serverConfig?.environment == .development) ? "Development" : "Production"
+        }
     }
 
     func updateButtonsState() {
