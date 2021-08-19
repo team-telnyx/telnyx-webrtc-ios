@@ -6,12 +6,14 @@
 //
 
 import Foundation
+import TelnyxRTC
 
 fileprivate let PUSH_DEVICE_TOKEN = ""
 
 fileprivate let SIP_USER = "SIP_USER"
 fileprivate let SIP_USER_PASSWORD = "SIP_USER_PASSWORD"
 fileprivate let CALL_DESTINATION = "CALL_DESTINATION"
+fileprivate let WEBRTC_ENVIRONMENT = "WEBRTC_ENVIRONMENT"
 
 extension UserDefaults {
 
@@ -53,5 +55,16 @@ extension UserDefaults {
     func getSipUserPassword() -> String {
         let userDefaults = UserDefaults.standard
         return userDefaults.string(forKey: SIP_USER_PASSWORD) ?? ""
+    }
+
+    func saveEnvironment(environment: WebRTCEnvironment) {
+        let userDefaults = UserDefaults.standard
+        userDefaults.set((environment == .development) ? "development" : "production", forKey: WEBRTC_ENVIRONMENT)
+        userDefaults.synchronize()
+    }
+
+    func getEnvironment() -> WebRTCEnvironment {
+        let userDefaults = UserDefaults.standard
+        return (userDefaults.string(forKey: WEBRTC_ENVIRONMENT) == "development") ? .development : .production
     }
 }

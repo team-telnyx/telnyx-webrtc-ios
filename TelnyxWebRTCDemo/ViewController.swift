@@ -71,6 +71,10 @@ class ViewController: UIViewController {
         let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.handleLongPress))
         self.logo.addGestureRecognizer(longPressRecognizer)
         self.logo.isUserInteractionEnabled = true
+
+        if self.userDefaults.getEnvironment() == .development {
+            self.serverConfig = TxServerConfiguration(environment: .development)
+        }
         self.updateEnvironment()
     }
     
@@ -85,11 +89,13 @@ class ViewController: UIViewController {
         let alert = UIAlertController(title: "Options", message: "", preferredStyle: .actionSheet)
         alert.addAction(UIAlertAction(title: "Development Environment", style: .default , handler:{ (UIAlertAction)in
             self.serverConfig = TxServerConfiguration(environment: .development)
+            self.userDefaults.saveEnvironment(environment: .development)
             self.updateEnvironment()
         }))
         
         alert.addAction(UIAlertAction(title: "Production Environment", style: .default , handler:{ (UIAlertAction)in
             self.serverConfig = nil
+            self.userDefaults.saveEnvironment(environment: .production)
             self.updateEnvironment()
         }))
 
