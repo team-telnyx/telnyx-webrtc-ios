@@ -163,7 +163,11 @@ class ViewController: UIViewController {
             }
 
             do {
-                try telnyxClient.connect(txConfig: txConfig!, serverConfiguration: self.serverConfig)
+                if let serverConfig = serverConfig {
+                    try telnyxClient.connect(txConfig: txConfig!, serverConfiguration: serverConfig)
+                } else {
+                    try telnyxClient.connect(txConfig: txConfig!)
+                }
                 self.showLoadingView()
             } catch let error {
                 print("ViewController:: connect Error \(error)")

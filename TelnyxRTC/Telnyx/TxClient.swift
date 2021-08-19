@@ -158,7 +158,7 @@ public class TxClient {
     ///   - txConfig: The desired login credentials. See TxConfig docummentation for more information.
     ///   - serverConfiguration: (Optional) To define a custom `signaling server` and `TURN/ STUN servers`. As default we use the internal Telnyx Production servers.
     /// - Throws: TxConfig parameters errors
-    public func connect(txConfig: TxConfig, serverConfiguration: TxServerConfiguration? = nil) throws {
+    public func connect(txConfig: TxConfig, serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
         Logger.log.i(message: "TxClient:: connect()")
         //Check connetion parameters
         try txConfig.validateParams()
@@ -167,11 +167,8 @@ public class TxClient {
         self.gatewayState = .NOREG
         self.txConfig = txConfig
 
-        if let serverConfiguration = serverConfiguration {
-            self.serverConfiguration = serverConfiguration
-        } else {
-            self.serverConfiguration = TxServerConfiguration()
-        }
+        self.serverConfiguration = serverConfiguration
+
         Logger.log.i(message: "TxClient:: serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
 
         self.socket = Socket()
@@ -389,7 +386,7 @@ extension TxClient {
     /// - Parameters:
     ///   - txConfig: The desired configuration to login to B2B2UA. User credentials must be the same as the
     /// - Throws: Error during the connection process
-    public func processVoIPNotification(txConfig: TxConfig, serverConfiguration: TxServerConfiguration? = nil) throws {
+    public func processVoIPNotification(txConfig: TxConfig, serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
         Logger.log.i(message: "TxClient:: processVoIPNotification()")
         // Check if we are already connected and logged in
         if !isConnected() &&
