@@ -8,7 +8,7 @@
 
 import Foundation
 
-enum environments: String {
+enum appMode: String {
     case production = "production"
     case debug = "debug"
 }
@@ -37,9 +37,9 @@ class LoginMessage : Message {
         // This new field is required to allow our PN service to determine
         // if the push has to be send to APNS Sandbox (app is in debug mode) or production
         #if DEBUG
-        userVariables["environment"] = environments.debug.rawValue
+        userVariables["environment"] = appMode.debug.rawValue
         #else
-        userVariables["environment"] = environments.production.rawValue
+        userVariables["environment"] = appMode.production.rawValue
         #endif
 
         params["loginParams"] = [String: String]()
