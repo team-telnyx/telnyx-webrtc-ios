@@ -132,6 +132,7 @@ public class TxClient {
 
     private var sessionId : String?
     private var txConfig: TxConfig?
+    private var serverConfiguration: TxServerConfiguration
 
     private var registerRetryCount: Int = MAX_REGISTER_RETRY
     private var registerTimer: Timer = Timer()
@@ -147,14 +148,17 @@ public class TxClient {
     // MARK: - Initializers
     /// TxClient has to be instantiated.
     public init() {
+        self.serverConfiguration = TxServerConfiguration()
         self.configure()
     }
 
     // MARK: - Connection handling
     /// Connects to the iOS client to the Telnyx signaling server using the desired login credentials.
-    /// - Parameter txConfig: The desired login credentials. See TxConfig docummentation for more information.
+    /// - Parameters:
+    ///   - txConfig: The desired login credentials. See TxConfig docummentation for more information.
+    ///   - serverConfiguration: (Optional) To define a custom `signaling server` and `TURN/ STUN servers`. As default we use the internal Telnyx Production servers.
     /// - Throws: TxConfig parameters errors
-    public func connect(txConfig: TxConfig) throws {
+    public func connect(txConfig: TxConfig, serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
         Logger.log.i(message: "TxClient:: connect()")
         //Check connetion parameters
         try txConfig.validateParams()
@@ -162,9 +166,14 @@ public class TxClient {
         self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
         self.gatewayState = .NOREG
         self.txConfig = txConfig
+
+        self.serverConfiguration = serverConfiguration
+
+        Logger.log.i(message: "TxClient:: serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
+
         self.socket = Socket()
         self.socket?.delegate = self
-        self.socket?.connect()
+        self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
     }
 
     /// Disconnects the TxClient from the Telnyx signaling server.
@@ -319,7 +328,8 @@ extension TxClient {
                         socket: socket,
                         delegate: self,
                         ringtone: self.txConfig?.ringtone,
-                        ringbackTone: self.txConfig?.ringBackTone)
+                        ringbackTone: self.txConfig?.ringBackTone,
+                        iceServers: self.serverConfiguration.webRTCIceServers)
         call.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState)
 
         self.calls[callId] = call
@@ -354,7 +364,8 @@ extension TxClient {
                         telnyxSessionId: UUID(uuidString: telnyxSessionId),
                         telnyxLegId: UUID(uuidString: telnyxLegId),
                         ringtone: self.txConfig?.ringtone,
-                        ringbackTone: self.txConfig?.ringBackTone)
+                        ringbackTone: self.txConfig?.ringBackTone,
+                        iceServers: self.serverConfiguration.webRTCIceServers)
         call.callInfo?.callerName = callerName
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)
@@ -375,12 +386,12 @@ extension TxClient {
     /// - Parameters:
     ///   - txConfig: The desired configuration to login to B2B2UA. User credentials must be the same as the
     /// - Throws: Error during the connection process
-    public func processVoIPNotification(txConfig: TxConfig) throws {
+    public func processVoIPNotification(txConfig: TxConfig, serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
         Logger.log.i(message: "TxClient:: processVoIPNotification()")
         // Check if we are already connected and logged in
         if !isConnected() &&
             getSessionId().isEmpty {
-            try self.connect(txConfig: txConfig)
+            try self.connect(txConfig: txConfig, serverConfiguration: serverConfiguration)
         }
     }
 }

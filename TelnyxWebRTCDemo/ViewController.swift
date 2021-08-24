@@ -10,6 +10,7 @@ import UIKit
 import CallKit
 import TelnyxRTC
 
+
 class ViewController: UIViewController {
 
     var userDefaults: UserDefaults = UserDefaults.init()
@@ -21,6 +22,8 @@ class ViewController: UIViewController {
     let callKitCallController = CXCallController()
     var loadingView: UIAlertController?
 
+    @IBOutlet weak var environment: UILabel!
+    @IBOutlet weak var logo: UIImageView!
     @IBOutlet weak var sessionIdLabel: UILabel!
     @IBOutlet weak var socketStateLabel: UILabel!
     @IBOutlet weak var callView: UICallScreen!
@@ -28,6 +31,8 @@ class ViewController: UIViewController {
     @IBOutlet weak var incomingCallView: UIIncomingCallView!
     @IBOutlet weak var connectButton: UIButton!
     
+    var serverConfig: TxServerConfiguration?
+
     override func viewDidLoad() {
         super.viewDidLoad()
         print("ViewController:: viewDidLoad()")
@@ -61,6 +66,51 @@ class ViewController: UIViewController {
         self.settingsView.isHidden = false
         self.settingsView.sipUsernameLabel.text = userDefaults.getSipUser()
         self.settingsView.passwordUserNameLabel.text = userDefaults.getSipUserPassword()
+
+        // Environment Selector
+        let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.handleLongPress))
+        self.logo.addGestureRecognizer(longPressRecognizer)
+        self.logo.isUserInteractionEnabled = true
+
+        if self.userDefaults.getEnvironment() == .development {
+            self.serverConfig = TxServerConfiguration(environment: .development)
+        }
+        self.updateEnvironment()
+    }
+    
+    @objc func handleLongPress(gesture: UILongPressGestureRecognizer) {
+        if gesture.state == UIGestureRecognizer.State.began {
+            // Internal use only
+            self.showHiddenOptions()
+        }
+    }
+
+    func showHiddenOptions() {
+        let alert = UIAlertController(title: "Options", message: "", preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "Development Environment", style: .default , handler:{ (UIAlertAction)in
+            self.serverConfig = TxServerConfiguration(environment: .development)
+            self.userDefaults.saveEnvironment(environment: .development)
+            self.updateEnvironment()
+        }))
+        
+        alert.addAction(UIAlertAction(title: "Production Environment", style: .default , handler:{ (UIAlertAction)in
+            self.serverConfig = nil
+            self.userDefaults.saveEnvironment(environment: .production)
+            self.updateEnvironment()
+        }))
+
+        alert.addAction(UIAlertAction(title: "Copy APNS token", style: .default , handler:{ (UIAlertAction)in
+            // To copy the APNS push token to pasteboard
+            let token = UserDefaults.init().getPushToken()
+            UIPasteboard.general.string = token
+        }))
+        self.present(alert, animated: true, completion: nil)
+    }
+
+    func updateEnvironment() {
+        DispatchQueue.main.async {
+            self.environment.text = (self.serverConfig?.environment == .development) ? "Development" : "Production"
+        }
     }
 
     func updateButtonsState() {
@@ -119,7 +169,11 @@ class ViewController: UIViewController {
             }
 
             do {
-                try telnyxClient.connect(txConfig: txConfig!)
+                if let serverConfig = serverConfig {
+                    try telnyxClient.connect(txConfig: txConfig!, serverConfiguration: serverConfig)
+                } else {
+                    try telnyxClient.connect(txConfig: txConfig!)
+                }
                 self.showLoadingView()
             } catch let error {
                 print("ViewController:: connect Error \(error)")

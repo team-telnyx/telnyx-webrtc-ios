@@ -241,7 +241,11 @@ extension ViewController : PushKitDelegate {
                                 logLevel: .all)
 
         do {
-            try self.telnyxClient?.processVoIPNotification(txConfig: txConfig)
+            if let serverConfig = serverConfig {
+                try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig)
+            } else {
+                try telnyxClient?.processVoIPNotification(txConfig: txConfig)
+            }
         } catch let error {
             print("ViewController:: processVoIPNotification Error \(error)")
         }

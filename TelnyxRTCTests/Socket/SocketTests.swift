@@ -43,7 +43,7 @@ class SocketTests : XCTestCase, SocketDelegate {
         socketConnectedExpectation = expectation(description: "socketConnection")
         let socket = Socket()
         socket.delegate = self
-        socket.connect()
+        socket.connect(signalingServer: InternalConfig.default.prodSignalingServer)
         waitForExpectations(timeout: 5)
         XCTAssertTrue(socket.isConnected)
 

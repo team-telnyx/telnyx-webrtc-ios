@@ -88,10 +88,10 @@ protocol CallProtocol: AnyObject {
 public class Call {
 
     var direction: CallDirection = .OUTBOUND
-    var config: InternalConfig = InternalConfig.default
     var peer: Peer?
     weak var socket: Socket?
     weak var delegate: CallProtocol?
+    var iceServers: [RTCIceServer]
 
     var remoteSdp: String?
     var callOptions: TxCallOptions?
@@ -122,7 +122,8 @@ public class Call {
          telnyxSessionId: UUID? = nil,
          telnyxLegId: UUID? = nil,
          ringtone: String? = nil,
-         ringbackTone: String? = nil) {
+         ringbackTone: String? = nil,
+         iceServers: [RTCIceServer]) {
         self.direction = CallDirection.INBOUND
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
@@ -136,12 +137,15 @@ public class Call {
         self.callInfo = TxCallInfo(callId: callId)
         self.delegate = delegate
 
+        // Configure iceServers
+        self.iceServers = iceServers
+
         //Ringtone and ringbacktone
         self.ringTonePlayer = self.buildAudioPlayer(fileName: ringtone)
         self.ringbackPlayer = self.buildAudioPlayer(fileName: ringbackTone)
 
         self.playRingtone()
-        
+
         updateCallState(callState: .NEW)
     }
 
@@ -151,13 +155,17 @@ public class Call {
          socket: Socket,
          delegate: CallProtocol,
          ringtone: String? = nil,
-         ringbackTone: String? = nil) {
+         ringbackTone: String? = nil,
+         iceServers: [RTCIceServer]) {
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
         //this is the signaling server socket
         self.socket = socket
         self.callInfo = TxCallInfo(callId: callId)
         self.delegate = delegate
+
+        // Configure iceServers
+        self.iceServers = iceServers
 
         //Ringtone and ringbacktone
         self.ringTonePlayer = self.buildAudioPlayer(fileName: ringtone)
@@ -178,7 +186,7 @@ public class Call {
         self.callOptions = TxCallOptions(destinationNumber: destinationNumber,
                                          clientState: clientState)
 
-        self.peer = Peer(iceServers: self.config.webRTCIceServers)
+        self.peer = Peer(iceServers: self.iceServers)
         self.peer?.delegate = self
         self.peer?.offer(completion: { (sdp, error)  in
             
@@ -272,7 +280,7 @@ extension Call {
         guard let remoteSdp = self.remoteSdp else {
             return
         }
-        self.peer = Peer(iceServers: self.config.webRTCIceServers)
+        self.peer = Peer(iceServers: self.iceServers)
         self.peer?.delegate = self
         self.incomingOffer(sdp: remoteSdp)
         self.peer?.answer(completion: { (sdp, error)  in
