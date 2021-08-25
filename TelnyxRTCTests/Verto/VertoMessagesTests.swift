@@ -70,7 +70,7 @@ class VertoMessagesTests: XCTestCase {
         let userVariables = loginWithUserAndPassoword.params?["userVariables"] as? [String: Any]
         let loginEncodedPushToken : String = userVariables?["push_device_token"] as! String
         let loginEncodedPushProvider : String = userVariables?["push_notification_provider"] as! String
-        let environment : String = userVariables?["environment"] as! String
+        let environment : String = userVariables?["push_notification_environment"] as! String
 
         XCTAssertEqual(loginUser, userName)
         XCTAssertEqual(loginPassword, password)
@@ -90,7 +90,7 @@ class VertoMessagesTests: XCTestCase {
         let userVariablesDecoded = decodeLogin?.params?["userVariables"] as? [String: Any]
         let decodedPushToken : String = userVariablesDecoded?["push_device_token"] as! String
         let decodedPushProvider : String = userVariablesDecoded?["push_notification_provider"] as! String
-        let decodedEnvironment : String = userVariablesDecoded?["environment"] as! String
+        let decodedEnvironment : String = userVariablesDecoded?["push_notification_environment"] as! String
 
         #if DEBUG
         XCTAssertEqual(decodedEnvironment, "debug")
