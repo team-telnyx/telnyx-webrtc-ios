@@ -18,8 +18,6 @@ class ViewController: UIViewController {
     var currentCall: Call?
     var incomingCall: Bool = false
 
-    var callKitProvider: CXProvider?
-    let callKitCallController = CXCallController()
     var loadingView: UIAlertController?
 
     @IBOutlet weak var environment: UILabel!
@@ -37,18 +35,9 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         print("ViewController:: viewDidLoad()")
 
-        self.telnyxClient = appDelegate.getTelnyxClient()
+        self.telnyxClient = appDelegate.telnyxClient
         self.telnyxClient?.delegate = self
         self.initViews()
-
-        self.initCallKit()
-    }
-
-    deinit {
-        // CallKit has an odd API contract where the developer must call invalidate or the CXProvider is leaked.
-        if let provider = callKitProvider {
-            provider.invalidate()
-        }
     }
 
     func initViews() {
@@ -258,7 +247,7 @@ extension ViewController: TxClientDelegate {
         print("ViewController:: TxClientDelegate onIncomingCall() Error unknown call UUID: \(callId)")
         
         if let currentCallUUID = self.currentCall?.callInfo?.callId {
-            self.executeEndCallAction(uuid: currentCallUUID) //Hangup the previous call if there's one active
+            appDelegate.executeEndCallAction(uuid: currentCallUUID) //Hangup the previous call if there's one active
         }
         self.currentCall = call //Update the current call with the incoming call
         self.incomingCall = true
@@ -270,13 +259,13 @@ extension ViewController: TxClientDelegate {
             self.view.endEditing(true)
         }
 
-        self.newIncomingCall(from: call.callInfo?.callerName ?? "Unknown", uuid: callId)
+        appDelegate.newIncomingCall(from: call.callInfo?.callerName ?? "Unknown", uuid: callId)
     }
 
     func onRemoteCallEnded(callId: UUID) {
         print("ViewController:: TxClientDelegate onRemoteCallEnded() callId: \(callId)")
         let reason = CXCallEndedReason.remoteEnded
-        if let provider = callKitProvider {
+        if let provider = appDelegate.callKitProvider {
             provider.reportCall(with: callId, endedAt: Date(), reason: reason)
         }
     }
@@ -337,12 +326,12 @@ extension ViewController : UICallScreenDelegate {
         let uuid = UUID()
         let handle = "Telnyx"
         
-        self.executeStartCallAction(uuid: uuid, handle: handle)
+        appDelegate.executeStartCallAction(uuid: uuid, handle: handle)
     }
     
     func onEndCallButton() {
         guard let uuid = self.currentCall?.callInfo?.callId else { return }
-        self.executeEndCallAction(uuid: uuid)
+        appDelegate.executeEndCallAction(uuid: uuid)
     }
     
     func onMuteUnmuteSwitch(isMuted: Bool) {
