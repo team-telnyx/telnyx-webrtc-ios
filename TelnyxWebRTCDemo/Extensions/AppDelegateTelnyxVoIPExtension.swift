@@ -9,6 +9,7 @@ import Foundation
 import TelnyxRTC
 
 extension AppDelegate: TxClientDelegate {
+    
     func onSocketConnected() {
         print("AppDelegate:: TxClientDelegate onSocketConnected()")
         self.voipDelegate?.onSocketConnected()
@@ -47,6 +48,11 @@ extension AppDelegate: TxClientDelegate {
         self.currentCall = call //Update the current call with the incoming call
         self.newIncomingCall(from: call.callInfo?.callerName ?? "Unknown", uuid: callId)
         self.voipDelegate?.onIncomingCall(call: call)
+    }
+    
+    func onPushCall(call: Call) {
+        print("AppDelegate:: TxClientDelegate onPushCall() \(call)")
+        self.currentCall = call //Update the current call with the incoming call
     }
     
     func onRemoteCallEnded(callId: UUID) {

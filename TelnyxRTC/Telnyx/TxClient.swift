@@ -137,6 +137,7 @@ public class TxClient {
     private var registerRetryCount: Int = MAX_REGISTER_RETRY
     private var registerTimer: Timer = Timer()
     private var gatewayState: GatewayStates = .NOREG
+    private var waitingCallFromPush: Bool = false
 
     /// Client must be registered in order to receive or place calls.
     public var isRegistered: Bool {
@@ -373,7 +374,13 @@ extension TxClient {
         self.calls[callId] = call
         // propagate the incoming call to the App
         Logger.log.i(message: "TxClient:: push flow createIncomingCall \(call)")
-        self.delegate?.onIncomingCall(call: call)
+        
+        if waitingCallFromPush {
+            self.delegate?.onPushCall(call: call)
+        } else {
+            self.delegate?.onIncomingCall(call: call)
+        }
+        self.waitingCallFromPush = false
     }
 }
 
@@ -389,6 +396,7 @@ extension TxClient {
     public func processVoIPNotification(txConfig: TxConfig,
                                         serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
         Logger.log.i(message: "TxClient:: push flow voIPUUID")
+        self.waitingCallFromPush = true
         // Check if we are already connected and logged in
         if !isConnected() {
             Logger.log.i(message: "TxClient:: push flow connect")
