@@ -23,14 +23,16 @@ protocol VoIPDelegate: AnyObject {
     func onPushNotificationReceived(payload: PKPushPayload)
     func executeAnswerCall(uuid: UUID, completionHandler: @escaping (_ success: Bool) -> Void)
     func executeEndCall(uuid: UUID, completionHandler: @escaping (_ success: Bool) -> Void)
-    func executeCall(action: CXStartCallAction, completionHandler: @escaping (_ success: Bool) -> Void)
+    func executeCall(action: CXStartCallAction, completionHandler: @escaping (_ success: Call?) -> Void)
 }
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
+    var onlyOne: Bool = false
     var window: UIWindow?
     var telnyxClient : TxClient?
+    var currentCall: Call?
     private var pushRegistry = PKPushRegistry.init(queue: DispatchQueue.main)
     weak var voipDelegate: VoIPDelegate?
     var callKitProvider: CXProvider?

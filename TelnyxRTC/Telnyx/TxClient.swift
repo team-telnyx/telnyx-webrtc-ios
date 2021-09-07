@@ -138,8 +138,6 @@ public class TxClient {
     private var registerTimer: Timer = Timer()
     private var gatewayState: GatewayStates = .NOREG
 
-    private var pushCallUUIID: UUID?
-
     /// Client must be registered in order to receive or place calls.
     public var isRegistered: Bool {
         get {
@@ -373,15 +371,9 @@ extension TxClient {
         call.callOptions = TxCallOptions(audio: true)
 
         self.calls[callId] = call
-
-        if self.pushCallUUIID == nil {
-            // propagate the incoming call to the App
-            Logger.log.i(message: "TxClient:: push flow createIncomingCall \(call)")
-            self.delegate?.onIncomingCall(call: call)
-        } else {
-            Logger.log.i(message: "TxClient:: push flow do nothing")
-            self.pushCallUUIID = nil
-        }
+        // propagate the incoming call to the App
+        Logger.log.i(message: "TxClient:: push flow createIncomingCall \(call)")
+        self.delegate?.onIncomingCall(call: call)
     }
 }
 
@@ -394,11 +386,9 @@ extension TxClient {
     /// - Parameters:
     ///   - txConfig: The desired configuration to login to B2B2UA. User credentials must be the same as the
     /// - Throws: Error during the connection process
-    public func processVoIPNotification(voipActionUUID: UUID,
-                                        txConfig: TxConfig,
+    public func processVoIPNotification(txConfig: TxConfig,
                                         serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
-        Logger.log.i(message: "TxClient:: push flow voIPUUID \(voipActionUUID)")
-        self.pushCallUUIID = voipActionUUID
+        Logger.log.i(message: "TxClient:: push flow voIPUUID")
         // Check if we are already connected and logged in
         if !isConnected() {
             Logger.log.i(message: "TxClient:: push flow connect")

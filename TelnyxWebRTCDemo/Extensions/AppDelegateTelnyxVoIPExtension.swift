@@ -35,26 +35,18 @@ extension AppDelegate: TxClientDelegate {
     }
     
     func onIncomingCall(call: Call) {
+        guard let callId = call.callInfo?.callId else {
+            print("AppDelegate:: TxClientDelegate onIncomingCall() Error unknown call UUID")
+            return
+        }
+        print("AppDelegate:: TxClientDelegate onIncomingCall() Error unknown call UUID: \(callId)")
+
+        if let currentCallUUID = self.currentCall?.callInfo?.callId {
+            executeEndCallAction(uuid: currentCallUUID) //Hangup the previous call if there's one active
+        }
+        self.currentCall = call //Update the current call with the incoming call
+        newIncomingCall(from: call.callInfo?.callerName ?? "Unknown", uuid: callId)
         self.voipDelegate?.onIncomingCall(call: call)
-//        guard let callId = call.callInfo?.callId else {
-//            print("ViewController:: TxClientDelegate onIncomingCall() Error unknown call UUID")
-//            return
-//        }
-//        print("ViewController:: TxClientDelegate onIncomingCall() Error unknown call UUID: \(callId)")
-//
-//        if let currentCallUUID = self.currentCall?.callInfo?.callId {
-//            appDelegate.executeEndCallAction(uuid: currentCallUUID) //Hangup the previous call if there's one active
-//        }
-//        self.currentCall = call //Update the current call with the incoming call
-//        self.incomingCall = true
-//        DispatchQueue.main.async {
-//            self.updateButtonsState()
-//            self.incomingCallView.isHidden = false
-//            self.callView.isHidden = true
-//            //Hide the keyboard
-//            self.view.endEditing(true)
-//        }
-//        appDelegate.newIncomingCall(from: call.callInfo?.callerName ?? "Unknown", uuid: callId)
     }
     
     func onRemoteCallEnded(callId: UUID) {
@@ -63,5 +55,12 @@ extension AppDelegate: TxClientDelegate {
     
     func onCallStateUpdated(callState: CallState, callId: UUID) {
         self.voipDelegate?.onCallStateUpdated(callState: callState, callId: callId)
+        
+        if callState == .DONE {
+            if let currentCallId = self.currentCall?.callInfo?.callId,
+               currentCallId == callId {
+                self.currentCall = nil // clear current call
+            }
+        }
     }
 }

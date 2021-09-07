@@ -72,16 +72,6 @@ extension ViewController : VoIPDelegate {
     }
     
     func onIncomingCall(call: Call) {
-        guard let callId = call.callInfo?.callId else {
-            print("ViewController:: TxClientDelegate onIncomingCall() Error unknown call UUID")
-            return
-        }
-        print("ViewController:: TxClientDelegate onIncomingCall() Error unknown call UUID: \(callId)")
-        
-        if let currentCallUUID = self.currentCall?.callInfo?.callId {
-            appDelegate.executeEndCallAction(uuid: currentCallUUID) //Hangup the previous call if there's one active
-        }
-        self.currentCall = call //Update the current call with the incoming call
         self.incomingCall = true
         DispatchQueue.main.async {
             self.updateButtonsState()
@@ -90,7 +80,6 @@ extension ViewController : VoIPDelegate {
             //Hide the keyboard
             self.view.endEditing(true)
         }
-        appDelegate.newIncomingCall(from: call.callInfo?.callerName ?? "Unknown", uuid: callId)
     }
     
     func onRemoteCallEnded(callId: UUID) {
@@ -115,10 +104,6 @@ extension ViewController : VoIPDelegate {
                     self.callView.isHidden = false
                     break
                 case .DONE:
-                    if let currentCallId = self.currentCall?.callInfo?.callId,
-                       currentCallId == callId {
-                        self.currentCall = nil // clear current call
-                    }
                     self.resetCallStates()
                     break
                 case .HELD:
@@ -128,7 +113,7 @@ extension ViewController : VoIPDelegate {
         }
     }
     
-    func executeCall(action: CXStartCallAction, completionHandler: @escaping (Bool) -> Void) {
+    func executeCall(action: CXStartCallAction, completionHandler: @escaping (Call?) -> Void) {
         do {
             guard let callerName = self.settingsView.callerIdNameLabel.text,
                   let callerNumber = self.settingsView.callerIdNumberLabel.text,
@@ -137,14 +122,14 @@ extension ViewController : VoIPDelegate {
                 return
             }
             
-            self.currentCall = try telnyxClient?.newCall(callerName: callerName,
+            let call = try telnyxClient?.newCall(callerName: callerName,
                                                          callerNumber: callerNumber,
                                                          destinationNumber: destinationNumber,
                                                          callId: action.callUUID)
-            completionHandler(true)
+            completionHandler(call)
         } catch let error {
             print("ViewController:: executeCall Error \(error)")
-            completionHandler(false)
+            completionHandler(nil)
         }
     }
 

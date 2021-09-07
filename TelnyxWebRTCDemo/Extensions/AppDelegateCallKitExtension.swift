@@ -54,6 +54,7 @@ extension AppDelegate : CXProviderDelegate {
     func newIncomingCall(from: String, uuid: UUID) {
 
         self.processVoIPNotification(callUUID: uuid)
+
         #if targetEnvironment(simulator)
         //Do not execute this function when debugging on the simulator.
         //By reporting a call through CallKit from the simulator, it automatically cancels the call.
@@ -104,8 +105,9 @@ extension AppDelegate : CXProviderDelegate {
     // MARK: - CXProviderDelegate -
     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
         print("provider: CXStartCallAction:")
-        self.voipDelegate?.executeCall(action: action) { success in
-            if success {
+        self.voipDelegate?.executeCall(action: action) { call in
+            self.currentCall = call
+            if call != nil {
                 print("performVoiceCall() successful")
                 provider.reportOutgoingCall(with: action.callUUID, connectedAt: Date())
             } else {
@@ -117,18 +119,13 @@ extension AppDelegate : CXProviderDelegate {
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         print("provider: performAnswerCallAction: \(action.callUUID)")
-
-        if let call = self.telnyxClient?.calls[action.callUUID] {
-            call.answer()
-        }
+        self.currentCall?.answer()
         action.fulfill()
     }
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         print("provider:performEndCallAction: \(action.callUUID)")
-        if let call = self.telnyxClient?.calls[action.callUUID] {
-            call.hangup()
-        }
+        self.currentCall?.hangup()
         action.fulfill()
     }
 
@@ -161,7 +158,6 @@ extension AppDelegate : CXProviderDelegate {
     }
     
     func processVoIPNotification(callUUID: UUID) {
-        
         var serverConfig: TxServerConfiguration
         let userDefaults = UserDefaults.init()
         if userDefaults.getEnvironment() == .development {
@@ -184,7 +180,7 @@ extension AppDelegate : CXProviderDelegate {
                                 logLevel: .all)
         
         do {
-            try telnyxClient?.processVoIPNotification(voipActionUUID: callUUID, txConfig: txConfig, serverConfiguration: serverConfig)
+            try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig)
         } catch let error {
             print("ViewController:: processVoIPNotification Error \(error)")
         }

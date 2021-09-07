@@ -15,7 +15,6 @@ class ViewController: UIViewController {
 
     var userDefaults: UserDefaults = UserDefaults.init()
     var telnyxClient: TxClient?
-    var currentCall: Call?
     var incomingCall: Bool = false
 
     var loadingView: UIAlertController?
@@ -102,7 +101,7 @@ class ViewController: UIViewController {
     }
 
     func updateButtonsState() {
-        guard let callState = self.currentCall?.callState else {
+        guard let callState = self.appDelegate.currentCall?.callState else {
             self.callView.updateButtonsState(callState: .DONE, incomingCall: false)
             self.incomingCallView.updateButtonsState(callState: .DONE, incomingCall: incomingCall)
             return
@@ -186,11 +185,11 @@ class ViewController: UIViewController {
 extension ViewController : UIIncomingCallViewDelegate {
 
     func onAnswerButton() {
-        self.currentCall?.answer()
+        self.appDelegate.currentCall?.answer()
     }
 
     func onRejectButton() {
-        self.currentCall?.hangup()
+        self.appDelegate.currentCall?.hangup()
     }
 }
 // MARK: - UICallScreenDelegate
@@ -212,23 +211,23 @@ extension ViewController : UICallScreenDelegate {
     }
     
     func onEndCallButton() {
-        guard let uuid = self.currentCall?.callInfo?.callId else { return }
+        guard let uuid = self.appDelegate.currentCall?.callInfo?.callId else { return }
         appDelegate.executeEndCallAction(uuid: uuid)
     }
     
     func onMuteUnmuteSwitch(isMuted: Bool) {
         if (isMuted) {
-            self.currentCall?.muteAudio()
+            self.appDelegate.currentCall?.muteAudio()
         } else {
-            self.currentCall?.unmuteAudio()
+            self.appDelegate.currentCall?.unmuteAudio()
         }
     }
     
     func onHoldUnholdSwitch(isOnHold: Bool) {
         if (isOnHold) {
-            self.currentCall?.hold()
+            self.appDelegate.currentCall?.hold()
         } else {
-            self.currentCall?.unhold()
+            self.appDelegate.currentCall?.unhold()
         }
     }
 
