@@ -8,6 +8,11 @@
 
 import Foundation
 
+enum appMode: String {
+	case production = "production"
+	case debug = "debug"
+}
+
 class LoginMessage : Message {
         
     //user and password login
@@ -27,6 +32,15 @@ class LoginMessage : Message {
         if let provider = pushNotificationProvider {
             userVariables["push_notification_provider"] = provider
         }
+        
+        // Add device environment debug/ production
+        // This new field is required to allow our PN service to determine
+        // if the push has to be send to APNS Sandbox (app is in debug mode) or production
+        #if DEBUG
+        userVariables["push_notification_environment"] = appMode.debug.rawValue
+        #else
+        userVariables["push_notification_environment"] = appMode.production.rawValue
+        #endif
 
         params["loginParams"] = [String: String]()
         params["userVariables"] = userVariables

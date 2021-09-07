@@ -138,6 +138,9 @@ public class TxClient {
     private var registerTimer: Timer = Timer()
     private var gatewayState: GatewayStates = .NOREG
 
+    private var pushCallUUIID: UUID?
+    private var answerPushCall: Bool = false
+
     /// Client must be registered in order to receive or place calls.
     public var isRegistered: Bool {
         get {
@@ -372,8 +375,29 @@ extension TxClient {
 
         self.calls[callId] = call
 
-        // propagate the incoming call to the App
-        self.delegate?.onIncomingCall(call: call)
+        if self.pushCallUUIID == nil {
+            // propagate the incoming call to the App
+            Logger.log.i(message: "TxClient:: push flow createIncomingCall \(call)")
+            self.delegate?.onIncomingCall(call: call)
+        } else {
+            Logger.log.i(message: "TxClient:: push flow createIncomingCall automatically reject or answer: \(self.answerPushCall)")
+            // If there's a pending call to be answered or rejected
+            // this is part of the push notification flow.
+            // 1. Push notification is received.
+            // 2. If the user press the answer/ reject button we re-connect to the server if we are not connected
+            // 3. Once we are connected we will receive an INVITE message automatically
+            // 4. We need to answer or reject this call
+            
+            // TODO: check if pushCallUUIID matches incoming call message
+            if self.answerPushCall {
+                call.answer()
+                self.delegate?.onRemoteCallAnswered(call: call)
+            } else {
+                call.hangup()
+                self.delegate?.onRemoteCallEnded(callId: self.pushCallUUIID!)
+            }
+            self.pushCallUUIID = nil
+        }
     }
 }
 
@@ -386,12 +410,19 @@ extension TxClient {
     /// - Parameters:
     ///   - txConfig: The desired configuration to login to B2B2UA. User credentials must be the same as the
     /// - Throws: Error during the connection process
-    public func processVoIPNotification(txConfig: TxConfig, serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
-        Logger.log.i(message: "TxClient:: processVoIPNotification()")
+    public func processVoIPNotification(callUUID: UUID,
+                                        answer: Bool,
+                                        txConfig: TxConfig, serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
+        Logger.log.i(message: "TxClient:: push flow callUUID \(callUUID) answer: \(answer)")
         // Check if we are already connected and logged in
         if !isConnected() &&
             getSessionId().isEmpty {
-            try self.connect(txConfig: txConfig, serverConfiguration: serverConfiguration)
+            self.pushCallUUIID = callUUID
+            self.answerPushCall = answer
+            Logger.log.i(message: "TxClient:: push flow connect")
+            try? self.connect(txConfig: txConfig, serverConfiguration: serverConfiguration)
+        } else {
+            // TODO: Check if we need to do something else when we are already connected
         }
     }
 }
@@ -473,6 +504,7 @@ extension TxClient : SocketDelegate {
     func onSocketDisconnected() {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketDisconnected()")
         self.socket = nil
+        self.sessionId = nil
         self.delegate?.onSocketDisconnected()
     }
 
@@ -528,6 +560,12 @@ extension TxClient : SocketDelegate {
                     // If a client try to call beforw been registered, a GATEWAY_DOWN error is received.
                     // Therefore, we need to check the gateway state once we have successfully loged in:
                     self.requestGatewayState()
+                    // If we are going to receive an incoming call
+                    if let params = vertoMessage.params,
+                       let _ = params["reattached_sessions"] {
+                        self.registerTimer.invalidate()
+                        self.delegate?.onClientReady()
+                    }
                     break
 
                 case .INVITE:

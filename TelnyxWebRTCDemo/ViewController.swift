@@ -258,7 +258,6 @@ extension ViewController: TxClientDelegate {
             //Hide the keyboard
             self.view.endEditing(true)
         }
-
         appDelegate.newIncomingCall(from: call.callInfo?.callerName ?? "Unknown", uuid: callId)
     }
 
@@ -267,6 +266,18 @@ extension ViewController: TxClientDelegate {
         let reason = CXCallEndedReason.remoteEnded
         if let provider = appDelegate.callKitProvider {
             provider.reportCall(with: callId, endedAt: Date(), reason: reason)
+        }
+    }
+    
+    func onRemoteCallAnswered(call: Call) {
+        self.currentCall = call
+        self.incomingCall = false
+        DispatchQueue.main.async {
+            self.updateButtonsState()
+            self.incomingCallView.isHidden = false
+            self.callView.isHidden = true
+            //Hide the keyboard
+            self.view.endEditing(true)
         }
     }
 

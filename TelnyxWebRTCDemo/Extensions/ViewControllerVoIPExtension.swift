@@ -25,7 +25,7 @@ extension ViewController : VoIPDelegate {
             // If we are not connected, we need to connect the telnyx client.
             // TODO: we need to automatically ANSWER the call after connecting an receiving the INVITE that matches the
             // UUID of the call
-            self.reconnect()
+            self.reconnect(callUUID: uuid, answer: true)
             completionHandler(true)
         }
     }
@@ -40,7 +40,7 @@ extension ViewController : VoIPDelegate {
             // If we are not connected, we need to connect the telnyx client.
             // TODO: we need to automatically HANGUP the call after connecting an receiving the INVITE that matches the
             // UUID of the call
-            self.reconnect()
+            self.reconnect(callUUID: uuid, answer: false)
             completionHandler(true)
         }
     }
@@ -69,7 +69,7 @@ extension ViewController : VoIPDelegate {
         // no-op for now
     }
     
-    func reconnect() {
+    func reconnect(callUUID: UUID, answer: Bool) {
         let sipUser = userDefaults.getSipUser()
         let password = userDefaults.getSipUserPassword()
         let deviceToken = userDefaults.getPushToken()
@@ -85,9 +85,9 @@ extension ViewController : VoIPDelegate {
         
         do {
             if let serverConfig = serverConfig {
-                try telnyxClient?.connect(txConfig: txConfig, serverConfiguration: serverConfig)
+                try telnyxClient?.processVoIPNotification(callUUID: callUUID, answer: answer, txConfig: txConfig, serverConfiguration: serverConfig)
             } else {
-                try telnyxClient?.connect(txConfig: txConfig)
+                try telnyxClient?.processVoIPNotification(callUUID: callUUID, answer: answer, txConfig: txConfig)
             }
         } catch let error {
             print("ViewController:: processVoIPNotification Error \(error)")
