@@ -20,9 +20,6 @@ protocol VoIPDelegate: AnyObject {
     func onCallStateUpdated(callState: CallState, callId: UUID)
     func onIncomingCall(call: Call)
     func onRemoteCallEnded(callId: UUID)
-    func onPushNotificationReceived(payload: PKPushPayload)
-    func executeAnswerCall(uuid: UUID, completionHandler: @escaping (_ success: Bool) -> Void)
-    func executeEndCall(uuid: UUID, completionHandler: @escaping (_ success: Bool) -> Void)
     func executeCall(action: CXStartCallAction, completionHandler: @escaping (_ success: Call?) -> Void)
 }
 
@@ -107,12 +104,7 @@ extension AppDelegate: PKPushRegistryDelegate {
     func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType) {
         print("pushRegistry:didReceiveIncomingPushWithPayload:forType: old")
         if (payload.type == .voIP) {
-            // TODO: Parse metadata
-            if let aps = payload.dictionaryPayload["aps"] as? [String : Any],
-               let alert = aps["alert"] as? String {
-                self.newIncomingCall(from: alert, uuid: UUID.init())
-                self.voipDelegate?.onPushNotificationReceived(payload: payload)
-            }
+            self.handleVoIPPushNotification(payload: payload)
         }
     }
 
@@ -122,16 +114,29 @@ extension AppDelegate: PKPushRegistryDelegate {
     func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
         print("pushRegistry:didReceiveIncomingPushWithPayload:forType:completion new: \(payload.dictionaryPayload)")
         if (payload.type == .voIP) {
-            // TODO: Parse metadata
-            if let aps = payload.dictionaryPayload["aps"] as? [String : Any],
-               let alert = aps["alert"] as? String {
-                self.newIncomingCall(from: alert, uuid: UUID.init())
-                self.voipDelegate?.onPushNotificationReceived(payload: payload)
-            }
+            self.handleVoIPPushNotification(payload: payload)
         }
 
         if let version = Float(UIDevice.current.systemVersion), version >= 13.0 {
             completion()
+        }
+    }
+
+    func handleVoIPPushNotification(payload: PKPushPayload) {
+        if let metadata = payload.dictionaryPayload["metadata"] as? [String: Any] {
+            let callId = (metadata["callID"] as? String) ?? UUID.init().uuidString
+            let callerName = (metadata["caller_name"] as? String) ?? ""
+            let callerNumber = (metadata["caller_number"] as? String) ?? ""
+            let caller = callerName.isEmpty ? (callerNumber.isEmpty ? "Unknown" : callerNumber) : callerName
+            let uuid = UUID(uuidString: callId)
+            self.newIncomingCall(from: caller, uuid: uuid!)
+            self.processVoIPNotification(callUUID: uuid!)
+        } else {
+            // If there's no available metadata, let's create the notification with dummy data.
+            // TODO: remove this when getting the real payload
+            let uuid = UUID.init()
+            self.newIncomingCall(from: "Incoming call", uuid: uuid)
+            self.processVoIPNotification(callUUID: uuid)
         }
     }
 }

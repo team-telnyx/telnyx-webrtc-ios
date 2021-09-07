@@ -132,16 +132,4 @@ extension ViewController : VoIPDelegate {
             completionHandler(nil)
         }
     }
-
-    func executeAnswerCall(uuid: UUID, completionHandler: @escaping (_ success: Bool) -> Void) {
-        // TODO: Update ui
-    }
-    
-    func executeEndCall(uuid: UUID, completionHandler: @escaping (Bool) -> Void) {
-		// TODO: update UI
-    }
-    
-    func onPushNotificationReceived(payload: PKPushPayload) {
-        // no-op for now
-    }
 }

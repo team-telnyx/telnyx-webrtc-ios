@@ -52,9 +52,6 @@ extension AppDelegate : CXProviderDelegate {
     ///   - from: Caller name
     ///   - uuid: uuid of the incoming call
     func newIncomingCall(from: String, uuid: UUID) {
-
-        self.processVoIPNotification(callUUID: uuid)
-
         #if targetEnvironment(simulator)
         //Do not execute this function when debugging on the simulator.
         //By reporting a call through CallKit from the simulator, it automatically cancels the call.

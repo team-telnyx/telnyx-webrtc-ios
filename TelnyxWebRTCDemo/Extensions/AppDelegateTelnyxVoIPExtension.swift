@@ -45,7 +45,7 @@ extension AppDelegate: TxClientDelegate {
             executeEndCallAction(uuid: currentCallUUID) //Hangup the previous call if there's one active
         }
         self.currentCall = call //Update the current call with the incoming call
-        newIncomingCall(from: call.callInfo?.callerName ?? "Unknown", uuid: callId)
+        self.newIncomingCall(from: call.callInfo?.callerName ?? "Unknown", uuid: callId)
         self.voipDelegate?.onIncomingCall(call: call)
     }
     
