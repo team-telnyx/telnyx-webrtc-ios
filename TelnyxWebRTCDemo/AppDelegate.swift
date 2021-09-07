@@ -12,6 +12,14 @@ import CallKit
 import TelnyxRTC
 
 protocol VoIPDelegate: AnyObject {
+    func onSocketConnected()
+    func onSocketDisconnected()
+    func onClientError(error: Error)
+    func onClientReady()
+    func onSessionUpdated(sessionId: String)
+    func onCallStateUpdated(callState: CallState, callId: UUID)
+    func onIncomingCall(call: Call)
+    func onRemoteCallEnded(callId: UUID)
     func onPushNotificationReceived(payload: PKPushPayload)
     func executeAnswerCall(uuid: UUID, completionHandler: @escaping (_ success: Bool) -> Void)
     func executeEndCall(uuid: UUID, completionHandler: @escaping (_ success: Bool) -> Void)
@@ -36,7 +44,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         // Instantiate the Telnyx Client SDK
         self.telnyxClient = TxClient()
-
+        self.telnyxClient?.delegate = self
         //init pushkit to handle VoIP push notifications
         self.initPushKit()
         self.initCallKit()
@@ -96,10 +104,14 @@ extension AppDelegate: PKPushRegistryDelegate {
      .According to the docs, this delegate method is deprecated by Apple.
     */
     func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType) {
-        print("pushRegistry:didReceiveIncomingPushWithPayload:forType:")
+        print("pushRegistry:didReceiveIncomingPushWithPayload:forType: old")
         if (payload.type == .voIP) {
-            self.newIncomingCall(from: "Incoming call", uuid: UUID.init())
-            self.voipDelegate?.onPushNotificationReceived(payload: payload)
+            // TODO: Parse metadata
+            if let aps = payload.dictionaryPayload["aps"] as? [String : Any],
+               let alert = aps["alert"] as? String {
+                self.newIncomingCall(from: alert, uuid: UUID.init())
+                self.voipDelegate?.onPushNotificationReceived(payload: payload)
+            }
         }
     }
 
@@ -107,15 +119,12 @@ extension AppDelegate: PKPushRegistryDelegate {
      This delegate method is available on iOS 11 and above. Call the completion handler once the
      */
     func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
-        print("pushRegistry:didReceiveIncomingPushWithPayload:forType:completion: \(payload.dictionaryPayload)")
+        print("pushRegistry:didReceiveIncomingPushWithPayload:forType:completion new: \(payload.dictionaryPayload)")
         if (payload.type == .voIP) {
-            if let metadata = payload.dictionaryPayload["metadata"] as? [String: Any] {
-                let callId = (metadata["callID"] as? String) ?? UUID.init().uuidString
-                let callerName = (metadata["caller_name"] as? String) ?? ""
-                let callerNumber = (metadata["caller_number"] as? String) ?? ""
-                
-                let caller = callerName.isEmpty ? (callerNumber.isEmpty ? "Unknown" : callerNumber) : callerName
-                self.newIncomingCall(from: caller, uuid: UUID(uuidString: callId)!)
+            // TODO: Parse metadata
+            if let aps = payload.dictionaryPayload["aps"] as? [String : Any],
+               let alert = aps["alert"] as? String {
+                self.newIncomingCall(from: alert, uuid: UUID.init())
                 self.voipDelegate?.onPushNotificationReceived(payload: payload)
             }
         }

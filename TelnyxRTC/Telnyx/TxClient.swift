@@ -139,7 +139,6 @@ public class TxClient {
     private var gatewayState: GatewayStates = .NOREG
 
     private var pushCallUUIID: UUID?
-    private var answerPushCall: Bool = false
 
     /// Client must be registered in order to receive or place calls.
     public var isRegistered: Bool {
@@ -380,22 +379,7 @@ extension TxClient {
             Logger.log.i(message: "TxClient:: push flow createIncomingCall \(call)")
             self.delegate?.onIncomingCall(call: call)
         } else {
-            Logger.log.i(message: "TxClient:: push flow createIncomingCall automatically reject or answer: \(self.answerPushCall)")
-            // If there's a pending call to be answered or rejected
-            // this is part of the push notification flow.
-            // 1. Push notification is received.
-            // 2. If the user press the answer/ reject button we re-connect to the server if we are not connected
-            // 3. Once we are connected we will receive an INVITE message automatically
-            // 4. We need to answer or reject this call
-            
-            // TODO: check if pushCallUUIID matches incoming call message
-            if self.answerPushCall {
-                call.answer()
-                self.delegate?.onRemoteCallAnswered(call: call)
-            } else {
-                call.hangup()
-                self.delegate?.onRemoteCallEnded(callId: self.pushCallUUIID!)
-            }
+            Logger.log.i(message: "TxClient:: push flow do nothing")
             self.pushCallUUIID = nil
         }
     }
@@ -410,15 +394,13 @@ extension TxClient {
     /// - Parameters:
     ///   - txConfig: The desired configuration to login to B2B2UA. User credentials must be the same as the
     /// - Throws: Error during the connection process
-    public func processVoIPNotification(callUUID: UUID,
-                                        answer: Bool,
-                                        txConfig: TxConfig, serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
-        Logger.log.i(message: "TxClient:: push flow callUUID \(callUUID) answer: \(answer)")
+    public func processVoIPNotification(voipActionUUID: UUID,
+                                        txConfig: TxConfig,
+                                        serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
+        Logger.log.i(message: "TxClient:: push flow voIPUUID \(voipActionUUID)")
+        self.pushCallUUIID = voipActionUUID
         // Check if we are already connected and logged in
-        if !isConnected() &&
-            getSessionId().isEmpty {
-            self.pushCallUUIID = callUUID
-            self.answerPushCall = answer
+        if !isConnected() {
             Logger.log.i(message: "TxClient:: push flow connect")
             try? self.connect(txConfig: txConfig, serverConfiguration: serverConfiguration)
         } else {

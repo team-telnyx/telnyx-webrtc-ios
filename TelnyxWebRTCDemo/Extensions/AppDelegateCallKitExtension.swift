@@ -13,7 +13,6 @@ import CallKit
 // MARK: - CXProviderDelegate
 extension AppDelegate : CXProviderDelegate {
 
-    
     /// Call this function to tell the CX provider to request the OS to create a new call.
     /// - Parameters:
     ///   - uuid: The UUID of the outbound call
@@ -54,6 +53,7 @@ extension AppDelegate : CXProviderDelegate {
     ///   - uuid: uuid of the incoming call
     func newIncomingCall(from: String, uuid: UUID) {
 
+        self.processVoIPNotification(callUUID: uuid)
         #if targetEnvironment(simulator)
         //Do not execute this function when debugging on the simulator.
         //By reporting a call through CallKit from the simulator, it automatically cancels the call.
@@ -116,27 +116,20 @@ extension AppDelegate : CXProviderDelegate {
     }
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
-        print("provider: performAnswerCallAction:")
+        print("provider: performAnswerCallAction: \(action.callUUID)")
 
-        self.voipDelegate?.executeAnswerCall(uuid: action.callUUID) { success in
-            if success {
-                print("performAnswerVoiceCall() successful")
-            } else {
-                print("performAnswerVoiceCall() failed")
-            }
+        if let call = self.telnyxClient?.calls[action.callUUID] {
+            call.answer()
         }
         action.fulfill()
     }
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
-        print("provider:performEndCallAction:")
-        self.voipDelegate?.executeEndCall(uuid: action.callUUID) { success in
-            if success {
-                print("performAnswerVoiceCall() successful")
-            } else {
-                print("performAnswerVoiceCall() failed")
-            }
+        print("provider:performEndCallAction: \(action.callUUID)")
+        if let call = self.telnyxClient?.calls[action.callUUID] {
+            call.hangup()
         }
+        action.fulfill()
     }
 
     func providerDidReset(_ provider: CXProvider) {
@@ -165,5 +158,35 @@ extension AppDelegate : CXProviderDelegate {
     
     func provider(_ provider: CXProvider, perform action: CXSetMutedCallAction) {
         print("provider:performSetMutedAction:")
+    }
+    
+    func processVoIPNotification(callUUID: UUID) {
+        
+        var serverConfig: TxServerConfiguration
+        let userDefaults = UserDefaults.init()
+        if userDefaults.getEnvironment() == .development {
+            serverConfig = TxServerConfiguration(environment: .development)
+        } else {
+            serverConfig = TxServerConfiguration()
+        }
+        
+        let sipUser = userDefaults.getSipUser()
+        let password = userDefaults.getSipUserPassword()
+        let deviceToken = userDefaults.getPushToken()
+        //Sets the login credentials and the ringtone/ringback configurations if required.
+        //Ringtone / ringback tone files are not mandatory.
+        let txConfig = TxConfig(sipUser: sipUser,
+                                password: password,
+                                pushDeviceToken: deviceToken,
+                                ringtone: "incoming_call.mp3",
+                                ringBackTone: "ringback_tone.mp3",
+                                //You can choose the appropriate verbosity level of the SDK.
+                                logLevel: .all)
+        
+        do {
+            try telnyxClient?.processVoIPNotification(voipActionUUID: callUUID, txConfig: txConfig, serverConfiguration: serverConfig)
+        } catch let error {
+            print("ViewController:: processVoIPNotification Error \(error)")
+        }
     }
 }

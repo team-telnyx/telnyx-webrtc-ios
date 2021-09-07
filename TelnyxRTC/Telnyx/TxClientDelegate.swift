@@ -44,5 +44,4 @@ public protocol TxClientDelegate: AnyObject {
     /// - Parameter callId: the UUID of the call that has ended.
     func onRemoteCallEnded(callId: UUID)
 
-    func onRemoteCallAnswered(call: Call)
 }

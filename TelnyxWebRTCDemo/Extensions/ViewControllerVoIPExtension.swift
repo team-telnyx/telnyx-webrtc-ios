@@ -14,34 +14,117 @@ import TelnyxRTC
 
 // MARK: - VoIPDelegate
 extension ViewController : VoIPDelegate {
+
+    func onSocketConnected() {
+        print("ViewController:: TxClientDelegate onSocketConnected()")
+        DispatchQueue.main.async {
+            self.socketStateLabel.text = "Connected"
+            self.connectButton.setTitle("Disconnect", for: .normal)
+        }
+        
+    }
     
-    func executeAnswerCall(uuid: UUID, completionHandler: @escaping (_ success: Bool) -> Void) {
-        if telnyxClient?.isConnected() ?? false {
-            // If we are already connected, then answer the call
-            // TODO: find the call that matches the UUID
-            self.currentCall?.answer()
-            completionHandler(true)
-        } else {
-            // If we are not connected, we need to connect the telnyx client.
-            // TODO: we need to automatically ANSWER the call after connecting an receiving the INVITE that matches the
-            // UUID of the call
-            self.reconnect(callUUID: uuid, answer: true)
-            completionHandler(true)
+    func onSocketDisconnected() {
+        print("ViewController:: TxClientDelegate onSocketDisconnected()")
+        DispatchQueue.main.async {
+            self.removeLoadingView()
+            self.resetCallStates()
+            self.socketStateLabel.text = "Disconnected"
+            self.connectButton.setTitle("Connect", for: .normal)
+            self.sessionIdLabel.text = "-"
+            self.settingsView.isHidden = false
+            self.callView.isHidden = true
+            self.incomingCallView.isHidden = true
         }
     }
     
-    func executeEndCall(uuid: UUID, completionHandler: @escaping (Bool) -> Void) {
-        if telnyxClient?.isConnected() ?? false {
-            // If we are already connected, then hangup the call
-            // TODO: find the call that matches the UUID
-            self.currentCall?.hangup()
-            completionHandler(true)
-        } else {
-            // If we are not connected, we need to connect the telnyx client.
-            // TODO: we need to automatically HANGUP the call after connecting an receiving the INVITE that matches the
-            // UUID of the call
-            self.reconnect(callUUID: uuid, answer: false)
-            completionHandler(true)
+    func onClientError(error: Error) {
+        print("ViewController:: TxClientDelegate onClientError() error: \(error)")
+        DispatchQueue.main.async {
+            self.removeLoadingView()
+            self.incomingCallView.isHidden = true
+            self.telnyxClient?.disconnect()
+            
+            let alert = UIAlertController(title: "WebRTC error", message: error.localizedDescription, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: {_ in
+                self.navigationController?.popViewController(animated: true)
+            }))
+            self.present(alert, animated: true)
+        }
+    }
+    
+    func onClientReady() {
+        print("ViewController:: TxClientDelegate onClientReady()")
+        DispatchQueue.main.async {
+            self.removeLoadingView()
+            self.socketStateLabel.text = "Client ready"
+            self.settingsView.isHidden = true
+            self.callView.isHidden = false
+            self.incomingCallView.isHidden = true
+        }
+    }
+    
+    func onSessionUpdated(sessionId: String) {
+        print("ViewController:: TxClientDelegate onSessionUpdated() sessionId: \(sessionId)")
+        DispatchQueue.main.async {
+            self.sessionIdLabel.text = sessionId
+        }
+    }
+    
+    func onIncomingCall(call: Call) {
+        guard let callId = call.callInfo?.callId else {
+            print("ViewController:: TxClientDelegate onIncomingCall() Error unknown call UUID")
+            return
+        }
+        print("ViewController:: TxClientDelegate onIncomingCall() Error unknown call UUID: \(callId)")
+        
+        if let currentCallUUID = self.currentCall?.callInfo?.callId {
+            appDelegate.executeEndCallAction(uuid: currentCallUUID) //Hangup the previous call if there's one active
+        }
+        self.currentCall = call //Update the current call with the incoming call
+        self.incomingCall = true
+        DispatchQueue.main.async {
+            self.updateButtonsState()
+            self.incomingCallView.isHidden = false
+            self.callView.isHidden = true
+            //Hide the keyboard
+            self.view.endEditing(true)
+        }
+        appDelegate.newIncomingCall(from: call.callInfo?.callerName ?? "Unknown", uuid: callId)
+    }
+    
+    func onRemoteCallEnded(callId: UUID) {
+        print("ViewController:: TxClientDelegate onRemoteCallEnded() callId: \(callId)")
+        let reason = CXCallEndedReason.remoteEnded
+        if let provider = appDelegate.callKitProvider {
+            provider.reportCall(with: callId, endedAt: Date(), reason: reason)
+        }
+    }
+    
+    func onCallStateUpdated(callState: CallState, callId: UUID) {
+        DispatchQueue.main.async {
+            switch (callState) {
+                case .CONNECTING:
+                    break
+                case .RINGING:
+                    break
+                case .NEW:
+                    break
+                case .ACTIVE:
+                    self.incomingCallView.isHidden = true
+                    self.callView.isHidden = false
+                    break
+                case .DONE:
+                    if let currentCallId = self.currentCall?.callInfo?.callId,
+                       currentCallId == callId {
+                        self.currentCall = nil // clear current call
+                    }
+                    self.resetCallStates()
+                    break
+                case .HELD:
+                    break
+            }
+            self.updateButtonsState()
         }
     }
     
@@ -64,33 +147,16 @@ extension ViewController : VoIPDelegate {
             completionHandler(false)
         }
     }
+
+    func executeAnswerCall(uuid: UUID, completionHandler: @escaping (_ success: Bool) -> Void) {
+        // TODO: Update ui
+    }
+    
+    func executeEndCall(uuid: UUID, completionHandler: @escaping (Bool) -> Void) {
+		// TODO: update UI
+    }
     
     func onPushNotificationReceived(payload: PKPushPayload) {
         // no-op for now
-    }
-    
-    func reconnect(callUUID: UUID, answer: Bool) {
-        let sipUser = userDefaults.getSipUser()
-        let password = userDefaults.getSipUserPassword()
-        let deviceToken = userDefaults.getPushToken()
-        //Sets the login credentials and the ringtone/ringback configurations if required.
-        //Ringtone / ringback tone files are not mandatory.
-        let txConfig = TxConfig(sipUser: sipUser,
-                                password: password,
-                                pushDeviceToken: deviceToken,
-                                ringtone: "incoming_call.mp3",
-                                ringBackTone: "ringback_tone.mp3",
-                                //You can choose the appropriate verbosity level of the SDK.
-                                logLevel: .all)
-        
-        do {
-            if let serverConfig = serverConfig {
-                try telnyxClient?.processVoIPNotification(callUUID: callUUID, answer: answer, txConfig: txConfig, serverConfiguration: serverConfig)
-            } else {
-                try telnyxClient?.processVoIPNotification(callUUID: callUUID, answer: answer, txConfig: txConfig)
-            }
-        } catch let error {
-            print("ViewController:: processVoIPNotification Error \(error)")
-        }
     }
 }
