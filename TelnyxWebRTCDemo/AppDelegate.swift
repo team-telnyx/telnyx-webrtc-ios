@@ -107,17 +107,17 @@ extension AppDelegate: PKPushRegistryDelegate {
      This delegate method is available on iOS 11 and above. Call the completion handler once the
      */
     func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
-		print("pushRegistry:didReceiveIncomingPushWithPayload:forType:completion: \(payload.dictionaryPayload)")
+        print("pushRegistry:didReceiveIncomingPushWithPayload:forType:completion: \(payload.dictionaryPayload)")
         if (payload.type == .voIP) {
-			if let metadata = payload.dictionaryPayload["metadata"] as? [String: Any] {
-				let callId = (metadata["callID"] as? String) ?? UUID.init().uuidString
-				let callerName = (metadata["caller_name"] as? String) ?? ""
-				let callerNumber = (metadata["caller_number"] as? String) ?? ""
-
-				let caller = callerName.isEmpty ? (callerNumber.isEmpty ? "Unknown" : callerNumber) : callerName
-				self.newIncomingCall(from: caller, uuid: UUID(uuidString: callId)!)
-				self.voipDelegate?.onPushNotificationReceived(payload: payload)
-			}
+            if let metadata = payload.dictionaryPayload["metadata"] as? [String: Any] {
+                let callId = (metadata["callID"] as? String) ?? UUID.init().uuidString
+                let callerName = (metadata["caller_name"] as? String) ?? ""
+                let callerNumber = (metadata["caller_number"] as? String) ?? ""
+                
+                let caller = callerName.isEmpty ? (callerNumber.isEmpty ? "Unknown" : callerNumber) : callerName
+                self.newIncomingCall(from: caller, uuid: UUID(uuidString: callId)!)
+                self.voipDelegate?.onPushNotificationReceived(payload: payload)
+            }
         }
 
         if let version = Float(UIDevice.current.systemVersion), version >= 13.0 {
