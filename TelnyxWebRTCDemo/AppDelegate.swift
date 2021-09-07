@@ -29,7 +29,6 @@ protocol VoIPDelegate: AnyObject {
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
-    var onlyOne: Bool = false
     var window: UIWindow?
     var telnyxClient : TxClient?
     var currentCall: Call?
