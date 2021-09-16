@@ -126,7 +126,7 @@ extension AppDelegate: PKPushRegistryDelegate {
 
     func handleVoIPPushNotification(payload: PKPushPayload) {
         if let metadata = payload.dictionaryPayload["metadata"] as? [String: Any] {
-            let callId = (metadata["callID"] as? String) ?? UUID.init().uuidString
+            let callId = (metadata["call_id"] as? String) ?? UUID.init().uuidString
             let callerName = (metadata["caller_name"] as? String) ?? ""
             let callerNumber = (metadata["caller_number"] as? String) ?? ""
             let caller = callerName.isEmpty ? (callerNumber.isEmpty ? "Unknown" : callerNumber) : callerName
