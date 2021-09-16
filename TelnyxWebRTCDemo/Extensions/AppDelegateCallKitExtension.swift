@@ -52,6 +52,7 @@ extension AppDelegate : CXProviderDelegate {
     ///   - from: Caller name
     ///   - uuid: uuid of the incoming call
     func newIncomingCall(from: String, uuid: UUID) {
+        print("AppDelegate:: report NEW incoming call from [\(from)] uuid [\(uuid)]")
         #if targetEnvironment(simulator)
         //Do not execute this function when debugging on the simulator.
         //By reporting a call through CallKit from the simulator, it automatically cancels the call.
@@ -59,7 +60,7 @@ extension AppDelegate : CXProviderDelegate {
         #endif
 
         guard let provider = callKitProvider else {
-            print("CallKit provider not available")
+            print("AppDelegate:: CallKit provider not available")
             return
         }
 
@@ -70,9 +71,9 @@ extension AppDelegate : CXProviderDelegate {
 
         provider.reportNewIncomingCall(with: uuid, update: callUpdate) { error in
             if let error = error {
-                print("Failed to report incoming call: \(error.localizedDescription).")
+                print("AppDelegate:: Failed to report incoming call: \(error.localizedDescription).")
             } else {
-                print("Incoming call successfully reported.")
+                print("AppDelegate:: Incoming call successfully reported.")
             }
         }
     }
@@ -80,7 +81,14 @@ extension AppDelegate : CXProviderDelegate {
     /// End the current call
     /// - Parameter uuid: The uuid of the call
     func executeEndCallAction(uuid: UUID) {
-        let endCallAction = CXEndCallAction(call: uuid)
+        print("AppDelegate:: execute END call action: callKitUUID [\(String(describing: self.callKitUUID))] uuid [\(uuid)]")
+
+        var endUUID = uuid
+        if let callkitUUID = self.callKitUUID {
+            endUUID = callkitUUID
+        }
+
+        let endCallAction = CXEndCallAction(call: endUUID)
         let transaction = CXTransaction(action: endCallAction)
 
         callKitCallController.request(transaction) { error in
@@ -93,35 +101,37 @@ extension AppDelegate : CXProviderDelegate {
                 //the CXEndCallAction fails. That's why we are manually ending the call in this case.
                 self.telnyxClient?.calls[uuid]?.hangup() // end the active call
                 #endif
-                print("EndCallAction transaction request failed: \(error.localizedDescription).")
+                print("AppDelegate:: EndCallAction transaction request failed: \(error.localizedDescription).")
             } else {
-                print("EndCallAction transaction request successful")
+                print("AppDelegate:: EndCallAction transaction request successful")
             }
+            self.callKitUUID = nil
         }
     }
     // MARK: - CXProviderDelegate -
     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
-        print("provider: CXStartCallAction:")
-        self.voipDelegate?.executeCall(action: action) { call in
+        print("AppDelegate:: START call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
+        self.callKitUUID = action.callUUID
+        self.voipDelegate?.executeCall(callUUID: action.callUUID) { call in
             self.currentCall = call
             if call != nil {
-                print("performVoiceCall() successful")
+                print("AppDelegate:: performVoiceCall() successful")
                 provider.reportOutgoingCall(with: action.callUUID, connectedAt: Date())
             } else {
-                print("performVoiceCall() failed")
+                print("AppDelegate:: performVoiceCall() failed")
             }
         }
         action.fulfill()
     }
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
-        print("provider: performAnswerCallAction: \(action.callUUID)")
+        print("AppDelegate:: ANSWER call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
         self.currentCall?.answer()
         action.fulfill()
     }
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
-        print("provider:performEndCallAction: \(action.callUUID)")
+        print("AppDelegate:: END call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
         self.currentCall?.hangup()
         action.fulfill()
     }
@@ -155,6 +165,8 @@ extension AppDelegate : CXProviderDelegate {
     }
     
     func processVoIPNotification(callUUID: UUID) {
+        print("AppDelegate:: processVoIPNotification \(callUUID)")
+        self.callKitUUID = callUUID
         var serverConfig: TxServerConfiguration
         let userDefaults = UserDefaults.init()
         if userDefaults.getEnvironment() == .development {

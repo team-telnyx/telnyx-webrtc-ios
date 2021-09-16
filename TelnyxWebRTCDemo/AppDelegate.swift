@@ -20,7 +20,7 @@ protocol VoIPDelegate: AnyObject {
     func onCallStateUpdated(callState: CallState, callId: UUID)
     func onIncomingCall(call: Call)
     func onRemoteCallEnded(callId: UUID)
-    func executeCall(action: CXStartCallAction, completionHandler: @escaping (_ success: Call?) -> Void)
+    func executeCall(callUUID: UUID, completionHandler: @escaping (_ success: Call?) -> Void)
 }
 
 @main
@@ -29,6 +29,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     var telnyxClient : TxClient?
     var currentCall: Call?
+    var callKitUUID: UUID?
+
     private var pushRegistry = PKPushRegistry.init(queue: DispatchQueue.main)
     weak var voipDelegate: VoIPDelegate?
     var callKitProvider: CXProvider?
@@ -133,7 +135,6 @@ extension AppDelegate: PKPushRegistryDelegate {
             self.processVoIPNotification(callUUID: uuid!)
         } else {
             // If there's no available metadata, let's create the notification with dummy data.
-            // TODO: remove this when getting the real payload
             let uuid = UUID.init()
             self.newIncomingCall(from: "Incoming call", uuid: uuid)
             self.processVoIPNotification(callUUID: uuid)

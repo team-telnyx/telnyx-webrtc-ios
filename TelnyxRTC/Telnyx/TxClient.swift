@@ -396,13 +396,31 @@ extension TxClient {
     public func processVoIPNotification(txConfig: TxConfig,
                                         serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
         Logger.log.i(message: "TxClient:: push flow voIPUUID")
-        self.waitingCallFromPush = true
+        self.waitInviteTimer()
         // Check if we are already connected and logged in
         if !isConnected() {
             Logger.log.i(message: "TxClient:: push flow connect")
             try? self.connect(txConfig: txConfig, serverConfiguration: serverConfiguration)
         } else {
             // TODO: Check if we need to do something else when we are already connected
+        }
+    }
+
+    /// This function starts a timer to wait the INVITE message after receiving a PN.
+    /// If the INVITE message is not received, then we are going to end the call.
+    fileprivate func waitInviteTimer() {
+        Logger.log.i(message: "TxClient:: waitInviteTimer started")
+        self.waitingCallFromPush = true
+        DispatchQueue.main.async {
+             Timer.scheduledTimer(withTimeInterval: 5, repeats: false) { timer in
+                if (self.waitingCallFromPush) {
+                    Logger.log.e(message: "TxClient:: waitInviteTimer elapsed .. Ending call")
+                    self.waitingCallFromPush = false
+                    self.delegate?.onRemoteCallEnded(callId: UUID.init())
+                } else {
+                    Logger.log.i(message: "TxClient:: waitInviteTimer is false, do nothing")
+                }
+            }
         }
     }
 }

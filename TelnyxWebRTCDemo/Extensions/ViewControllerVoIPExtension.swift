@@ -8,7 +8,6 @@
 import Foundation
 import UIKit
 import AVFoundation
-import CallKit
 import PushKit
 import TelnyxRTC
 
@@ -84,10 +83,6 @@ extension ViewController : VoIPDelegate {
     
     func onRemoteCallEnded(callId: UUID) {
         print("ViewController:: TxClientDelegate onRemoteCallEnded() callId: \(callId)")
-        let reason = CXCallEndedReason.remoteEnded
-        if let provider = appDelegate.callKitProvider {
-            provider.reportCall(with: callId, endedAt: Date(), reason: reason)
-        }
     }
     
     func onCallStateUpdated(callState: CallState, callId: UUID) {
@@ -113,7 +108,7 @@ extension ViewController : VoIPDelegate {
         }
     }
     
-    func executeCall(action: CXStartCallAction, completionHandler: @escaping (Call?) -> Void) {
+    func executeCall(callUUID: UUID, completionHandler: @escaping (Call?) -> Void) {
         do {
             guard let callerName = self.settingsView.callerIdNameLabel.text,
                   let callerNumber = self.settingsView.callerIdNumberLabel.text,
@@ -125,7 +120,7 @@ extension ViewController : VoIPDelegate {
             let call = try telnyxClient?.newCall(callerName: callerName,
                                                          callerNumber: callerNumber,
                                                          destinationNumber: destinationNumber,
-                                                         callId: action.callUUID)
+                                                         callId: callUUID)
             completionHandler(call)
         } catch let error {
             print("ViewController:: executeCall Error \(error)")
