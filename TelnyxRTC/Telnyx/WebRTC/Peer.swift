@@ -22,7 +22,7 @@ class Peer : NSObject {
     //TODO: REMOVE THIS FOR V1
     private let VIDEO_DEMO_LOCAL_VIDEO = "local_video_streaming.mp4"
 
-    private let mediaConstrains = [kRTCMediaConstraintsOfferToReceiveAudio: kRTCMediaConstraintsValueTrue, kRTCMediaConstraintsOfferToReceiveVideo: kRTCMediaConstraintsValueTrue]
+    private let mediaConstrains = [kRTCMediaConstraintsOfferToReceiveAudio: kRTCMediaConstraintsValueTrue, kRTCMediaConstraintsOfferToReceiveVideo: kRTCMediaConstraintsValueFalse]
 
     weak var delegate: PeerDelegate?
     var connection : RTCPeerConnection
