@@ -75,6 +75,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             provider.invalidate()
         }
     }
+
 }
 
 // MARK: - PKPushRegistryDelegate
@@ -126,18 +127,22 @@ extension AppDelegate: PKPushRegistryDelegate {
 
     func handleVoIPPushNotification(payload: PKPushPayload) {
         if let metadata = payload.dictionaryPayload["metadata"] as? [String: Any] {
-            let callId = (metadata["call_id"] as? String) ?? UUID.init().uuidString
+            var callID = UUID.init().uuidString
+            if let newCallId = (metadata["call_id"] as? String),
+               !newCallId.isEmpty {
+                callID = newCallId
+            }
             let callerName = (metadata["caller_name"] as? String) ?? ""
             let callerNumber = (metadata["caller_number"] as? String) ?? ""
             let caller = callerName.isEmpty ? (callerNumber.isEmpty ? "Unknown" : callerNumber) : callerName
-            let uuid = UUID(uuidString: callId)
-            self.newIncomingCall(from: caller, uuid: uuid!)
+            let uuid = UUID(uuidString: callID)
             self.processVoIPNotification(callUUID: uuid!)
+            self.newIncomingCall(from: caller, uuid: uuid!)
         } else {
             // If there's no available metadata, let's create the notification with dummy data.
             let uuid = UUID.init()
-            self.newIncomingCall(from: "Incoming call", uuid: uuid)
             self.processVoIPNotification(callUUID: uuid)
+            self.newIncomingCall(from: "Incoming call", uuid: uuid)
         }
     }
 }

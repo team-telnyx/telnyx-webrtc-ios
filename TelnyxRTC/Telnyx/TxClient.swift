@@ -396,14 +396,20 @@ extension TxClient {
     public func processVoIPNotification(txConfig: TxConfig,
                                         serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
         Logger.log.i(message: "TxClient:: push flow voIPUUID")
-        self.waitInviteTimer()
         // Check if we are already connected and logged in
-        if !isConnected() {
-            Logger.log.i(message: "TxClient:: push flow connect")
-            try? self.connect(txConfig: txConfig, serverConfiguration: serverConfiguration)
-        } else {
-            // TODO: Check if we need to do something else when we are already connected
+        if isConnected() {
+            Logger.log.i(message: "TxClient:: push flow socket already connected: disconnect")
+            self.disconnect()
         }
+
+        Logger.log.i(message: "TxClient:: push flow connect")
+        do {
+            try self.connect(txConfig: txConfig, serverConfiguration: serverConfiguration)
+        } catch let error {
+            Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
+        }
+        Logger.log.i(message: "TxClient:: push flow: waitInviteTimer started")
+        self.waitInviteTimer()
     }
 
     /// This function starts a timer to wait the INVITE message after receiving a PN.
@@ -412,7 +418,7 @@ extension TxClient {
         Logger.log.i(message: "TxClient:: waitInviteTimer started")
         self.waitingCallFromPush = true
         DispatchQueue.main.async {
-             Timer.scheduledTimer(withTimeInterval: 5, repeats: false) { timer in
+             Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { timer in
                 if (self.waitingCallFromPush) {
                     Logger.log.e(message: "TxClient:: waitInviteTimer elapsed .. Ending call")
                     self.waitingCallFromPush = false
