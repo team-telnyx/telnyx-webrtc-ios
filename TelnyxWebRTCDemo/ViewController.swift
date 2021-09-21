@@ -185,7 +185,8 @@ class ViewController: UIViewController {
 extension ViewController : UIIncomingCallViewDelegate {
 
     func onAnswerButton() {
-        self.appDelegate.currentCall?.answer()
+        guard let callID = self.appDelegate.currentCall?.callInfo?.callId else { return }
+        self.appDelegate.executeAnswerCallAction(uuid: callID)
     }
 
     func onRejectButton() {

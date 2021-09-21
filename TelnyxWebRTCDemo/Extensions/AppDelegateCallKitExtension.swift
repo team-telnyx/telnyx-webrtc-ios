@@ -77,6 +77,25 @@ extension AppDelegate : CXProviderDelegate {
             }
         }
     }
+    
+    /// To answer a call using CallKit
+    /// - Parameter uuid: the UUID of the CallKit call.
+    func executeAnswerCallAction(uuid: UUID) {
+        print("AppDelegate:: execute ANSWER call action: callKitUUID [\(String(describing: self.callKitUUID))] uuid [\(uuid)]")
+        var endUUID = uuid
+        if let callkitUUID = self.callKitUUID {
+            endUUID = callkitUUID
+        }
+        let answerCallAction = CXAnswerCallAction(call: endUUID)
+        let transaction = CXTransaction(action: answerCallAction)
+        callKitCallController.request(transaction) { error in
+            if let error = error {
+                print("AppDelegate:: AnswerCallAction transaction request failed: \(error.localizedDescription).")
+            } else {
+                print("AppDelegate:: AnswerCallAction transaction request successful")
+            }
+        }
+    }
 
     /// End the current call
     /// - Parameter uuid: The uuid of the call
