@@ -9,6 +9,7 @@
 import Foundation
 import AVFoundation
 import Bugsnag
+import WebRTC
 
 /// The `TelnyxRTC` client connects your application to the Telnyx backend,
 /// enabling you to make outgoing calls and handle incoming calls.
@@ -138,6 +139,23 @@ public class TxClient {
     private var registerTimer: Timer = Timer()
     private var gatewayState: GatewayStates = .NOREG
     private var waitingCallFromPush: Bool = false
+
+    /// When implementing CallKit framework, audio has to be manually handled.
+    /// Set this property to TRUE when `provider(CXProvider, didActivate: AVAudioSession)` is called on your CallKit implementation
+    /// Set this property to FALSE when `provider(CXProvider, didDeactivate: AVAudioSession)` is called on your CallKit implementation
+    public var isAudioDeviceEnabled : Bool {
+        get {
+            return RTCAudioSession.sharedInstance().isAudioEnabled
+        }
+        set {
+            if newValue {
+                RTCAudioSession.sharedInstance().audioSessionDidActivate(AVAudioSession.sharedInstance())
+            } else {
+                RTCAudioSession.sharedInstance().audioSessionDidDeactivate(AVAudioSession.sharedInstance())
+            }
+            RTCAudioSession.sharedInstance().isAudioEnabled = newValue
+        }
+    }
 
     /// Client must be registered in order to receive or place calls.
     public var isRegistered: Bool {
