@@ -193,7 +193,10 @@ extension TelnyxRTCTests {
 
 // MARK: - TxClientDelegate
 extension TelnyxRTCTests : TxClientDelegate {
-    
+    func onPushCall(call: Call) {
+        print("TelnyxRTCTests :: TxClientDelegate onPushCall()")
+    }
+
     func onSocketConnected() {
         print("TelnyxRTCTests :: TxClientDelegate onSocketConnected()")
     }
