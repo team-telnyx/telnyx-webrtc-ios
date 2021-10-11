@@ -15,11 +15,8 @@ class ViewController: UIViewController {
 
     var userDefaults: UserDefaults = UserDefaults.init()
     var telnyxClient: TxClient?
-    var currentCall: Call?
     var incomingCall: Bool = false
 
-    var callKitProvider: CXProvider?
-    let callKitCallController = CXCallController()
     var loadingView: UIAlertController?
 
     @IBOutlet weak var environment: UILabel!
@@ -37,18 +34,8 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         print("ViewController:: viewDidLoad()")
 
-        self.telnyxClient = appDelegate.getTelnyxClient()
-        self.telnyxClient?.delegate = self
+        self.telnyxClient = appDelegate.telnyxClient
         self.initViews()
-
-        self.initCallKit()
-    }
-
-    deinit {
-        // CallKit has an odd API contract where the developer must call invalidate or the CXProvider is leaked.
-        if let provider = callKitProvider {
-            provider.invalidate()
-        }
     }
 
     func initViews() {
@@ -114,7 +101,7 @@ class ViewController: UIViewController {
     }
 
     func updateButtonsState() {
-        guard let callState = self.currentCall?.callState else {
+        guard let callState = self.appDelegate.currentCall?.callState else {
             self.callView.updateButtonsState(callState: .DONE, incomingCall: false)
             self.incomingCallView.updateButtonsState(callState: .DONE, incomingCall: incomingCall)
             return
@@ -191,123 +178,6 @@ class ViewController: UIViewController {
     }
 }
 
-// MARK: - TxClientDelegate
-extension ViewController: TxClientDelegate {
-
-    func onSocketConnected() {
-        print("ViewController:: TxClientDelegate onSocketConnected()")
-        DispatchQueue.main.async {
-            self.socketStateLabel.text = "Connected"
-            self.connectButton.setTitle("Disconnect", for: .normal)
-        }
-        
-    }
-    
-    func onSocketDisconnected() {
-        print("ViewController:: TxClientDelegate onSocketDisconnected()")
-        DispatchQueue.main.async {
-            self.removeLoadingView()
-            self.resetCallStates()
-            self.socketStateLabel.text = "Disconnected"
-            self.connectButton.setTitle("Connect", for: .normal)
-            self.sessionIdLabel.text = "-"
-            self.settingsView.isHidden = false
-            self.callView.isHidden = true
-            self.incomingCallView.isHidden = true
-        }
-    }
-    
-    func onClientError(error: Error) {
-        print("ViewController:: TxClientDelegate onClientError() error: \(error)")
-        DispatchQueue.main.async {
-            self.removeLoadingView()
-            self.incomingCallView.isHidden = true
-            self.telnyxClient?.disconnect()
-
-            let alert = UIAlertController(title: "WebRTC error", message: error.localizedDescription, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: {_ in
-                self.navigationController?.popViewController(animated: true)
-            }))
-            self.present(alert, animated: true)
-        }
-    }
-    
-    func onClientReady() {
-        print("ViewController:: TxClientDelegate onClientReady()")
-        DispatchQueue.main.async {
-            self.removeLoadingView()
-            self.socketStateLabel.text = "Client ready"
-            self.settingsView.isHidden = true
-            self.callView.isHidden = false
-            self.incomingCallView.isHidden = true
-        }
-    }
-    
-    func onSessionUpdated(sessionId: String) {
-        print("ViewController:: TxClientDelegate onSessionUpdated() sessionId: \(sessionId)")
-        DispatchQueue.main.async {
-            self.sessionIdLabel.text = sessionId
-        }
-    }
-
-    func onIncomingCall(call: Call) {
-        guard let callId = call.callInfo?.callId else {
-            print("ViewController:: TxClientDelegate onIncomingCall() Error unknown call UUID")
-            return
-        }
-        print("ViewController:: TxClientDelegate onIncomingCall() Error unknown call UUID: \(callId)")
-        
-        if let currentCallUUID = self.currentCall?.callInfo?.callId {
-            self.executeEndCallAction(uuid: currentCallUUID) //Hangup the previous call if there's one active
-        }
-        self.currentCall = call //Update the current call with the incoming call
-        self.incomingCall = true
-        DispatchQueue.main.async {
-            self.updateButtonsState()
-            self.incomingCallView.isHidden = false
-            self.callView.isHidden = true
-            //Hide the keyboard
-            self.view.endEditing(true)
-        }
-
-        self.newIncomingCall(from: call.callInfo?.callerName ?? "Unknown", uuid: callId)
-    }
-
-    func onRemoteCallEnded(callId: UUID) {
-        print("ViewController:: TxClientDelegate onRemoteCallEnded() callId: \(callId)")
-        let reason = CXCallEndedReason.remoteEnded
-        if let provider = callKitProvider {
-            provider.reportCall(with: callId, endedAt: Date(), reason: reason)
-        }
-    }
-
-    func onCallStateUpdated(callState: CallState, callId: UUID) {
-        DispatchQueue.main.async {
-            switch (callState) {
-            case .CONNECTING:
-                break
-            case .RINGING:
-                break
-            case .NEW:
-                break
-            case .ACTIVE:
-                self.incomingCallView.isHidden = true
-                self.callView.isHidden = false
-                break
-            case .DONE:
-                if let currentCallId = self.currentCall?.callInfo?.callId,
-                   currentCallId == callId {
-                    self.currentCall = nil // clear current call
-                }
-                self.resetCallStates()
-                break
-            case .HELD:
-                break
-            }
-            self.updateButtonsState()
-        }
-    }
-}
 // MARK: - UIIncomingCallViewDelegate
 /**
  Handle Incoming Call Views events
@@ -315,11 +185,12 @@ extension ViewController: TxClientDelegate {
 extension ViewController : UIIncomingCallViewDelegate {
 
     func onAnswerButton() {
-        self.currentCall?.answer()
+        guard let callID = self.appDelegate.currentCall?.callInfo?.callId else { return }
+        self.appDelegate.executeAnswerCallAction(uuid: callID)
     }
 
     func onRejectButton() {
-        self.currentCall?.hangup()
+        self.appDelegate.currentCall?.hangup()
     }
 }
 // MARK: - UICallScreenDelegate
@@ -337,27 +208,27 @@ extension ViewController : UICallScreenDelegate {
         let uuid = UUID()
         let handle = "Telnyx"
         
-        self.executeStartCallAction(uuid: uuid, handle: handle)
+        appDelegate.executeStartCallAction(uuid: uuid, handle: handle)
     }
     
     func onEndCallButton() {
-        guard let uuid = self.currentCall?.callInfo?.callId else { return }
-        self.executeEndCallAction(uuid: uuid)
+        guard let uuid = self.appDelegate.currentCall?.callInfo?.callId else { return }
+        appDelegate.executeEndCallAction(uuid: uuid)
     }
     
     func onMuteUnmuteSwitch(isMuted: Bool) {
         if (isMuted) {
-            self.currentCall?.muteAudio()
+            self.appDelegate.currentCall?.muteAudio()
         } else {
-            self.currentCall?.unmuteAudio()
+            self.appDelegate.currentCall?.unmuteAudio()
         }
     }
     
     func onHoldUnholdSwitch(isOnHold: Bool) {
         if (isOnHold) {
-            self.currentCall?.hold()
+            self.appDelegate.currentCall?.hold()
         } else {
-            self.currentCall?.unhold()
+            self.appDelegate.currentCall?.unhold()
         }
     }
 

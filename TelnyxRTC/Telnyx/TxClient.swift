@@ -9,6 +9,7 @@
 import Foundation
 import AVFoundation
 import Bugsnag
+import WebRTC
 
 /// The `TelnyxRTC` client connects your application to the Telnyx backend,
 /// enabling you to make outgoing calls and handle incoming calls.
@@ -137,6 +138,24 @@ public class TxClient {
     private var registerRetryCount: Int = MAX_REGISTER_RETRY
     private var registerTimer: Timer = Timer()
     private var gatewayState: GatewayStates = .NOREG
+    private var waitingCallFromPush: Bool = false
+
+    /// When implementing CallKit framework, audio has to be manually handled.
+    /// Set this property to TRUE when `provider(CXProvider, didActivate: AVAudioSession)` is called on your CallKit implementation
+    /// Set this property to FALSE when `provider(CXProvider, didDeactivate: AVAudioSession)` is called on your CallKit implementation
+    public var isAudioDeviceEnabled : Bool {
+        get {
+            return RTCAudioSession.sharedInstance().isAudioEnabled
+        }
+        set {
+            if newValue {
+                RTCAudioSession.sharedInstance().audioSessionDidActivate(AVAudioSession.sharedInstance())
+            } else {
+                RTCAudioSession.sharedInstance().audioSessionDidDeactivate(AVAudioSession.sharedInstance())
+            }
+            RTCAudioSession.sharedInstance().isAudioEnabled = newValue
+        }
+    }
 
     /// Client must be registered in order to receive or place calls.
     public var isRegistered: Bool {
@@ -371,9 +390,15 @@ extension TxClient {
         call.callOptions = TxCallOptions(audio: true)
 
         self.calls[callId] = call
-
         // propagate the incoming call to the App
-        self.delegate?.onIncomingCall(call: call)
+        Logger.log.i(message: "TxClient:: push flow createIncomingCall \(call)")
+        
+        if waitingCallFromPush {
+            self.delegate?.onPushCall(call: call)
+        } else {
+            self.delegate?.onIncomingCall(call: call)
+        }
+        self.waitingCallFromPush = false
     }
 }
 
@@ -386,12 +411,40 @@ extension TxClient {
     /// - Parameters:
     ///   - txConfig: The desired configuration to login to B2B2UA. User credentials must be the same as the
     /// - Throws: Error during the connection process
-    public func processVoIPNotification(txConfig: TxConfig, serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
-        Logger.log.i(message: "TxClient:: processVoIPNotification()")
+    public func processVoIPNotification(txConfig: TxConfig,
+                                        serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
+        Logger.log.i(message: "TxClient:: push flow voIPUUID")
         // Check if we are already connected and logged in
-        if !isConnected() &&
-            getSessionId().isEmpty {
+        if isConnected() {
+            Logger.log.i(message: "TxClient:: push flow socket already connected: disconnect")
+            self.disconnect()
+        }
+
+        Logger.log.i(message: "TxClient:: push flow connect")
+        do {
             try self.connect(txConfig: txConfig, serverConfiguration: serverConfiguration)
+        } catch let error {
+            Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
+        }
+        Logger.log.i(message: "TxClient:: push flow: waitInviteTimer started")
+        self.waitInviteTimer()
+    }
+
+    /// This function starts a timer to wait the INVITE message after receiving a PN.
+    /// If the INVITE message is not received, then we are going to end the call.
+    fileprivate func waitInviteTimer() {
+        Logger.log.i(message: "TxClient:: waitInviteTimer started")
+        self.waitingCallFromPush = true
+        DispatchQueue.main.async {
+             Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { timer in
+                if (self.waitingCallFromPush) {
+                    Logger.log.e(message: "TxClient:: waitInviteTimer elapsed .. Ending call")
+                    self.waitingCallFromPush = false
+                    self.delegate?.onRemoteCallEnded(callId: UUID.init())
+                } else {
+                    Logger.log.i(message: "TxClient:: waitInviteTimer is false, do nothing")
+                }
+            }
         }
     }
 }
@@ -473,6 +526,7 @@ extension TxClient : SocketDelegate {
     func onSocketDisconnected() {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketDisconnected()")
         self.socket = nil
+        self.sessionId = nil
         self.delegate?.onSocketDisconnected()
     }
 
@@ -528,6 +582,12 @@ extension TxClient : SocketDelegate {
                     // If a client try to call beforw been registered, a GATEWAY_DOWN error is received.
                     // Therefore, we need to check the gateway state once we have successfully loged in:
                     self.requestGatewayState()
+                    // If we are going to receive an incoming call
+                    if let params = vertoMessage.params,
+                       let _ = params["reattached_sessions"] {
+                        self.registerTimer.invalidate()
+                        self.delegate?.onClientReady()
+                    }
                     break
 
                 case .INVITE:

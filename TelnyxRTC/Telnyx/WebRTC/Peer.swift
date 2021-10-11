@@ -15,14 +15,16 @@ protocol PeerDelegate: AnyObject {
 }
 
 class Peer : NSObject {
-    
+
+    private let audioQueue = DispatchQueue(label: "audio")
+
     private let NEGOTIATION_TIMOUT = 0.3 //time in milliseconds
     private let AUDIO_TRACK_ID = "audio0"
     private let VIDEO_TRACK_ID = "video0"
     //TODO: REMOVE THIS FOR V1
     private let VIDEO_DEMO_LOCAL_VIDEO = "local_video_streaming.mp4"
 
-    private let mediaConstrains = [kRTCMediaConstraintsOfferToReceiveAudio: kRTCMediaConstraintsValueTrue, kRTCMediaConstraintsOfferToReceiveVideo: kRTCMediaConstraintsValueTrue]
+    private let mediaConstrains = [kRTCMediaConstraintsOfferToReceiveAudio: kRTCMediaConstraintsValueTrue, kRTCMediaConstraintsOfferToReceiveVideo: kRTCMediaConstraintsValueFalse]
 
     weak var delegate: PeerDelegate?
     var connection : RTCPeerConnection
@@ -88,25 +90,29 @@ class Peer : NSObject {
         let audioTrack = self.createAudioTrack()
         self.localAudioTrack = audioTrack
         self.connection.add(audioTrack, streamIds: [streamId])
-        
-        // Video support
-        let videoTrack = self.createVideoTrack()
-        self.localVideoTrack = videoTrack
-        self.connection.add(videoTrack, streamIds: [streamId])
+        self.muteUnmuteAudio(mute: false)
     }
 
     /**
      iOS specific: we need to configure the device AudioSession.
      */
     private func configureAudioSession() {
-        self.rtcAudioSession.lockForConfiguration()
-        do {
-            try self.rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord.rawValue)
-            try self.rtcAudioSession.setMode(AVAudioSession.Mode.voiceChat.rawValue)
-        } catch let error {
-            Logger.log.e(message: "Peer:: Error changeing AVAudioSession category: \(error)")
+        self.audioQueue.async { [weak self] in
+            guard let self = self else {
+                return
+            }
+            self.rtcAudioSession.lockForConfiguration()
+            do {
+                Logger.log.i(message: "Peer:: Configuring AVAudioSession")
+                try self.rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord.rawValue)
+                try self.rtcAudioSession.setMode(AVAudioSession.Mode.voiceChat.rawValue)
+                self.rtcAudioSession.useManualAudio = true
+                Logger.log.i(message: "Peer:: Configuring AVAudioSession configured")
+            } catch let error {
+                Logger.log.e(message: "Peer:: Error changing AVAudioSession category: \(error.localizedDescription)")
+            }
+            self.rtcAudioSession.unlockForConfiguration()
         }
-        self.rtcAudioSession.unlockForConfiguration()
     }
 
     private func createAudioTrack() -> RTCAudioTrack {
@@ -265,7 +271,24 @@ extension Peer {
  */
 extension Peer : RTCPeerConnectionDelegate {
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange stateChanged: RTCSignalingState) {
-        Logger.log.i(message: "Peer:: connection didChange state: \(stateChanged)")
+        var state = ""
+        switch(stateChanged) {
+            case .stable:
+                state = "stable"
+            case .haveLocalOffer:
+                state = "haveLocalOffer"
+            case .haveLocalPrAnswer:
+                state = "haveLocalPrAnswer"
+            case .haveRemoteOffer:
+                state = "haveRemoteOffer"
+            case .haveRemotePrAnswer:
+                state = "haveRemotePrAnswer"
+            case .closed:
+                state = "closed"
+            @unknown default:
+                state = "unknown"
+        }
+        Logger.log.i(message: "Peer:: connection didChange state: [\(state.uppercased())]")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didAdd stream: RTCMediaStream) {
@@ -284,12 +307,42 @@ extension Peer : RTCPeerConnectionDelegate {
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceConnectionState) {
-        Logger.log.i(message: "Peer:: connection didChange RTCIceConnectionState: \(newState)")
-    }
+        var state = ""
+        switch(newState) {
+            case .checking:
+                state = "checking"
+            case .new:
+                state = "new"
+            case .connected:
+                state = "connected"
+            case .completed:
+                state = "completed"
+            case .failed:
+                state = "failed"
+            case .disconnected:
+                state = "disconnected"
+            case .closed:
+                state = "closed"
+            case .count:
+                state = "count"
+            @unknown default:
+                state = "unknown"
+        }
+        Logger.log.i(message: "Peer:: connection didChange RTCIceConnectionState [\(state.uppercased())]")    }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {
-        Logger.log.i(message: "Peer:: connection didChange RTCIceGatheringState: \(newState)")
-    }
+        var state = ""
+        switch(newState) {
+            case .new:
+                state = "new"
+            case .gathering:
+                state = "gathering"
+            case .complete:
+                state = "complete"
+            @unknown default:
+                state = "unknown"
+        }
+        Logger.log.s(message: "Peer:: connection didChange RTCIceGatheringState [\(state.uppercased())]")    }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
         Logger.log.i(message: "Peer:: connection didGenerate RCIceCandidate: \(candidate)")

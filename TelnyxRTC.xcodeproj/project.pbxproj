@@ -30,6 +30,8 @@
 		B309D28225F1838700A2AADF /* ByeMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D28125F1838700A2AADF /* ByeMessage.swift */; };
 		B309D28625F184A100A2AADF /* AnswerMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D28525F184A100A2AADF /* AnswerMessage.swift */; };
 		B32AE8B326CD4F9200C7C6F4 /* TxServerConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = B32AE8B226CD4F9200C7C6F4 /* TxServerConfiguration.swift */; };
+		B32AE8BB26D6952500C7C6F4 /* AppDelegateCallKitExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B32AE8BA26D6952500C7C6F4 /* AppDelegateCallKitExtension.swift */; };
+		B32AE8BF26D6D69E00C7C6F4 /* ViewControllerVoIPExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B32AE8BE26D6D69E00C7C6F4 /* ViewControllerVoIPExtension.swift */; };
 		B366D3FB26150D1100156FE1 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B366D3FA26150D1100156FE1 /* StringExtension.swift */; };
 		B368BEC525EDDB610032AE52 /* TelnyxRTC.h in Headers */ = {isa = PBXBuildFile; fileRef = B368BEC325EDDB610032AE52 /* TelnyxRTC.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		B368BED425EDDBC90032AE52 /* TelnyxRTCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B368BED325EDDBC90032AE52 /* TelnyxRTCTests.swift */; };
@@ -57,7 +59,7 @@
 		B3AF255F25EEA6EA0062EDA9 /* Pods_TelnyxWebRTCDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6831A164C510407EBB5A919B /* Pods_TelnyxWebRTCDemo.framework */; };
 		B3B1D9A126542860008D28C9 /* TxPushConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B1D9A026542860008D28C9 /* TxPushConfig.swift */; };
 		B3B1D9A426545807008D28C9 /* UserDefaultExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B1D9A326545807008D28C9 /* UserDefaultExtension.swift */; };
-		B3B1D9A626545E2C008D28C9 /* ViewControllerCallKitExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B1D9A526545E2C008D28C9 /* ViewControllerCallKitExtension.swift */; };
+		B3B8F53726E7D4EF0007B583 /* AppDelegateTelnyxVoIPExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B8F53626E7D4EF0007B583 /* AppDelegateTelnyxVoIPExtension.swift */; };
 		B3BB8FA026BC076000DDCB84 /* GatewayMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3BB8F9F26BC076000DDCB84 /* GatewayMessage.swift */; };
 		B3C008B226C1B2C5003E7AE3 /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3C008B126C1B2C5003E7AE3 /* LoadingView.swift */; };
 		B3E0B0662656ED73005E7431 /* InfoMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3E0B0652656ED73005E7431 /* InfoMessage.swift */; };
@@ -120,6 +122,8 @@
 		B309D28125F1838700A2AADF /* ByeMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ByeMessage.swift; sourceTree = "<group>"; };
 		B309D28525F184A100A2AADF /* AnswerMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnswerMessage.swift; sourceTree = "<group>"; };
 		B32AE8B226CD4F9200C7C6F4 /* TxServerConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxServerConfiguration.swift; sourceTree = "<group>"; };
+		B32AE8BA26D6952500C7C6F4 /* AppDelegateCallKitExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegateCallKitExtension.swift; sourceTree = "<group>"; };
+		B32AE8BE26D6D69E00C7C6F4 /* ViewControllerVoIPExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerVoIPExtension.swift; sourceTree = "<group>"; };
 		B366D3FA26150D1100156FE1 /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		B368BEC025EDDB610032AE52 /* TelnyxRTC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = TelnyxRTC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B368BEC325EDDB610032AE52 /* TelnyxRTC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TelnyxRTC.h; sourceTree = "<group>"; };
@@ -152,7 +156,7 @@
 		B3B1D9A026542860008D28C9 /* TxPushConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxPushConfig.swift; sourceTree = "<group>"; };
 		B3B1D9A22654546E008D28C9 /* TelnyxWebRTCDemo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TelnyxWebRTCDemo.entitlements; sourceTree = "<group>"; };
 		B3B1D9A326545807008D28C9 /* UserDefaultExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultExtension.swift; sourceTree = "<group>"; };
-		B3B1D9A526545E2C008D28C9 /* ViewControllerCallKitExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerCallKitExtension.swift; sourceTree = "<group>"; };
+		B3B8F53626E7D4EF0007B583 /* AppDelegateTelnyxVoIPExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegateTelnyxVoIPExtension.swift; sourceTree = "<group>"; };
 		B3BB8F9F26BC076000DDCB84 /* GatewayMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GatewayMessage.swift; sourceTree = "<group>"; };
 		B3C008B126C1B2C5003E7AE3 /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
 		B3E0B0652656ED73005E7431 /* InfoMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoMessage.swift; sourceTree = "<group>"; };
@@ -400,7 +404,9 @@
 			children = (
 				B3AF24A925EE84570062EDA9 /* UIViewControllerExtension.swift */,
 				B3B1D9A326545807008D28C9 /* UserDefaultExtension.swift */,
-				B3B1D9A526545E2C008D28C9 /* ViewControllerCallKitExtension.swift */,
+				B32AE8BE26D6D69E00C7C6F4 /* ViewControllerVoIPExtension.swift */,
+				B32AE8BA26D6952500C7C6F4 /* AppDelegateCallKitExtension.swift */,
+				B3B8F53626E7D4EF0007B583 /* AppDelegateTelnyxVoIPExtension.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -727,13 +733,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				B3B1D9A426545807008D28C9 /* UserDefaultExtension.swift in Sources */,
+				B32AE8BB26D6952500C7C6F4 /* AppDelegateCallKitExtension.swift in Sources */,
 				B3AF24AA25EE84570062EDA9 /* UIViewControllerExtension.swift in Sources */,
 				B309D25325F071DD00A2AADF /* UICallScreen.swift in Sources */,
+				B3B8F53726E7D4EF0007B583 /* AppDelegateTelnyxVoIPExtension.swift in Sources */,
 				B309D27B25F17C1700A2AADF /* UIIncomingCallView.swift in Sources */,
 				B368BEEF25EDDD060032AE52 /* ViewController.swift in Sources */,
 				B368BEEB25EDDD060032AE52 /* AppDelegate.swift in Sources */,
 				B309D20225F0291B00A2AADF /* UISettingsView.swift in Sources */,
-				B3B1D9A626545E2C008D28C9 /* ViewControllerCallKitExtension.swift in Sources */,
+				B32AE8BF26D6D69E00C7C6F4 /* ViewControllerVoIPExtension.swift in Sources */,
 				B3C008B226C1B2C5003E7AE3 /* LoadingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1007,7 +1015,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = TelnyxWebRTCDemo/TelnyxWebRTCDemo.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = TelnyxWebRTCDemo/Info.plist;
@@ -1031,7 +1039,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = TelnyxWebRTCDemo/TelnyxWebRTCDemo.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = TelnyxWebRTCDemo/Info.plist;

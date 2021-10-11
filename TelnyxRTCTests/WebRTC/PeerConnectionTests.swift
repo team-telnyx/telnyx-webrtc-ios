@@ -42,11 +42,6 @@ class PeerConnectionTests: XCTestCase {
         let audio = self.peerConnection?.connection.senders
             .compactMap { return $0.track as? RTCAudioTrack }.first // Search for Audio track
         XCTAssertNotNil(audio)
-
-        //Check valid video sender
-        let video = self.peerConnection?.connection.senders
-            .compactMap { return $0.track as? RTCVideoTrack }.first // Search for Audio track
-        XCTAssertNotNil(video)
     }
 
     /**

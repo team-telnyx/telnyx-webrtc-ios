@@ -8,45 +8,74 @@
 
 import UIKit
 import PushKit
+import CallKit
 import TelnyxRTC
 
-
-protocol PushKitDelegate: AnyObject {
-    func onPushNotificationReceived(payload: PKPushPayload) -> Void
-    func onPushNotificationReceived(payload: PKPushPayload, completion: @escaping () -> Void) -> Void
+protocol VoIPDelegate: AnyObject {
+    func onSocketConnected()
+    func onSocketDisconnected()
+    func onClientError(error: Error)
+    func onClientReady()
+    func onSessionUpdated(sessionId: String)
+    func onCallStateUpdated(callState: CallState, callId: UUID)
+    func onIncomingCall(call: Call)
+    func onRemoteCallEnded(callId: UUID)
+    func executeCall(callUUID: UUID, completionHandler: @escaping (_ success: Call?) -> Void)
 }
-
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-    private var telnyxClient : TxClient?
+    var telnyxClient : TxClient?
+    var currentCall: Call?
+    var callKitUUID: UUID?
+
     private var pushRegistry = PKPushRegistry.init(queue: DispatchQueue.main)
-    weak var pushKitDelegate: PushKitDelegate?
+    weak var voipDelegate: VoIPDelegate?
+    var callKitProvider: CXProvider?
+    let callKitCallController = CXCallController()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
         // Set delegate
         let viewController = UIApplication.shared.windows.first?.rootViewController as? ViewController
-        self.pushKitDelegate = viewController
+        self.voipDelegate = viewController
 
         // Instantiate the Telnyx Client SDK
         self.telnyxClient = TxClient()
-
+        self.telnyxClient?.delegate = self
         //init pushkit to handle VoIP push notifications
         self.initPushKit()
+        self.initCallKit()
         return true
-    }
-
-    func getTelnyxClient() -> TxClient? {
-        return self.telnyxClient
     }
 
     func initPushKit() {
         pushRegistry.delegate = self
         pushRegistry.desiredPushTypes = Set([.voIP])
     }
+
+    /**
+     Initialize callkit framework
+     */
+    func initCallKit() {
+        let configuration = CXProviderConfiguration(localizedName: "TelnyxRTC")
+        configuration.maximumCallGroups = 1
+        configuration.maximumCallsPerCallGroup = 1
+        callKitProvider = CXProvider(configuration: configuration)
+        if let provider = callKitProvider {
+            provider.setDelegate(self, queue: nil)
+        }
+    }
+
+    deinit {
+        // CallKit has an odd API contract where the developer must call invalidate or the CXProvider is leaked.
+        if let provider = callKitProvider {
+            provider.invalidate()
+        }
+    }
+
 }
 
 // MARK: - PKPushRegistryDelegate
@@ -76,9 +105,9 @@ extension AppDelegate: PKPushRegistryDelegate {
      .According to the docs, this delegate method is deprecated by Apple.
     */
     func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType) {
-        print("pushRegistry:didReceiveIncomingPushWithPayload:forType:")
+        print("pushRegistry:didReceiveIncomingPushWithPayload:forType: old")
         if (payload.type == .voIP) {
-            self.pushKitDelegate?.onPushNotificationReceived(payload: payload)
+            self.handleVoIPPushNotification(payload: payload)
         }
     }
 
@@ -86,13 +115,34 @@ extension AppDelegate: PKPushRegistryDelegate {
      This delegate method is available on iOS 11 and above. Call the completion handler once the
      */
     func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
-        print("pushRegistry:didReceiveIncomingPushWithPayload:forType:completion:")
+        print("pushRegistry:didReceiveIncomingPushWithPayload:forType:completion new: \(payload.dictionaryPayload)")
         if (payload.type == .voIP) {
-            self.pushKitDelegate?.onPushNotificationReceived(payload: payload, completion: completion)
+            self.handleVoIPPushNotification(payload: payload)
         }
 
         if let version = Float(UIDevice.current.systemVersion), version >= 13.0 {
             completion()
+        }
+    }
+
+    func handleVoIPPushNotification(payload: PKPushPayload) {
+        if let metadata = payload.dictionaryPayload["metadata"] as? [String: Any] {
+            var callID = UUID.init().uuidString
+            if let newCallId = (metadata["call_id"] as? String),
+               !newCallId.isEmpty {
+                callID = newCallId
+            }
+            let callerName = (metadata["caller_name"] as? String) ?? ""
+            let callerNumber = (metadata["caller_number"] as? String) ?? ""
+            let caller = callerName.isEmpty ? (callerNumber.isEmpty ? "Unknown" : callerNumber) : callerName
+            let uuid = UUID(uuidString: callID)
+            self.processVoIPNotification(callUUID: uuid!)
+            self.newIncomingCall(from: caller, uuid: uuid!)
+        } else {
+            // If there's no available metadata, let's create the notification with dummy data.
+            let uuid = UUID.init()
+            self.processVoIPNotification(callUUID: uuid)
+            self.newIncomingCall(from: "Incoming call", uuid: uuid)
         }
     }
 }
