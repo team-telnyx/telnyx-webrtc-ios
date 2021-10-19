@@ -3,7 +3,7 @@
 # 2. Runs the bash script to update the SDK version in the required files.
 # 3. Creates a new branch with the SDK version updated like: releases/RELEASE-1.0.0
 # 4. Creates a PR with the release version
-name: release_create_pull_request
+name: release_01_create_pull_request
 on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
