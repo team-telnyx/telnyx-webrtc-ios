@@ -1,5 +1,5 @@
 #This workflow deploy the latest release configured inside the .podspec file to cocoapods
-name: release_deploy_cocoapods
+name: release_03_deploy_cocoapods
 on:
    # Allows you to run this workflow manually from the Actions tab
    workflow_dispatch:
