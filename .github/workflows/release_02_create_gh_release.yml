@@ -1,6 +1,6 @@
 #This workflow:
 #1- Creates a new GitHub release with the desired release version
-name: release_create_github_release
+name: release_02_create_github_release
 on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
