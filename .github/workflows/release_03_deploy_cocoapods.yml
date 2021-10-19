@@ -1,11 +1,12 @@
-name: deploy_cocoapods
+#This workflow deploy the latest release configured inside the .podspec file to cocoapods
+name: release_deploy_cocoapods
 on:
    # Allows you to run this workflow manually from the Actions tab
    workflow_dispatch:
     
 jobs:
   build:
-    name: deploy_cocoapods
+    name: release_deploy_cocoapods
     runs-on: macos-latest
 
     steps:
@@ -18,3 +19,4 @@ jobs:
         COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
       run: |
         pod trunk push TelnyxRTC.podspec
+
