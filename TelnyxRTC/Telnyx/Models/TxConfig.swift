@@ -30,14 +30,14 @@ public struct TxConfig {
     ///   - pushDeviceToken: (Optional) the device push notification token. This is required to receive Inbound calls notifications.
     ///   - ringtone: (Optional) The audio file name to be played when receiving an incoming call. e.g.: "my-ringtone.mp3"
     ///   - ringBackTone: (Optional) The audio file to be played when calling. e.g.: "my-ringbacktone.mp3"
-    ///   - logLevel: (Optional) Can select the verbosity level of the SDK logs. Is set to `.none` as default
     ///   - autoReconnect: (Optional) Determine if the SDK has to re-connect automatically when detecting a gateway connection failure. This is set to`true` as default
+    ///   - logLevel: (Optional) Can select the verbosity level of the SDK logs. Is set to `.none` as default
     public init(sipUser: String, password: String,
                 pushDeviceToken: String? = nil,
                 ringtone: String? = nil,
                 ringBackTone: String? = nil,
-                logLevel: LogLevel = .none,
-                autoReconnect: Bool = true) {
+                autoReconnect: Bool = true,
+                logLevel: LogLevel = .none) {
         self.autoReconnect = autoReconnect
         self.sipUser = sipUser
         self.password = password
@@ -57,14 +57,13 @@ public struct TxConfig {
     ///   - ringtone: (Optional) The audio file name to be played when receiving an incoming call. e.g.: "my-ringtone.mp3"
     ///   - ringBackTone: (Optional) The audio file name to be played when calling. e.g.: "my-ringbacktone.mp3"
     ///   - logLevel: (Optional) Can select the verbosity level of the SDK logs. Is set to `.none` as default
-    ///   - serverConfiguration: (Optional) To define a custom `signaling server` and `TURN/ STUN servers`. As default we use the internal Telnyx Production servers.
     ///   - autoReconnect: (Optional) Determine if the SDK has to re-connect automatically when detecting a gateway connection failure. This is set to`true` as default
     public init(token: String,
                 pushDeviceToken: String? = nil,
                 ringtone: String? = nil,
                 ringBackTone: String? = nil,
-                logLevel: LogLevel = .none,
-                autoReconnect: Bool = true) {
+                autoReconnect: Bool = true,
+                logLevel: LogLevel = .none) {
         self.autoReconnect = true
         self.token = token
         if let pushToken = pushDeviceToken {
