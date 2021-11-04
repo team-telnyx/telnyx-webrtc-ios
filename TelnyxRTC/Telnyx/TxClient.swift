@@ -123,7 +123,10 @@ public class TxClient {
 
     // MARK: - Properties
     private static let DEFAULT_REGISTER_INTERVAL = 3.0 // In seconds
-    private static let MAX_REGISTER_RETRY = 3 // Number of retry
+    private static let MAX_REGISTER_RETRY = 3 // Number of retries
+
+    private static let DEFAULT_RECONNECT_INTERVAL = 0.5 // In seconds
+    private static let MAX_RECONNECT_RETRY = 3 // Number of retries
 
     /// Keeps track of all the created calls by theirs UUIDs
     public internal(set) var calls: [UUID: Call] = [UUID: Call]()
@@ -139,6 +142,9 @@ public class TxClient {
     private var registerTimer: Timer = Timer()
     private var gatewayState: GatewayStates = .NOREG
     private var waitingCallFromPush: Bool = false
+
+    private var reconnectRetryCount: Int = MAX_RECONNECT_RETRY
+    private var reconnectRetryTimer: Timer = Timer()
 
     /// When implementing CallKit framework, audio has to be manually handled.
     /// Set this property to TRUE when `provider(CXProvider, didActivate: AVAudioSession)` is called on your CallKit implementation
@@ -207,8 +213,7 @@ public class TxClient {
         }
 
         self.calls.removeAll()
-        socket?.disconnect()
-        delegate?.onSocketDisconnected()
+        self.socket?.disconnect()
     }
 
     /// To check if TxClient is connected to Telnyx server.
@@ -240,39 +245,91 @@ public class TxClient {
         switch newState {
             case .REGED:
                 // If the client is now registered:
-                // - Stop the timer
+                // - Stop the timers
+                // - Update retryCount
                 // - Propagate the client state to the app.
-                self.registerTimer.invalidate()
+                DispatchQueue.main.async {
+                    self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
+                    self.registerTimer.invalidate()
+                    
+                    self.reconnectRetryCount = TxClient.MAX_RECONNECT_RETRY
+                    self.reconnectRetryTimer.invalidate()
+                }
                 self.delegate?.onClientReady()
                 Logger.log.i(message: "TxClient:: updateGatewayState() clientReady")
                 break
-            default:
+            case .NOREG, .UNREGED:
                 // The gateway state can transition through multiple states before changing to REGED (Registered).
-                Logger.log.i(message: "TxClient:: updateGatewayState() no registered")
-                self.registerTimer.invalidate()
-                DispatchQueue.main.async {
-                    self.registerTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(TxClient.DEFAULT_REGISTER_INTERVAL), repeats: false) { [weak self] _ in
-                        Logger.log.i(message: "TxClient:: updateGatewayState() registerTimer elapsed: gatewayState [\(String(describing: self?.gatewayState))] registerRetryCount [\(String(describing: self?.registerRetryCount))]")
-
-                        if self?.gatewayState == .REGED {
-                            self?.delegate?.onClientReady()
-                        } else {
-                            self?.registerRetryCount -= 1
-                            if self?.registerRetryCount ?? 0 > 0 {
-                                self?.requestGatewayState()
-                            } else {
-                                let notRegisteredError = TxError.serverError(reason: .gatewayNotRegistered)
-                                self?.delegate?.onClientError(error: notRegisteredError)
-                                Logger.log.e(message: "TxClient:: updateGatewayState() client not registered")
-                            }
-                        }
-                    }
-                }
+                Logger.log.i(message: "TxClient:: updateGatewayState() NOREG / UNREGED")
+                self.retryRegisterProcedure()
+                break
+            case .FAILED, .FAIL_WAIT:
+                // On some cases the Gateway unregisters the connection. In that case the gateway FAIL / FAIL_WAIT will be received async.
+                // If that's the case, we are going to retry reconnecting with the same credentials if the autoReconnect flag of the TxConfig object is `true`
+                Logger.log.i(message: "TxClient:: updateGatewayState() FAIL / FAIL_WAIT")
+                self.retryReconnectProcedure()
+                break
+            default:
                 break
         }
     }
 
+    
+    /// Starts a timer to retry registering
+    private func retryRegisterProcedure() {
+        Logger.log.i(message: "TxClient:: retryRegisterProcedure()")
+        DispatchQueue.main.async {
+            Logger.log.i(message: "TxClient:: retryRegisterProcedure() restart timer")
+            self.reconnectRetryTimer.invalidate()
+            self.registerTimer.invalidate()
+            self.registerTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(TxClient.DEFAULT_REGISTER_INTERVAL), repeats: false) { [weak self] _ in
+                Logger.log.i(message: "TxClient:: retryRegisterProcedure() registerTimer elapsed: gatewayState [\(String(describing: self?.gatewayState))] registerRetryCount [\(String(describing: self?.registerRetryCount))]")
+                
+                self?.registerRetryCount -= 1
+                if self?.registerRetryCount ?? 0 >= 0 {
+                    let notRegisteredError = TxError.serverError(reason: .gatewayNotRegistered)
+                    self?.delegate?.onClientError(error: notRegisteredError)
+                    Logger.log.e(message: "TxClient:: retryRegisterProcedure() client not registered")
+                } else {
+                    self?.requestGatewayState()
+                }
+            }
+        }
+    }
+    
+    private func retryReconnectProcedure() {
+        Logger.log.i(message: "TxClient:: retryReconnectProcedure()")
+        if !(self.txConfig?.autoReconnect ?? false) {
+            let notRegisteredError = TxError.serverError(reason: .gatewayNotRegistered)
+            self.delegate?.onClientError(error: notRegisteredError)
+            Logger.log.e(message: "TxClient:: updateGatewayState() client not registered. Autoreconnect = false")
+            return
+        }
+        
+        DispatchQueue.main.async {
+            Logger.log.i(message: "TxClient:: retryReconnectProcedure() restart timer")
+            self.registerTimer.invalidate()
+            self.reconnectRetryTimer.invalidate()
+            self.reconnectRetryTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(TxClient.DEFAULT_RECONNECT_INTERVAL), repeats: false) { [weak self] _ in
+                Logger.log.i(message: "TxClient:: retryReconnectProcedure() reconnectRetryTimer elapsed: gatewayState [\(String(describing: self?.gatewayState))] reconnectRetryCount [\(String(describing: self?.reconnectRetryCount))]")
+                
+                self?.reconnectRetryCount -= 1
+                if self?.reconnectRetryCount ?? 0 >= 0,
+                   let config = self?.txConfig {
+                    Logger.log.e(message: "TxClient:: retryReconnectProcedure() reconnecting...")
+                    self?.disconnect()
+                    try? self?.connect(txConfig: config)
+                } else {
+                    let notRegisteredError = TxError.serverError(reason: .gatewayNotRegistered)
+                    self?.delegate?.onClientError(error: notRegisteredError)
+                    Logger.log.e(message: "TxClient:: retryReconnectProcedure() client not registered")
+                }
+            }
+        }
+    }
+
     private func requestGatewayState() {
+        Logger.log.i(message: "TxClient:: requestGatewayState()")
         let gatewayMessage = GatewayMessage()
         let message = gatewayMessage.encode() ?? ""
         // Request gateway state
@@ -525,6 +582,7 @@ extension TxClient : SocketDelegate {
     
     func onSocketDisconnected() {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketDisconnected()")
+        self.reconnectRetryCount = TxClient.MAX_RECONNECT_RETRY
         self.socket = nil
         self.sessionId = nil
         self.delegate?.onSocketDisconnected()
@@ -582,12 +640,6 @@ extension TxClient : SocketDelegate {
                     // If a client try to call beforw been registered, a GATEWAY_DOWN error is received.
                     // Therefore, we need to check the gateway state once we have successfully loged in:
                     self.requestGatewayState()
-                    // If we are going to receive an incoming call
-                    if let params = vertoMessage.params,
-                       let _ = params["reattached_sessions"] {
-                        self.registerTimer.invalidate()
-                        self.delegate?.onClientReady()
-                    }
                     break
 
                 case .INVITE:
@@ -619,6 +671,14 @@ extension TxClient : SocketDelegate {
                     }
                     break;
 
+                case .GATEWAY_STATE:
+                    if let params = vertoMessage.params,
+                       let state = params["state"] as? String,
+                       let gatewayState = GatewayStates(rawValue: state) {
+                        Logger.log.i(message: "GATEWAY_STATE ASYNC RESULT: \(state)")
+                        self.updateGatewayState(newState: gatewayState)
+                    }
+                    break;
                 default:
                     Logger.log.i(message: "TxClient:: SocketDelegate Default method")
                     break
