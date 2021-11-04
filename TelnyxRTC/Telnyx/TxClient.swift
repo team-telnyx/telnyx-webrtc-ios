@@ -297,8 +297,11 @@ public class TxClient {
         }
     }
     
+    /// Starts the timer to retry reconnecting.
     private func retryReconnectProcedure() {
         Logger.log.i(message: "TxClient:: retryReconnectProcedure()")
+        
+        // Validate if the autoReconnect property is true.
         if !(self.txConfig?.autoReconnect ?? false) {
             let notRegisteredError = TxError.serverError(reason: .gatewayNotRegistered)
             self.delegate?.onClientError(error: notRegisteredError)
