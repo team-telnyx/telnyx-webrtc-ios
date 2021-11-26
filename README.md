@@ -52,8 +52,19 @@ Enable Telnyx real-time communication services on iOS. :telephone_receiver: :fir
   </tr>
  </table>
   
-  
 -----
+</br>
+
+## SIP Credentials
+In order to start making and receiving calls using the TelnyxRTC SDK you will need to get SIP Credentials:
+
+1. Access to https://portal.telnyx.com/
+2. Sign up for a Telnyx Account.
+3. Create a Credential Connection to configure how you connect your calls.
+4. Create an Outbound Voice Profile to configure your outbound call settings and assign it to your Credential Connection.
+
+For more information on how to generate SIP credentials check the [Telnyx WebRTC quickstart guide](https://developers.telnyx.com/docs/v2/webrtc/quickstart). 
+
 </br>
 
 ## Adding Telnyx SDK to your iOS Client Application:
@@ -65,7 +76,7 @@ If your xcode project is not using [cocoapods](https://cocoapods.org/) yet, you 
 
 1. Open your podfile and add the TelnyxRTC. 
 ```
-pod 'TelnyxRTC', '~> 0.0.4'
+pod 'TelnyxRTC', '~> 0.1.0'
 ```
 2. Install your pods. You can add the flag --repo-update to ensure your cocoapods has the specs updated.
 ```
@@ -110,17 +121,18 @@ telnyxClient.delegate = self
 // Set the login credentials and the ringtone/ringback configurations if required.
 // Ringtone / ringback tone files are not mandatory.
 // You can user your sipUser and password
-// This is what we are currently using on the Demo App
 let txConfigUserAndPassowrd = TxConfig(sipUser: sipUser,
                                        password: password,
+                                       pushDeviceToken: "DEVICE_APNS_TOKEN",
                                        ringtone: "incoming_call.mp3",
                                        ringBackTone: "ringback_tone.mp3",
                                        //You can choose the appropriate verbosity level of the SDK.
                                        //Logs are disabled by default
                                        logLevel: .all)
 
-// Or use a JWT Telnyx Token to authenticate (recommended)
+// Or use a JWT Telnyx Token to authenticate
 let txConfigToken = TxConfig(token: "MY_JWT_TELNYX_TOKEN",
+                             pushDeviceToken: "DEVICE_APNS_TOKEN",
                              ringtone: "incoming_call.mp3",
                              ringBackTone: "ringback_tone.mp3",
                              //You can choose the appropriate verbosity level of the SDK. Logs are disabled by default
@@ -190,8 +202,16 @@ extension ViewController: TxClientDelegate {
 
     func onIncomingCall(call: Call)  {
        // Someone is calling you.
+       // This delegate method will be called when the app is in foreground and the Telnyx Client is connected.
     }
 
+    func onPushCall(call: Call) {
+       // If you have configured Push Notifications and app is in background or the Telnyx Client is disconnected
+       // this delegate method will be called after the push notification is received.
+       // Update the current call with the incoming call
+       self.currentCall = call 
+    }
+    
     // You can update your UI from here base on the call states.
     // Check that the callId is the same as your current call.
     func onCallStateUpdated(callState: CallState, callId: UUID) {
@@ -219,7 +239,7 @@ extension ViewController: TxClientDelegate {
 ### Outboud call
 
 ```Swift
- // Create a client instance
+   // Create a client instance
    self.telnyxClient = TxClient()
 
    // Asign the delegate to get SDK events
@@ -235,6 +255,9 @@ extension ViewController: TxClientDelegate {
                                                      destinationNumber: "18004377950",
                                                      callId: UUID.init())
 ```
+
+
+This is a general example: In order to fully support outbound calls you will need to implement CallKit to properly handle audio states. For more information check `Audio Session Handling WebRTC + CallKit` section.
 
 ### Inbound call
 
@@ -255,12 +278,210 @@ func initTelnyxClient() {
 extension ViewController: TxClientDelegate {
     //....
     func onIncomingCall(call: Call) {
-        //We are automatically answering any incoming call as an example, but
-        //maybe you want to store a reference of the call, and answer the call after a button press.
+        // We are automatically answering any incoming call as an example, but
+        // maybe you want to store a reference of the call, and answer the call after a button press.
         self.myCall = call.answer()
     }
 }
 ```
+
+This is a general example: In order to fully support inbound calls you will need to implement PushKit + CallKit. For more information check `Setting up VoIP push notifications` section.
+
+---
+</br>
+
+## Setting up VoIP push notifications: 
+
+In order to receive incoming calls while the app is running in background or closed, you will need to perform a set of configurations over your Mission Control Portal Account and your application. 
+
+</br>
+
+### VoIP Push - Portal setup
+
+During this process you will learn how to create a VoIP push credential and assign the credential to a SIP Connection. 
+
+This process requires:
+* A Mission Control Portal Account. 
+* A SIP Connection.
+* Your Apple VoIP push certificate.
+
+For complete instructions on how to setup Push Notifications got to this [link](https://developers.telnyx.com/docs/v2/webrtc/push-notifications).
+
+</br>
+
+### VoIP Push - App Setup
+
+The following setup is required in your application to receive Telnyx VoIP push notifications:
+
+#### a. Add Push Notifications capability to your Xcode project
+
+1. Open the xcode workspace associated with your app.
+2. In the Project Navigator (the left-hand menu), select the project icon that represents your mobile app.
+3. In the top-left corner of the right-hand pane in Xcode, select your app's target.
+4. Press the  +Capabilities button.
+<p align="center">
+      <img width="294" alt="Screen Shot 2021-11-26 at 13 34 12" src="https://user-images.githubusercontent.com/75636882/143610180-04e2a98c-bb08-4f06-b81a-9a3a4231d389.png">
+</p>
+
+6. Enable Push Notifications
+<p align="center">
+      <img width="269" alt="Screen Shot 2021-11-26 at 13 35 51" src="https://user-images.githubusercontent.com/75636882/143610372-abab46cc-dd2a-4712-9020-240f9dbaaaf7.png">
+</p>
+
+#### b. Configure PushKit into your app:
+1. Import pushkit
+```Swift
+import PushKit
+```
+2. Initialize PushKit: 
+```Swift
+private var pushRegistry = PKPushRegistry.init(queue: DispatchQueue.main)
+...
+
+func initPushKit() {
+  pushRegistry.delegate = self
+  pushRegistry.desiredPushTypes = Set([.voIP])
+}
+```
+3. Implement PKPushRegistryDelegate 
+```Swift
+extension AppDelegate: PKPushRegistryDelegate {
+
+    // New push notification token assigned by APNS.
+    func pushRegistry(_ registry: PKPushRegistry, didUpdate credentials: PKPushCredentials, for type: PKPushType) {
+        if (type == .voIP) {
+            // This push notification token has to be sent to Telnyx when connecting the Client.
+            let deviceToken = credentials.token.reduce("", {$0 + String(format: "%02X", $1) })
+            UserDefaults.standard.savePushToken(pushToken: deviceToken)
+        }
+    }
+
+    func pushRegistry(_ registry: PKPushRegistry, didInvalidatePushTokenFor type: PKPushType) {
+        if (type == .voIP) {
+            // Delete incoming token in user defaults
+            let userDefaults = UserDefaults.init()
+            userDefaults.deletePushToken()
+        }
+    }
+
+    /**
+     This delegate method is available on iOS 11 and above. 
+     */
+    func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
+        if (payload.type == .voIP) {
+            self.handleVoIPPushNotification(payload: payload)
+        }
+
+        if let version = Float(UIDevice.current.systemVersion), version >= 13.0 {
+            completion()
+        }
+    }
+
+    func handleVoIPPushNotification(payload: PKPushPayload) {
+        if let metadata = payload.dictionaryPayload["metadata"] as? [String: Any] {
+
+            let callId = metadata["call_id"] as? String
+            let callerName = (metadata["caller_name"] as? String) ?? ""
+            let callerNumber = (metadata["caller_number"] as? String) ?? ""
+            let caller = callerName.isEmpty ? (callerNumber.isEmpty ? "Unknown" : callerNumber) : callerName
+            let uuid = UUID(uuidString: callId)
+            
+            // Re-connect the client and process the push notification when is received.
+            // You will need tu use the credentials of the same user that is receiving the call. 
+            let txConfig = TxConfig(sipUser: sipUser,
+                                password: password,
+                                pushDeviceToken: "APNS_PUSH_TOKEN")
+                             
+            try? telnyxClient?.processVoIPNotification(txConfig: txConfig)
+
+            
+            // Report the incoming call to CallKit framework.
+            let callHandle = CXHandle(type: .generic, value: from)
+            let callUpdate = CXCallUpdate()
+            callUpdate.remoteHandle = callHandle
+            callUpdate.hasVideo = false
+
+            provider.reportNewIncomingCall(with: uuid, update: callUpdate) { error in
+                  if let error = error {
+                      print("AppDelegate:: Failed to report incoming call: \(error.localizedDescription).")
+                  } else {
+                      print("AppDelegate:: Incoming call successfully reported.")
+                  }
+            }
+    }
+}
+```
+
+4. If everything is correctly set-up when the app runs APNS should assign a Push Token. 
+5. In order to receive VoIP push notifications. You will need to send your push token when connecting to the Telnyx Client. 
+ 
+```Swift
+ 
+ let txConfig = TxConfig(sipUser: sipUser,
+                         password: password,
+                         pushDeviceToken: "DEVICE_APNS_TOKEN",
+                         //You can choose the appropriate verbosity level of the SDK. 
+                         logLevel: .all)
+
+ // Or use a JWT Telnyx Token to authenticate
+ let txConfigToken = TxConfig(token: "MY_JWT_TELNYX_TOKEN",
+                             pushDeviceToken: "DEVICE_APNS_TOKEN",
+                             //You can choose the appropriate verbosity level of the SDK. Logs are disabled by default
+                             logLevel: .all)
+```
+
+For more information about Pushkit you can check the official [Apple docs](https://developer.apple.com/documentation/pushkit]). 
+
+
+__*Important*__:
+- You will need to login at least once to send your device token to Telnyx before start getting Push notifications. 
+- You will need to implement 'CallKit' to report an incoming call when there’s a VoIP push notification. On iOS 13.0 and later, if you fail to report a call to CallKit, the system will terminate your app. More information on [Apple docs](https://developer.apple.com/documentation/pushkit/pkpushregistrydelegate/2875784-pushregistry) 
+
+
+#### c. Configure CallKit into your App:
+`PushKit` requires you to use `CallKit` when handling VoIP calls. `CallKit` ensures that apps providing call-related services on a user’s device work seamlessly together on the user's device, and respect features like Do Not Disturb. `CallKit` also operates the system's call-related UIs, including the incoming or outgoing call screens. Use `CallKit` to present these interfaces and manage interactions with them.
+
+For more information about `CallKit` you can check the official [Apple docs](https://developer.apple.com/documentation/callkit]). 
+
+__*General Setup:*__
+1. Import CallKit:
+```Swift
+import CallKit
+```
+2. Initialize CallKit
+```
+func initCallKit() {
+  let configuration = CXProviderConfiguration(localizedName: "TelnyxRTC")
+  configuration.maximumCallGroups = 1
+  configuration.maximumCallsPerCallGroup = 1
+  callKitProvider = CXProvider(configuration: configuration)
+  if let provider = callKitProvider {
+      provider.setDelegate(self, queue: nil)
+  }
+}
+```
+
+3. Implement `CXProviderDelegate` methods.
+
+
+__*Audio Session Handling WebRTC + CallKit*__  
+ 
+To get `CallKit` properly working with the `TelnyxRTC SDK` you need to set the audio device state based on the `CallKit` AudioSession state like follows:
+```Swift
+extension AppDelegate : CXProviderDelegate {
+
+    ...
+    
+    func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
+        self.telnyxClient?.isAudioDeviceEnabled = true
+    }
+    
+    func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
+        self.telnyxClient?.isAudioDeviceEnabled = false
+    }
+}
+```
+</br>
 
 ### Documentation:
 For more information you can:
