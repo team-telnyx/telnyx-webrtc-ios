@@ -449,7 +449,7 @@ __*General Setup:*__
 import CallKit
 ```
 2. Initialize CallKit
-```
+```Swift
 func initCallKit() {
   let configuration = CXProviderConfiguration(localizedName: "TelnyxRTC")
   configuration.maximumCallGroups = 1
