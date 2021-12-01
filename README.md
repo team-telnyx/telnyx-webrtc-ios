@@ -212,6 +212,7 @@ extension ViewController: TxClientDelegate {
        self.currentCall = call 
     }
     
+
     // You can update your UI from here based on the call states.
     // Check that the callId is the same as your current call.
     func onCallStateUpdated(callState: CallState, callId: UUID) {

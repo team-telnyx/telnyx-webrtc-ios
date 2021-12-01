@@ -11,12 +11,57 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Ryb Podspec lint
+      with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+
+    - name: "🤖 Setup ruby"
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 2.7.0
+        bundler-cache: true
+
+    - name: "🤖 Setup Fastlane"
+      run:  |
+          bundle install
+
+    - name: "✏️ Get previous created TAG"
+      id: get-previous-tag
+      run:  echo "::set-output name=LAST_TAG::$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))"
+
+    - name: "✏️  Generate changelog from previous TAG and HEAD"
+      id: get-changelog
+      run: |
+          bundle exec fastlane changelog tag:${{ steps.get-previous-tag.outputs.LAST_TAG }}
+
+    - name: "✏️ Read changelog.txt"
+      id: changelog-file
+      uses: juliangruber/read-file-action@v1
+      with:
+        path: ./fastlane/changelog.txt
+
+    - name: "✏️ Print Changelog"
+      run: |
+          echo "${{ steps.changelog-file.outputs.content }}"
+
+    - name: "🤖 Podspec lint"
       run: |
         pod lib lint
-    - name: Publish to CocoaPod register
+
+    - name: "🚀  Publish to CocoaPods register"
       env:
         COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
       run: |
         pod trunk push TelnyxRTC.podspec
+    
+    - name: "✏️ Get Current TAG"
+      id: get-current-tag
+      run:  echo "::set-output name=CURRENT_TAG::$(git describe --tags $(git rev-list --tags --max-count=1))"
 
+    - name: "🎉  Send release to Slack"
+      uses: homeday-de/slack-release-bot-action@main
+      with:
+        webhook_url: ${{ secrets.SLACK_RELEASE_BOT_WEBHOOK_URL }}
+        title: "Telnyx iOS WebRTC SDK release v${{ steps.get-current-tag.outputs.CURRENT_TAG }}"
+        body: "${{ steps.changelog-file.outputs.content }}"
+        context: Telnyx iOS WebRTC SDK
