@@ -96,7 +96,7 @@ class TelnyxRTCTests: XCTestCase {
             }
         }
         
-        let expectation = expectation(description: "loginTest")
+        let expectation = XCTestExpectation()
         let telnyxClient = TxClient()
         let delegate = TestDelegate(expectation: expectation)
         telnyxClient.delegate = delegate
@@ -135,7 +135,7 @@ class TelnyxRTCTests: XCTestCase {
             }
         }
         
-        let expectation = expectation(description: "loginTest")
+        let expectation = XCTestExpectation()
         let telnyxClient = TxClient()
         let delegate = TestDelegate(expectation: expectation)
         telnyxClient.delegate = delegate
@@ -165,7 +165,7 @@ class TelnyxRTCTests: XCTestCase {
             }
         }
         
-        let expectation = expectation(description: "loginTest")
+        let expectation = XCTestExpectation()
         let telnyxClient = TxClient()
         let delegate = TestDelegate(expectation: expectation)
         telnyxClient.delegate = delegate
@@ -198,7 +198,7 @@ class TelnyxRTCTests: XCTestCase {
             }
         }
         
-        let expectation = expectation(description: "loginTest")
+        let expectation = XCTestExpectation()
         let telnyxClient = TxClient()
         let delegate = TestDelegate(expectation: expectation)
         telnyxClient.delegate = delegate
