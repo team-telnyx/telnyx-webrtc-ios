@@ -11,7 +11,7 @@ import WebRTC
 @testable import TelnyxRTC
 
 class CallTests: XCTestCase {
-    private weak var expectation: XCTestExpectation!
+    private weak var expectation: XCTestExpectation?
     private var call: Call?
     private var socket: Socket?
 
@@ -60,7 +60,7 @@ extension CallTests : CallProtocol {
 extension CallTests : SocketDelegate {
     func onSocketConnected() {
         print("Socket connected")
-        expectation.fulfill()
+        expectation?.fulfill()
     }
 
     func onSocketDisconnected() {
@@ -73,6 +73,6 @@ extension CallTests : SocketDelegate {
 
     func onMessageReceived(message: String) {
         print("CallTests :: SocketDelegate onMessageReceived")
-        expectation.fulfill()
+        expectation?.fulfill()
     }
 }

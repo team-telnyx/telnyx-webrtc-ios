@@ -50,6 +50,7 @@
 		B39122122604FBC00051E076 /* TestConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39122112604FBC00051E076 /* TestConstants.swift */; };
 		B3912220260502650051E076 /* CallTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B391221F260502650051E076 /* CallTests.swift */; };
 		B3912264260F6A050051E076 /* TelnyxRTCMulticallTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3912263260F6A050051E076 /* TelnyxRTCMulticallTests.swift */; };
+		B3A1555928767E2D00C70528 /* RTCTestDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A1555828767E2D00C70528 /* RTCTestDelegate.swift */; };
 		B3A728BC2643537E003F3844 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = B3A728BB2643537E003F3844 /* README.md */; };
 		B3AF248025EE7B1F0062EDA9 /* TxClientDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3AF247F25EE7B1F0062EDA9 /* TxClientDelegate.swift */; };
 		B3AF248425EE7B6A0062EDA9 /* InternalConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3AF248325EE7B6A0062EDA9 /* InternalConfig.swift */; };
@@ -147,6 +148,7 @@
 		B39122112604FBC00051E076 /* TestConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConstants.swift; sourceTree = "<group>"; };
 		B391221F260502650051E076 /* CallTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallTests.swift; sourceTree = "<group>"; };
 		B3912263260F6A050051E076 /* TelnyxRTCMulticallTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnyxRTCMulticallTests.swift; sourceTree = "<group>"; };
+		B3A1555828767E2D00C70528 /* RTCTestDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTCTestDelegate.swift; sourceTree = "<group>"; };
 		B3A728BB2643537E003F3844 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		B3AF247F25EE7B1F0062EDA9 /* TxClientDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxClientDelegate.swift; sourceTree = "<group>"; };
 		B3AF248325EE7B6A0062EDA9 /* InternalConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InternalConfig.swift; sourceTree = "<group>"; };
@@ -273,6 +275,7 @@
 			isa = PBXGroup;
 			children = (
 				B366D3FA26150D1100156FE1 /* StringExtension.swift */,
+				B3A1555828767E2D00C70528 /* RTCTestDelegate.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -725,6 +728,7 @@
 				B391220C2604D9C50051E076 /* PeerConnectionTests.swift in Sources */,
 				B3912264260F6A050051E076 /* TelnyxRTCMulticallTests.swift in Sources */,
 				B3912220260502650051E076 /* CallTests.swift in Sources */,
+				B3A1555928767E2D00C70528 /* RTCTestDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
