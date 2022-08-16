@@ -211,11 +211,13 @@ public class Call {
     private func answered(sdp: String) {
         let remoteDescription = RTCSessionDescription(type: .answer, sdp: sdp)
         self.peer?.connection.setRemoteDescription(remoteDescription, completionHandler: { (error) in
-            guard let error = error else {
+            if let error = error  {
+                Logger.log.e(message: "Call:: Error setting remote description: \(error)")
                 return
             }
             
-            Logger.log.e(message: "Call:: Error setting remote description: \(error)")
+            self.updateCallState(callState: .ACTIVE)
+            Logger.log.e(message: "Call:: connected")
         })
     }
 
@@ -238,6 +240,7 @@ public class Call {
     }
 
     private func updateCallState(callState: CallState) {
+        debugPrint("Call State: \(callState)")
         self.callState = callState
         self.delegate?.callStateUpdated(call: self)
     }
