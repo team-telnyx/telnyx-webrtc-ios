@@ -240,7 +240,7 @@ public class Call {
     }
 
     private func updateCallState(callState: CallState) {
-        debugPrint("Call State: \(callState)")
+        Logger.log.i(message: "Call state updated: \(callState)")
         self.callState = callState
         self.delegate?.callStateUpdated(call: self)
     }
