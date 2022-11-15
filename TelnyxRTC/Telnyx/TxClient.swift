@@ -618,7 +618,10 @@ extension TxClient : SocketDelegate {
                                                 telnyxLegId: telnyxLegId)
                     }
                     break;
-
+            case .PING:
+                print("inside ping send pong")
+                self.socket?.sendMessage(message: message)
+                break;
                 default:
                     Logger.log.i(message: "TxClient:: SocketDelegate Default method")
                     break
