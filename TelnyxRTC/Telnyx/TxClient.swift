@@ -618,8 +618,8 @@ extension TxClient : SocketDelegate {
                                                 telnyxLegId: telnyxLegId)
                     }
                     break;
+                //Mark: to send meassage to pong
             case .PING:
-                print("inside ping send pong")
                 self.socket?.sendMessage(message: message)
                 break;
                 default:

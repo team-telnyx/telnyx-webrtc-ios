@@ -10,7 +10,7 @@ import Foundation
 
 enum Method : String {
     //implemented
-    case PING = "telnyx_rtc.ping"
+    case PING = "telnyx_rtc.ping"                         // new method to not disconnect
     case LOGIN = "login"
     case ANSWER = "telnyx_rtc.answer"
     case INVITE = "telnyx_rtc.invite"
