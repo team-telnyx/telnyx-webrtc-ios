@@ -12,6 +12,7 @@ import XCTest
 class SocketTests : XCTestCase, SocketDelegate {
 
     private weak var socketConnectedExpectation: XCTestExpectation!
+    private weak var socketPingExpectation: XCTestExpectation!
     private weak var socketDisconnectedExpectation: XCTestExpectation!
     private weak var socketMessageExpectation: XCTestExpectation!
     private var errorResponse: [String: Any]? = nil
@@ -64,6 +65,21 @@ class SocketTests : XCTestCase, SocketDelegate {
         socket.disconnect()
         waitForExpectations(timeout: 5)
         XCTAssertFalse(socket.isConnected)
+    }
+    //MARK: - Test case for not send ping to screen 
+    func testPingPong() {
+        print("VertoMessagesTest :: testSocketPing()")
+        socketPingExpectation = expectation(description: "socketPing")
+        socketPingExpectation.fulfill()
+        socketDisconnectedExpectation = expectation(description: "socketDisconnection")
+        socketDisconnectedExpectation.fulfill()
+        socketMessageExpectation = expectation(description: "socketSendMessage")
+        socketConnectedExpectation = expectation(description: "socketConnection")
+        let socket = Socket()
+        socket.delegate = self
+        socket.connect(signalingServer: InternalConfig.default.prodSignalingServer)
+        waitForExpectations(timeout: 40)
+        XCTAssertTrue(isPing)
     }
 
 }
