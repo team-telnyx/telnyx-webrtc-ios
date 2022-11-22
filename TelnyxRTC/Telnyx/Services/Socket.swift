@@ -13,7 +13,6 @@ class Socket {
     
     weak var delegate: SocketDelegate?
     var isConnected : Bool = false
-
     private var socket : WebSocket?
 
     func connect(signalingServer: URL) {

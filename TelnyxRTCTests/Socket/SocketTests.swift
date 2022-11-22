@@ -16,6 +16,8 @@ class SocketTests : XCTestCase, SocketDelegate {
     private weak var socketDisconnectedExpectation: XCTestExpectation!
     private weak var socketMessageExpectation: XCTestExpectation!
     private var errorResponse: [String: Any]? = nil
+    
+    var isPing = false
 
     func onSocketConnected() {
         socketConnectedExpectation.fulfill()
@@ -34,6 +36,10 @@ class SocketTests : XCTestCase, SocketDelegate {
         let serverResponse = Message().decode(message: message)
         errorResponse = serverResponse?.serverError
         socketMessageExpectation.fulfill()
+        
+        if serverResponse?.method == .PING {
+            isPing = true
+        }
     }
 
     /**
@@ -75,11 +81,11 @@ class SocketTests : XCTestCase, SocketDelegate {
         socketDisconnectedExpectation.fulfill()
         socketMessageExpectation = expectation(description: "socketSendMessage")
         socketConnectedExpectation = expectation(description: "socketConnection")
+        isPing = false
         let socket = Socket()
         socket.delegate = self
         socket.connect(signalingServer: InternalConfig.default.prodSignalingServer)
         waitForExpectations(timeout: 40)
         XCTAssertTrue(isPing)
     }
-
 }
