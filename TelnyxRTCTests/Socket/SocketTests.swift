@@ -12,9 +12,12 @@ import XCTest
 class SocketTests : XCTestCase, SocketDelegate {
 
     private weak var socketConnectedExpectation: XCTestExpectation!
+    private weak var socketPingExpectation: XCTestExpectation!
     private weak var socketDisconnectedExpectation: XCTestExpectation!
     private weak var socketMessageExpectation: XCTestExpectation!
     private var errorResponse: [String: Any]? = nil
+    
+    var isPing = false
 
     func onSocketConnected() {
         socketConnectedExpectation.fulfill()
@@ -33,6 +36,10 @@ class SocketTests : XCTestCase, SocketDelegate {
         let serverResponse = Message().decode(message: message)
         errorResponse = serverResponse?.serverError
         socketMessageExpectation.fulfill()
+        
+        if serverResponse?.method == .PING {
+            isPing = true
+        }
     }
 
     /**
@@ -65,5 +72,20 @@ class SocketTests : XCTestCase, SocketDelegate {
         waitForExpectations(timeout: 5)
         XCTAssertFalse(socket.isConnected)
     }
-
+    //MARK: - Test case for not send ping to screen 
+    func testPingPong() {
+        print("VertoMessagesTest :: testSocketPing()")
+        socketPingExpectation = expectation(description: "socketPing")
+        socketPingExpectation.fulfill()
+        socketDisconnectedExpectation = expectation(description: "socketDisconnection")
+        socketDisconnectedExpectation.fulfill()
+        socketMessageExpectation = expectation(description: "socketSendMessage")
+        socketConnectedExpectation = expectation(description: "socketConnection")
+        isPing = false
+        let socket = Socket()
+        socket.delegate = self
+        socket.connect(signalingServer: InternalConfig.default.prodSignalingServer)
+        waitForExpectations(timeout: 40)
+        XCTAssertTrue(isPing)
+    }
 }

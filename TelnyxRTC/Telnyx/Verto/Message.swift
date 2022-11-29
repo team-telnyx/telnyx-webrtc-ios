@@ -8,6 +8,7 @@
 
 import Foundation
 
+
 private let PROTOCOL_VERSION: String = "2.0"
 
 class Message {
@@ -70,6 +71,7 @@ class Message {
         self.jsonMessage = jsonMessage
 
         Logger.log.i(message: "Message:: decode() \(self.jsonMessage)")
+        
         return self
     }
 }
