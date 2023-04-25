@@ -39,8 +39,8 @@ jobs:
         }' \
         https://api.telnyx.com/v2/telephony_credentials)"
 
-    - name: Generate Token
-      id: generate_token
+#     - name: Generate Token
+#       id: generate_token
 #       run: |
 #         echo "::set-output name=response::$(curl -X POST \
 #         --header "Content-Type: application/json" \
