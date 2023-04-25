@@ -48,9 +48,9 @@ jobs:
 #         --data '{}' \
 #         --url "https://api.telnyx.com/v2/telephony_credentials/${{ fromJson(steps.ondemand_creds.outputs.response).data.id }}/token")"
 
-    - shell: bash
-      run:  |
-          sh scripts/setup_env.sh -u "$TELNYX_SIP_USER" -p "$TELNYX_SIP_PASSWORD" -t "${{ steps.generate_token.outputs.response }}"
+#     - shell: bash
+#       run:  |
+#           sh scripts/setup_env.sh -u "$TELNYX_SIP_USER" -p "$TELNYX_SIP_PASSWORD" -t "${{ steps.generate_token.outputs.response }}"
           
     - name: Setup Fastlane
       run:  |
