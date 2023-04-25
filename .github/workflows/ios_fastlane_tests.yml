@@ -39,18 +39,18 @@ jobs:
         }' \
         https://api.telnyx.com/v2/telephony_credentials)"
 
-#     - name: Generate Token
-#       id: generate_token
-#       run: |
-#         echo "::set-output name=response::$(curl -X POST \
-#         --header "Content-Type: application/json" \
-#         --header "Authorization: Bearer $TELNYX_SIP_API_KEY" \
-#         --data '{}' \
-#         --url "https://api.telnyx.com/v2/telephony_credentials/${{ fromJson(steps.ondemand_creds.outputs.response).data.id }}/token")"
+    - name: Generate Token
+      id: generate_token
+      run: |
+        echo "::set-output name=response::$(curl -X POST \
+        --header "Content-Type: application/json" \
+        --header "Authorization: Bearer $TELNYX_SIP_API_KEY" \
+        --data '{}' \
+        --url "https://api.telnyx.com/v2/telephony_credentials/${{ fromJson(steps.ondemand_creds.outputs.response).data.id }}/token")"
 
-#     - shell: bash
-#       run:  |
-#           sh scripts/setup_env.sh -u "$TELNYX_SIP_USER" -p "$TELNYX_SIP_PASSWORD" -t "${{ steps.generate_token.outputs.response }}"
+    - shell: bash
+      run:  |
+          sh scripts/setup_env.sh -u "$TELNYX_SIP_USER" -p "$TELNYX_SIP_PASSWORD" -t "${{ steps.generate_token.outputs.response }}"
           
     - name: Setup Fastlane
       run:  |
