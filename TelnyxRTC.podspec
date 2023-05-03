@@ -18,8 +18,8 @@ Pod::Spec.new do |spec|
                              }
   spec.user_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64' }
 
-  spec.source_files = "TelnyxRTC", "TelnyxRTC/**/*.{h,m,swift}"
-  spec.exclude_files = "TelnyxRTC/Exclude"
+  spec.source_files = "Sources", "Sources/**/*.{h,m,swift}"
+  spec.exclude_files = "Sources/Exclude"
 
   spec.dependency  "Bugsnag", "~> 6.9.1"
   spec.dependency  "Starscream", "~> 4.0.4"
