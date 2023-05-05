@@ -4,9 +4,9 @@
 import PackageDescription
 
 let package = Package(
-    name: "telnyx-webrtc-ios",
+    name: "TelnyxRTC",
     platforms: [.iOS(.v13)],
-    products: [.library(name: "telnyx-webrtc-ios", targets: ["Telnyx"])],
+    products: [.library(name: "TelnyxRTC", targets: ["Telnyx"])],
     targets: [
         .target(
             name: "Telnyx",
