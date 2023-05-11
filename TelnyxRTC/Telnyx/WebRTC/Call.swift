@@ -210,7 +210,7 @@ public class Call {
      */
     private func answered(sdp: String) {
         let remoteDescription = RTCSessionDescription(type: .answer, sdp: sdp)
-        self.peer?.connection.setRemoteDescription(remoteDescription, completionHandler: { (error) in
+        self.peer?.connection?.setRemoteDescription(remoteDescription, completionHandler: { (error) in
             if let error = error  {
                 Logger.log.e(message: "Call:: Error setting remote description: \(error)")
                 return
@@ -224,7 +224,7 @@ public class Call {
     //TODO: We can move this inside the answer() function of the Peer class
     private func incomingOffer(sdp: String) {
         let remoteDescription = RTCSessionDescription(type: .offer, sdp: sdp)
-        self.peer?.connection.setRemoteDescription(remoteDescription, completionHandler: { (error) in
+        self.peer?.connection?.setRemoteDescription(remoteDescription, completionHandler: { (error) in
             guard let error = error else {
                 return
             }
