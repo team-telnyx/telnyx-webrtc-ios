@@ -117,7 +117,6 @@
 		B309D23F25F06EA600A2AADF /* InviteMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteMessage.swift; sourceTree = "<group>"; };
 		B309D24D25F0717B00A2AADF /* UICallScreen.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UICallScreen.xib; sourceTree = "<group>"; };
 		B309D25225F071DD00A2AADF /* UICallScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UICallScreen.swift; sourceTree = "<group>"; };
-		B309D26125F1574C00A2AADF /* WebRTC.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebRTC.framework; path = Pods/GoogleWebRTC/Frameworks/frameworks/WebRTC.framework; sourceTree = "<group>"; };
 		B309D27925F17C1700A2AADF /* UIIncomingCallView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIIncomingCallView.swift; sourceTree = "<group>"; };
 		B309D27A25F17C1700A2AADF /* UIIncomingCallView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = UIIncomingCallView.xib; sourceTree = "<group>"; };
 		B309D28125F1838700A2AADF /* ByeMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ByeMessage.swift; sourceTree = "<group>"; };
