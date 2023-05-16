@@ -27,7 +27,7 @@ class Peer : NSObject {
     private let mediaConstrains = [kRTCMediaConstraintsOfferToReceiveAudio: kRTCMediaConstraintsValueTrue, kRTCMediaConstraintsOfferToReceiveVideo: kRTCMediaConstraintsValueFalse]
 
     weak var delegate: PeerDelegate?
-    var connection : RTCPeerConnection
+    var connection : RTCPeerConnection?
 
     //Audio
     private var localAudioTrack: RTCAudioTrack?
@@ -80,7 +80,7 @@ class Peer : NSObject {
         self.createMediaSenders()
         self.configureAudioSession()
         //listen RTCPeer connection events
-        self.connection.delegate = self
+        self.connection?.delegate = self
     }
 
     private func createMediaSenders() {
@@ -89,7 +89,7 @@ class Peer : NSObject {
         // let's support Audio first.
         let audioTrack = self.createAudioTrack()
         self.localAudioTrack = audioTrack
-        self.connection.add(audioTrack, streamIds: [streamId])
+        self.connection?.add(audioTrack, streamIds: [streamId])
         self.muteUnmuteAudio(mute: false)
     }
 
@@ -145,7 +145,7 @@ class Peer : NSObject {
         let constrains = RTCMediaConstraints(mandatoryConstraints: self.mediaConstrains,
                                              optionalConstraints: nil)
         self.negotiationEnded = false
-        self.connection.offer(for: constrains) { (sdp, error) in
+        self.connection?.offer(for: constrains) { (sdp, error) in
 
             if let error = error {
                 Logger.log.e(message: "Peer:: error creating offer \(error)")
@@ -160,7 +160,7 @@ class Peer : NSObject {
 
             //Once we set the local description, the ICE negotiation starts and at least one ICE candidate should be created.
             //Check RTCPeerConnectionDelegate :: didGenerate candidate
-            self.connection.setLocalDescription(sdp, completionHandler: { (error) in
+            self.connection?.setLocalDescription(sdp, completionHandler: { (error) in
                 completion(sdp, nil)
             })
         }
@@ -172,7 +172,7 @@ class Peer : NSObject {
         self.negotiationEnded = false
         let constrains = RTCMediaConstraints(mandatoryConstraints: self.mediaConstrains,
                                              optionalConstraints: nil)
-        self.connection.answer(for: constrains) { (sdp, error) in
+        self.connection?.answer(for: constrains) { (sdp, error) in
             
             if let error = error {
                 Logger.log.e(message: "Peer:: error creating answer \(error)")
@@ -188,7 +188,7 @@ class Peer : NSObject {
 
             //Once we set the local description, the ICE negotiation starts and at least one ICE candidate should be created.
             //Check RTCPeerConnectionDelegate :: didGenerate candidate
-            self.connection.setLocalDescription(sdp, completionHandler: { (error) in
+            self.connection?.setLocalDescription(sdp, completionHandler: { (error) in
                 completion(sdp, nil)
             })
         }
@@ -227,7 +227,7 @@ class Peer : NSObject {
         Logger.log.i(message: "Peer:: dispose()")
         //This should release all the connection resources
         //including audio / video streams
-        self.connection.close()
+        self.connection?.close()
         self.delegate = nil
 
         self.localAudioTrack = nil
@@ -243,7 +243,7 @@ class Peer : NSObject {
 extension Peer {
     //DO NOT USE THIS FOR planB
     private func setTrackEnabled<T: RTCMediaStreamTrack>(_ type: T.Type, isEnabled: Bool) {
-        self.connection.transceivers
+        self.connection?.transceivers
             .compactMap { return $0.sender.track as? T }
             .forEach { $0.isEnabled = isEnabled }
     }
@@ -254,8 +254,8 @@ extension Peer {
     func muteUnmuteAudio(mute: Bool) {
         //GetTransceivers is only supported with Unified Plan SdpSemantics.
         //PlanB doesn't have support to access transeivers, so we need to use the storedAudio track
-        if self.connection.configuration.sdpSemantics == .planB {
-            self.connection.senders
+        if self.connection?.configuration.sdpSemantics == .planB {
+            self.connection?.senders
                 .compactMap { return $0.track as? RTCAudioTrack } // Search for Audio track
                 .forEach {
                     $0.isEnabled = !mute // disable RTCAudioTrack
@@ -348,9 +348,9 @@ extension Peer : RTCPeerConnectionDelegate {
         Logger.log.i(message: "Peer:: connection didGenerate RCIceCandidate: \(candidate)")
         //once an ICE candidate is generated, let's added into the peerConnection so the ICE Candidate
         //information is added to the local SDP.
-        connection.add(candidate)
+        connection?.add(candidate)
         //lets start / reset the negotiation process
-        self.startNegotiation(peerConnection: connection, didGenerate: candidate)
+        self.startNegotiation(peerConnection: connection!, didGenerate: candidate)
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didRemove candidates: [RTCIceCandidate]) {

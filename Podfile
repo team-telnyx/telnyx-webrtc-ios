@@ -17,7 +17,7 @@ target 'TelnyxRTC' do
   # Pods for TelnyxRTC
   pod 'Bugsnag', '~> 6.9.1'
   pod 'Starscream', '~> 4.0.4'
-  pod 'GoogleWebRTC', '~> 1.1.31999'
+  pod 'WebRTC-lib', "~> 94.0.0"
 
   target 'TelnyxRTCTests' do
     # Pods for testing
