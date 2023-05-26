@@ -8,12 +8,12 @@ let package = Package(
     products: [
         .library(
             name: "telnyx-webrtc-ios",
-            targets: ["TelnyxRTC", "TelnyxRTCTests"]),
+            targets: ["TelnyxRTC"]),
     ],
     dependencies: [
         .package(url: "https://github.com/bugsnag/bugsnag-cocoa.git", from: "6.26.2"),
-        .package(url: "https://github.com/daltoniam/Starscream.git", from: "3.1.1"),
-        .package(url: "https://github.com/stasel/WebRTC.git", from: "94.0.0")
+        .package(url: "https://github.com/daltoniam/Starscream.git", from: "4.0.0"),
+        .package(url: "https://github.com/stasel/WebRTC.git", from: "113.0.0")
     ],
     targets: [
         .target(
@@ -25,12 +25,7 @@ let package = Package(
             ],
             path: "TelnyxRTC",
             exclude: ["Info.plist"]
-        ),
-        .testTarget(
-            name: "TelnyxRTCTests",
-            dependencies: ["TelnyxRTC"],
-            path: "TelnyxRTCTests",
-            exclude: ["Info.plist"]),
+        )
     ],
     swiftLanguageVersions: [.v5]
 )

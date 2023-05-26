@@ -105,6 +105,25 @@ import TelnyxRTC
 8. You are all set!
 </br>
 
+### Swift Package Manager
+
+Xcode has a built-in support for Swift package manager. To add a package : 
+
+1. Select Files > Add Packages
+2. On the Swift Package Manager Screen, Search for the https://github.com/team-telnyx/telnyx-webrtc-ios.git package.
+3. Select the **main brach** and click Add Package
+
+<p align="center">
+<img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://github.com/isaacakakpo1/telnyx-webrtc-ios-smp/assets/134492608/39be0ab7-222f-478c-bba9-cb2813bcb81d">
+</p>
+
+NB: if Add Package is stuck downloading try File > Packages > Reset Package Caches or Run the command
+`rm -rf ~/Library/Caches/org.swift.swiftpm/`  in terminal
+
+Read more in [Apple documentation](https://developer.apple.com/documentation/xcode/adding_package_dependencies_to_your_app)
+
+**Hint: Use either Cocoapods or Swift Package Manager for Individual Packages to avoid Duplicate binaries**
+
 ## Usage
 
 ### Telnyx client setup
@@ -483,6 +502,8 @@ extension AppDelegate : CXProviderDelegate {
 }
 ```
 </br>
+
+
 
 ### Documentation:
 For more information you can:
