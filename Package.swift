@@ -11,9 +11,9 @@ let package = Package(
             targets: ["TelnyxRTC", "TelnyxRTCTests"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/bugsnag/bugsnag-cocoa.git", from: "6.26.2"),
-        .package(url: "https://github.com/daltoniam/Starscream.git", from: "3.1.1"),
-        .package(url: "https://github.com/stasel/WebRTC.git", from: "94.0.0")
+        .package(url: "https://github.com/bugsnag/bugsnag-cocoa.git", from: "6.27.0"),
+        .package(url: "https://github.com/daltoniam/Starscream.git", from: "4.0.4"),
+        .package(url: "https://github.com/stasel/WebRTC.git", from: "88.0.0")
     ],
     targets: [
         .target(
