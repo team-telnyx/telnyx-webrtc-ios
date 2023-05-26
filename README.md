@@ -111,7 +111,7 @@ Xcode has a built-in support for Swift package manager. To add a package :
 
 1. Select Files > Add Packages
 2. On the Swift Package Manager Screen, Search for the https://github.com/team-telnyx/telnyx-webrtc-ios.git package.
-3. Select the ** main brach ** and click Add Package
+3. Select the **main brach** and click Add Package
 
 <p align="center">
 <img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://github.com/isaacakakpo1/telnyx-webrtc-ios-smp/assets/134492608/39be0ab7-222f-478c-bba9-cb2813bcb81d">
