@@ -220,6 +220,18 @@ public class Call {
             Logger.log.e(message: "Call:: connected")
         })
     }
+    
+    private func onMediaPlayBack(sdp: String) {
+        let remoteDescription = RTCSessionDescription(type: .answer, sdp: sdp)
+        self.peer?.connection?.setRemoteDescription(remoteDescription, completionHandler: { (error) in
+            if let error = error  {
+                Logger.log.e(message: "Call:: Error setting remote description: \(error)")
+                return
+            }
+            self.updateCallState(callState: .RINGING)
+            Logger.log.e(message: "Call:: connected")
+        })
+    }
 
     //TODO: We can move this inside the answer() function of the Peer class
     private func incomingOffer(sdp: String) {
@@ -470,7 +482,7 @@ extension Call {
                     Logger.log.w(message: "Call:: .MEDIA missing SDP")
                     return
                 }
-                self.answered(sdp: remoteSdp)
+                self.onMediaPlayBack(sdp: remoteSdp)
             }
             //TODO: handle error when there's no SDP
             break
