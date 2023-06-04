@@ -221,18 +221,7 @@ public class Call {
         })
     }
     
-    private func onRingPlayback(sdp: String) {
-        Logger.log.i(message: "Call:: onRingbackTone")
-        let remoteDescription = RTCSessionDescription(type: .answer, sdp: sdp)
-        self.peer?.connection?.setRemoteDescription(remoteDescription, completionHandler: { (error) in
-            if let error = error  {
-                Logger.log.e(message: "Call:: Error setting remote description: \(error)")
-                return
-            }
-            self.updateCallState(callState: .RINGING)
-            Logger.log.e(message: "Call:: connected")
-        })
-    }
+    
 
     //TODO: We can move this inside the answer() function of the Peer class
     private func incomingOffer(sdp: String) {
@@ -484,7 +473,6 @@ extension Call {
                     return
                 }
                 self.remoteSdp = remoteSdp
-                self.onRingPlayback(sdp: remoteSdp)
             }
             //TODO: handle error when there's no SDP
             break
@@ -498,7 +486,7 @@ extension Call {
                 if let remoteSdp = params["sdp"] as? String {
                     self.remoteSdp = remoteSdp
                 } else {
-                    Logger.log.w(message: "Call:: .MEDIA missing SDP")
+                    Logger.log.w(message: "Call:: .ANSWER missing SDP")
                 }
                 //retrieve the remote SDP from the ANSWER verto message and set it to the current RTCPconnection
                 self.answered(sdp: self.remoteSdp ?? "")
@@ -523,6 +511,7 @@ extension Call {
                     Logger.log.w(message: "Call:: Telnyx Leg ID unavailable on RINGING message")
                 }
             }
+            self.updateCallState(callState: .RINGING)
             self.playRingbackTone()
             break
         default:
@@ -548,7 +537,7 @@ extension Call {
         self.ringTonePlayer?.stop()
     }
 
-    private func playRingbackTone() {
+private func playRingbackTone() {
         Logger.log.i(message: "Call:: playRingbackTone()")
         guard let ringbackPlayer = self.ringbackPlayer else { return  }
 
