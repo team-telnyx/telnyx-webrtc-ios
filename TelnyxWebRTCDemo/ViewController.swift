@@ -9,6 +9,7 @@
 import UIKit
 import CallKit
 import TelnyxRTC
+import AVFAudio
 
 
 class ViewController: UIViewController {
@@ -36,6 +37,13 @@ class ViewController: UIViewController {
 
         self.telnyxClient = appDelegate.telnyxClient
         self.initViews()
+        AVAudioSession.sharedInstance().requestRecordPermission({(granted: Bool)-> Void in
+                if granted {
+                    print("granted")
+                } else{
+                    print("not granted")
+                }
+             })
     }
 
     func initViews() {

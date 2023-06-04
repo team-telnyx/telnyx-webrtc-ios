@@ -221,7 +221,8 @@ public class Call {
         })
     }
     
-    private func onMediaPlayBack(sdp: String) {
+    private func onRingPlayback(sdp: String) {
+        Logger.log.i(message: "Call:: onRingbackTone")
         let remoteDescription = RTCSessionDescription(type: .answer, sdp: sdp)
         self.peer?.connection?.setRemoteDescription(remoteDescription, completionHandler: { (error) in
             if let error = error  {
@@ -482,7 +483,8 @@ extension Call {
                     Logger.log.w(message: "Call:: .MEDIA missing SDP")
                     return
                 }
-                self.onMediaPlayBack(sdp: remoteSdp)
+                self.remoteSdp = remoteSdp
+                self.onRingPlayback(sdp: remoteSdp)
             }
             //TODO: handle error when there's no SDP
             break
@@ -493,12 +495,13 @@ extension Call {
             //When the remote peer answers the call
             //Set the remote SDP into the current RTCPConnection and the call should start!
             if let params = message.params {
-                guard let remoteSdp = params["sdp"] as? String else {
-                    Logger.log.w(message: "Call:: .ANSWER missing SDP")
-                    return
+                if let remoteSdp = params["sdp"] as? String {
+                    self.remoteSdp = remoteSdp
+                } else {
+                    Logger.log.w(message: "Call:: .MEDIA missing SDP")
                 }
                 //retrieve the remote SDP from the ANSWER verto message and set it to the current RTCPconnection
-                self.answered(sdp: remoteSdp)
+                self.answered(sdp: self.remoteSdp ?? "")
             }
             //TODO: handle error when there's no sdp
             break;
