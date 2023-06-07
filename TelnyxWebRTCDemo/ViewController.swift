@@ -9,6 +9,7 @@
 import UIKit
 import CallKit
 import TelnyxRTC
+import AVFAudio
 
 
 class ViewController: UIViewController {
@@ -36,6 +37,7 @@ class ViewController: UIViewController {
 
         self.telnyxClient = appDelegate.telnyxClient
         self.initViews()
+        
     }
 
     func initViews() {

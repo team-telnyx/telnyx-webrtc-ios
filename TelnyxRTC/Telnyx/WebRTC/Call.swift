@@ -220,6 +220,8 @@ public class Call {
             Logger.log.e(message: "Call:: connected")
         })
     }
+    
+    
 
     //TODO: We can move this inside the answer() function of the Peer class
     private func incomingOffer(sdp: String) {
@@ -470,7 +472,7 @@ extension Call {
                     Logger.log.w(message: "Call:: .MEDIA missing SDP")
                     return
                 }
-                self.answered(sdp: remoteSdp)
+                self.remoteSdp = remoteSdp
             }
             //TODO: handle error when there's no SDP
             break
@@ -481,12 +483,13 @@ extension Call {
             //When the remote peer answers the call
             //Set the remote SDP into the current RTCPConnection and the call should start!
             if let params = message.params {
-                guard let remoteSdp = params["sdp"] as? String else {
+                if let remoteSdp = params["sdp"] as? String {
+                    self.remoteSdp = remoteSdp
+                } else {
                     Logger.log.w(message: "Call:: .ANSWER missing SDP")
-                    return
                 }
                 //retrieve the remote SDP from the ANSWER verto message and set it to the current RTCPconnection
-                self.answered(sdp: remoteSdp)
+                self.answered(sdp: self.remoteSdp ?? "")
             }
             //TODO: handle error when there's no sdp
             break;
@@ -508,6 +511,7 @@ extension Call {
                     Logger.log.w(message: "Call:: Telnyx Leg ID unavailable on RINGING message")
                 }
             }
+            self.updateCallState(callState: .RINGING)
             self.playRingbackTone()
             break
         default:
@@ -533,7 +537,7 @@ extension Call {
         self.ringTonePlayer?.stop()
     }
 
-    private func playRingbackTone() {
+private func playRingbackTone() {
         Logger.log.i(message: "Call:: playRingbackTone()")
         guard let ringbackPlayer = self.ringbackPlayer else { return  }
 

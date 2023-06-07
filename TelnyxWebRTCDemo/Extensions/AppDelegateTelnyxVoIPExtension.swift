@@ -11,6 +11,7 @@ import CallKit
 
 extension AppDelegate: TxClientDelegate {
     
+    
     func onSocketConnected() {
         print("AppDelegate:: TxClientDelegate onSocketConnected()")
         self.voipDelegate?.onSocketConnected()
