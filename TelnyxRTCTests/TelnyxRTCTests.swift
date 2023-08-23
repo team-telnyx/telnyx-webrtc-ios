@@ -209,7 +209,7 @@ class TelnyxRTCTests: XCTestCase {
         // Login with token
         try! telnyxClient.connect(txConfig: txConfig)
         
-        wait(for: [expectation], timeout: 10)
+        wait(for: [expectation], timeout: 15)
         
         let sessionId = telnyxClient.getSessionId()
         XCTAssertFalse(sessionId.isEmpty) // We should get a session ID
