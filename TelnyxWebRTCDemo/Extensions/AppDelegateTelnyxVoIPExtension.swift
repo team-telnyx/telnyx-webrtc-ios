@@ -12,6 +12,12 @@ import CallKit
 extension AppDelegate: TxClientDelegate {
     
     
+    func onPushDisabled(success: Bool, message: String) {
+        
+    }
+    
+    
+    
     func onSocketConnected() {
         print("AppDelegate:: TxClientDelegate onSocketConnected()")
         self.voipDelegate?.onSocketConnected()

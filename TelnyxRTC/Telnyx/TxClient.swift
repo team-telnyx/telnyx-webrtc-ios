@@ -217,6 +217,29 @@ public class TxClient {
         guard let isConnected = socket?.isConnected else { return false }
         return isConnected
     }
+    
+    /// To disable push notifications for the current user
+    public func disablePushNotifications() {
+        Logger.log.i(message: "TxClient:: disablePush()")
+        let pushProvider = self.txConfig?.pushNotificationConfig?.pushNotificationProvider
+
+        if let sipUser = self.txConfig?.sipUser {
+            let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
+            let password = self.txConfig?.password
+            let disablePushMessage = DisablePushMessage(user: sipUser,pushDeviceToken: pushToken,pushNotificationProvider: pushProvider)
+            let message = disablePushMessage.encode() ?? ""
+            self.socket?.sendMessage(message: message)
+            return
+        }
+        
+        if let token = self.txConfig?.token {
+            let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
+            let password = self.txConfig?.password
+            let disablePushMessage = DisablePushMessage(loginToken:token,pushDeviceToken: pushToken,pushNotificationProvider: pushProvider)
+            let message = disablePushMessage.encode() ?? ""
+            self.socket?.sendMessage(message: message)
+        }
+    }
 
     /// Get the current session ID after logging into Telnyx Backend.
     /// - Returns: The current sessionId. If this value is empty, that means that the client is not connected to Telnyx server.
@@ -619,6 +642,17 @@ extension TxClient : SocketDelegate {
                     }
                     break;
                 //Mark: to send meassage to pong
+            case .DISABLE_PUSH:
+                
+                if let disableParams = vertoMessage.result {
+                    let message : String = disableParams["message"] as? String ?? "Unknown"
+                    // Disable push notifications
+                    self.delegate?.onPushDisabled(success: message.lowercased().contains(DisablePushMessage.SUCCESS_KEY), message: message)
+                }
+                
+               
+            
+                break
             case .PING:
                 self.socket?.sendMessage(message: message)
                 break;

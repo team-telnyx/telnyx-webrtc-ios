@@ -29,4 +29,5 @@ enum Method : String {
     case BROADCAST = "telnyx_rtc.broadcast"
     case UNSUBSCRIBE = "telnyx_rtc.unsubscribe"
     case ECHO = "echo" //this is for testing
+    case DISABLE_PUSH = "telnyx_rtc.disable_push_notification"  // "telnyx_rtc.disablePush"
 }

@@ -26,6 +26,10 @@ public protocol TxClientDelegate: AnyObject {
     /// Has successfully connected and logged in
     func onClientReady()
 
+    
+    /// Push notification is disabled for the current user
+    func onPushDisabled(success:Bool,message:String)
+    
     /// Tells the delegate that the Telnyx Client session has been updated.
     /// - Parameter sessionId: The new sessionId assigned to the client connection.
     func onSessionUpdated(sessionId: String)

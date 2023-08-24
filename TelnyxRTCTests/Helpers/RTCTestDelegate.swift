@@ -3,6 +3,8 @@ import TelnyxRTC
 import XCTest
 
 class RTCTestDelegate : TxClientDelegate {
+    func onPushDisabled(success: Bool, message: String) {}
+    
     
     var expectation: XCTestExpectation
     

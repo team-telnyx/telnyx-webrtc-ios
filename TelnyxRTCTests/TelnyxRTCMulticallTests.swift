@@ -119,6 +119,10 @@ extension TelnyxRTCMulticallTests {
 
 // MARK: - TxClientDelegate
 extension TelnyxRTCMulticallTests : TxClientDelegate {
+    func onPushDisabled(success: Bool, message: String) {
+        print("TelnyxRTCMulticallTests :: TxClientDelegate onPushDisabled()")
+    }
+    
 
     func onPushCall(call: Call) {
         print("TelnyxRTCMulticallTests :: TxClientDelegate onPushCall()")
