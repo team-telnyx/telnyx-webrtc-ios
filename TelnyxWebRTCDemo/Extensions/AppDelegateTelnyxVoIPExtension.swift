@@ -13,7 +13,7 @@ extension AppDelegate: TxClientDelegate {
     
     
     func onPushDisabled(success: Bool, message: String) {
-        
+        print("AppDelegate:: TxClientDelegate onPushDisabled()")
     }
     
     
