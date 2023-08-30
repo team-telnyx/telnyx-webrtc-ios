@@ -93,6 +93,9 @@ class ViewController: UIViewController {
             let token = UserDefaults.init().getPushToken()
             UIPasteboard.general.string = token
         }))
+        alert.addAction(UIAlertAction(title: "Disable Push Notifications", style: .default , handler:{ (UIAlertAction)in
+            self.telnyxClient?.disablePushNotifications()
+        }))
         self.present(alert, animated: true, completion: nil)
     }
 
