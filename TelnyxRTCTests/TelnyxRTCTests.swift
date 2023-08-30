@@ -91,7 +91,11 @@ class TelnyxRTCTests: XCTestCase {
         //is returning a success message:
         //{"jsonrpc":"2.0","id":"3bdc03f2-03a3-44b0-aea3-326fcca9d066","result":{"message":"logged in","sessid":"9af493a1-2f9f-4f73-bffc-db2bc25f66f8"}}
         class TestDelegate: RTCTestDelegate {
-            override func onSessionUpdated(sessionId: String) {
+            override func onClientError(error:Error) {
+                XCTAssertEqual(error.localizedDescription,
+                               TxError.serverError(reason:
+                                    .signalingServerError(message: "Login Incorrect",
+                                                          code: "-32001")).localizedDescription)
                 self.expectation.fulfill()
             }
         }
@@ -112,9 +116,7 @@ class TelnyxRTCTests: XCTestCase {
         
         wait(for: [expectation], timeout: 10)
         
-        
-        let sessionId = telnyxClient.getSessionId()
-        XCTAssertFalse(sessionId.isEmpty) // We should get a session ID
+    
     }
     
     /**

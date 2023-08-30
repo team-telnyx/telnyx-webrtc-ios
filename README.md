@@ -503,6 +503,11 @@ extension AppDelegate : CXProviderDelegate {
 ```
 </br>
 
+### Disable Push Notification
+ Push notfications can be disabled for the current user by calling : 
+```
+telnyxClient.disablePushNotifications()
+```
 
 
 ### Documentation:

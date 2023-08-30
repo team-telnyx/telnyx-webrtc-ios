@@ -11,6 +11,9 @@ class DisablePushMessage : Message {
     
     //refactor for backend to change this to boolean
     static let SUCCESS_KEY = "success"
+    
+    //TODO: refactor for backend to send message
+    static let DISABLE_PUSH_SUCCESS_MESSAGE = "disable push notification success"
         
     //user and password login
     init(user: String,
@@ -28,7 +31,15 @@ class DisablePushMessage : Message {
             userVariables["push_notification_provider"] = provider
         }
         
-        userVariables["push_notification_provider"] = Message.USER_AGENT
+        // Add device environment debug/ production
+        // This new field is required to allow our PN service to determine
+        // if the push has to be send to APNS Sandbox (app is in debug mode) or production
+        #if DEBUG
+        userVariables["push_notification_environment"] = appMode.debug.rawValue
+        #else
+        userVariables["push_notification_environment"] = appMode.production.rawValue
+        #endif
+
         
         params["User-Agent"] = userVariables
         super.init(params, method: .DISABLE_PUSH)
@@ -49,8 +60,17 @@ class DisablePushMessage : Message {
             userVariables["push_notification_provider"] = provider
         }
         
-        userVariables["push_notification_provider"] = Message.USER_AGENT
         
+        // Add device environment debug/ production
+        // This new field is required to allow our PN service to determine
+        // if the push has to be send to APNS Sandbox (app is in debug mode) or production
+        #if DEBUG
+        userVariables["push_notification_environment"] = appMode.debug.rawValue
+        #else
+        userVariables["push_notification_environment"] = appMode.production.rawValue
+        #endif
+
+                
         params["User-Agent"] = userVariables
         super.init(params, method: .DISABLE_PUSH)
     }

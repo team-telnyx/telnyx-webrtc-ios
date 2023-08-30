@@ -583,11 +583,22 @@ extension TxClient : SocketDelegate {
                 Logger.log.i(message: "GATEWAY_STATE RESULT: \(state)")
                 self.updateGatewayState(newState: gatewayState)
             }
+            
+            //process disable push notification
+            if let disablePushResult = vertoMessage.result {
+                if let message = disablePushResult["message"] as? String {
+                    if(vertoMessage.method == .DISABLE_PUSH){
+                        Logger.log.i(message: "DisablePushMessage.DISABLE_PUSH_SUCCESS_MESSAGE")
+                        self.delegate?.onPushDisabled(success: true, message: message)
+                    }
+                }
+            }
 
             guard let sessionId = result["sessid"] as? String else { return }
             //keep the sessionId
             self.sessionId = sessionId
             self.delegate?.onSessionUpdated(sessionId: sessionId)
+            
         } else {
             //Forward message to call based on it's uuid
             if let params = vertoMessage.params,
@@ -596,6 +607,8 @@ extension TxClient : SocketDelegate {
                let call = calls[callUUID] {
                 call.handleVertoMessage(message: vertoMessage)
             }
+            
+
 
             //Parse incoming Verto message
             switch vertoMessage.method {
@@ -642,17 +655,6 @@ extension TxClient : SocketDelegate {
                     }
                     break;
                 //Mark: to send meassage to pong
-            case .DISABLE_PUSH:
-                
-                if let disableParams = vertoMessage.result {
-                    let message : String = disableParams["message"] as? String ?? "Unknown"
-                    // Disable push notifications
-                    self.delegate?.onPushDisabled(success: message.lowercased().contains(DisablePushMessage.SUCCESS_KEY), message: message)
-                }
-                
-               
-            
-                break
             case .PING:
                 self.socket?.sendMessage(message: message)
                 break;
