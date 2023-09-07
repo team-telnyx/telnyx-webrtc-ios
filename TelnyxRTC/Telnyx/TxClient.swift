@@ -225,7 +225,6 @@ public class TxClient {
 
         if let sipUser = self.txConfig?.sipUser {
             let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
-            let password = self.txConfig?.password
             let disablePushMessage = DisablePushMessage(user: sipUser,pushDeviceToken: pushToken,pushNotificationProvider: pushProvider)
             let message = disablePushMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
@@ -234,7 +233,6 @@ public class TxClient {
         
         if let token = self.txConfig?.token {
             let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
-            let password = self.txConfig?.password
             let disablePushMessage = DisablePushMessage(loginToken:token,pushDeviceToken: pushToken,pushNotificationProvider: pushProvider)
             let message = disablePushMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
@@ -450,7 +448,10 @@ extension TxClient {
             Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
         }
         Logger.log.i(message: "TxClient:: push flow: waitInviteTimer started")
-        self.waitInviteTimer()
+        //TxPushConfig
+        TxPushServerConfig(rtc_ip: "String", rtc_port: "String")
+        
+        //PushConfig(rtc_ip: "String", rtc_port: "String")
     }
 
     /// This function starts a timer to wait the INVITE message after receiving a PN.
