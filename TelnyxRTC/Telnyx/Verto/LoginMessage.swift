@@ -42,7 +42,10 @@ class LoginMessage : Message {
         userVariables["push_notification_environment"] = appMode.production.rawValue
         #endif
 
-        params["loginParams"] = [String: String]()
+        var loginParams = [String: Any]()
+        loginParams["attach_call"] = true.description
+        params["loginParams"] = loginParams
+
         params["userVariables"] = userVariables
         super.init(params, method: .LOGIN)
     }
@@ -63,7 +66,10 @@ class LoginMessage : Message {
             userVariables["push_notification_provider"] = provider
         }
 
-		params["loginParams"] = [String: String]()
+        var loginParams = [String: Any]()
+        loginParams["attach_call"] = true.description
+        params["loginParams"] = loginParams
+
         params["userVariables"] = userVariables
         super.init(params, method: .LOGIN)
     }
