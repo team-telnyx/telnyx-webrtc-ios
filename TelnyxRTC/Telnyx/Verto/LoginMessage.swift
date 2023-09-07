@@ -20,6 +20,7 @@ class LoginMessage : Message {
          password: String,
          pushDeviceToken: String? = nil,
          pushNotificationProvider: String? = nil) {
+        
         var params = [String: Any]()
         params["login"] = user
         params["passwd"] = password
@@ -41,11 +42,12 @@ class LoginMessage : Message {
         #else
         userVariables["push_notification_environment"] = appMode.production.rawValue
         #endif
-
+        
         var loginParams = [String: Any]()
         loginParams["attach_call"] = true.description
         params["loginParams"] = loginParams
 
+        
         params["userVariables"] = userVariables
         super.init(params, method: .LOGIN)
     }
@@ -56,6 +58,10 @@ class LoginMessage : Message {
          pushNotificationProvider: String? = nil) {
         var params = [String: Any]()
         params["login_token"] = token
+        
+        var loginParams = [String: Any]()
+        loginParams["attach_call"] = true.description
+        params["loginParams"] = loginParams
 
         //Setup push variables
         var userVariables = [String: Any]()
@@ -66,9 +72,7 @@ class LoginMessage : Message {
             userVariables["push_notification_provider"] = provider
         }
 
-        var loginParams = [String: Any]()
-        loginParams["attach_call"] = true.description
-        params["loginParams"] = loginParams
+      
 
         params["userVariables"] = userVariables
         super.init(params, method: .LOGIN)

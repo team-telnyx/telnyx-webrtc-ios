@@ -447,19 +447,16 @@ extension TxClient {
         } catch let error {
             Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
         }
-        Logger.log.i(message: "TxClient:: push flow: waitInviteTimer started")
-        
+        self.isCallFromPush = true
     }
 
     /// To receive INVITE message after Push Noficiation is Received. Send attachCall Command
     fileprivate func sendAttachCall() {
-        self.isCallFromPush = true
         Logger.log.e(message: "TxClient:: PN Recieved.. Sending reattach call ")
         let pushProvider = self.txConfig?.pushNotificationConfig?.pushNotificationProvider
         let attachMessage = AttachCallMessage(pushNotificationProvider: pushProvider)
         let message = attachMessage.encode() ?? ""
         self.socket?.sendMessage(message: message)
-        self.isFromCallFromPush = false
     }
 }
 
@@ -562,6 +559,7 @@ extension TxClient : SocketDelegate {
             let message : String = error["message"] as? String ?? "Unknown"
             let code : String = String(error["code"] as? Int ?? 0)
             let err = TxError.serverError(reason: .signalingServerError(message: message, code: code))
+            self.isCallFromPush = false
             self.delegate?.onClientError(error: err)
         }
 
@@ -614,6 +612,11 @@ extension TxClient : SocketDelegate {
                        let _ = params["reattached_sessions"] {
                         self.registerTimer.invalidate()
                         self.delegate?.onClientReady()
+                        
+                        //Check if isCallFromPush and sendAttachCall Message
+                        if (self.isCallFromPush == true){
+                            self.sendAttachCall()
+                        }
                     }
                     break
 

@@ -8,13 +8,13 @@
 import Foundation
 
 /// This class contains all the properties related to Server Confuguration from Push
-public struct TxPushServerConfig {
+public struct TxPushIPConfig {
     
 
     public internal(set) var rtc_ip:String
-    public internal(set) var rtc_port:String
+    public internal(set) var rtc_port:Int
     
-    public init(rtc_ip: String, rtc_port: String) {
+    public init(rtc_ip: String, rtc_port: Int) {
         self.rtc_ip = rtc_ip
         self.rtc_port = rtc_port
     }

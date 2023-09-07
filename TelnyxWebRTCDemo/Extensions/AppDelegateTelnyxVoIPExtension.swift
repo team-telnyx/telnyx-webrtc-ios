@@ -63,6 +63,11 @@ extension AppDelegate: TxClientDelegate {
     func onPushCall(call: Call) {
         print("AppDelegate:: TxClientDelegate onPushCall() \(call)")
         self.currentCall = call //Update the current call with the incoming call
+        if(self.callAnswerPendingFromPush){
+            self.voipDelegate?.onIncomingCall(call: call)
+            self.callAnswerPendingFromPush = false
+        }
+        
     }
     
     func onRemoteCallEnded(callId: UUID) {

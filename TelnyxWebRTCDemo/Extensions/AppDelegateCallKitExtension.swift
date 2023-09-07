@@ -145,7 +145,11 @@ extension AppDelegate : CXProviderDelegate {
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         print("AppDelegate:: ANSWER call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
-        self.currentCall?.answer()
+        if(currentCall != nil){
+            self.currentCall?.answer()
+        }else {
+            self.callAnswerPendingFromPush = true
+        }
         action.fulfill()
     }
 
@@ -185,15 +189,15 @@ extension AppDelegate : CXProviderDelegate {
         print("provider:performSetMutedAction:")
     }
     
-    func processVoIPNotification(callUUID: UUID) {
+    func processVoIPNotification(callUUID: UUID,pushIPConfig:TxPushIPConfig) {
         print("AppDelegate:: processVoIPNotification \(callUUID)")
         self.callKitUUID = callUUID
         var serverConfig: TxServerConfiguration
         let userDefaults = UserDefaults.init()
         if userDefaults.getEnvironment() == .development {
-            serverConfig = TxServerConfiguration(environment: .development)
+            serverConfig = TxServerConfiguration(environment: .development,pushIPConfig: pushIPConfig)
         } else {
-            serverConfig = TxServerConfiguration()
+            serverConfig = TxServerConfiguration(environment: .production,pushIPConfig: pushIPConfig)
         }
         
         let sipUser = userDefaults.getSipUser()
