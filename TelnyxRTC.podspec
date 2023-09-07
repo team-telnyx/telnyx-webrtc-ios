@@ -24,6 +24,4 @@ Pod::Spec.new do |spec|
   spec.dependency  "Bugsnag", "~> 6.9.1"
   spec.dependency  "Starscream", "~> 4.0.4"
   spec.dependency  "WebRTC-lib", "~> 94.0.0"
-
-
 end
