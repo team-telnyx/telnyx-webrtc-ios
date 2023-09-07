@@ -138,7 +138,7 @@ public class TxClient {
     private var registerRetryCount: Int = MAX_REGISTER_RETRY
     private var registerTimer: Timer = Timer()
     private var gatewayState: GatewayStates = .NOREG
-    private var waitingCallFromPush: Bool = false
+    private var isCallFromPush: Bool = false
 
     /// When implementing CallKit framework, audio has to be manually handled.
     /// Set this property to TRUE when `provider(CXProvider, didActivate: AVAudioSession)` is called on your CallKit implementation
@@ -414,12 +414,12 @@ extension TxClient {
         // propagate the incoming call to the App
         Logger.log.i(message: "TxClient:: push flow createIncomingCall \(call)")
         
-        if waitingCallFromPush {
+        if isCallFromPush {
             self.delegate?.onPushCall(call: call)
         } else {
             self.delegate?.onIncomingCall(call: call)
         }
-        self.waitingCallFromPush = false
+        self.isCallFromPush = false
     }
 }
 
@@ -448,28 +448,18 @@ extension TxClient {
             Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
         }
         Logger.log.i(message: "TxClient:: push flow: waitInviteTimer started")
-        //TxPushConfig
-        TxPushServerConfig(rtc_ip: "String", rtc_port: "String")
         
-        //PushConfig(rtc_ip: "String", rtc_port: "String")
     }
 
-    /// This function starts a timer to wait the INVITE message after receiving a PN.
-    /// If the INVITE message is not received, then we are going to end the call.
-    fileprivate func waitInviteTimer() {
-        Logger.log.i(message: "TxClient:: waitInviteTimer started")
-        self.waitingCallFromPush = true
-        DispatchQueue.main.async {
-             Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { timer in
-                if (self.waitingCallFromPush) {
-                    Logger.log.e(message: "TxClient:: waitInviteTimer elapsed .. Ending call")
-                    self.waitingCallFromPush = false
-                    self.delegate?.onRemoteCallEnded(callId: UUID.init())
-                } else {
-                    Logger.log.i(message: "TxClient:: waitInviteTimer is false, do nothing")
-                }
-            }
-        }
+    /// To receive INVITE message after Push Noficiation is Received. Send attachCall Command
+    fileprivate func sendAttachCall() {
+        self.isCallFromPush = true
+        Logger.log.e(message: "TxClient:: PN Recieved.. Sending reattach call ")
+        let pushProvider = self.txConfig?.pushNotificationConfig?.pushNotificationProvider
+        let attachMessage = AttachCallMessage(pushNotificationProvider: pushProvider)
+        let message = attachMessage.encode() ?? ""
+        self.socket?.sendMessage(message: message)
+        self.isFromCallFromPush = false
     }
 }
 
