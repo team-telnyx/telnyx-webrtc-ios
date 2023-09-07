@@ -138,7 +138,7 @@ public class TxClient {
     private var registerRetryCount: Int = MAX_REGISTER_RETRY
     private var registerTimer: Timer = Timer()
     private var gatewayState: GatewayStates = .NOREG
-    private var waitingCallFromPush: Bool = false
+    private var isCallFromPush: Bool = false
 
     /// When implementing CallKit framework, audio has to be manually handled.
     /// Set this property to TRUE when `provider(CXProvider, didActivate: AVAudioSession)` is called on your CallKit implementation
@@ -225,7 +225,6 @@ public class TxClient {
 
         if let sipUser = self.txConfig?.sipUser {
             let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
-            let password = self.txConfig?.password
             let disablePushMessage = DisablePushMessage(user: sipUser,pushDeviceToken: pushToken,pushNotificationProvider: pushProvider)
             let message = disablePushMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
@@ -234,7 +233,6 @@ public class TxClient {
         
         if let token = self.txConfig?.token {
             let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
-            let password = self.txConfig?.password
             let disablePushMessage = DisablePushMessage(loginToken:token,pushDeviceToken: pushToken,pushNotificationProvider: pushProvider)
             let message = disablePushMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
@@ -416,12 +414,12 @@ extension TxClient {
         // propagate the incoming call to the App
         Logger.log.i(message: "TxClient:: push flow createIncomingCall \(call)")
         
-        if waitingCallFromPush {
+        if isCallFromPush {
             self.delegate?.onPushCall(call: call)
         } else {
             self.delegate?.onIncomingCall(call: call)
         }
-        self.waitingCallFromPush = false
+        self.isCallFromPush = false
     }
 }
 
@@ -433,9 +431,10 @@ extension TxClient {
     ///  You will need to
     /// - Parameters:
     ///   - txConfig: The desired configuration to login to B2B2UA. User credentials must be the same as the
+    ///   - serverConfiguration : required to setup rtc_ip and rtc_port from   VoIP push notification metadata.
     /// - Throws: Error during the connection process
     public func processVoIPNotification(txConfig: TxConfig,
-                                        serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
+                                        serverConfiguration: TxServerConfiguration) throws {
         Logger.log.i(message: "TxClient:: push flow voIPUUID")
         // Check if we are already connected and logged in
         if isConnected() {
@@ -449,26 +448,16 @@ extension TxClient {
         } catch let error {
             Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
         }
-        Logger.log.i(message: "TxClient:: push flow: waitInviteTimer started")
-        self.waitInviteTimer()
+        self.isCallFromPush = true
     }
 
-    /// This function starts a timer to wait the INVITE message after receiving a PN.
-    /// If the INVITE message is not received, then we are going to end the call.
-    fileprivate func waitInviteTimer() {
-        Logger.log.i(message: "TxClient:: waitInviteTimer started")
-        self.waitingCallFromPush = true
-        DispatchQueue.main.async {
-             Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { timer in
-                if (self.waitingCallFromPush) {
-                    Logger.log.e(message: "TxClient:: waitInviteTimer elapsed .. Ending call")
-                    self.waitingCallFromPush = false
-                    self.delegate?.onRemoteCallEnded(callId: UUID.init())
-                } else {
-                    Logger.log.i(message: "TxClient:: waitInviteTimer is false, do nothing")
-                }
-            }
-        }
+    /// To receive INVITE message after Push Noficiation is Received. Send attachCall Command
+    fileprivate func sendAttachCall() {
+        Logger.log.e(message: "TxClient:: PN Recieved.. Sending reattach call ")
+        let pushProvider = self.txConfig?.pushNotificationConfig?.pushNotificationProvider
+        let attachMessage = AttachCallMessage(pushNotificationProvider: pushProvider)
+        let message = attachMessage.encode() ?? ""
+        self.socket?.sendMessage(message: message)
     }
 }
 
@@ -571,6 +560,7 @@ extension TxClient : SocketDelegate {
             let message : String = error["message"] as? String ?? "Unknown"
             let code : String = String(error["code"] as? Int ?? 0)
             let err = TxError.serverError(reason: .signalingServerError(message: message, code: code))
+            self.isCallFromPush = false
             self.delegate?.onClientError(error: err)
         }
 
@@ -623,6 +613,11 @@ extension TxClient : SocketDelegate {
                        let _ = params["reattached_sessions"] {
                         self.registerTimer.invalidate()
                         self.delegate?.onClientReady()
+                        
+                        //Check if isCallFromPush and sendAttachCall Message
+                        if (self.isCallFromPush == true){
+                            self.sendAttachCall()
+                        }
                     }
                     break
 
