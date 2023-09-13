@@ -47,15 +47,10 @@ extension ViewController : VoIPDelegate {
             
             /** - TODO Error Shouldn't popup if client is diconnected by OS. Create another method for Socket Errors */
             if(error.self is NWError){
-                //DO Nothing
                 print("ERROR: socket connectiontion error \(error)")
             } else {
                 print("ERROR: client error \(error)")
-                /* let alert = UIAlertController(title: "WebRTC error", message: error.localizedDescription, preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: {_ in
-                    self.navigationController?.popViewController(animated: true)
-                }))
-                self.present(alert, animated: true) */
+               
             }
            
         }
