@@ -26,16 +26,13 @@ public struct TxServerConfiguration {
     ///   - pushMetaData: Contains push info when a PN is received
     public init(signalingServer: URL? = nil, webRTCIceServers: [RTCIceServer]? = nil, environment: WebRTCEnvironment = .production,pushMetaData:[String: Any]? = nil) {
         
-        
-        let rtcId = (pushMetaData?["rtc_id"] as? String)
-        
         // Get rtc_ip and rct_port to setup TxPushServerConfig
         let rtc_ip = (pushMetaData?["rtc_ip"] as? String)
         let rtc_port = (pushMetaData?["rtc_port"] as? Int) ?? 0
         
         
         
-        Logger.log.i(message: "TxServerConfiguration:: signalingServer [\(String(describing: signalingServer))] webRTCIceServers [\(String(describing: webRTCIceServers))] environment [\(String(describing: environment))]")
+        Logger.log.i(message: "TxServerConfiguration:: signalingServer [\(String(describing: signalingServer))] webRTCIceServers [\(String(describing: webRTCIceServers))] environment [\(String(describing: environment))] ip - [\(String(describing: rtc_ip))]")
         if let signalingServer = signalingServer {
             self.signalingServer = signalingServer
         } else {

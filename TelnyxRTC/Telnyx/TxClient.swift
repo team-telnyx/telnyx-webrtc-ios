@@ -437,8 +437,9 @@ extension TxClient {
                                         serverConfiguration: TxServerConfiguration,pushMetaData:[String: Any]) throws {
         Logger.log.i(message: "TxClient:: push flow voIPUUID")
         
+        
         let pnServerConfig = TxServerConfiguration(
-            signalingServer: serverConfiguration.signalingServer,
+            signalingServer:nil,
             webRTCIceServers: serverConfiguration.webRTCIceServers,
             environment: serverConfiguration.environment,
             pushMetaData: pushMetaData)

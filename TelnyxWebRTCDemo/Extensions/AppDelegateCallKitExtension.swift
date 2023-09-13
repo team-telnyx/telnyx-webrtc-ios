@@ -195,9 +195,9 @@ extension AppDelegate : CXProviderDelegate {
         var serverConfig: TxServerConfiguration
         let userDefaults = UserDefaults.init()
         if userDefaults.getEnvironment() == .development {
-            serverConfig = TxServerConfiguration(environment: .development,pushMetaData: pushMetaData)
+            serverConfig = TxServerConfiguration(environment: .development)
         } else {
-            serverConfig = TxServerConfiguration(environment: .production,pushMetaData: pushMetaData)
+            serverConfig = TxServerConfiguration(environment: .production)
         }
         
         let sipUser = userDefaults.getSipUser()

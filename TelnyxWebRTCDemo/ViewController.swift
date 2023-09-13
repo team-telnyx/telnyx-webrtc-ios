@@ -101,7 +101,12 @@ class ViewController: UIViewController {
 
     func updateEnvironment() {
         DispatchQueue.main.async {
-            self.environment.text = (self.serverConfig?.environment == .development) ? "Development" : "Production"
+            let plistInfo = Bundle(for: TxClient.self).infoDictionary?["CFBundleShortVersionString"] as? String
+            
+            self.environment.text = (self.serverConfig?.environment == .development) ? "Development" : "Production " +
+            (plistInfo ?? "")
+           
+
         }
     }
 
