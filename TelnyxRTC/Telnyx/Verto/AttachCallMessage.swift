@@ -10,8 +10,7 @@ import Foundation
 
 class AttachCallMessage : Message {
     
-    init(
-            pushNotificationProvider: String? = nil) {
+    init(pushNotificationProvider: String? = nil) {
            var params = [String: Any]()
 
            //Setup push variables
