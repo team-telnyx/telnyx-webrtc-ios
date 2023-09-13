@@ -189,15 +189,15 @@ extension AppDelegate : CXProviderDelegate {
         print("provider:performSetMutedAction:")
     }
     
-    func processVoIPNotification(callUUID: UUID,pushIPConfig:TxPushIPConfig) {
+    func processVoIPNotification(callUUID: UUID,pushMetaData:[String: Any]) {
         print("AppDelegate:: processVoIPNotification \(callUUID)")
         self.callKitUUID = callUUID
         var serverConfig: TxServerConfiguration
         let userDefaults = UserDefaults.init()
         if userDefaults.getEnvironment() == .development {
-            serverConfig = TxServerConfiguration(environment: .development,pushIPConfig: pushIPConfig)
+            serverConfig = TxServerConfiguration(environment: .development)
         } else {
-            serverConfig = TxServerConfiguration(environment: .production,pushIPConfig: pushIPConfig)
+            serverConfig = TxServerConfiguration(environment: .production)
         }
         
         let sipUser = userDefaults.getSipUser()
@@ -214,7 +214,7 @@ extension AppDelegate : CXProviderDelegate {
                                 logLevel: .all)
         
         do {
-            try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig)
+            try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)
         } catch let error {
             print("ViewController:: processVoIPNotification Error \(error)")
         }

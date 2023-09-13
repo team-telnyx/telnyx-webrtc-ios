@@ -434,8 +434,15 @@ extension TxClient {
     ///   - serverConfiguration : required to setup rtc_ip and rtc_port from   VoIP push notification metadata.
     /// - Throws: Error during the connection process
     public func processVoIPNotification(txConfig: TxConfig,
-                                        serverConfiguration: TxServerConfiguration) throws {
+                                        serverConfiguration: TxServerConfiguration,pushMetaData:[String: Any]) throws {
         Logger.log.i(message: "TxClient:: push flow voIPUUID")
+        
+        
+        let pnServerConfig = TxServerConfiguration(
+            signalingServer:nil,
+            webRTCIceServers: serverConfiguration.webRTCIceServers,
+            environment: serverConfiguration.environment,
+            pushMetaData: pushMetaData)
         // Check if we are already connected and logged in
         if isConnected() {
             Logger.log.i(message: "TxClient:: push flow socket already connected: disconnect")
@@ -444,7 +451,7 @@ extension TxClient {
 
         Logger.log.i(message: "TxClient:: push flow connect")
         do {
-            try self.connect(txConfig: txConfig, serverConfiguration: serverConfiguration)
+            try self.connect(txConfig: txConfig, serverConfiguration: pnServerConfig)
         } catch let error {
             Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
         }

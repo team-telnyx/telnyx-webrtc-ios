@@ -136,20 +136,16 @@ extension AppDelegate: PKPushRegistryDelegate {
             let callerName = (metadata["caller_name"] as? String) ?? ""
             let callerNumber = (metadata["caller_number"] as? String) ?? ""
             
-            // Get rtc_ip and rct_port to setup TxPushServerConfig
-            let rtc_ip = (metadata["rtc_ip"] as? String) ?? ""
-            let rtc_port = (metadata["rtc_port"] as? Int) ?? 0
-            
-            let pushIPConfig = TxPushIPConfig(rtc_ip: rtc_ip, rtc_port: rtc_port)
+          
             
             let caller = callerName.isEmpty ? (callerNumber.isEmpty ? "Unknown" : callerNumber) : callerName
             let uuid = UUID(uuidString: callID)
-            self.processVoIPNotification(callUUID: uuid!,pushIPConfig: pushIPConfig)
+            self.processVoIPNotification(callUUID: uuid!,pushMetaData: metadata)
             self.newIncomingCall(from: caller, uuid: uuid!)
         } else {
             // If there's no available metadata, let's create the notification with dummy data.
             let uuid = UUID.init()
-            self.processVoIPNotification(callUUID: uuid,pushIPConfig: TxPushIPConfig(rtc_ip: "", rtc_port: 433))
+            self.processVoIPNotification(callUUID: uuid,pushMetaData: [String: Any]())
             self.newIncomingCall(from: "Incoming call", uuid: uuid)
         }
     }

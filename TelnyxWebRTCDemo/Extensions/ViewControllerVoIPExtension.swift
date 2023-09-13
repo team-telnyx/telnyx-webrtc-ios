@@ -10,6 +10,7 @@ import UIKit
 import AVFoundation
 import PushKit
 import TelnyxRTC
+import Network
 
 // MARK: - VoIPDelegate
 extension ViewController : VoIPDelegate {
@@ -44,11 +45,14 @@ extension ViewController : VoIPDelegate {
             self.incomingCallView.isHidden = true
             self.telnyxClient?.disconnect()
             
-            let alert = UIAlertController(title: "WebRTC error", message: error.localizedDescription, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: {_ in
-                self.navigationController?.popViewController(animated: true)
-            }))
-            self.present(alert, animated: true)
+            /** - TODO Error Shouldn't popup if client is diconnected by OS. Create another method for Socket Errors */
+            if(error.self is NWError){
+                print("ERROR: socket connectiontion error \(error)")
+            } else {
+                print("ERROR: client error \(error)")
+               
+            }
+           
         }
     }
     
@@ -59,7 +63,9 @@ extension ViewController : VoIPDelegate {
             self.socketStateLabel.text = "Client ready"
             self.settingsView.isHidden = true
             self.callView.isHidden = false
-            self.incomingCallView.isHidden = true
+            if(!self.incomingCall){
+                self.incomingCallView.isHidden = true
+            }
         }
     }
     

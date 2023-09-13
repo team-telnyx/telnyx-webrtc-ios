@@ -405,13 +405,7 @@ extension AppDelegate: PKPushRegistryDelegate {
             let callerNumber = (metadata["caller_number"] as? String) ?? ""
             let caller = callerName.isEmpty ? (callerNumber.isEmpty ? "Unknown" : callerNumber) : callerName
             
-            // Get rtc_ip and rct_port to setup TxPushServerConfig
-            let rtc_ip = (metadata["rtc_ip"] as? String) ?? ""
-            let rtc_port = (metadata["rtc_port"] as? Int) ?? 0
-            
-            //Use rtc_ip and rct_port for TxPushIPConfig
-            let pushIPConfig = TxPushIPConfig(rtc_ip: rtc_ip, rtc_port: rtc_port)
-            
+
             let uuid = UUID(uuidString: callId)
             
             // Re-connect the client and process the push notification when is received.
@@ -421,11 +415,9 @@ extension AppDelegate: PKPushRegistryDelegate {
                                 pushDeviceToken: "APNS_PUSH_TOKEN")
                                 
                         
-            //Declare TxServerConfiguration with the pushIPConfig param
-            let serverConfig = TxServerConfiguration(pushIPConfig: pushIPConfig)
+            //Call processVoIPNotification method 
         
-            try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig)
-
+            try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: metadata)
             
 
             
@@ -469,7 +461,7 @@ For more information about Pushkit you can check the official [Apple docs](https
 
 __*Important*__:
 - You will need to login at least once to send your device token to Telnyx before start getting Push notifications. 
-- You will need to provide `TxPushIPConfig(rtc_ip: .., rtc_port: ..)` to `TxServerConfiguration(pushIPConfig:..)` to get Push calls to work. 
+- You will need to provide `pushMetaData` to `processVoIPNotification()` to get Push calls to work. 
 - You will need to implement 'CallKit' to report an incoming call when there’s a VoIP push notification. On iOS 13.0 and later, if you fail to report a call to CallKit, the system will terminate your app. More information on [Apple docs](https://developer.apple.com/documentation/pushkit/pkpushregistrydelegate/2875784-pushregistry) 
 
 
