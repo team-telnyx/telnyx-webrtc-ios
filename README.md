@@ -405,13 +405,7 @@ extension AppDelegate: PKPushRegistryDelegate {
             let callerNumber = (metadata["caller_number"] as? String) ?? ""
             let caller = callerName.isEmpty ? (callerNumber.isEmpty ? "Unknown" : callerNumber) : callerName
             
-            // Get rtc_ip and rct_port to setup TxPushServerConfig
-            let rtc_ip = (metadata["rtc_ip"] as? String) ?? ""
-            let rtc_port = (metadata["rtc_port"] as? Int) ?? 0
-            
-            //Use rtc_ip and rct_port for TxPushIPConfig
-            let pushIPConfig = TxPushIPConfig(rtc_ip: rtc_ip, rtc_port: rtc_port)
-            
+
             let uuid = UUID(uuidString: callId)
             
             // Re-connect the client and process the push notification when is received.
@@ -421,11 +415,9 @@ extension AppDelegate: PKPushRegistryDelegate {
                                 pushDeviceToken: "APNS_PUSH_TOKEN")
                                 
                         
-            //Declare TxServerConfiguration with the pushIPConfig param
-            let serverConfig = TxServerConfiguration(pushIPConfig: pushIPConfig)
+            //Call processVoIPNotification method 
         
-            try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig)
-
+            try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: metadata)
             
 
             
