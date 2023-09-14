@@ -47,7 +47,7 @@ class Socket {
 // MARK:- WebSocketDelegate
 extension Socket : WebSocketDelegate {
     
-    func didReceive(event: WebSocketEvent, client: WebSocket) {
+    func didReceive(event: WebSocketEvent, client: WebSocketClient) {
         switch event {
         case .connected(let headers):
             isConnected = true
@@ -93,6 +93,10 @@ extension Socket : WebSocketDelegate {
         case .viabilityChanged(_):
             break
         case .reconnectSuggested(_):
+            break
+        case .peerClosed:
+            break
+        @unknown default:
             break
         }
     }

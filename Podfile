@@ -1,5 +1,5 @@
 # Uncomment the next line to define a global platform for your project
-platform :ios, '10.0'
+platform :ios, '11.0'
 
 target 'TelnyxWebRTCDemo' do
   # Comment the next line if you don't want to use dynamic frameworks
@@ -16,7 +16,7 @@ target 'TelnyxRTC' do
 
   # Pods for TelnyxRTC
   pod 'Bugsnag', '~> 6.9.1'
-  pod 'Starscream', '~> 4.0.4'
+  pod 'Starscream', '~> 4.0.6'
   pod 'WebRTC-lib', "~> 94.0.0"
 
   target 'TelnyxRTCTests' do

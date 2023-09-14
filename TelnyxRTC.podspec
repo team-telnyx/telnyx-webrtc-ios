@@ -10,7 +10,7 @@ Pod::Spec.new do |spec|
   spec.author = { "Telnyx LLC" => "mobile.app.eng.chapter@telnyx.com" }
   spec.source = { :git => "https://github.com/team-telnyx/telnyx-webrtc-ios.git", :tag => "#{spec.version}" }
 
-  spec.platform = :ios, "10.0"
+  spec.platform = :ios, "11.0"
   spec.swift_version = "5.0"
 
   spec.pod_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64',
@@ -22,6 +22,6 @@ Pod::Spec.new do |spec|
   spec.exclude_files = "TelnyxRTC/Exclude"
 
   spec.dependency  "Bugsnag", "~> 6.9.1"
-  spec.dependency  "Starscream", "~> 4.0.4"
+  spec.dependency  "Starscream", "~> 4.0.6"
   spec.dependency  "WebRTC-lib", "~> 94.0.0"
 end
