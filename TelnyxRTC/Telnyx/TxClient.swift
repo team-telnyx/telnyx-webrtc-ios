@@ -431,7 +431,9 @@ extension TxClient {
     ///  You will need to
     /// - Parameters:
     ///   - txConfig: The desired configuration to login to B2B2UA. User credentials must be the same as the
-    ///   - serverConfiguration : required to setup rtc_ip and rtc_port from   VoIP push notification metadata.
+    ///   - serverConfiguration : required to setup from  VoIP push notification metadata.
+    ///   - pushMetaData : meta data payload from VOIP Push notification
+    ///                    (this should be gotten from payload.dictionaryPayload["metadata"] as? [String: Any])
     /// - Throws: Error during the connection process
     public func processVoIPNotification(txConfig: TxConfig,
                                         serverConfiguration: TxServerConfiguration,pushMetaData:[String: Any]) throws {

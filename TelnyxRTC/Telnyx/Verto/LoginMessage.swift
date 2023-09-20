@@ -65,13 +65,21 @@ class LoginMessage : Message {
 
         //Setup push variables
         var userVariables = [String: Any]()
+        
         if let pushDeviceToken = pushDeviceToken {
             userVariables["push_device_token"] = pushDeviceToken
         }
         if let provider = pushNotificationProvider {
             userVariables["push_notification_provider"] = provider
         }
+        
 
+        // if the push has to be send to APNS Sandbox (app is in debug mode) or production
+        #if DEBUG
+        userVariables["push_notification_environment"] = appMode.debug.rawValue
+        #else
+        userVariables["push_notification_environment"] = appMode.production.rawValue
+        #endif
       
 
         params["userVariables"] = userVariables
