@@ -31,6 +31,11 @@ enum CallDirection : String {
     case OUTBOUND = "outbound"
 }
 
+enum SoundFileType : String {
+    case RINGTONE = "ringtone"
+    case RINGBACK = "ringback"
+}
+
 
 protocol CallProtocol: AnyObject {
     func callStateUpdated(call: Call)
@@ -141,8 +146,8 @@ public class Call {
         self.iceServers = iceServers
 
         //Ringtone and ringbacktone
-        self.ringTonePlayer = self.buildAudioPlayer(fileName: ringtone)
-        self.ringbackPlayer = self.buildAudioPlayer(fileName: ringbackTone)
+        self.ringTonePlayer = self.buildAudioPlayer(fileName: ringtone,fileType: .RINGTONE)
+        self.ringbackPlayer = self.buildAudioPlayer(fileName: ringbackTone,fileType: .RINGBACK)
 
         self.playRingtone()
 
@@ -168,8 +173,8 @@ public class Call {
         self.iceServers = iceServers
 
         //Ringtone and ringbacktone
-        self.ringTonePlayer = self.buildAudioPlayer(fileName: ringtone)
-        self.ringbackPlayer = self.buildAudioPlayer(fileName: ringbackTone)
+        self.ringTonePlayer = self.buildAudioPlayer(fileName: ringtone,fileType: .RINGTONE)
+        self.ringbackPlayer = self.buildAudioPlayer(fileName: ringbackTone,fileType: .RINGBACK)
 
         self.updateCallState(callState: .RINGING)
     }
@@ -550,7 +555,7 @@ private func playRingbackTone() {
         self.ringbackPlayer?.stop()
     }
 
-    private func buildAudioPlayer(fileName: String?) -> AVAudioPlayer? {
+    private func buildAudioPlayer(fileName: String?,fileType:SoundFileType) -> AVAudioPlayer? {
         guard let file = fileName,
               let path = Bundle.main.path(forResource: file, ofType: nil ) else {
             Logger.log.w(message: "Call:: buildAudioPlayer() file not found: \(fileName ?? "Unknown").")
@@ -563,8 +568,11 @@ private func playRingbackTone() {
             try AVAudioSession.sharedInstance().setActive(true)
             return audioPlayer
         } catch{
-            Logger.log.e(message: "Call:: buildAudioPlayer() error: \(error)")
+            
+            Logger.log.e(message: "Call:: buildAudioPlayer() \(fileType.rawValue) error: \(error)")
         }
         return nil
     }
 }
+
+
