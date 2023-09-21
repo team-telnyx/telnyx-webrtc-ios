@@ -45,7 +45,7 @@ extension ViewController : VoIPDelegate {
             self.incomingCallView.isHidden = true
             self.telnyxClient?.disconnect()
             
-            /** - TODO Error Shouldn't popup if client is diconnected by OS. Create another method for Socket Errors */
+            
             if(error.self is NWError){
                 print("ERROR: socket connectiontion error \(error)")
             } else {

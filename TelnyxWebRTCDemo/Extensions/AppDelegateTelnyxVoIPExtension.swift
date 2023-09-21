@@ -30,6 +30,7 @@ extension AppDelegate: TxClientDelegate {
     
     func onClientError(error: Error) {
         print("AppDelegate:: TxClientDelegate onClientError() error: \(error)")
+        self.executeEndCallAction(uuid: self.callKitUUID ?? UUID())
         self.voipDelegate?.onClientError(error: error)
     }
     
