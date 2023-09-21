@@ -27,7 +27,7 @@ public struct TxServerConfiguration {
     public init(signalingServer: URL? = nil, webRTCIceServers: [RTCIceServer]? = nil, environment: WebRTCEnvironment = .production,pushMetaData:[String: Any]? = nil) {
         
         // Get rtc_ip and rct_port to setup TxPushServerConfig
-        let rtc_id = (pushMetaData?["rtc_id"] as? String)
+        let rtc_id = (pushMetaData?["voice_sdk_id"] as? String)
         
         Logger.log.i(message: "TxServerConfiguration:: signalingServer [\(String(describing: signalingServer))] webRTCIceServers [\(String(describing: webRTCIceServers))] environment [\(String(describing: environment))] ip - [\(String(describing: rtc_id))]")
         if let signalingServer = signalingServer {
@@ -35,8 +35,9 @@ public struct TxServerConfiguration {
         } else {
             if environment == .production {
                 // Set signalingServer for push notifications
+                //pass voice_sdk_id fot proxy to assign the right instance to call
                 if let pushId = rtc_id {
-                    let query = "?rtc_id=\(pushId)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+                    let query = "?voice_sdk_id=\(pushId)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
                     let pushRtcServer = "\(InternalConfig.default.prodSignalingServer)\(query)"
                     self.signalingServer = URL(string: pushRtcServer ) ??  InternalConfig.default.prodSignalingServer
                     
@@ -47,8 +48,9 @@ public struct TxServerConfiguration {
             } else {
                 
                 // Set signalingServer for push notifications
+                //pass voice_sdk_id fot proxy to assign the right instance to call
                 if let pushId = rtc_id {
-                    let query = "?rtc_id=\(pushId)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+                    let query = "?voice_sdk_id=\(pushId)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
                     let pushRtcServer = "\(InternalConfig.default.developmentSignalingServer)\(query)"
                     self.signalingServer = URL(string: pushRtcServer ) ?? InternalConfig.default.developmentSignalingServer
                     
