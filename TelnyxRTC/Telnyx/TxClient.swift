@@ -10,6 +10,7 @@ import Foundation
 import AVFoundation
 import Bugsnag
 import WebRTC
+import CallKit
 
 /// The `TelnyxRTC` client connects your application to the Telnyx backend,
 /// enabling you to make outgoing calls and handle incoming calls.
@@ -131,6 +132,8 @@ public class TxClient {
     public weak var delegate: TxClientDelegate?
     private var socket : Socket?
 
+    private var answerCallAction:CXAnswerCallAction? = nil
+    private var endCallAction:CXEndCallAction? = nil
     private var sessionId : String?
     private var txConfig: TxConfig?
     private var serverConfiguration: TxServerConfiguration
@@ -217,6 +220,18 @@ public class TxClient {
         guard let isConnected = socket?.isConnected else { return false }
         return isConnected
     }
+    
+    /// To answer and control callKit active flow
+    public func answerFromCallkit(answerAction:CXAnswerCallAction) {
+        self.answerCallAction = answerAction
+    }
+    
+    /// To end and control callKit active and conn
+    public func endCallFromCallkit(endAction:CXEndCallAction) {
+        self.endCallAction = endAction
+        endAction.fulfill()
+    }
+    
     
     /// To disable push notifications for the current user
     public func disablePushNotifications() {
@@ -416,6 +431,18 @@ extension TxClient {
         
         if isCallFromPush {
             self.delegate?.onPushCall(call: call)
+            //Answer is pending from push - Answer Call
+            if(answerCallAction != nil){
+                call.answer()
+                answerCallAction?.fulfill()
+                answerCallAction = nil
+            }
+            
+            //End is pending from callkit
+            if(endCallAction != nil){
+                call.hangup()
+                endCallAction = nil
+            }
         } else {
             self.delegate?.onIncomingCall(call: call)
         }

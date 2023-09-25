@@ -74,7 +74,7 @@ class Logger {
     /// - Parameter message: message to be printed
     public func i(message: String) {
         if verboseLevel == .all || verboseLevel == .info {
-            print("\(timeStamp.printTimestamp())" + buildMessage(level: .info, message: message))
+            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .info, message: message))
         }
     }
 
@@ -82,7 +82,7 @@ class Logger {
     /// - Parameter message: message to be printed
     public func e(message: String) {
         if verboseLevel == .all || verboseLevel == .error {
-            print("\(timeStamp.printTimestamp())" + buildMessage(level: .error, message: message))
+            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .error, message: message))
         }
     }
 
@@ -90,7 +90,7 @@ class Logger {
     /// - Parameter message: message to be printed
     public func w(message: String) {
         if verboseLevel == .all || verboseLevel == .warning {
-            print("\(timeStamp.printTimestamp())" + buildMessage(level: .warning, message: message))
+            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .warning, message: message))
         }
     }
 
@@ -98,7 +98,7 @@ class Logger {
     /// - Parameter message: message to be printed
     public func s(message: String) {
         if verboseLevel == .all || verboseLevel == .success {
-            print( "\(timeStamp.printTimestamp())" + buildMessage(level: .success, message: message))
+            print( "TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .success, message: message))
         }
     }
 
@@ -108,7 +108,7 @@ class Logger {
     ///   - direction: direction of the message. Inbound-outbound
     public func verto(message: String, direction: VertoDirection) {
         if verboseLevel == .all || verboseLevel == .verto {
-            print("\(timeStamp.printTimestamp())" + buildMessage(level: .verto, message: message, direction: direction))
+            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .verto, message: message, direction: direction))
         }
     }
 

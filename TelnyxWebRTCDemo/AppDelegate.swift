@@ -30,7 +30,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var telnyxClient : TxClient?
     var currentCall: Call?
     var callKitUUID: UUID?
-    var callAnswerPendingFromPush:Bool = false
 
     private var pushRegistry = PKPushRegistry.init(queue: DispatchQueue.main)
     weak var voipDelegate: VoIPDelegate?
@@ -142,7 +141,9 @@ extension AppDelegate: PKPushRegistryDelegate {
             
             let caller = callerName.isEmpty ? (callerNumber.isEmpty ? "Unknown" : callerNumber) : callerName
             let uuid = UUID(uuidString: callID)
-            self.processVoIPNotification(callUUID: uuid!,pushMetaData: metadata)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+                self.processVoIPNotification(callUUID: uuid!,pushMetaData: metadata)
+            }
             self.newIncomingCall(from: caller, uuid: uuid!)
         } else {
             // If there's no available metadata, let's create the notification with dummy data.

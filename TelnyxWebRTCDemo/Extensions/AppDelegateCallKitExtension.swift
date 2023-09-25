@@ -145,18 +145,15 @@ extension AppDelegate : CXProviderDelegate {
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         print("AppDelegate:: ANSWER call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
-        if(currentCall != nil){
-            self.currentCall?.answer()
-        }else {
-            self.callAnswerPendingFromPush = true
-        }
-        action.fulfill()
+
+        self.telnyxClient?.answerFromCallkit(answerAction: action)
     }
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         print("AppDelegate:: END call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
-        self.currentCall?.hangup()
-        action.fulfill()
+        
+        self.telnyxClient?.endCallFromCallkit(endAction:action)
+    
     }
 
     func providerDidReset(_ provider: CXProvider) {
