@@ -510,17 +510,76 @@ extension AppDelegate : CXProviderDelegate {
 ```
 </br>
 
+### Best Practices when Using PushNotifications with Callkit.
+
+1. Hadling Push Calls Appropriately :  The voice sdk requires to establish a connection with the webserver before a call can be active.
+   when receiving calls from push notifications it is always best to wait for connection to the web socket
+   before the call answer action is fulfilled. This can be adhered to by waiting for call to be connected before
+   calling the `action.fulfill()` method on:
+
+   ```Swift
+       func provider(_ provider: CXProvider, perform action: CXStartCallAction) { }
+   ```
+   To make this easier for apps using the sdk, there's  `answerFromPush(answerAction:CXAnswerCallAction)` method that accepts `CXStartCallAction` and
+   fulfills this when a connection is fully established with the webserver. With this the  `action.fulfill()` method should not be called
+   in the implementing class.  `nswerFromPush(answerAction:CXAnswerCallAction)` can be used like :
+   
+    ```Swift
+       func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
+                //call this method instead of action.fulfill() to let sdk handle callkit answer
+               self.telnyxclient?.answerFromPush(answerAction:action)
+       }
+   ```
+   When the `answerFromPush(answerAction:action)` is called. Callkit sets the Call state to `connecting` to alert the user the call is
+   being connected and then once the call is active the timer starts 😊.
+
+
+      <table align="center">
+        <tr>
+           <td>Connecting State</td>
+           <td>Active call</td>
+        </tr>
+        <tr>
+          <td><img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/13e9efd0-07e2-4a7e-9e7a-b2484b96be47" width=270></td>
+          <td><img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/89d506a5-bf97-42f2-bd64-5aa54b202db8" width=270></td>
+        </tr>
+       </table>
+   
+      
+
+
+   Likewise for ending calls, the  `answerFromPush(answerAction:action)` method should be called from :
+     ```Swift
+     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
+     
+        self.telnyxClient?.endCallFromCallkit(endAction:action)
+     
+    }
+   ```
+   Calling this method solves the race condition, where call is ended before the client connects to the webserver. This way the call is
+   ended on the callee side once a connection is established.
+   
+3. Debugging Push Notification Call Issues : Logs on the receivers end are neccessary to fully debug issues relating to push notifications.
+   However the debugger is not attached when app is completely killed. To solve for this the app can simply be put in background,voip push notifications
+   should come through and debugger should record all logs. Filtering logs using word `TxClient` should filter all sdk related messages.
+   
+   ![image](https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/e04b9ade-9390-452c-a078-3386ace8d0c2)
+
+   
+
 ### Disable Push Notification
  Push notfications can be disabled for the current user by calling : 
 ```
 telnyxClient.disablePushNotifications()
 ```
+Note : Signing back in, using same credentials will re-enable push notifications.
 
 
 ### Documentation:
 For more information you can:
 1. Clone the repository
 2. And check the exported documentation in:  `docs/index.html`
+
 
 
 
