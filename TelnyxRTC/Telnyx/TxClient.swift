@@ -142,6 +142,7 @@ public class TxClient {
     private var registerTimer: Timer = Timer()
     private var gatewayState: GatewayStates = .NOREG
     private var isCallFromPush: Bool = false
+    private var currentCallId:UUID = UUID()
 
     /// When implementing CallKit framework, audio has to be manually handled.
     /// Set this property to TRUE when `provider(CXProvider, didActivate: AVAudioSession)` is called on your CallKit implementation
@@ -224,12 +225,31 @@ public class TxClient {
     /// To answer and control callKit active flow
     public func answerFromCallkit(answerAction:CXAnswerCallAction) {
         self.answerCallAction = answerAction
+        ///answer call if currentPushCall is not nil
+        ///This means the client has connected and we can safelyanswer
+        if(self.calls[currentCallId] != nil){
+            self.calls[currentCallId]?.answer()
+            answerCallAction?.fulfill()
+            resetPushVariables()
+        }
+    }
+    
+    private func resetPushVariables(){
+        answerCallAction = nil
+        endCallAction = nil
     }
     
     /// To end and control callKit active and conn
     public func endCallFromCallkit(endAction:CXEndCallAction) {
         self.endCallAction = endAction
         endAction.fulfill()
+        
+        ///Hangup call if there's a current pushCall
+        if(self.calls[currentCallId] != nil){
+            self.calls[currentCallId]?.hangup()
+            resetPushVariables()
+            currentCallId = UUID()
+        }
     }
     
     
@@ -387,6 +407,7 @@ extension TxClient {
                         iceServers: self.serverConfiguration.webRTCIceServers)
         call.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState)
 
+        currentCallId = callId
         self.calls[callId] = call
         return call
     }
@@ -429,19 +450,22 @@ extension TxClient {
         // propagate the incoming call to the App
         Logger.log.i(message: "TxClient:: push flow createIncomingCall \(call)")
         
+        currentCallId = callId
+
         if isCallFromPush {
             self.delegate?.onPushCall(call: call)
             //Answer is pending from push - Answer Call
             if(answerCallAction != nil){
                 call.answer()
                 answerCallAction?.fulfill()
-                answerCallAction = nil
+                resetPushVariables()
             }
             
             //End is pending from callkit
             if(endCallAction != nil){
                 call.hangup()
-                endCallAction = nil
+                currentCallId = UUID()
+                resetPushVariables()
             }
         } else {
             self.delegate?.onIncomingCall(call: call)

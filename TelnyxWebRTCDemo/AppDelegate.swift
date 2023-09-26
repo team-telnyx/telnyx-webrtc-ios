@@ -141,9 +141,7 @@ extension AppDelegate: PKPushRegistryDelegate {
             
             let caller = callerName.isEmpty ? (callerNumber.isEmpty ? "Unknown" : callerNumber) : callerName
             let uuid = UUID(uuidString: callID)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
-                self.processVoIPNotification(callUUID: uuid!,pushMetaData: metadata)
-            }
+            self.processVoIPNotification(callUUID: uuid!,pushMetaData: metadata)
             self.newIncomingCall(from: caller, uuid: uuid!)
         } else {
             // If there's no available metadata, let's create the notification with dummy data.
