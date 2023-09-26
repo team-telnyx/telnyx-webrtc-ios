@@ -512,7 +512,7 @@ extension AppDelegate : CXProviderDelegate {
 
 ### Best Practices when Using PushNotifications with Callkit.
 
-1. Hadling Push Calls Appropriately :  The voice sdk requires to establish a connection with the webserver before a call can be active.
+1. Handling Push Calls Appropriately :  The voice sdk requires to establish a connection with the webserver before a call can be active.
    when receiving calls from push notifications it is always best to wait for connection to the web socket
    before the call answer action is fulfilled. This can be adhered to by waiting for call to be connected before
    calling the `action.fulfill()` method on:
