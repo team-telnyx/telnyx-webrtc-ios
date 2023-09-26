@@ -59,7 +59,6 @@ public struct TxServerConfiguration {
                     
                 }else {
                     self.signalingServer = InternalConfig.default.developmentSignalingServer
-                    NSLog("a: %@", "test")
                 }
                 
             }
