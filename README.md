@@ -518,9 +518,9 @@ func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
       self.telnyxclient?.answerFromPush(answerAction:action)
 }
 ```
-When the `answerFromPush(answerAction:action)` is called. Callkit sets the Call state to `connecting` to alert the user the call is
-being connected and then once the call is active the timer starts 😊.
 
+When the `answerFromPush(answerAction: action)` is called, Callkit sets the call state to `connecting` to alert the user that the call is being connected. 
+Once the call is active, the timer starts.
 
 <table align="center">
         <tr>
