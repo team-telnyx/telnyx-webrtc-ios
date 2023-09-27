@@ -512,29 +512,17 @@ extension AppDelegate : CXProviderDelegate {
 
 ### Best Practices when Using PushNotifications with Callkit.
 
-1. Handling Push Calls Appropriately :  The voice sdk requires to establish a connection with the webserver before a call can be active.
-   when receiving calls from push notifications it is always best to wait for connection to the web socket
-   before the call answer action is fulfilled. This can be adhered to by waiting for call to be connected before
-   calling the `action.fulfill()` method on:
-
-   ```Swift
-       func provider(_ provider: CXProvider, perform action: CXStartCallAction) { }
-   ```
-   To make this easier for apps using the sdk, there's  `answerFromPush(answerAction:CXAnswerCallAction)` method that accepts `CXStartCallAction` and
-   fulfills this when a connection is fully established with the webserver. With this the  `action.fulfill()` method should not be called
-   in the implementing class.  `nswerFromPush(answerAction:CXAnswerCallAction)` can be used like :
-   
-    ```Swift
-       func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
-                //call this method instead of action.fulfill() to let sdk handle callkit answer
-               self.telnyxclient?.answerFromPush(answerAction:action)
-       }
-   ```
-   When the `answerFromPush(answerAction:action)` is called. Callkit sets the Call state to `connecting` to alert the user the call is
-   being connected and then once the call is active the timer starts 😊.
+1. When receiving calls from push notifications, it is always required to wait for the connection to the WebSocket before fulfilling the call answer action. This can be achieved by implementing the CXProviderDelegate in the following way (SDK version >=0.1.11):
+```Swift
+func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
+      self.telnyxclient?.answerFromPush(answerAction:action)
+}
+```
+When the `answerFromPush(answerAction:action)` is called. Callkit sets the Call state to `connecting` to alert the user the call is
+being connected and then once the call is active the timer starts 😊.
 
 
-      <table align="center">
+<table align="center">
         <tr>
            <td>Connecting State</td>
            <td>Active call</td>
@@ -543,19 +531,48 @@ extension AppDelegate : CXProviderDelegate {
           <td><img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/13e9efd0-07e2-4a7e-9e7a-b2484b96be47" width=270></td>
           <td><img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/89d506a5-bf97-42f2-bd64-5aa54b202db8" width=270></td>
         </tr>
-       </table>
+</table>
    
-      
+The previous SDK versions requires handling the websocket connection state on the client side. It can be done in the following way:
 
+```Swift
+var callAnswerPendingFromPush:Bool = false
 
-   Likewise for ending calls, the  `answerFromPush(answerAction:action)` method should be called from :
-     ```Swift
-     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
+func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
+        print("AppDelegate:: ANSWER call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
+        if(currentCall != nil){
+            self.currentCall?.answer()
+        }else {
+            self.callAnswerPendingFromPush = true
+        }
+        action.fulfill()
+}
+
+func onPushCall(call: Call) {
+        print("AppDelegate:: TxClientDelegate onPushCall() \(call)")
+        self.currentCall = call //Update the current call with the incoming call
+        
+        //Answer Call if call was answered from callkit
+        //This happens when there's a race condition between login and receiving PN
+        // when User answer's the call from PN and there's no Call or INVITE message yet. Set callAnswerPendingFromPush = true
+        // Whilst we wait fot onPushCall Method to be called
+         if(self.callAnswerPendingFromPush){
+            self.currentCall?.answer()
+            self.callAnswerPendingFromPush = false
+        }
+        
+}
+```
+
+Likewise for ending calls, the  `endCallFromCallkit(endAction:action)` method should be called from :
+   
+```Swift
+func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
      
         self.telnyxClient?.endCallFromCallkit(endAction:action)
      
-    }
-   ```
+}
+```
    Calling this method solves the race condition, where call is ended before the client connects to the webserver. This way the call is
    ended on the callee side once a connection is established.
    
