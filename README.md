@@ -576,9 +576,7 @@ func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
    Calling this method solves the race condition, where call is ended before the client connects to the webserver. This way the call is
    ended on the callee side once a connection is established.
    
-3. Debugging Push Notification Call Issues : Logs on the receivers end are neccessary to fully debug issues relating to push notifications.
-   However the debugger is not attached when app is completely killed. To solve for this the app can simply be put in background,voip push notifications
-   should come through and debugger should record all logs. Filtering logs using word `TxClient` should filter all sdk related messages.
+3.Logs on the receiver's end are necessary to thoroughly debug issues related to push notifications. However, the debugger is not attached when the app is completely killed. To address this, the app can simply be       placed in the background. VOIP push notifications should then come through, and the debugger should record all logs. You can filter logs using the keyword 'TxClient' to isolate all SDK-related messages
    
    ![image](https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/e04b9ade-9390-452c-a078-3386ace8d0c2)
 
