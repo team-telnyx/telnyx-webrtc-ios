@@ -30,6 +30,7 @@ extension AppDelegate: TxClientDelegate {
     
     func onClientError(error: Error) {
         print("AppDelegate:: TxClientDelegate onClientError() error: \(error)")
+        self.executeEndCallAction(uuid: self.callKitUUID ?? UUID())
         self.voipDelegate?.onClientError(error: error)
     }
     
@@ -63,16 +64,6 @@ extension AppDelegate: TxClientDelegate {
     func onPushCall(call: Call) {
         print("AppDelegate:: TxClientDelegate onPushCall() \(call)")
         self.currentCall = call //Update the current call with the incoming call
-        
-        //Answer Call if call was answered from callkit
-        //This happens when there's a race condition between login and receiving PN
-        // when User answer's the call from PN and there's no Call or INVITE message yet. Set callAnswerPendingFromPush = true
-        // Whilst we wait fot onPushCall Method to be called
-         if(self.callAnswerPendingFromPush){
-            self.currentCall?.answer()
-            self.callAnswerPendingFromPush = false
-        }
-        
     }
     
     func onRemoteCallEnded(callId: UUID) {

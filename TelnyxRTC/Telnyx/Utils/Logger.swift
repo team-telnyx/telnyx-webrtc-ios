@@ -33,6 +33,18 @@ public enum LogLevel: Int {
     case all
 }
 
+class Timestamp {
+    lazy var dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS "
+        return formatter
+    }()
+
+    func printTimestamp() {
+        print(dateFormatter.string(from: Date()))
+    }
+}
+
 enum VertoDirection: Int {
     case inbound = 0
     case outbound
@@ -53,7 +65,8 @@ class Logger {
     private var warningGlyph: String = "\u{1F514}"  // Glyph for messages of level .Warning
     private var successGlyph: String = "\u{2705}"   // Glyph for messages of level .Success
     private var infoGlyph: String = "\u{1F535}"     // Glyph for messages of level .Info
-
+    private var timeStamp:Timestamp = Timestamp()
+    
     private init() {}
 
 
@@ -61,7 +74,7 @@ class Logger {
     /// - Parameter message: message to be printed
     public func i(message: String) {
         if verboseLevel == .all || verboseLevel == .info {
-            print(buildMessage(level: .info, message: message))
+            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .info, message: message))
         }
     }
 
@@ -69,7 +82,7 @@ class Logger {
     /// - Parameter message: message to be printed
     public func e(message: String) {
         if verboseLevel == .all || verboseLevel == .error {
-            print(buildMessage(level: .error, message: message))
+            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .error, message: message))
         }
     }
 
@@ -77,7 +90,7 @@ class Logger {
     /// - Parameter message: message to be printed
     public func w(message: String) {
         if verboseLevel == .all || verboseLevel == .warning {
-            print(buildMessage(level: .warning, message: message))
+            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .warning, message: message))
         }
     }
 
@@ -85,7 +98,7 @@ class Logger {
     /// - Parameter message: message to be printed
     public func s(message: String) {
         if verboseLevel == .all || verboseLevel == .success {
-            print(buildMessage(level: .success, message: message))
+            print( "TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .success, message: message))
         }
     }
 
@@ -95,7 +108,7 @@ class Logger {
     ///   - direction: direction of the message. Inbound-outbound
     public func verto(message: String, direction: VertoDirection) {
         if verboseLevel == .all || verboseLevel == .verto {
-            print(buildMessage(level: .verto, message: message, direction: direction))
+            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .verto, message: message, direction: direction))
         }
     }
 

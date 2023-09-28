@@ -10,6 +10,7 @@ import Foundation
 import AVFoundation
 import Bugsnag
 import WebRTC
+import CallKit
 
 /// The `TelnyxRTC` client connects your application to the Telnyx backend,
 /// enabling you to make outgoing calls and handle incoming calls.
@@ -131,6 +132,8 @@ public class TxClient {
     public weak var delegate: TxClientDelegate?
     private var socket : Socket?
 
+    private var answerCallAction:CXAnswerCallAction? = nil
+    private var endCallAction:CXEndCallAction? = nil
     private var sessionId : String?
     private var txConfig: TxConfig?
     private var serverConfiguration: TxServerConfiguration
@@ -139,6 +142,7 @@ public class TxClient {
     private var registerTimer: Timer = Timer()
     private var gatewayState: GatewayStates = .NOREG
     private var isCallFromPush: Bool = false
+    private var currentCallId:UUID = UUID()
 
     /// When implementing CallKit framework, audio has to be manually handled.
     /// Set this property to TRUE when `provider(CXProvider, didActivate: AVAudioSession)` is called on your CallKit implementation
@@ -217,6 +221,37 @@ public class TxClient {
         guard let isConnected = socket?.isConnected else { return false }
         return isConnected
     }
+    
+    /// To answer and control callKit active flow
+    public func answerFromCallkit(answerAction:CXAnswerCallAction) {
+        self.answerCallAction = answerAction
+        ///answer call if currentPushCall is not nil
+        ///This means the client has connected and we can safelyanswer
+        if(self.calls[currentCallId] != nil){
+            self.calls[currentCallId]?.answer()
+            answerCallAction?.fulfill()
+            resetPushVariables()
+        }
+    }
+    
+    private func resetPushVariables(){
+        answerCallAction = nil
+        endCallAction = nil
+    }
+    
+    /// To end and control callKit active and conn
+    public func endCallFromCallkit(endAction:CXEndCallAction) {
+        self.endCallAction = endAction
+        endAction.fulfill()
+        
+        ///Hangup call if there's a current pushCall
+        if(self.calls[currentCallId] != nil){
+            self.calls[currentCallId]?.hangup()
+            resetPushVariables()
+            currentCallId = UUID()
+        }
+    }
+    
     
     /// To disable push notifications for the current user
     public func disablePushNotifications() {
@@ -372,6 +407,7 @@ extension TxClient {
                         iceServers: self.serverConfiguration.webRTCIceServers)
         call.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState)
 
+        currentCallId = callId
         self.calls[callId] = call
         return call
     }
@@ -414,8 +450,23 @@ extension TxClient {
         // propagate the incoming call to the App
         Logger.log.i(message: "TxClient:: push flow createIncomingCall \(call)")
         
+        currentCallId = callId
+
         if isCallFromPush {
             self.delegate?.onPushCall(call: call)
+            //Answer is pending from push - Answer Call
+            if(answerCallAction != nil){
+                call.answer()
+                answerCallAction?.fulfill()
+                resetPushVariables()
+            }
+            
+            //End is pending from callkit
+            if(endCallAction != nil){
+                call.hangup()
+                currentCallId = UUID()
+                resetPushVariables()
+            }
         } else {
             self.delegate?.onIncomingCall(call: call)
         }
@@ -431,7 +482,9 @@ extension TxClient {
     ///  You will need to
     /// - Parameters:
     ///   - txConfig: The desired configuration to login to B2B2UA. User credentials must be the same as the
-    ///   - serverConfiguration : required to setup rtc_ip and rtc_port from   VoIP push notification metadata.
+    ///   - serverConfiguration : required to setup from  VoIP push notification metadata.
+    ///   - pushMetaData : meta data payload from VOIP Push notification
+    ///                    (this should be gotten from payload.dictionaryPayload["metadata"] as? [String: Any])
     /// - Throws: Error during the connection process
     public func processVoIPNotification(txConfig: TxConfig,
                                         serverConfiguration: TxServerConfiguration,pushMetaData:[String: Any]) throws {

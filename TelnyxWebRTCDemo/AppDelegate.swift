@@ -30,7 +30,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var telnyxClient : TxClient?
     var currentCall: Call?
     var callKitUUID: UUID?
-    var callAnswerPendingFromPush:Bool = false
 
     private var pushRegistry = PKPushRegistry.init(queue: DispatchQueue.main)
     weak var voipDelegate: VoIPDelegate?
@@ -125,6 +124,8 @@ extension AppDelegate: PKPushRegistryDelegate {
             completion()
         }
     }
+    
+    
 
     func handleVoIPPushNotification(payload: PKPushPayload) {
         if let metadata = payload.dictionaryPayload["metadata"] as? [String: Any] {

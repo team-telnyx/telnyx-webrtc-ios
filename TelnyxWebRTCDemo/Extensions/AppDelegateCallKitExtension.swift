@@ -116,7 +116,7 @@ extension AppDelegate : CXProviderDelegate {
                 //The simulator does not support to register an incoming call through CallKit.
                 //For that reason when an incoming call is received on the simulator,
                 //we are updating the UI and not registering the callID to callkit.
-                //When the user whats to hangup the call and the incoming call was not registered in callkit,
+                //When the user wants to hangup the call and the incoming call was not registered in callkit,
                 //the CXEndCallAction fails. That's why we are manually ending the call in this case.
                 self.telnyxClient?.calls[uuid]?.hangup() // end the active call
                 #endif
@@ -145,18 +145,15 @@ extension AppDelegate : CXProviderDelegate {
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         print("AppDelegate:: ANSWER call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
-        if(currentCall != nil){
-            self.currentCall?.answer()
-        }else {
-            self.callAnswerPendingFromPush = true
-        }
-        action.fulfill()
+
+        self.telnyxClient?.answerFromCallkit(answerAction: action)
     }
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         print("AppDelegate:: END call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
-        self.currentCall?.hangup()
-        action.fulfill()
+        
+        self.telnyxClient?.endCallFromCallkit(endAction:action)
+    
     }
 
     func providerDidReset(_ provider: CXProvider) {

@@ -27,19 +27,20 @@ public struct TxServerConfiguration {
     public init(signalingServer: URL? = nil, webRTCIceServers: [RTCIceServer]? = nil, environment: WebRTCEnvironment = .production,pushMetaData:[String: Any]? = nil) {
         
         // Get rtc_ip and rct_port to setup TxPushServerConfig
-        let rtc_ip = (pushMetaData?["rtc_ip"] as? String)
-        let rtc_port = (pushMetaData?["rtc_port"] as? Int) ?? 0
+        let rtc_id = (pushMetaData?["voice_sdk_id"] as? String)
+
+        Logger.log.i(message: "TxServerConfiguration:: signalingServer [\(String(describing: signalingServer))] webRTCIceServers [\(String(describing: webRTCIceServers))] environment [\(String(describing: environment))] ip - [\(String(describing: rtc_id))]")
         
         
-        
-        Logger.log.i(message: "TxServerConfiguration:: signalingServer [\(String(describing: signalingServer))] webRTCIceServers [\(String(describing: webRTCIceServers))] environment [\(String(describing: environment))] ip - [\(String(describing: rtc_ip))]")
         if let signalingServer = signalingServer {
             self.signalingServer = signalingServer
         } else {
             if environment == .production {
                 // Set signalingServer for push notifications
-                if let pushId = rtc_ip {
-                    let query = "?rtc_ip=\(pushId)&rtc_port=\(rtc_port)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+                //pass voice_sdk_id fot proxy to assign the right instance to call
+                if let pushId = rtc_id {
+                    let encodedId = pushId.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
+                    let query = "?voice_sdk_id=\(encodedId)"
                     let pushRtcServer = "\(InternalConfig.default.prodSignalingServer)\(query)"
                     self.signalingServer = URL(string: pushRtcServer ) ??  InternalConfig.default.prodSignalingServer
                     
@@ -50,8 +51,9 @@ public struct TxServerConfiguration {
             } else {
                 
                 // Set signalingServer for push notifications
-                if let pushId = rtc_ip {
-                    let query = "?rtc_ip=\(pushId)&rtc_port=\(rtc_port)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+                //pass voice_sdk_id fot proxy to assign the right instance to call
+                if let pushId = rtc_id {
+                    let query = "?voice_sdk_id=\(pushId)"
                     let pushRtcServer = "\(InternalConfig.default.developmentSignalingServer)\(query)"
                     self.signalingServer = URL(string: pushRtcServer ) ?? InternalConfig.default.developmentSignalingServer
                     
