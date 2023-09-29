@@ -34,7 +34,8 @@ public struct TxConfig {
                 pushDeviceToken: String? = nil,
                 ringtone: String? = nil,
                 ringBackTone: String? = nil,
-                logLevel: LogLevel = .none) {
+                logLevel: LogLevel = .none,
+                logDelegate: LoggerDelegate? = nil) {
         self.sipUser = sipUser
         self.password = password
         if let pushToken = pushDeviceToken {
@@ -44,6 +45,7 @@ public struct TxConfig {
         self.ringBackTone = ringBackTone
         self.ringtone = ringtone
         Logger.log.verboseLevel = logLevel
+        Logger.log.delegate = logDelegate
     }
 
     /// Constructor of the Telnyx SDK configuration: Login using a token.
@@ -58,7 +60,8 @@ public struct TxConfig {
                 pushDeviceToken: String? = nil,
                 ringtone: String? = nil,
                 ringBackTone: String? = nil,
-                logLevel: LogLevel = .none) {
+                logLevel: LogLevel = .none,
+                logDelegate: LoggerDelegate? = nil) {
         self.token = token
         if let pushToken = pushDeviceToken {
             //Create a notification configuration if there's an available a device push notification token
@@ -67,6 +70,7 @@ public struct TxConfig {
         self.ringBackTone = ringBackTone
         self.ringtone = ringtone
         Logger.log.verboseLevel = logLevel
+        Logger.log.delegate = logDelegate
     }
 
     // MARK: - Methods

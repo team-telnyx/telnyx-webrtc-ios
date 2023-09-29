@@ -45,6 +45,10 @@ class Timestamp {
     }
 }
 
+public protocol LoggerDelegate: AnyObject {
+    func captureLogMessage(_ message: String)
+}
+
 enum VertoDirection: Int {
     case inbound = 0
     case outbound
@@ -67,6 +71,8 @@ class Logger {
     private var infoGlyph: String = "\u{1F535}"     // Glyph for messages of level .Info
     private var timeStamp:Timestamp = Timestamp()
     
+    public weak var delegate: LoggerDelegate?
+    
     private init() {}
 
 
@@ -74,7 +80,7 @@ class Logger {
     /// - Parameter message: message to be printed
     public func i(message: String) {
         if verboseLevel == .all || verboseLevel == .info {
-            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .info, message: message))
+            delegate?.captureLogMessage("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .info, message: message))
         }
     }
 
@@ -82,7 +88,7 @@ class Logger {
     /// - Parameter message: message to be printed
     public func e(message: String) {
         if verboseLevel == .all || verboseLevel == .error {
-            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .error, message: message))
+            delegate?.captureLogMessage("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .error, message: message))
         }
     }
 
@@ -90,7 +96,7 @@ class Logger {
     /// - Parameter message: message to be printed
     public func w(message: String) {
         if verboseLevel == .all || verboseLevel == .warning {
-            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .warning, message: message))
+            delegate?.captureLogMessage("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .warning, message: message))
         }
     }
 
@@ -98,7 +104,7 @@ class Logger {
     /// - Parameter message: message to be printed
     public func s(message: String) {
         if verboseLevel == .all || verboseLevel == .success {
-            print( "TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .success, message: message))
+            delegate?.captureLogMessage( "TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .success, message: message))
         }
     }
 
@@ -108,7 +114,7 @@ class Logger {
     ///   - direction: direction of the message. Inbound-outbound
     public func verto(message: String, direction: VertoDirection) {
         if verboseLevel == .all || verboseLevel == .verto {
-            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .verto, message: message, direction: direction))
+            delegate?.captureLogMessage("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .verto, message: message, direction: direction))
         }
     }
 
