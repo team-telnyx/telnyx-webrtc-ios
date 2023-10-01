@@ -105,8 +105,6 @@ class ViewController: UIViewController {
             
             self.environment.text = (self.serverConfig?.environment == .development) ? "Development" : "Production " +
             (plistInfo ?? "")
-           
-
         }
     }
 

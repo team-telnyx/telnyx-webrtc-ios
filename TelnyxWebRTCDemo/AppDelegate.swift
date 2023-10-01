@@ -30,6 +30,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var telnyxClient : TxClient?
     var currentCall: Call?
     var callKitUUID: UUID?
+    
+    var userDefaults: UserDefaults = UserDefaults.init()
+
 
     private var pushRegistry = PKPushRegistry.init(queue: DispatchQueue.main)
     weak var voipDelegate: VoIPDelegate?
