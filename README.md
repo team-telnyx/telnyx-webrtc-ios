@@ -514,9 +514,10 @@ extension AppDelegate : CXProviderDelegate {
 
 1. When receiving calls from push notifications, it is always required to wait for the connection to the WebSocket before fulfilling the call answer action. This can be achieved by implementing the CXProviderDelegate in the following way (SDK version >=0.1.11):
 ```Swift
-func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
-      self.telnyxclient?.answerFromPush(answerAction:action)
-}
+    func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
+
+        self.telnyxClient?.answerFromCallkit(answerAction: action)
+    }
 ```
 
 When the `answerFromPush(answerAction: action)` is called, Callkit sets the call state to `connecting` to alert the user that the call is being connected. 
