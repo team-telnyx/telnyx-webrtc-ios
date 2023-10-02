@@ -13,7 +13,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/bugsnag/bugsnag-cocoa.git", from: "6.26.2"),
         .package(url: "https://github.com/daltoniam/Starscream.git", from: "4.0.0"),
-        .package(url: "https://github.com/stasel/WebRTC.git", from: "113.0.0")
+        .package(url: "https://github.com/stasel/WebRTC.git", from: "117.0.0")
     ],
     targets: [
         .target(
