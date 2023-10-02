@@ -17,12 +17,12 @@ protocol PeerDelegate: AnyObject {
 class Peer : NSObject {
 
     private let audioQueue = DispatchQueue(label: "audio")
-
     private let NEGOTIATION_TIMOUT = 0.3 //time in milliseconds
     private let AUDIO_TRACK_ID = "audio0"
     private let VIDEO_TRACK_ID = "video0"
     //TODO: REMOVE THIS FOR V1
     private let VIDEO_DEMO_LOCAL_VIDEO = "local_video_streaming.mp4"
+    private var gatheredICECandidates:[String] = []
 
     private let mediaConstrains = [kRTCMediaConstraintsOfferToReceiveAudio: kRTCMediaConstraintsValueTrue, kRTCMediaConstraintsOfferToReceiveVideo: kRTCMediaConstraintsValueFalse]
 
@@ -104,8 +104,8 @@ class Peer : NSObject {
             self.rtcAudioSession.lockForConfiguration()
             do {
                 Logger.log.i(message: "Peer:: Configuring AVAudioSession")
-                try self.rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord.rawValue)
-                try self.rtcAudioSession.setMode(AVAudioSession.Mode.voiceChat.rawValue)
+                try self.rtcAudioSession.setCategory(AVAudioSession.Category(rawValue: AVAudioSession.Category.playAndRecord.rawValue))
+                try self.rtcAudioSession.setMode(AVAudioSession.Mode.voiceChat)
                 self.rtcAudioSession.useManualAudio = true
                 Logger.log.i(message: "Peer:: Configuring AVAudioSession configured")
             } catch let error {
@@ -202,6 +202,9 @@ class Peer : NSObject {
      */
     fileprivate func startNegotiation(peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
         Logger.log.i(message: "Peer:: ICE negotiation updated.")
+        
+        //Set gathered candidates to 
+        
         //Restart the negotiation timer
         self.negotiationTimer?.invalidate()
         self.negotiationTimer = nil
@@ -209,7 +212,7 @@ class Peer : NSObject {
             self.negotiationTimer = Timer.scheduledTimer(withTimeInterval: self.NEGOTIATION_TIMOUT, repeats: false) { timer in
                 // Check if the negotiation process has ended to avoid duplicated calls to the delegate method.
                 if (self.negotiationEnded) {
-                    Logger.log.w(message: "Peer:: ICE negotiation has ended.")
+                    Logger.log.w(message: "ICE negotiation has ended:: ICE negotiation has ended.")
                     return
                 }
                 self.negotiationTimer?.invalidate()
@@ -348,9 +351,22 @@ extension Peer : RTCPeerConnectionDelegate {
         Logger.log.i(message: "Peer:: connection didGenerate RCIceCandidate: \(candidate)")
         //once an ICE candidate is generated, let's added into the peerConnection so the ICE Candidate
         //information is added to the local SDP.
-        connection?.add(candidate)
-        //lets start / reset the negotiation process
-        self.startNegotiation(peerConnection: connection!, didGenerate: candidate)
+
+        
+        connection?.add(candidate, completionHandler: { error in
+            Logger.log.i(message: "Peer::add [RTCIceCandidate]: \(String(describing: error)) \(candidate) ")
+        })
+        
+        Logger.log.i(message: "Peer::serverUrl [RTCIceCandidate]: \(String(describing: candidate.serverUrl))")
+        gatheredICECandidates.append(candidate.serverUrl ?? "")
+        
+        if(gatheredICECandidates.contains(InternalConfig.stunServer) ||
+            gatheredICECandidates.contains(InternalConfig.turnServer)){
+            
+            self.startNegotiation(peerConnection: connection!, didGenerate: candidate)
+            
+        }
+        
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didRemove candidates: [RTCIceCandidate]) {
