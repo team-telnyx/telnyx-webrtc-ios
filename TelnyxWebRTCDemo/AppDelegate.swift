@@ -31,8 +31,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var currentCall: Call?
     var callKitUUID: UUID?
     
+    
     var userDefaults: UserDefaults = UserDefaults.init()
 
+    var startCallAction:CXStartCallAction? = nil
 
     private var pushRegistry = PKPushRegistry.init(queue: DispatchQueue.main)
     weak var voipDelegate: VoIPDelegate?

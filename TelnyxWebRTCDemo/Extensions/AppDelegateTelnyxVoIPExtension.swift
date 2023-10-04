@@ -63,7 +63,8 @@ extension AppDelegate: TxClientDelegate {
     
     func onPushCall(call: Call) {
         print("AppDelegate:: TxClientDelegate onPushCall() \(call)")
-        self.currentCall = call //Update the current call with the incoming call
+        //self.currentCall = call //Update the current call with the incoming call
+        self.onIncomingCall(call: call)
     }
     
     func onRemoteCallEnded(callId: UUID) {

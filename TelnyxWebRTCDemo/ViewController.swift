@@ -206,6 +206,10 @@ extension ViewController : UIIncomingCallViewDelegate {
  Handle Call Screen events
  */
 extension ViewController : UICallScreenDelegate {
+    
+    func reportOutgoingCall(){
+        
+    }
 
     func onCallButton() {
         guard let destinationNumber = self.callView.destinationNumberOrSip.text, !destinationNumber.isEmpty else {

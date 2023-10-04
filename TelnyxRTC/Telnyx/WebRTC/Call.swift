@@ -214,15 +214,32 @@ public class Call {
         sdp: Is the remote SDP to configure in the current RTCPeerConnection
      */
     private func answered(sdp: String) {
-        let remoteDescription = RTCSessionDescription(type: .answer, sdp: sdp)
+        let remoteDescription = RTCSessionDescription(type: .answer, sdp: sdp )
+        self.peer?.connection?.setRemoteDescription(remoteDescription, completionHandler: { (error) in
+            if let error = error  {
+                Logger.log.e(message: "Call:: Error setting remote description: \(error)")
+                
+            }
+            
+            self.updateCallState(callState: .ACTIVE)
+            Logger.log.e(message: "Call:: connected")
+        })
+    }
+    
+    /**
+        This function should be called when the remote SDP is inside the  telnyx_rtc.media message.
+        It sets the incoming sdp as the remoteDecription.
+        sdp: Is the remote SDP to configure in the current RTCPeerConnection
+     */
+    private func streamMedia(sdp: String) {
+        let remoteDescription = RTCSessionDescription(type: .prAnswer, sdp: sdp)
         self.peer?.connection?.setRemoteDescription(remoteDescription, completionHandler: { (error) in
             if let error = error  {
                 Logger.log.e(message: "Call:: Error setting remote description: \(error)")
                 return
             }
             
-            self.updateCallState(callState: .ACTIVE)
-            Logger.log.e(message: "Call:: connected")
+            Logger.log.i(message: "Call:: Media Streaming")
         })
     }
     
@@ -478,6 +495,7 @@ extension Call {
                     return
                 }
                 self.remoteSdp = remoteSdp
+                self.streamMedia(sdp: remoteSdp)
             }
             //TODO: handle error when there's no SDP
             break

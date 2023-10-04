@@ -103,6 +103,8 @@ extension ViewController : VoIPDelegate {
                 case .ACTIVE:
                     self.incomingCallView.isHidden = true
                     self.callView.isHidden = false
+                    self.appDelegate.executeOutGoingCall()
+                    print("Start reporting outgoing call")
                     break
                 case .DONE:
                     self.resetCallStates()

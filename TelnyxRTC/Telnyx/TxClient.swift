@@ -132,6 +132,7 @@ public class TxClient {
     public weak var delegate: TxClientDelegate?
     private var socket : Socket?
 
+    private var startCallAction:CXStartCallAction? = nil
     private var answerCallAction:CXAnswerCallAction? = nil
     private var endCallAction:CXEndCallAction? = nil
     private var sessionId : String?
@@ -232,6 +233,10 @@ public class TxClient {
             answerCallAction?.fulfill()
             resetPushVariables()
         }
+    }
+    
+    public func fulfillStartCall(startCallAction:CXStartCallAction) {
+        self.startCallAction = startCallAction
     }
     
     private func resetPushVariables(){
