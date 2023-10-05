@@ -46,6 +46,16 @@ extension AppDelegate : CXProviderDelegate {
             provider.reportCall(with: uuid, updated: callUpdate)
         }
     }
+    
+    func executeOutGoingCall() {
+        if let provider = self.callKitProvider,
+           let callKitUUID = self.callKitUUID {
+            let date = Date()
+            provider.reportOutgoingCall(with: callKitUUID, connectedAt:nil)
+            print("Outgoing Call Reported at \(date)")
+            self.isCallOutGoing = false
+        }
+    }
 
     /// Report a new incoming call. This will generate the Native Incoming call notification
     /// - Parameters:
@@ -135,7 +145,7 @@ extension AppDelegate : CXProviderDelegate {
             self.currentCall = call
             if call != nil {
                 print("AppDelegate:: performVoiceCall() successful")
-                provider.reportOutgoingCall(with: action.callUUID, connectedAt: Date())
+                self.isCallOutGoing = true
             } else {
                 print("AppDelegate:: performVoiceCall() failed")
             }

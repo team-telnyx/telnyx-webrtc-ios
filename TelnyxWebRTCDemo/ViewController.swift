@@ -184,6 +184,10 @@ class ViewController: UIViewController {
         self.callView.resetHoldUnholdState()
         self.callView.resetSpeakerState()
     }
+    
+    func isCallOutGoing() -> Bool {
+        return appDelegate.isCallOutGoing
+    }
 }
 
 // MARK: - UIIncomingCallViewDelegate
