@@ -32,7 +32,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var callKitUUID: UUID?
     
     var userDefaults: UserDefaults = UserDefaults.init()
-
+    var isCallOutGoing:Bool = false
 
     private var pushRegistry = PKPushRegistry.init(queue: DispatchQueue.main)
     weak var voipDelegate: VoIPDelegate?

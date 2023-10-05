@@ -510,6 +510,37 @@ extension AppDelegate : CXProviderDelegate {
 ```
 </br>
 
+__*Reporting calls with CallKit*__
+
+To properly report calls to callKit with right statuses, you need to invoke the following callKit methods at the right instances : 
+
+Use `provider.reportNewIncomingCall(with: uuid, update: callUpdate)` to report an incoming call.
+
+```Swift
+        guard let provider = callKitProvider else {
+            print("AppDelegate:: CallKit provider not available")
+            return
+        }
+
+        let callHandle = CXHandle(type: .generic, value: from)
+        let callUpdate = CXCallUpdate()
+        callUpdate.remoteHandle = callHandle
+
+        provider.reportNewIncomingCall(with: uuid, update: callUpdate) { error in
+            // handle error
+        }
+```
+
+Use `provider.reportOutgoingCall(with: callKitUUID, connectedAt:nil)` to report a connected outgoing call.
+```Swift
+        if let provider = self.callKitProvider,
+            let callKitUUID = self.callKitUUID {
+            let date = Date()
+            provider.reportOutgoingCall(with: callKitUUID, connectedAt:date)
+        }
+```
+
+
 ### Best Practices when Using PushNotifications with Callkit.
 
 1. When receiving calls from push notifications, it is always required to wait for the connection to the WebSocket before fulfilling the call answer action. This can be achieved by implementing the CXProviderDelegate in the following way (SDK version >=0.1.11):
@@ -575,6 +606,7 @@ func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
 ```
    Calling this method solves the race condition, where call is ended before the client connects to the webserver. This way the call is
    ended on the callee side once a connection is established.
+   
    
 2. Logs on the receiver's end are necessary to thoroughly debug issues related to push notifications. However, the debugger is not attached when the app is completely killed. To address this, the app can simply be       placed in the background. VOIP push notifications should then come through, and the debugger should record all logs. You can filter logs using the keyword 'TxClient' to isolate all SDK-related messages
    
