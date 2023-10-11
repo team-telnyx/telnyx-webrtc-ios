@@ -546,8 +546,7 @@ to provide the native call interface to the user.
         }
 ```
 
-3. When user answers a call : Use `provider.reportOutgoingCall(with: callKitUUID, connectedAt:nil)` to report a connected outgoing call. This informs callKit 
-about when the call was actua
+3. When callee answers an outgoing call : Use `provider.reportOutgoingCall(with: callKitUUID, connectedAt:nil)` to report a connected outgoing call. This informs callKit about what time an outgoing call went active.
 ```Swift
         if let provider = self.callKitProvider,
             let callKitUUID = self.callKitUUID {
@@ -555,6 +554,7 @@ about when the call was actua
             provider.reportOutgoingCall(with: callKitUUID, connectedAt:date)
         }
 ```
+NB : This should be used only when the call is outgoing.
 
 
 ### Best Practices when Using PushNotifications with Callkit.
