@@ -106,6 +106,9 @@ extension ViewController : VoIPDelegate {
                     if(self.isCallOutGoing()){
                         self.appDelegate.executeOutGoingCall()
                     }
+                    if(self.isSpeakerActive){
+                        self.telnyxClient?.setSpeaker()
+                    }
                     break
                 case .DONE:
                     self.resetCallStates()
