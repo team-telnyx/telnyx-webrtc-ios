@@ -97,6 +97,7 @@ extension ViewController : VoIPDelegate {
                 case .CONNECTING:
                     break
                 case .RINGING:
+                    self.setCurrentAudioOutput()
                     break
                 case .NEW:
                     break
@@ -106,6 +107,7 @@ extension ViewController : VoIPDelegate {
                     if(self.isCallOutGoing()){
                         self.appDelegate.executeOutGoingCall()
                     }
+                    self.setCurrentAudioOutput()
                     break
                 case .DONE:
                     self.resetCallStates()
@@ -114,6 +116,12 @@ extension ViewController : VoIPDelegate {
                     break
             }
             self.updateButtonsState()
+        }
+    }
+    
+    func setCurrentAudioOutput(){
+        if(self.isSpeakerActive){
+            self.telnyxClient?.setSpeaker()
         }
     }
     

@@ -17,6 +17,7 @@ class ViewController: UIViewController {
     var userDefaults: UserDefaults = UserDefaults.init()
     var telnyxClient: TxClient?
     var incomingCall: Bool = false
+    var isSpeakerActive : Bool = false
 
     var loadingView: UIAlertController?
 
@@ -245,6 +246,7 @@ extension ViewController : UICallScreenDelegate {
     }
 
     func onToggleSpeaker(isSpeakerActive: Bool) {
+        self.isSpeakerActive = isSpeakerActive
         if (isSpeakerActive) {
             self.telnyxClient?.setSpeaker()
         } else {
