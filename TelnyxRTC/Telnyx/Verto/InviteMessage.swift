@@ -13,7 +13,9 @@ class InviteMessage : Message {
     init(sessionId: String,
          sdp: String,
          callInfo: TxCallInfo,
-         callOptions: TxCallOptions) {
+         callOptions: TxCallOptions,
+         cs:RtcCustomHeaders
+    ) {
         var params = [String: Any]()
         var dialogParams = [String: Any]()
 
