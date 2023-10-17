@@ -8,17 +8,16 @@
 
 import Foundation
 
+
 class InviteMessage : Message {
 
     init(sessionId: String,
          sdp: String,
          callInfo: TxCallInfo,
-         callOptions: TxCallOptions,
-         cs:RtcCustomHeaders
-    ) {
+         callOptions: TxCallOptions) {
         var params = [String: Any]()
         var dialogParams = [String: Any]()
-
+        var rtcCustomHeaders = RtcCustomHeader()
         dialogParams["callID"] = callInfo.callId.uuidString.lowercased()
         dialogParams["destination_number"] = callOptions.destinationNumber
         dialogParams["remote_caller_id_name"] = callOptions.remoteCallerName

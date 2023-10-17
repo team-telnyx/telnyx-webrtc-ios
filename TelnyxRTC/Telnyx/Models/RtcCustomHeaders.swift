@@ -7,8 +7,11 @@
 
 import Foundation
 
-public struct RtcCustomHeaders {
+struct RtcCustomHeader {
+    public internal(set) var key: String
+    public internal(set) var value: String
     public init(key:String,value:String){
-        
+        self.key = key
+        self.value = value
     }
 }
