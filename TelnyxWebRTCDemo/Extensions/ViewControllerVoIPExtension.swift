@@ -125,6 +125,7 @@ extension ViewController : VoIPDelegate {
         }
     }
     
+    
     func executeCall(callUUID: UUID, completionHandler: @escaping (Call?) -> Void) {
         do {
             guard let callerName = self.settingsView.callerIdNameLabel.text,
@@ -135,9 +136,10 @@ extension ViewController : VoIPDelegate {
             }
             
             let call = try telnyxClient?.newCall(callerName: callerName,
-                                                         callerNumber: callerNumber,
-                                                         destinationNumber: destinationNumber,
-                                                         callId: callUUID)
+                                                 callerNumber: callerNumber,
+                                                 destinationNumber: destinationNumber,
+                                                 callId: callUUID,customHeaders: ["X-test1":"ios-test1",
+                                                                                  "X-test2":"ios-test2"])
             completionHandler(call)
         } catch let error {
             print("ViewController:: executeCall Error \(error)")

@@ -143,7 +143,7 @@ public class TxClient {
     private var gatewayState: GatewayStates = .NOREG
     private var isCallFromPush: Bool = false
     private var currentCallId:UUID = UUID()
-
+    private var pendingAnswerHeaders = [String:String]()
     /// When implementing CallKit framework, audio has to be manually handled.
     /// Set this property to TRUE when `provider(CXProvider, didActivate: AVAudioSession)` is called on your CallKit implementation
     /// Set this property to FALSE when `provider(CXProvider, didDeactivate: AVAudioSession)` is called on your CallKit implementation
@@ -223,14 +223,20 @@ public class TxClient {
     }
     
     /// To answer and control callKit active flow
-    public func answerFromCallkit(answerAction:CXAnswerCallAction) {
+    /// - Parameters:
+    ///     - answerAction : `CXAnswerCallAction` from callKit
+    ///     - customHeaders: (Optional)
+    public func answerFromCallkit(answerAction:CXAnswerCallAction,customHeaders:[String:String] = [:]) {
         self.answerCallAction = answerAction
         ///answer call if currentPushCall is not nil
         ///This means the client has connected and we can safelyanswer
         if(self.calls[currentCallId] != nil){
-            self.calls[currentCallId]?.answer()
+            self.calls[currentCallId]?.answer(customHeaders: customHeaders)
             answerCallAction?.fulfill()
             resetPushVariables()
+        }else{
+            /// Let's Keep track od the `customHeaders` passed
+            pendingAnswerHeaders = customHeaders
         }
     }
     
@@ -373,16 +379,19 @@ extension TxClient {
     ///   - destinationNumber: The destination `SIP user address` (sip:YourSipUser@sip.telnyx.com) or `phone number`.
     ///   - callId: The current call UUID.
     ///   - clientState: (optional) Custom state in string format encoded in base64
+    ///   - customHeaders: (optional) Custom Headers to be passed over webRTC Messages, should be in the
+    ///     format `X-key:Value` `X` is required for headers to be passed.
     /// - Throws:
     ///   - sessionId is required if user is not logged in
     ///   - socket connection error if socket is not connected
     ///   - destination number is required to start a call.
     /// - Returns: The call that has been created
     public func newCall(callerName: String,
-                 callerNumber: String,
-                 destinationNumber: String,
-                 callId: UUID,
-                 clientState: String? = nil) throws -> Call {
+                        callerNumber: String,
+                        destinationNumber: String,
+                        callId: UUID,
+                        clientState: String? = nil,
+                        customHeaders:[String:String] = [:]) throws -> Call {
         //User needs to be logged in to get a sessionId
         guard let sessionId = self.sessionId else {
             throw TxError.callFailed(reason: .sessionIdIsRequired)
@@ -405,7 +414,7 @@ extension TxClient {
                         ringtone: self.txConfig?.ringtone,
                         ringbackTone: self.txConfig?.ringBackTone,
                         iceServers: self.serverConfiguration.webRTCIceServers)
-        call.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState)
+        call.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState,customHeaders: customHeaders)
 
         currentCallId = callId
         self.calls[callId] = call
@@ -425,7 +434,8 @@ extension TxClient {
                                     callId: UUID,
                                     remoteSdp: String,
                                     telnyxSessionId: String,
-                                    telnyxLegId: String) {
+                                    telnyxLegId: String,
+                                    customHeaders:[String:String] = [:]) {
 
         guard let sessionId = self.sessionId,
               let socket = self.socket else {
@@ -445,7 +455,7 @@ extension TxClient {
         call.callInfo?.callerName = callerName
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)
-
+        call.inviteCustomHeaders = customHeaders
         self.calls[callId] = call
         // propagate the incoming call to the App
         Logger.log.i(message: "TxClient:: push flow createIncomingCall \(call)")
@@ -456,7 +466,7 @@ extension TxClient {
             self.delegate?.onPushCall(call: call)
             //Answer is pending from push - Answer Call
             if(answerCallAction != nil){
-                call.answer()
+                call.answer(customHeaders: pendingAnswerHeaders)
                 answerCallAction?.fulfill()
                 resetPushVariables()
             }
@@ -701,12 +711,21 @@ extension TxClient : SocketDelegate {
                         if telnyxLegId.isEmpty {
                             Logger.log.w(message: "TxClient:: Telnyx Leg ID unavailable on INVITE message")
                         }
+                        
+                        var customHeaders = [String:String]()
+                        if let xHeaders = params["custom_headers"] as? [[String:String]] {
+                            for header in xHeaders {
+                                customHeaders[header["name"] ?? ""] =  header["value"]
+                            }
+                        }
+                        
                         self.createIncomingCall(callerName: callerName,
                                                 callerNumber: callerNumber,
                                                 callId: uuid,
                                                 remoteSdp: sdp,
                                                 telnyxSessionId: telnyxSessionId,
-                                                telnyxLegId: telnyxLegId)
+                                                telnyxLegId: telnyxLegId,
+                                                customHeaders: customHeaders)
                     }
                     break;
                 //Mark: to send meassage to pong

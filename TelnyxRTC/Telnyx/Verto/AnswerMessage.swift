@@ -13,10 +13,12 @@ class AnswerMessage : Message {
     init(sessionId: String,
          sdp: String,
          callInfo: TxCallInfo,
-         callOptions: TxCallOptions) {
+         callOptions: TxCallOptions,
+         customHeaders:[String:String] = [:]) {
 
         var params = [String: Any]()
         var dialogParams = [String: Any]()
+        var xHeaders = [Any]()
         // Merge callInfo into dialogParams
         callInfo.encode().forEach { (key, value) in dialogParams[key] = value }
         // Merge callOptions into dialogParams
@@ -26,6 +28,15 @@ class AnswerMessage : Message {
 
         params["sessionId"] = sessionId
         params["sdp"] = sdp
+        if(!customHeaders.isEmpty){
+            customHeaders.keys.forEach { key in
+                var header = [String:String]()
+                header["name"] = key
+                header["value"] = customHeaders[key]
+                xHeaders.append(header)
+            }
+            dialogParams["custom_headers"] = xHeaders
+        }
         params["dialogParams"] = dialogParams
         super.init(params, method: .ANSWER)
     }

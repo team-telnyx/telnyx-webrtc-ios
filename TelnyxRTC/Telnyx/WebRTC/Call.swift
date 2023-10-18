@@ -101,6 +101,12 @@ public class Call {
     var remoteSdp: String?
     var callOptions: TxCallOptions?
 
+    /// Custum headers pased /from webrtc telnyx_rtc.INVITE Messages
+    public internal(set) var inviteCustomHeaders: [String:String]?
+    
+    /// Custum headers pased tfrom telnyx_rtc.ANSWER webrtcMessages
+    public internal(set) var answerCustomHeaders: [String:String]?
+    
     /// The Session ID of the current connection
     public internal(set) var sessionId: String?
     /// Telnyx call session ID.
@@ -183,9 +189,10 @@ public class Call {
     /**
         Creates an offer to start the calling process
      */
-    private func invite(callerName: String, callerNumber: String, destinationNumber: String, clientState: String? = nil) {
+    private func invite(callerName: String, callerNumber: String, destinationNumber: String, clientState: String? = nil,
+                        customHeaders:[String:String] = [:]) {
         self.direction = .OUTBOUND
-        
+        self.inviteCustomHeaders = customHeaders
         self.callInfo?.callerName = callerName
         self.callInfo?.callerNumber = callerNumber
         self.callOptions = TxCallOptions(destinationNumber: destinationNumber,
@@ -213,14 +220,14 @@ public class Call {
         It sets the incoming sdp as the remoteDecription.
         sdp: Is the remote SDP to configure in the current RTCPeerConnection
      */
-    private func answered(sdp: String) {
+    private func answered(sdp: String,custumHeaders:[String:String] = [:]) {
         let remoteDescription = RTCSessionDescription(type: .answer, sdp: sdp)
         self.peer?.connection?.setRemoteDescription(remoteDescription, completionHandler: { (error) in
             if let error = error  {
                 Logger.log.e(message: "Call:: Error setting remote description: \(error)")
                 return
             }
-            
+            self.answerCustomHeaders = custumHeaders
             self.updateCallState(callState: .ACTIVE)
             Logger.log.e(message: "Call:: connected")
         })
@@ -275,12 +282,13 @@ extension Call {
     internal func newCall(callerName: String,
                  callerNumber: String,
                  destinationNumber: String,
-                 clientState: String? = nil) {
+                          clientState: String? = nil,
+                          customHeaders:[String:String] = [:]) {
         if (destinationNumber.isEmpty) {
             Logger.log.e(message: "Call:: Please enter a destination number.")
             return
         }
-        invite(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState)
+        invite(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState,customHeaders: customHeaders)
     }
 
     /// Hangup or reject an incoming call.
@@ -298,13 +306,17 @@ extension Call {
     /// Starts the process to answer the incoming call.
     /// ### Example:
     ///     call.answer()
-    public func answer() {
+    ///  - Parameters:
+    ///         - customHeaders: (optional) Custom Headers to be passed over webRTC Messages, should be in the
+    ///     format `X-key:Value` `X` is required for headers to be passed.
+    public func answer(customHeaders:[String:String] = [:]) {
         self.stopRingtone()
         self.stopRingbackTone()
         //TODO: Create an error if there's no remote SDP
         guard let remoteSdp = self.remoteSdp else {
             return
         }
+        self.answerCustomHeaders = customHeaders
         self.peer = Peer(iceServers: self.iceServers)
         self.peer?.delegate = self
         self.incomingOffer(sdp: remoteSdp)
@@ -449,7 +461,8 @@ extension Call : PeerDelegate {
             let inviteMessage = InviteMessage(sessionId: sessionId,
                                               sdp: sdp.sdp,
                                               callInfo: callInfo,
-                                              callOptions: callOptions)
+                                              callOptions: callOptions,
+                                              customHeaders: self.inviteCustomHeaders ?? [:])
             
             let message = inviteMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
@@ -457,7 +470,9 @@ extension Call : PeerDelegate {
             Logger.log.s(message: "Call:: Send invite >> \(message)")
         } else {
             //Build the telnyx_rtc.answer message and send it
-            let answerMessage = AnswerMessage(sessionId: sessionId, sdp: sdp.sdp, callInfo: callInfo, callOptions: callOptions)
+            let answerMessage = AnswerMessage(sessionId: sessionId, sdp: sdp.sdp, callInfo: callInfo, callOptions: callOptions,
+                                              customHeaders: self.answerCustomHeaders ?? [:]
+            )
             let message = answerMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
             self.updateCallState(callState: .ACTIVE)
@@ -509,8 +524,14 @@ extension Call {
                 } else {
                     Logger.log.w(message: "Call:: .ANSWER missing SDP")
                 }
+                var customHeaders = [String:String]()
+                if let xHeaders = params["custom_headers"] as? [[String:String]] {
+                    for header in xHeaders {
+                        customHeaders[header["name"] ?? ""] =  header["value"]
+                    }
+                }
                 //retrieve the remote SDP from the ANSWER verto message and set it to the current RTCPconnection
-                self.answered(sdp: self.remoteSdp ?? "")
+                self.answered(sdp: self.remoteSdp ?? "",custumHeaders: customHeaders)
             }
             //TODO: handle error when there's no sdp
             break;
