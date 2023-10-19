@@ -160,6 +160,20 @@ public class TxClient {
             RTCAudioSession.sharedInstance().isAudioEnabled = newValue
         }
     }
+    
+    let currentRoute = AVAudioSession.sharedInstance().currentRoute
+    
+    func isSppeakerEnabled() -> Bool {
+        for output in currentRoute.outputs {
+            switch output.portType {
+            case AVAudioSession.Port.builtInSpeaker:
+                return true
+            default:
+                break
+            }
+        }
+        return false
+    }
 
     /// Client must be registered in order to receive or place calls.
     public var isRegistered: Bool {
@@ -665,7 +679,7 @@ extension TxClient : SocketDelegate {
                let callUUIDString = params["callID"] as? String,
                let callUUID = UUID(uuidString: callUUIDString),
                let call = calls[callUUID] {
-                call.handleVertoMessage(message: vertoMessage)
+                call.handleVertoMessage(message: vertoMessage,dataMessage: message,txClient: self)
             }
             
 
@@ -713,12 +727,17 @@ extension TxClient : SocketDelegate {
                         }
                         
                         var customHeaders = [String:String]()
-                        if let xHeaders = params["custom_headers"] as? [[String:String]] {
-                            for header in xHeaders {
-                                customHeaders[header["name"] ?? ""] =  header["value"]
+                        if params["dialogParams"] is [String:Any] {
+                            do {
+                                let dataDecoded = try JSONDecoder().decode(Data.self, from: message.data(using: .utf8)!)
+                                dataDecoded.params.dialogParams.custom_headers.forEach { xHeader in
+                                    customHeaders[xHeader.name] = xHeader.value
+                                }
+                                print("Data Decode : \(dataDecoded)")
+                            } catch {
+                                print("decoding error: \(error)")
                             }
                         }
-                        
                         self.createIncomingCall(callerName: callerName,
                                                 callerNumber: callerNumber,
                                                 callId: uuid,

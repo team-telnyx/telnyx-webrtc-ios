@@ -487,14 +487,13 @@ extension Call : PeerDelegate {
  */
 extension Call {
 
-    internal func handleVertoMessage(message: Message) {
+    internal func handleVertoMessage(message: Message,dataMessage: String,txClient:TxClient) {
 
         switch message.method {
         case .BYE:
             //Close call
             self.endCall()
             break
-
         case .MEDIA:
             self.stopRingtone()
             self.stopRingbackTone()
@@ -525,9 +524,15 @@ extension Call {
                     Logger.log.w(message: "Call:: .ANSWER missing SDP")
                 }
                 var customHeaders = [String:String]()
-                if let xHeaders = params["custom_headers"] as? [[String:String]] {
-                    for header in xHeaders {
-                        customHeaders[header["name"] ?? ""] =  header["value"]
+                if params["dialogParams"] is [String:Any] {
+                    do {
+                        let dataDecoded = try JSONDecoder().decode(Data.self, from: dataMessage.data(using: .utf8)!)
+                        dataDecoded.params.dialogParams.custom_headers.forEach { xHeader in
+                            customHeaders[xHeader.name] = xHeader.value
+                        }
+                        print("Data Decode : \(dataDecoded)")
+                    } catch {
+                        print("decoding error: \(error)")
                     }
                 }
                 //retrieve the remote SDP from the ANSWER verto message and set it to the current RTCPconnection
@@ -559,6 +564,9 @@ extension Call {
         default:
             Logger.log.w(message: "TxClient:: SocketDelegate Default method")
             break
+        }
+        if(txClient.isSppeakerEnabled()){
+            txClient.setSpeaker()
         }
     }
 }

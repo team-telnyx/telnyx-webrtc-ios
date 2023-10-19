@@ -137,7 +137,7 @@ extension AppDelegate : CXProviderDelegate {
             self.callKitUUID = nil
         }
     }
-    // MARK: - CXProviderDelegate -
+    // MARK: - CXProviderDelegate - 
     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
         print("AppDelegate:: START call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
         self.callKitUUID = action.callUUID
@@ -156,7 +156,7 @@ extension AppDelegate : CXProviderDelegate {
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         print("AppDelegate:: ANSWER call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
 
-        self.telnyxClient?.answerFromCallkit(answerAction: action)
+        self.telnyxClient?.answerFromCallkit(answerAction: action,customHeaders:  ["X-test-answer":"ios-test"])
     }
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {

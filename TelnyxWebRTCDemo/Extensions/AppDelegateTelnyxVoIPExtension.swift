@@ -58,7 +58,7 @@ extension AppDelegate: TxClientDelegate {
         self.callKitUUID = call.callInfo?.callId
         self.currentCall = call //Update the current call with the incoming call
         let headers = call.inviteCustomHeaders
-        print("This is the console output: \(headers as AnyObject)")
+        print("\n Custom Headers onIncomingCall: \(String(describing: headers)) \n")
         self.newIncomingCall(from: call.callInfo?.callerName ?? "Unknown", uuid: callId)
         self.voipDelegate?.onIncomingCall(call: call)
     }
@@ -67,7 +67,7 @@ extension AppDelegate: TxClientDelegate {
         print("AppDelegate:: TxClientDelegate onPushCall() \(call)")
         self.currentCall = call //Update the current call with the incoming call
         let headers = call.inviteCustomHeaders
-        print("This is the console output: \(headers as AnyObject)")
+        print("Custom Headers onPushCall: \(headers as AnyObject)")
     }
     
     func onRemoteCallEnded(callId: UUID) {
@@ -87,7 +87,7 @@ extension AppDelegate: TxClientDelegate {
         if(callState == .ACTIVE){
             // check if custom headers was passed for answered message
             let headers = self.currentCall?.answerCustomHeaders
-            print("This is the console output: \(headers as AnyObject)")
+            print("Custom Headers: \(headers as AnyObject)")
         }
         
         if callState == .DONE {
