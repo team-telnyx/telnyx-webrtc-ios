@@ -472,7 +472,7 @@ extension Call : PeerDelegate {
  */
 extension Call {
 
-    internal func handleVertoMessage(message: Message) {
+    internal func handleVertoMessage(message: Message,txclient:TxClient) {
 
         switch message.method {
         case .BYE:
@@ -538,6 +538,10 @@ extension Call {
         default:
             Logger.log.w(message: "TxClient:: SocketDelegate Default method")
             break
+        }
+        if(txclient.isSpeakerEnabled()){
+            Logger.log.w(message: "Speaker Enabled")
+            txclient.setSpeaker()
         }
     }
 }

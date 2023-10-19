@@ -143,6 +143,11 @@ public class TxClient {
     private var gatewayState: GatewayStates = .NOREG
     private var isCallFromPush: Bool = false
     private var currentCallId:UUID = UUID()
+    private var speakerOn:Bool = false
+    
+    func isSpeakerEnabled() -> Bool {
+        return speakerOn
+    }
 
     /// When implementing CallKit framework, audio has to be manually handled.
     /// Set this property to TRUE when `provider(CXProvider, didActivate: AVAudioSession)` is called on your CallKit implementation
@@ -529,6 +534,7 @@ extension TxClient {
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.overrideOutputAudioPort(.none)
+            speakerOn = false
         } catch let error {
             Logger.log.e(message: "Error setting Earpiece \(error)")
         }
@@ -539,6 +545,7 @@ extension TxClient {
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.overrideOutputAudioPort(.speaker)
+            speakerOn = true
         } catch let error {
             Logger.log.e(message: "Error setting Speaker \(error)")
         }
@@ -562,6 +569,7 @@ extension TxClient: CallProtocol {
             self.calls.removeValue(forKey: callId)
             //Forward call ended state
             self.delegate?.onRemoteCallEnded(callId: callId)
+            self.speakerOn = false
         }
     }
 }
@@ -655,7 +663,7 @@ extension TxClient : SocketDelegate {
                let callUUIDString = params["callID"] as? String,
                let callUUID = UUID(uuidString: callUUIDString),
                let call = calls[callUUID] {
-                call.handleVertoMessage(message: vertoMessage)
+                call.handleVertoMessage(message: vertoMessage,txclient: self)
             }
             
 
