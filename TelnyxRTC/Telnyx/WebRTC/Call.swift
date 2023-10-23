@@ -526,7 +526,8 @@ extension Call {
                 var customHeaders = [String:String]()
                 if params["dialogParams"] is [String:Any] {
                     do {
-                        let dataDecoded = try JSONDecoder().decode(Data.self, from: dataMessage.data(using: .utf8)!)
+                        
+                        let dataDecoded = try JSONDecoder().decode(CustomHeaderData.self, from: dataMessage.data(using: .utf8)!)
                         dataDecoded.params.dialogParams.custom_headers.forEach { xHeader in
                             customHeaders[xHeader.name] = xHeader.value
                         }

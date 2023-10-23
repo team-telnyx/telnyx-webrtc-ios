@@ -8,7 +8,7 @@
 import Foundation
 
 
-struct Data:Codable{
+struct CustomHeaderData:Codable{
     let jsonrpc:String
     let method:String
     let params:Params

@@ -248,6 +248,7 @@ public class TxClient {
             self.calls[currentCallId]?.answer(customHeaders: customHeaders)
             answerCallAction?.fulfill()
             resetPushVariables()
+            Logger.log.i(message: "answered from callkit")
         }else{
             /// Let's Keep track od the `customHeaders` passed
             pendingAnswerHeaders = customHeaders
@@ -729,7 +730,7 @@ extension TxClient : SocketDelegate {
                         var customHeaders = [String:String]()
                         if params["dialogParams"] is [String:Any] {
                             do {
-                                let dataDecoded = try JSONDecoder().decode(Data.self, from: message.data(using: .utf8)!)
+                                let dataDecoded = try JSONDecoder().decode(CustomHeaderData.self, from: message.data(using: .utf8)!)
                                 dataDecoded.params.dialogParams.custom_headers.forEach { xHeader in
                                     customHeaders[xHeader.name] = xHeader.value
                                 }

@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		05BF9C7E0361B5265A3F7852 /* Pods_TelnyxRTC_TelnyxRTCTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF2434716C071C1CBFDE3226 /* Pods_TelnyxRTC_TelnyxRTCTests.framework */; };
+		1492FBAC15B3DFD375E37298 /* Pods_TelnyxRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DAC558925E689D2345AE369 /* Pods_TelnyxRTC.framework */; };
+		2DD6DA852178F61D130266D5 /* Pods_TelnyxRTC_TelnyxRTCTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 050929B409DAD9420C908EBB /* Pods_TelnyxRTC_TelnyxRTCTests.framework */; };
 		3B1BE6F72AA9A467000B7962 /* TxPushIPConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */; };
 		3B1F43EF2AE0B01E00A610BA /* Params.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1F43EE2AE0B01E00A610BA /* Params.swift */; };
 		3B49B7152AA9B0A20026D36D /* AttachCallMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B49B7142AA9B0A20026D36D /* AttachCallMessage.swift */; };
 		3B72695D2A9396BF00D2A602 /* DisablePushMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B72695C2A9396BF00D2A602 /* DisablePushMessage.swift */; };
-		63B63132CE61DD14C947E22E /* Pods_TelnyxWebRTCDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 44C9D4850145EB3D49145676 /* Pods_TelnyxWebRTCDemo.framework */; };
-		9DA8791D0D3A1A6D6BC48340 /* Pods_TelnyxRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE3FF918C37D358BE5C53C1 /* Pods_TelnyxRTC.framework */; };
+		6B81B30A3C100BB93A9611F1 /* Pods_TelnyxWebRTCDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E797A97A9C155FF759A9F565 /* Pods_TelnyxWebRTCDemo.framework */; };
 		B309D13D25EF119E00A2AADF /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B309D11125EF107F00A2AADF /* Starscream.framework */; };
 		B309D1D625F020B300A2AADF /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D1D525F020B300A2AADF /* Message.swift */; };
 		B309D1DB25F020D400A2AADF /* Method.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D1DA25F020D400A2AADF /* Method.swift */; };
@@ -98,16 +98,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		050929B409DAD9420C908EBB /* Pods_TelnyxRTC_TelnyxRTCTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxRTC_TelnyxRTCTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		0DAC558925E689D2345AE369 /* Pods_TelnyxRTC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxRTC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxPushIPConfig.swift; sourceTree = "<group>"; };
 		3B1F43EE2AE0B01E00A610BA /* Params.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Params.swift; sourceTree = "<group>"; };
 		3B49B7142AA9B0A20026D36D /* AttachCallMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachCallMessage.swift; sourceTree = "<group>"; };
 		3B72695C2A9396BF00D2A602 /* DisablePushMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisablePushMessage.swift; sourceTree = "<group>"; };
-		44C9D4850145EB3D49145676 /* Pods_TelnyxWebRTCDemo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxWebRTCDemo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		816B17B8BE33E768E9928E79 /* Pods-TelnyxRTC.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC/Pods-TelnyxRTC.debug.xcconfig"; sourceTree = "<group>"; };
-		92A8079CD7AE43FF951A67A2 /* Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig"; sourceTree = "<group>"; };
-		9AE3FF918C37D358BE5C53C1 /* Pods_TelnyxRTC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxRTC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		A098E2C7EBD79F8C5767A654 /* Pods-TelnyxWebRTCDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxWebRTCDemo.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo.debug.xcconfig"; sourceTree = "<group>"; };
-		AF2434716C071C1CBFDE3226 /* Pods_TelnyxRTC_TelnyxRTCTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxRTC_TelnyxRTCTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		41306B6FC7D2F4CC151241CC /* Pods-TelnyxRTC.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC.release.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC/Pods-TelnyxRTC.release.xcconfig"; sourceTree = "<group>"; };
 		B309D11125EF107F00A2AADF /* Starscream.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Starscream.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B309D1D525F020B300A2AADF /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
 		B309D1DA25F020D400A2AADF /* Method.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Method.swift; sourceTree = "<group>"; };
@@ -169,9 +166,12 @@
 		B3E1029925F2C16500227DCE /* ModifyMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifyMessage.swift; sourceTree = "<group>"; };
 		B3E1033025F7F94900227DCE /* incoming_call.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = incoming_call.mp3; sourceTree = "<group>"; };
 		B3E1033125F7F94900227DCE /* ringback_tone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = ringback_tone.mp3; sourceTree = "<group>"; };
-		DB2BCBB0763E93D4CE83269F /* Pods-TelnyxWebRTCDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxWebRTCDemo.release.xcconfig"; path = "Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo.release.xcconfig"; sourceTree = "<group>"; };
-		EDC52C1DE7B5981EBBE8068E /* Pods-TelnyxRTC.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC.release.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC/Pods-TelnyxRTC.release.xcconfig"; sourceTree = "<group>"; };
-		F35BA19948B7F75EB6887C4A /* Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig"; sourceTree = "<group>"; };
+		B88DA6E7EF4AA520D7CF17A3 /* Pods-TelnyxRTC.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC/Pods-TelnyxRTC.debug.xcconfig"; sourceTree = "<group>"; };
+		B934923BDB0A26F9AD0AAF34 /* Pods-TelnyxWebRTCDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxWebRTCDemo.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo.debug.xcconfig"; sourceTree = "<group>"; };
+		C5A51DE65D4AE19C3CD73ACD /* Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig"; sourceTree = "<group>"; };
+		DF903193DB87FD422A697EA4 /* Pods-TelnyxWebRTCDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxWebRTCDemo.release.xcconfig"; path = "Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo.release.xcconfig"; sourceTree = "<group>"; };
+		E797A97A9C155FF759A9F565 /* Pods_TelnyxWebRTCDemo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxWebRTCDemo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		F4FA94EA8A151EB2C1A692CA /* Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -181,7 +181,7 @@
 			files = (
 				B309D13D25EF119E00A2AADF /* Starscream.framework in Frameworks */,
 				B309D26225F1574C00A2AADF /* BuildFile in Frameworks */,
-				9DA8791D0D3A1A6D6BC48340 /* Pods_TelnyxRTC.framework in Frameworks */,
+				1492FBAC15B3DFD375E37298 /* Pods_TelnyxRTC.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -190,7 +190,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B368BED625EDDBC90032AE52 /* TelnyxRTC.framework in Frameworks */,
-				05BF9C7E0361B5265A3F7852 /* Pods_TelnyxRTC_TelnyxRTCTests.framework in Frameworks */,
+				2DD6DA852178F61D130266D5 /* Pods_TelnyxRTC_TelnyxRTCTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -198,7 +198,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				63B63132CE61DD14C947E22E /* Pods_TelnyxWebRTCDemo.framework in Frameworks */,
+				6B81B30A3C100BB93A9611F1 /* Pods_TelnyxWebRTCDemo.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -208,12 +208,12 @@
 		8AB3A6A2ADA6A9FAC6C77491 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				816B17B8BE33E768E9928E79 /* Pods-TelnyxRTC.debug.xcconfig */,
-				EDC52C1DE7B5981EBBE8068E /* Pods-TelnyxRTC.release.xcconfig */,
-				92A8079CD7AE43FF951A67A2 /* Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig */,
-				F35BA19948B7F75EB6887C4A /* Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig */,
-				A098E2C7EBD79F8C5767A654 /* Pods-TelnyxWebRTCDemo.debug.xcconfig */,
-				DB2BCBB0763E93D4CE83269F /* Pods-TelnyxWebRTCDemo.release.xcconfig */,
+				B88DA6E7EF4AA520D7CF17A3 /* Pods-TelnyxRTC.debug.xcconfig */,
+				41306B6FC7D2F4CC151241CC /* Pods-TelnyxRTC.release.xcconfig */,
+				C5A51DE65D4AE19C3CD73ACD /* Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig */,
+				F4FA94EA8A151EB2C1A692CA /* Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig */,
+				B934923BDB0A26F9AD0AAF34 /* Pods-TelnyxWebRTCDemo.debug.xcconfig */,
+				DF903193DB87FD422A697EA4 /* Pods-TelnyxWebRTCDemo.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -430,9 +430,9 @@
 			isa = PBXGroup;
 			children = (
 				B309D11125EF107F00A2AADF /* Starscream.framework */,
-				9AE3FF918C37D358BE5C53C1 /* Pods_TelnyxRTC.framework */,
-				AF2434716C071C1CBFDE3226 /* Pods_TelnyxRTC_TelnyxRTCTests.framework */,
-				44C9D4850145EB3D49145676 /* Pods_TelnyxWebRTCDemo.framework */,
+				0DAC558925E689D2345AE369 /* Pods_TelnyxRTC.framework */,
+				050929B409DAD9420C908EBB /* Pods_TelnyxRTC_TelnyxRTCTests.framework */,
+				E797A97A9C155FF759A9F565 /* Pods_TelnyxWebRTCDemo.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -455,7 +455,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = B368BEC825EDDB610032AE52 /* Build configuration list for PBXNativeTarget "TelnyxRTC" */;
 			buildPhases = (
-				62F3745FB032CF2A7925FBDA /* [CP] Check Pods Manifest.lock */,
+				5B84AB37FB6CB9D8420292A2 /* [CP] Check Pods Manifest.lock */,
 				B368BEBB25EDDB610032AE52 /* Headers */,
 				B368BEBC25EDDB610032AE52 /* Sources */,
 				B368BEBD25EDDB610032AE52 /* Frameworks */,
@@ -475,11 +475,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = B368BEDB25EDDBC90032AE52 /* Build configuration list for PBXNativeTarget "TelnyxRTCTests" */;
 			buildPhases = (
-				F2BDC42E8547FD50A31C95E3 /* [CP] Check Pods Manifest.lock */,
+				EB124116DA978AB69E8AF011 /* [CP] Check Pods Manifest.lock */,
 				B368BECD25EDDBC90032AE52 /* Sources */,
 				B368BECE25EDDBC90032AE52 /* Frameworks */,
 				B368BECF25EDDBC90032AE52 /* Resources */,
-				4CB10B820CE88E4BEF528C7C /* [CP] Embed Pods Frameworks */,
+				B250CCD8C61EEF5EEAB08F34 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -495,11 +495,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = B368BEF925EDDD070032AE52 /* Build configuration list for PBXNativeTarget "TelnyxWebRTCDemo" */;
 			buildPhases = (
-				37B2A4EC9397804179C112F9 /* [CP] Check Pods Manifest.lock */,
+				51A040AFDB85064D0DF17832 /* [CP] Check Pods Manifest.lock */,
 				B368BEE425EDDD060032AE52 /* Sources */,
 				B368BEE525EDDD060032AE52 /* Frameworks */,
 				B368BEE625EDDD060032AE52 /* Resources */,
-				55947324842A2B02C51B24EF /* [CP] Embed Pods Frameworks */,
+				D5D369CAFA64DB240D6DC713 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -585,7 +585,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		37B2A4EC9397804179C112F9 /* [CP] Check Pods Manifest.lock */ = {
+		51A040AFDB85064D0DF17832 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -607,41 +607,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		4CB10B820CE88E4BEF528C7C /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		55947324842A2B02C51B24EF /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		62F3745FB032CF2A7925FBDA /* [CP] Check Pods Manifest.lock */ = {
+		5B84AB37FB6CB9D8420292A2 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -663,7 +629,41 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		F2BDC42E8547FD50A31C95E3 /* [CP] Check Pods Manifest.lock */ = {
+		B250CCD8C61EEF5EEAB08F34 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		D5D369CAFA64DB240D6DC713 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		EB124116DA978AB69E8AF011 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -910,7 +910,7 @@
 		};
 		B368BEC925EDDB610032AE52 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 816B17B8BE33E768E9928E79 /* Pods-TelnyxRTC.debug.xcconfig */;
+			baseConfigurationReference = B88DA6E7EF4AA520D7CF17A3 /* Pods-TelnyxRTC.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -946,7 +946,7 @@
 		};
 		B368BECA25EDDB610032AE52 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = EDC52C1DE7B5981EBBE8068E /* Pods-TelnyxRTC.release.xcconfig */;
+			baseConfigurationReference = 41306B6FC7D2F4CC151241CC /* Pods-TelnyxRTC.release.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -978,7 +978,7 @@
 		};
 		B368BED925EDDBC90032AE52 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 92A8079CD7AE43FF951A67A2 /* Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig */;
+			baseConfigurationReference = C5A51DE65D4AE19C3CD73ACD /* Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				CODE_SIGN_STYLE = Automatic;
@@ -997,7 +997,7 @@
 		};
 		B368BEDA25EDDBC90032AE52 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F35BA19948B7F75EB6887C4A /* Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig */;
+			baseConfigurationReference = F4FA94EA8A151EB2C1A692CA /* Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				CODE_SIGN_STYLE = Automatic;
@@ -1016,7 +1016,7 @@
 		};
 		B368BEFA25EDDD070032AE52 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A098E2C7EBD79F8C5767A654 /* Pods-TelnyxWebRTCDemo.debug.xcconfig */;
+			baseConfigurationReference = B934923BDB0A26F9AD0AAF34 /* Pods-TelnyxWebRTCDemo.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -1040,7 +1040,7 @@
 		};
 		B368BEFB25EDDD070032AE52 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = DB2BCBB0763E93D4CE83269F /* Pods-TelnyxWebRTCDemo.release.xcconfig */;
+			baseConfigurationReference = DF903193DB87FD422A697EA4 /* Pods-TelnyxWebRTCDemo.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
