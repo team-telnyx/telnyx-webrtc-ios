@@ -10,7 +10,7 @@
 		</data>
 		<key>Assets.car</key>
 		<data>
-		pbcZFyyDu92gqliSGqRJsBeZ9RQ=
+		GXrO1kviiYuFc9hzHcrgDAwm5/o=
 		</data>
 		<key>Base.lproj/LaunchScreen.storyboardc/01J-lp-oVM-view-Ze5-6b-2t3.nib</key>
 		<data>
@@ -38,7 +38,7 @@
 		</data>
 		<key>Frameworks/Bugsnag.framework/Bugsnag</key>
 		<data>
-		d5xIhsjsqLjKLlGZ37X3yn7bzZw=
+		FAgToPlAlQgfVzVdc+skhwlEh2s=
 		</data>
 		<key>Frameworks/Bugsnag.framework/Info.plist</key>
 		<data>
@@ -54,7 +54,7 @@
 		</data>
 		<key>Frameworks/Starscream.framework/Starscream</key>
 		<data>
-		UNkDg/oghnqQQOGa66FXtb4V9Ro=
+		F7UfK/nhAJwfGs9VWInilQSUgqY=
 		</data>
 		<key>Frameworks/Starscream.framework/_CodeSignature/CodeResources</key>
 		<data>
@@ -66,15 +66,15 @@
 		</data>
 		<key>Frameworks/TelnyxRTC.framework/README.md</key>
 		<data>
-		w9gJtWqQMbb0vxDba+pJe7de/OU=
+		H657axeRIBFfrnXxMh+6oVTROQc=
 		</data>
 		<key>Frameworks/TelnyxRTC.framework/TelnyxRTC</key>
 		<data>
-		nUuhHZ0aYfV319T6l/me7xKq/Yo=
+		lf5x22bMXaEqmu+jVfC/0yb5Dvs=
 		</data>
 		<key>Frameworks/TelnyxRTC.framework/_CodeSignature/CodeResources</key>
 		<data>
-		DrYkz+ao9TfIoPT4dix2NNAUf2U=
+		qyXyJDxSQSDB/MVzzHfHlLrsN20=
 		</data>
 		<key>Frameworks/WebRTC.framework/Info.plist</key>
 		<data>
@@ -82,7 +82,7 @@
 		</data>
 		<key>Frameworks/WebRTC.framework/WebRTC</key>
 		<data>
-		NXPla/h3uU2yYrzRzNiwehKkFMM=
+		7wDKLWLRjFP4WlBx6oHHtEggF8U=
 		</data>
 		<key>Frameworks/WebRTC.framework/_CodeSignature/CodeResources</key>
 		<data>
@@ -134,7 +134,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			dgB4aCnghM1DWRKxeR4GTCMrjDhqOAifftCfvuavZD8=
+			jXVXzaJLav4MDO/ShpXX1Ur36nsgxe4Sct2rDHwOhYc=
 			</data>
 		</dict>
 		<key>Base.lproj/LaunchScreen.storyboardc/01J-lp-oVM-view-Ze5-6b-2t3.nib</key>
@@ -183,7 +183,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			eop/R3bZBVqTMxJ5zH5sQvukf4Muh516IdqA/Uyp7fQ=
+			38y1WHTeTqUI8q+NgmSXlDp3ZfGPwqnZMIpGwFoRk4E=
 			</data>
 		</dict>
 		<key>Frameworks/Bugsnag.framework/Info.plist</key>
@@ -211,7 +211,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			lmdMDIrko3hnLYptQrdXjDRZxP5YiAyeqWWH1zaKlA0=
+			bdZPr64j7GrEq8Ek/SCdAwRW5nZBaq4NiRm1s8tSpmY=
 			</data>
 		</dict>
 		<key>Frameworks/Starscream.framework/_CodeSignature/CodeResources</key>
@@ -232,21 +232,21 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			nTxTA6hAMgPHQcHFrYOa547log0Dp65iQ+5oRV2QLR8=
+			PCyYjHGXUXECvNnvAWe7HuJpRmrLG0FOnY0DThOQARY=
 			</data>
 		</dict>
 		<key>Frameworks/TelnyxRTC.framework/TelnyxRTC</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			PpRSNY2fenYneouBTBdg3PQXIk1wqChsZqXSvIRdZTA=
+			OrdBvz50MP92aRobfE0VspE80k6700luXRp4xWU0b2w=
 			</data>
 		</dict>
 		<key>Frameworks/TelnyxRTC.framework/_CodeSignature/CodeResources</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			HAW9XPY5eYmdXCJ/Gy/D/ghb0FpbA+q+aTVx/ALrahk=
+			NgOEDbC9rwmmVOqiP7v8FUZJk0fy0Bd1gmYJgAH3iaA=
 			</data>
 		</dict>
 		<key>Frameworks/WebRTC.framework/Info.plist</key>
@@ -260,7 +260,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			0HjaPQss3st774r/TbGkyxVzqcSj1x0iZZ2a60JHFHI=
+			ry3V2TOCPDpDrCotUz7eG3bakdNCB/F88+Xv2O4oyDE=
 			</data>
 		</dict>
 		<key>Frameworks/WebRTC.framework/_CodeSignature/CodeResources</key>

@@ -1,7 +1,7 @@
 version: "Apple Swift version 5.8.1 (swiftlang-5.8.0.124.5 clang-1403.0.22.11.100)"
 options: "80019488e45787ebe9eb20408bcc642e31683defbcd0b58f21e43c2a9c36c49e"
-build_start_time: [1698181745, 505241000]
-build_end_time: [1698181745, 878105000]
+build_start_time: [1698184162, 615612000]
+build_end_time: [1698184162, 866510000]
 inputs:
   "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/InternalConfig.swift": [1698102054, 850872719]
   "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/Params.swift": [1698102054, 851340973]
@@ -29,5 +29,5 @@ inputs:
   "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/Message.swift": [1697671184, 707680328]
   "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/Method.swift": [1698102054, 857019227]
   "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/ModifyMessage.swift": [1694067103, 911999918]
-  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Call.swift": [1698181536, 228636000]
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Call.swift": [1698184149, 152125929]
   "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Peer.swift": [1698102054, 858150444]

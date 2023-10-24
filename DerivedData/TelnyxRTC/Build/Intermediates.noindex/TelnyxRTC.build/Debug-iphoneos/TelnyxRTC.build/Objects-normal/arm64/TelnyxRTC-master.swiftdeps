@@ -1,7 +1,7 @@
 version: "Apple Swift version 5.8.1 (swiftlang-5.8.0.124.5 clang-1403.0.22.11.100)"
 options: "c44b879fd73e433148ace3e5941777de558ec0d933ac366f259989f4615670ff"
-build_start_time: [1698102974, 667526000]
-build_end_time: [1698102976, 262221000]
+build_start_time: [1698184152, 560152000]
+build_end_time: [1698184154, 21544000]
 inputs:
   "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/InternalConfig.swift": [1698102054, 850872719]
   "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/Params.swift": [1698102054, 851340973]
@@ -14,7 +14,7 @@ inputs:
   "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxServerConfiguration.swift": [1698102054, 852743776]
   "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/Socket.swift": [1698102054, 853195946]
   "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/SocketDelegate.swift": [1694067103, 910429603]
-  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/TxClient.swift": [1698102054, 853853118]
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/TxClient.swift": [1698152619, 940295000]
   "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/TxClientDelegate.swift": [1698102054, 854134120]
   "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Utils/Logger.swift": [1698102054, 854766042]
   "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/AnswerMessage.swift": [1698102054, 855318672]
@@ -28,5 +28,5 @@ inputs:
   "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/Message.swift": [1697671184, 707680328]
   "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/Method.swift": [1698102054, 857019227]
   "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/ModifyMessage.swift": [1694067103, 911999918]
-  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Call.swift": [1698102054, 857528647]
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Call.swift": [1698184149, 152125929]
   "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Peer.swift": [1698102054, 858150444]

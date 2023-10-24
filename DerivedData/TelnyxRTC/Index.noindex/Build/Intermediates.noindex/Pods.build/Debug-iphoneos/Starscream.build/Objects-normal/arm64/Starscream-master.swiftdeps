@@ -1,7 +1,7 @@
 version: "Apple Swift version 5.8.1 (swiftlang-5.8.0.124.5 clang-1403.0.22.11.100)"
 options: "f5222049517c85af8e2bbd985cacf4012ba70677442c90c620f46080d45d763b"
-build_start_time: [1698102968, 661245000]
-build_end_time: [1698102970, 811255000]
+build_start_time: [1698184072, 195352000]
+build_end_time: [1698184072, 707215000]
 inputs:
   "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/Pods/Starscream/Sources/Compression/Compression.swift": [1698102081, 511557885]
   "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/Pods/Starscream/Sources/Compression/WSCompression.swift": [1698102081, 511692303]

@@ -512,9 +512,23 @@ extension AppDelegate : CXProviderDelegate {
 
 __*Reporting calls with CallKit*__
 
-To properly report calls to callKit with right statuses, you need to invoke the following callKit methods at the right instances : 
+To properly report calls to callKit with right statuses, you need to invoke the following callKit methods at the right instances: 
 
-Use `provider.reportNewIncomingCall(with: uuid, update: callUpdate)` to report an incoming call.
+1. Starting A New Call : When ever you start a call, report to callkit using the `provider.reportCall()` method.
+
+```Swift
+        let callUpdate = CXCallUpdate()
+
+        callUpdate.remoteHandle = callHandle
+        callUpdate.supportsDTMF = true
+        callUpdate.supportsHolding = true
+        callUpdate.supportsGrouping = false
+        callUpdate.supportsUngrouping = false
+        callUpdate.hasVideo = false
+        provider.reportCall(with: uuid, updated: callUpdate)
+```
+
+2. When user receives a Call : Use `provider.reportNewIncomingCall(with: uuid, update: callUpdate)` to report an incoming call. This sends a request to callKit the to provide the native call interface to the user.
 
 ```Swift
         guard let provider = callKitProvider else {
@@ -531,7 +545,7 @@ Use `provider.reportNewIncomingCall(with: uuid, update: callUpdate)` to report a
         }
 ```
 
-Use `provider.reportOutgoingCall(with: callKitUUID, connectedAt:nil)` to report a connected outgoing call.
+3. When callee answers an outgoing call : Use `provider.reportOutgoingCall(with: callKitUUID, connectedAt:nil)` to report a connected outgoing call. This provides the time when the outgoing call goes to active to callKit.
 ```Swift
         if let provider = self.callKitProvider,
             let callKitUUID = self.callKitUUID {
@@ -539,6 +553,7 @@ Use `provider.reportOutgoingCall(with: callKitUUID, connectedAt:nil)` to report 
             provider.reportOutgoingCall(with: callKitUUID, connectedAt:date)
         }
 ```
+NB : This should be used only when the call is outgoing.
 
 
 ### Best Practices when Using PushNotifications with Callkit.
@@ -608,9 +623,7 @@ func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
    ended on the callee side once a connection is established.
    
    
-2. Logs on the receiver's end are necessary to thoroughly debug issues related to push notifications. However, the debugger is not attached when the app is completely killed. To address this, the app can simply be       placed in the background. VOIP push notifications should then come through, and the debugger should record all logs. You can filter logs using the keyword 'TxClient' to isolate all SDK-related messages
-   
-   ![image](https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/e04b9ade-9390-452c-a078-3386ace8d0c2)
+2. Logs on the receiver's end are essential for thorough debugging of issues related to push notifications. However, the debugger is not attached when the app is completely killed. To address this, you can simply put the app in the background. VOIP push notifications should then come through, and the debugger should capture all logs.
 
    
 
