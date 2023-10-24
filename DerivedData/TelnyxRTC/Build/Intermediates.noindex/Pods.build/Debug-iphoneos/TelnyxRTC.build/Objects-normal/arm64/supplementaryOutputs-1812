@@ -1,0 +1,15 @@
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxError.swift":
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/TxError.o"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/TxError.dia"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/TxError.d"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/TxError.swiftdeps"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/TxClientSocketDelegate.swift":
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/TxClientSocketDelegate.swiftdeps"
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/TxClientSocketDelegate.o"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/TxClientSocketDelegate.d"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/TxClientSocketDelegate.dia"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxConfig.swift":
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/TxConfig.o"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/TxConfig.d"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/TxConfig.swiftdeps"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/TxConfig.dia"

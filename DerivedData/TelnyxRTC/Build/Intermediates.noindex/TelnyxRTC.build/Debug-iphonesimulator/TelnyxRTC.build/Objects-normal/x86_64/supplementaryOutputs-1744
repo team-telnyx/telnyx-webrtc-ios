@@ -1,0 +1,15 @@
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/Socket.swift":
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/Socket.d"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/Socket.swiftdeps"
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/Socket.o"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/Socket.dia"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/GatewayMessage.swift":
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/GatewayMessage.o"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/GatewayMessage.swiftdeps"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/GatewayMessage.d"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/GatewayMessage.dia"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Utils/Logger.swift":
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/Logger.d"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/Logger.swiftdeps"
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/Logger.o"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/Logger.dia"

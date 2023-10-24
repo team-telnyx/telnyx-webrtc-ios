@@ -1,0 +1,58 @@
+{
+  "buildCommand" : {
+    "command" : "prepareForIndexing",
+    "enableIndexBuildArena" : true,
+    "targets" : null
+  },
+  "configuredTargets" : [
+    {
+      "guid" : "8699adb1dd336b26511df848a716bd42173e892826b306c1e83c89608dc97fc6"
+    }
+  ],
+  "containerPath" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC.xcworkspace",
+  "continueBuildingAfterErrors" : true,
+  "enableIndexBuildArena" : false,
+  "hideShellScriptEnvironment" : false,
+  "parameters" : {
+    "action" : "indexbuild",
+    "activeArchitecture" : "x86_64",
+    "activeRunDestination" : {
+      "disableOnlyActiveArch" : false,
+      "platform" : "iphonesimulator",
+      "sdk" : "iphonesimulator16.4",
+      "sdkVariant" : "iphonesimulator",
+      "supportedArchitectures" : [
+        "arm64",
+        "x86_64"
+      ],
+      "targetArchitecture" : "x86_64"
+    },
+    "arenaInfo" : {
+      "buildIntermediatesPath" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Index.noindex/Build/Intermediates.noindex",
+      "buildProductsPath" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Index.noindex/Build/Products",
+      "derivedDataPath" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData",
+      "indexDataStoreFolderPath" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Index.noindex/DataStore",
+      "indexEnableDataStore" : true,
+      "indexPCHPath" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Index.noindex/PrecompiledHeaders",
+      "indexRegularBuildIntermediatesPath" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex",
+      "indexRegularBuildProductsPath" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Products",
+      "pchPath" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Index.noindex/Build/Intermediates.noindex/PrecompiledHeaders"
+    },
+    "configurationName" : "Debug",
+    "overrides" : {
+      "synthesized" : {
+        "table" : {
+          "ENABLE_PREVIEWS" : "NO",
+          "ONLY_ACTIVE_ARCH" : "YES"
+        }
+      }
+    }
+  },
+  "qos" : "default",
+  "schemeCommand" : "launch",
+  "showNonLoggedProgress" : true,
+  "useDryRun" : false,
+  "useImplicitDependencies" : true,
+  "useLegacyBuildLocations" : false,
+  "useParallelTargets" : true
+}

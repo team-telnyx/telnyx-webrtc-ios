@@ -1,0 +1,23 @@
+{
+  'version': 0,
+  'use-external-names': 'false',
+  'case-sensitive': 'false',
+  'roots': [{
+    'type': 'directory',
+    'name': "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Index.noindex/Build/Products/Debug-iphoneos/Starscream/Starscream.framework/Modules"
+    'contents': [{
+      'type': 'file',
+      'name': "module.modulemap",
+      'external-contents': "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Index.noindex/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/Starscream.build/unextended-module.modulemap",
+    }]
+    },
+    {
+    'type': 'directory',
+    'name': "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Index.noindex/Build/Products/Debug-iphoneos/Starscream/Starscream.framework/Headers"
+    'contents': [{
+      'type': 'file',
+      'name': "Starscream-Swift.h",
+      'external-contents': "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Index.noindex/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/Starscream.build/unextended-interface-header.h",
+    }]
+    }]
+}

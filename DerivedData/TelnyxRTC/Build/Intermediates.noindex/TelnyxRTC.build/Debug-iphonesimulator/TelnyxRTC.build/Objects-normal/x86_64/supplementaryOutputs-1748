@@ -1,0 +1,15 @@
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/Message.swift":
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/Message.swiftdeps"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/Message.d"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/Message.dia"
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/Message.o"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxPushConfig.swift":
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/TxPushConfig.swiftdeps"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/TxPushConfig.d"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/TxPushConfig.dia"
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/TxPushConfig.o"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxCallInfo.swift":
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/TxCallInfo.o"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/TxCallInfo.d"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/TxCallInfo.dia"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/TxCallInfo.swiftdeps"

@@ -1,0 +1,92 @@
+Target dependency graph (28 targets)
+Bugsnag in Pods, no dependencies
+Starscream in Pods, no dependencies
+WebRTC-lib in Pods, no dependencies
+Pods-TelnyxRTC in Pods, depends on:
+Bugsnag in Pods (explicit)
+Starscream in Pods (explicit)
+WebRTC-lib in Pods (explicit)
+Bugsnag in Pods, no dependencies
+Starscream in Pods, no dependencies
+WebRTC-lib in Pods, no dependencies
+Pods-TelnyxRTC in Pods, depends on:
+Bugsnag in Pods (explicit)
+Starscream in Pods (explicit)
+WebRTC-lib in Pods (explicit)
+Bugsnag in Pods, no dependencies
+Starscream in Pods, no dependencies
+WebRTC-lib in Pods, no dependencies
+Pods-TelnyxRTC in Pods, depends on:
+Bugsnag in Pods (explicit)
+Starscream in Pods (explicit)
+WebRTC-lib in Pods (explicit)
+TelnyxRTC in Pods, depends on:
+Bugsnag in Pods (explicit)
+Starscream in Pods (explicit)
+WebRTC-lib in Pods (explicit)
+Pods-TelnyxWebRTCDemo in Pods, depends on:
+Bugsnag in Pods (explicit)
+Starscream in Pods (explicit)
+TelnyxRTC in Pods (explicit)
+WebRTC-lib in Pods (explicit)
+TelnyxRTC in Pods, depends on:
+Bugsnag in Pods (explicit)
+Starscream in Pods (explicit)
+WebRTC-lib in Pods (explicit)
+Pods-TelnyxWebRTCDemo in Pods, depends on:
+Bugsnag in Pods (explicit)
+Starscream in Pods (explicit)
+TelnyxRTC in Pods (explicit)
+WebRTC-lib in Pods (explicit)
+TelnyxRTC in Pods, depends on:
+Bugsnag in Pods (explicit)
+Starscream in Pods (explicit)
+WebRTC-lib in Pods (explicit)
+Pods-TelnyxWebRTCDemo in Pods, depends on:
+Bugsnag in Pods (explicit)
+Starscream in Pods (explicit)
+TelnyxRTC in Pods (explicit)
+WebRTC-lib in Pods (explicit)
+Pods-TelnyxRTC-TelnyxRTCTests in Pods, depends on:
+Bugsnag in Pods (explicit)
+Starscream in Pods (explicit)
+WebRTC-lib in Pods (explicit)
+Pods-TelnyxRTC-TelnyxRTCTests in Pods, depends on:
+Bugsnag in Pods (explicit)
+Starscream in Pods (explicit)
+WebRTC-lib in Pods (explicit)
+Pods-TelnyxRTC-TelnyxRTCTests in Pods, depends on:
+Bugsnag in Pods (explicit)
+Starscream in Pods (explicit)
+WebRTC-lib in Pods (explicit)
+TelnyxRTC in TelnyxRTC, depends on:
+Starscream in Pods (implicit dependency via file 'Starscream.framework' in build phase 'Link Binary')
+Pods-TelnyxRTC in Pods (implicit dependency via file 'Pods_TelnyxRTC.framework' in build phase 'Link Binary')
+Bugsnag in Pods (implicit dependency via options '-framework Bugsnag' in build setting 'OTHER_LDFLAGS')
+TelnyxRTC in TelnyxRTC, depends on:
+Starscream in Pods (implicit dependency via file 'Starscream.framework' in build phase 'Link Binary')
+Pods-TelnyxRTC in Pods (implicit dependency via file 'Pods_TelnyxRTC.framework' in build phase 'Link Binary')
+Bugsnag in Pods (implicit dependency via options '-framework Bugsnag' in build setting 'OTHER_LDFLAGS')
+TelnyxRTCTests in TelnyxRTC, depends on:
+TelnyxRTC in TelnyxRTC (explicit)
+Pods-TelnyxRTC-TelnyxRTCTests in Pods (implicit dependency via file 'Pods_TelnyxRTC_TelnyxRTCTests.framework' in build phase 'Link Binary')
+Bugsnag in Pods (implicit dependency via options '-framework Bugsnag' in build setting 'OTHER_LDFLAGS')
+Starscream in Pods (implicit dependency via options '-framework Starscream' in build setting 'OTHER_LDFLAGS')
+TelnyxRTCTests in TelnyxRTC, depends on:
+TelnyxRTC in TelnyxRTC (explicit)
+Pods-TelnyxRTC-TelnyxRTCTests in Pods (implicit dependency via file 'Pods_TelnyxRTC_TelnyxRTCTests.framework' in build phase 'Link Binary')
+Bugsnag in Pods (implicit dependency via options '-framework Bugsnag' in build setting 'OTHER_LDFLAGS')
+Starscream in Pods (implicit dependency via options '-framework Starscream' in build setting 'OTHER_LDFLAGS')
+TelnyxRTCTests in TelnyxRTC, depends on:
+TelnyxRTC in Pods (implicit dependency via file 'TelnyxRTC.framework' in build phase 'Link Binary')
+Pods-TelnyxRTC-TelnyxRTCTests in Pods (implicit dependency via file 'Pods_TelnyxRTC_TelnyxRTCTests.framework' in build phase 'Link Binary')
+Bugsnag in Pods (implicit dependency via options '-framework Bugsnag' in build setting 'OTHER_LDFLAGS')
+Starscream in Pods (implicit dependency via options '-framework Starscream' in build setting 'OTHER_LDFLAGS')
+TelnyxWebRTCDemo in TelnyxRTC, depends on:
+Pods-TelnyxWebRTCDemo in Pods (implicit dependency via file 'Pods_TelnyxWebRTCDemo.framework' in build phase 'Link Binary')
+Bugsnag in Pods (implicit dependency via options '-framework Bugsnag' in build setting 'OTHER_LDFLAGS')
+Starscream in Pods (implicit dependency via options '-framework Starscream' in build setting 'OTHER_LDFLAGS')
+TelnyxRTC in TelnyxRTC (implicit dependency via options '-framework TelnyxRTC' in build setting 'OTHER_LDFLAGS')
+TelnyxWebRTCDemo in TelnyxRTC, depends on:
+Pods-TelnyxWebRTCDemo in Pods (implicit dependency via file 'Pods_TelnyxWebRTCDemo.framework' in build phase 'Link Binary')
+TelnyxRTC in Pods (implicit dependency via options '-framework TelnyxRTC' in build setting 'OTHER_LDFLAGS')

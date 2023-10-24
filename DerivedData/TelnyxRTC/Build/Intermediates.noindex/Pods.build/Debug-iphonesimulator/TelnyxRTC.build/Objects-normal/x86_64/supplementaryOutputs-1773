@@ -1,0 +1,15 @@
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxServerConfiguration.swift":
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/TxServerConfiguration.o"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/TxServerConfiguration.swiftdeps"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/TxServerConfiguration.d"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/TxServerConfiguration.dia"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxPushIPConfig.swift":
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/TxPushIPConfig.o"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/TxPushIPConfig.d"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/TxPushIPConfig.swiftdeps"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/TxPushIPConfig.dia"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxPushConfig.swift":
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/TxPushConfig.o"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/TxPushConfig.swiftdeps"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/TxPushConfig.dia"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/x86_64/TxPushConfig.d"

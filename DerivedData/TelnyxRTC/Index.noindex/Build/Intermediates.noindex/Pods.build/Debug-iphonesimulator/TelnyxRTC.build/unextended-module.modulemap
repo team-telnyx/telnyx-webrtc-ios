@@ -1,0 +1,10 @@
+framework module TelnyxRTC {
+  umbrella header "TelnyxRTC-umbrella.h"
+
+  export *
+  module * { export * }
+}
+
+module TelnyxRTC.__Swift {
+  exclude header "TelnyxRTC-Swift.h"
+}

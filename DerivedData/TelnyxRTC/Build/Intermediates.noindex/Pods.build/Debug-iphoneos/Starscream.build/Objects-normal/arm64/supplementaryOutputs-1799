@@ -1,0 +1,15 @@
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/Pods/Starscream/Sources/Framer/FoundationHTTPServerHandler.swift":
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FoundationHTTPServerHandler.swiftdeps"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FoundationHTTPServerHandler.d"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FoundationHTTPServerHandler.dia"
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FoundationHTTPServerHandler.o"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/Pods/Starscream/Sources/Security/FoundationSecurity.swift":
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FoundationSecurity.o"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FoundationSecurity.dia"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FoundationSecurity.swiftdeps"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FoundationSecurity.d"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/Pods/Starscream/Sources/Framer/FoundationHTTPHandler.swift":
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FoundationHTTPHandler.o"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FoundationHTTPHandler.dia"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FoundationHTTPHandler.d"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FoundationHTTPHandler.swiftdeps"

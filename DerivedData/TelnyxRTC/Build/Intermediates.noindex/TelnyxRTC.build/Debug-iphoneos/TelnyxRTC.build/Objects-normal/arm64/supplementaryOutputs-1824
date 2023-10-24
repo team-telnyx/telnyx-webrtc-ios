@@ -1,0 +1,20 @@
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxPushIPConfig.swift":
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/TxPushIPConfig.d"
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/TxPushIPConfig.o"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/TxPushIPConfig.dia"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/TxPushIPConfig.swiftdeps"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Peer.swift":
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/Peer.o"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/Peer.swiftdeps"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/Peer.dia"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/Peer.d"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxConfig.swift":
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/TxConfig.dia"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/TxConfig.swiftdeps"
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/TxConfig.o"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/TxConfig.d"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/AnswerMessage.swift":
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/AnswerMessage.o"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/AnswerMessage.d"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/AnswerMessage.swiftdeps"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/AnswerMessage.dia"

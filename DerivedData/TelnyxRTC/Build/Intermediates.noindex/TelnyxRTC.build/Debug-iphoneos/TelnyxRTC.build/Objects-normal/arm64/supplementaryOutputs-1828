@@ -1,0 +1,15 @@
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/DisablePushMessage.swift":
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/DisablePushMessage.swiftdeps"
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/DisablePushMessage.o"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/DisablePushMessage.d"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/DisablePushMessage.dia"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/ModifyMessage.swift":
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/ModifyMessage.o"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/ModifyMessage.dia"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/ModifyMessage.d"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/ModifyMessage.swiftdeps"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/InviteMessage.swift":
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/InviteMessage.d"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/InviteMessage.swiftdeps"
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/InviteMessage.o"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/DerivedData/TelnyxRTC/Build/Intermediates.noindex/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/InviteMessage.dia"

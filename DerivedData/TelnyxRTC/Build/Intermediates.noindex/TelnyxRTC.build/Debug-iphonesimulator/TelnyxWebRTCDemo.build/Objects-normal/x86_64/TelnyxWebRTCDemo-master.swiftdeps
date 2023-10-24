@@ -1,0 +1,16 @@
+version: "Apple Swift version 5.8.1 (swiftlang-5.8.0.124.5 clang-1403.0.22.11.100)"
+options: "ed5bc2269f3ec149c8fa8dcb8c4b7e1a08d7ed95bdc27d149f8dc07c9084c559"
+build_start_time: [1698102095, 66365000]
+build_end_time: [1698102096, 274527000]
+inputs:
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxWebRTCDemo/AppDelegate.swift": [1698102054, 859790332]
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxWebRTCDemo/Extensions/AppDelegateCallKitExtension.swift": [1698102054, 860363129]
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxWebRTCDemo/Extensions/AppDelegateTelnyxVoIPExtension.swift": [1698102054, 860734965]
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxWebRTCDemo/Extensions/UIViewControllerExtension.swift": [1694067103, 917403873]
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxWebRTCDemo/Extensions/UserDefaultExtension.swift": [1694067103, 917480832]
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxWebRTCDemo/Extensions/ViewControllerVoIPExtension.swift": [1698102054, 861102718]
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxWebRTCDemo/ViewController.swift": [1698102054, 861533638]
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxWebRTCDemo/Views/LoadingView.swift": [1694067103, 922937663]
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxWebRTCDemo/Views/UICallScreen.swift": [1697648856, 866231400]
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxWebRTCDemo/Views/UIIncomingCallView.swift": [1694067103, 923343752]
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxWebRTCDemo/Views/UISettingsView.swift": [1695212127, 304832006]

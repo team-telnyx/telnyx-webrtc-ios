@@ -1,0 +1,6 @@
+framework module Pods_TelnyxRTC_TelnyxRTCTests {
+  umbrella header "Pods-TelnyxRTC-TelnyxRTCTests-umbrella.h"
+
+  export *
+  module * { export * }
+}
