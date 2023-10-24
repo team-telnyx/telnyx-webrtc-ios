@@ -566,9 +566,9 @@ extension Call {
             Logger.log.w(message: "TxClient:: SocketDelegate Default method")
             break
         }
-        if(txclient.isSpeakerEnabled()){
+        if(txClient.isSpeakerEnabled()){
             Logger.log.w(message: "Speaker Enabled")
-            txclient.setSpeaker()
+            txClient.setSpeaker()
         }
     }
 }
