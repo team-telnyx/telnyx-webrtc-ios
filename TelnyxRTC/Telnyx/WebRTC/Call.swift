@@ -220,7 +220,7 @@ public class Call {
         It sets the incoming sdp as the remoteDecription.
         sdp: Is the remote SDP to configure in the current RTCPeerConnection
      */
-    private func answered(sdp: String,custumHeaders:[String:String] = [:]) {
+    private func answered(sdp: String, custumHeaders:[String:String] = [:]) {
         let remoteDescription = RTCSessionDescription(type: .answer, sdp: sdp)
         self.peer?.connection?.setRemoteDescription(remoteDescription, completionHandler: { (error) in
             if let error = error  {
