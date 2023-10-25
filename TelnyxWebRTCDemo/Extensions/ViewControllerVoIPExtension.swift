@@ -132,12 +132,13 @@ extension ViewController : VoIPDelegate {
                 print("ERROR: executeCall can't be performed. Check callerName - callerNumber and destinationNumber")
                 return
             }
+            let headers =  ["X-test1":"ios-test1",
+                            "X-test2":"ios-test2"]
             
             let call = try telnyxClient?.newCall(callerName: callerName,
                                                  callerNumber: callerNumber,
                                                  destinationNumber: destinationNumber,
-                                                 callId: callUUID,customHeaders: ["X-test1":"ios-test1",
-                                                                                  "X-test2":"ios-test2"])
+                                                 callId: callUUID,customHeaders: headers)
             completionHandler(call)
         } catch let error {
             print("ViewController:: executeCall Error \(error)")

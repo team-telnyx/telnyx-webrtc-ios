@@ -18,7 +18,6 @@ class AnswerMessage : Message {
 
         var params = [String: Any]()
         var dialogParams = [String: Any]()
-        var xHeaders = [Any]()
         // Merge callInfo into dialogParams
         callInfo.encode().forEach { (key, value) in dialogParams[key] = value }
         // Merge callOptions into dialogParams
@@ -29,13 +28,7 @@ class AnswerMessage : Message {
         params["sessionId"] = sessionId
         params["sdp"] = sdp
         if(!customHeaders.isEmpty){
-            customHeaders.keys.forEach { key in
-                var header = [String:String]()
-                header["name"] = key
-                header["value"] = customHeaders[key]
-                xHeaders.append(header)
-            }
-            dialogParams["custom_headers"] = xHeaders
+            dialogParams["custom_headers"] = appendCustomHeaders(customHeaders: customHeaders)
         }
         params["dialogParams"] = dialogParams
         super.init(params, method: .ANSWER)

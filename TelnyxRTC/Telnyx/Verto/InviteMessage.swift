@@ -19,7 +19,6 @@ class InviteMessage : Message {
     ) {
         var params = [String: Any]()
         var dialogParams = [String: Any]()
-        var xHeaders = [Any]()
         dialogParams["callID"] = callInfo.callId.uuidString.lowercased()
         dialogParams["destination_number"] = callOptions.destinationNumber
         dialogParams["remote_caller_id_name"] = callOptions.remoteCallerName
@@ -32,13 +31,7 @@ class InviteMessage : Message {
         dialogParams["screenShare"] = callOptions.screenShare
         dialogParams["userVariables"] = callOptions.userVariables
         if(!customHeaders.isEmpty){
-            customHeaders.keys.forEach { key in
-                var header = [String:String]()
-                header["name"] = key
-                header["value"] = customHeaders[key]
-                xHeaders.append(header)
-            }
-            dialogParams["custom_headers"] = xHeaders
+            dialogParams["custom_headers"] = appendCustomHeaders(customHeaders: customHeaders)
         }
         if let clientState = callOptions.clientState {
             dialogParams["clientState"] = clientState

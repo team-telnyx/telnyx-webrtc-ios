@@ -26,3 +26,14 @@ struct XHeader: Codable {
     let name: String
     let value: String
 }
+
+func appendCustomHeaders(customHeaders:[String:String]) -> [Any] {
+    var xHeaders = [Any]()
+    customHeaders.keys.forEach { key in
+        var header = [String:String]()
+        header["name"] = key
+        header["value"] = customHeaders[key]
+        xHeaders.append(header)
+    }
+    return xHeaders
+}

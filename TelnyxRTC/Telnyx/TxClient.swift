@@ -169,18 +169,6 @@ public class TxClient {
     
     let currentRoute = AVAudioSession.sharedInstance().currentRoute
     
-    func isSppeakerEnabled() -> Bool {
-        for output in currentRoute.outputs {
-            switch output.portType {
-            case AVAudioSession.Port.builtInSpeaker:
-                return true
-            default:
-                break
-            }
-        }
-        return false
-    }
-
     /// Client must be registered in order to receive or place calls.
     public var isRegistered: Bool {
         get {
@@ -689,7 +677,7 @@ extension TxClient : SocketDelegate {
                let callUUIDString = params["callID"] as? String,
                let callUUID = UUID(uuidString: callUUIDString),
                let call = calls[callUUID] {
-                call.handleVertoMessage(message: vertoMessage,dataMessage: message,txClient: self)
+                call.handleVertoMessage(message: vertoMessage, dataMessage: message, txClient: self)
             }
             
 
