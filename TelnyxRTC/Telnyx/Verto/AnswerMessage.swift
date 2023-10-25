@@ -13,7 +13,8 @@ class AnswerMessage : Message {
     init(sessionId: String,
          sdp: String,
          callInfo: TxCallInfo,
-         callOptions: TxCallOptions) {
+         callOptions: TxCallOptions,
+         customHeaders:[String:String] = [:]) {
 
         var params = [String: Any]()
         var dialogParams = [String: Any]()
@@ -26,6 +27,9 @@ class AnswerMessage : Message {
 
         params["sessionId"] = sessionId
         params["sdp"] = sdp
+        if(!customHeaders.isEmpty){
+            dialogParams["custom_headers"] = appendCustomHeaders(customHeaders: customHeaders)
+        }
         params["dialogParams"] = dialogParams
         super.init(params, method: .ANSWER)
     }

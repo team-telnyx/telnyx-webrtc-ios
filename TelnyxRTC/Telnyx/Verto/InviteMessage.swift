@@ -8,15 +8,17 @@
 
 import Foundation
 
+
 class InviteMessage : Message {
 
     init(sessionId: String,
          sdp: String,
          callInfo: TxCallInfo,
-         callOptions: TxCallOptions) {
+         callOptions: TxCallOptions,
+         customHeaders:[String:String] = [:]
+    ) {
         var params = [String: Any]()
         var dialogParams = [String: Any]()
-
         dialogParams["callID"] = callInfo.callId.uuidString.lowercased()
         dialogParams["destination_number"] = callOptions.destinationNumber
         dialogParams["remote_caller_id_name"] = callOptions.remoteCallerName
@@ -28,6 +30,9 @@ class InviteMessage : Message {
         dialogParams["attach"] = callOptions.attach
         dialogParams["screenShare"] = callOptions.screenShare
         dialogParams["userVariables"] = callOptions.userVariables
+        if(!customHeaders.isEmpty){
+            dialogParams["custom_headers"] = appendCustomHeaders(customHeaders: customHeaders)
+        }
         if let clientState = callOptions.clientState {
             dialogParams["clientState"] = clientState
         }
