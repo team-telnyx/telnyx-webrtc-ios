@@ -150,6 +150,55 @@ class TelnyxRTCTests: XCTestCase {
     }
     
     /**
+     Test resetablish connection
+     */
+    func testReconnectUser(){
+        
+        class TestDelegate: RTCTestDelegate {
+            //wait for client error to be called
+            override func onClientError(error: Error) {
+                self.expectation.fulfill()
+            }
+            
+            // We are going to wait the session to be updated
+            override func onSessionUpdated(sessionId: String) {
+                self.expectation.fulfill()
+            }
+        }
+        
+        class TestError : Error {
+            var reason = ""
+            init(reason:String){
+                self.reason = reason
+            }
+        }
+        
+        let errorExpectation = XCTestExpectation()
+        let telnyxClient = TxClient()
+        let delegate = TestDelegate(expectation: errorExpectation)
+
+        let txConfig = TxConfig(sipUser: TestConstants.sipUser,
+                                password: TestConstants.sipPassword,reconnectClient: true)
+        
+        telnyxClient.delegate = delegate
+        try! telnyxClient.connect(txConfig: txConfig)
+        telnyxClient.onSocketError(error:TestError(reason: "Socket Error"))
+
+        //Error rcpection should be fulfiled
+        wait(for: [errorExpectation], timeout: 10)
+        
+        let connectExpectation = XCTestExpectation()
+        let connectDelegate = TestDelegate(expectation: connectExpectation)
+        telnyxClient.delegate = connectDelegate
+        
+        //The client should be connected without calling connect again.
+        wait(for: [connectExpectation], timeout: 10)
+
+        let sessionId = telnyxClient.getSessionId()
+        XCTAssertFalse(sessionId.isEmpty) // We should get a session ID
+    }
+    
+    /**
      Test login with valid credentials
      - Connects to wss
      - Sends an login message using valid credentials

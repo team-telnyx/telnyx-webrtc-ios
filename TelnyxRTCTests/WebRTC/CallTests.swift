@@ -47,6 +47,29 @@ class CallTests: XCTestCase {
         self.call?.newCall(callerName: "callerName", callerNumber: "callerNumber", destinationNumber: "destinationNumber")
         waitForExpectations(timeout: 10)
     }
+    
+    /**
+     Test that the invite message is sent through the socket.
+     - Wait socket connection to be completed.
+     - Starts the call process by creating an offer
+     - Once the ICE candidates negotiation finishes, we send an invite through the socket.
+     - Wait for a server response onMessageReceived.
+     - NOTE: Due that we are not sending a valid sessionID we are going to get an "Authentication error" from the server.
+     */
+    func testCallWithCustomHeaders() {
+        //Wait for socket connection
+        expectation = expectation(description: "socket")
+        waitForExpectations(timeout: 10)
+
+        //Wait to send invite message.
+        expectation = expectation(description: "newCall")
+        self.call?.newCall(callerName: "callerName", callerNumber: "callerNumber", destinationNumber: "destinationNumber",customHeaders:  ["X-test1":"ios-test1",
+            "X-test2":"ios-test2"])
+        waitForExpectations(timeout: 10)
+        
+        let customHeaders = call?.inviteCustomHeaders
+        XCTAssertFalse(customHeaders?.isEmpty == true) // We should get a session ID
+    }
 }
 
 // MARK: - CallProtocol

@@ -125,7 +125,8 @@ public class TxClient {
     // MARK: - Properties
     private static let DEFAULT_REGISTER_INTERVAL = 3.0 // In seconds
     private static let MAX_REGISTER_RETRY = 3 // Number of retry
-
+    //re_connect buffer in secondds
+    private static let RECONNECT_BUFFER = 2.0
     /// Keeps track of all the created calls by theirs UUIDs
     public internal(set) var calls: [UUID: Call] = [UUID: Call]()
     /// Subscribe to TxClient delegate to receive Telnyx SDK events
@@ -145,6 +146,7 @@ public class TxClient {
     private var currentCallId:UUID = UUID()
     private var pendingAnswerHeaders = [String:String]()
     private var speakerOn:Bool = false
+    
     
     func isSpeakerEnabled() -> Bool {
         return speakerOn
@@ -593,7 +595,7 @@ extension TxClient: CallProtocol {
  Listen for wss socket events
  */
 extension TxClient : SocketDelegate {
-    
+  
     func onSocketConnected() {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected()")
         self.delegate?.onSocketConnected()
@@ -627,6 +629,18 @@ extension TxClient : SocketDelegate {
     func onSocketError(error: Error) {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketError()")
         self.delegate?.onClientError(error: error)
+        if let txConfig = self.txConfig {
+            if(txConfig.reconnectClient){
+                DispatchQueue.main.asyncAfter(deadline: .now() + TxClient.RECONNECT_BUFFER) {
+                    do {
+                        try self.connect(txConfig: txConfig,serverConfiguration: self.serverConfiguration)
+                    }catch let error {
+                        Logger.log.e(message: error.localizedDescription)
+                    }
+                }
+            }
+        }
+        
     }
 
     /**
