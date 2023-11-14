@@ -2,7 +2,7 @@
 Pod::Spec.new do |spec|
 
   spec.name = "TelnyxRTC"
-  spec.version = "0.1.15"
+  spec.version = "0.1.16"
   spec.summary = "Enable Telnyx real-time communication services on iOS."
   spec.description = "The Telnyx iOS WebRTC Client SDK provides all the functionality you need to start making voice calls from an iPhone."
   spec.homepage = "https://github.com/team-telnyx/telnyx-webrtc-ios"
