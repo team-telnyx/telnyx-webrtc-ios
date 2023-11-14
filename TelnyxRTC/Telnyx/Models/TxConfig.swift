@@ -19,6 +19,7 @@ public struct TxConfig {
 
     public internal(set) var ringBackTone: String?
     public internal(set) var ringtone: String?
+    public internal(set) var reconnectClient: Bool = false
 
     // MARK: - Initializers
 
@@ -34,7 +35,9 @@ public struct TxConfig {
                 pushDeviceToken: String? = nil,
                 ringtone: String? = nil,
                 ringBackTone: String? = nil,
-                logLevel: LogLevel = .none) {
+                logLevel: LogLevel = .none,
+                reconnectClient:Bool = false
+    ) {
         self.sipUser = sipUser
         self.password = password
         if let pushToken = pushDeviceToken {
@@ -43,6 +46,7 @@ public struct TxConfig {
         }
         self.ringBackTone = ringBackTone
         self.ringtone = ringtone
+        self.reconnectClient = reconnectClient
         Logger.log.verboseLevel = logLevel
     }
 
