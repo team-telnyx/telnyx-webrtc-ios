@@ -17,7 +17,7 @@ public enum TxError : Error {
         /// Socket is not connected. Check that you have an active connection.
         case socketNotConnected
         /// Socket connection was cancelled.
-        case socketCancelled
+        case socketCancelled(nativeError:Error)
     }
 
     /// The underlying reason of client setup configuration errors
@@ -131,8 +131,8 @@ extension TxError.SocketFailureReason: LocalizedError {
         switch self {
         case .socketNotConnected:
             return "Socket connection cancelled."
-        case .socketCancelled:
-            return "Socket is not connected, check that you have called .connect() first."
+        case let .socketCancelled(nativeError):
+            return "Socket is connection is cancelled, try calling .connect again \(nativeError.localizedDescription)"
         }
     }
 }
