@@ -637,6 +637,7 @@ You can handle this scenario by :
 ```Swift 
  var currentCall: Call?
  var previousCall: Call?
+ 
  //current calkit uuid
  var callKitUUID: UUID?
 
@@ -658,7 +659,7 @@ You can handle this scenario by :
   }
 
 ```
-Subsequently, when the user clicks on the End and Accept or Decline Button, you will need to determine which og these buttons was clicked.
+Subsequently, when the user clicks on the End and Accept or Decline Button, you will need to determine which of these buttons was clicked.
 You can do that as follows:
 
 ```Swift
