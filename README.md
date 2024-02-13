@@ -611,7 +611,7 @@ func onPushCall(call: Call) {
 ```
 
 Likewise for ending calls, the  `endCallFromCallkit(endAction:action)` method should be called from :
-   
+
 ```Swift
 func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
      
@@ -625,7 +625,68 @@ func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
    
 2. Logs on the receiver's end are essential for thorough debugging of issues related to push notifications. However, the debugger is not attached when the app is completely killed. To address this, you can simply put the app in the background. VOIP push notifications should then come through, and the debugger should capture all logs.
 
-   
+__*Handling Multiple Calls*__
+
+To handle multiples, we can rely on the `CXProviderDelegate` delegate which invokes functions corresponding to 
+what action was performed on the callkit user interface. 
+
+1. End and Accept or Decline : The **end and accept** button on the callkit user interface accepts the nwe call and ends the previous call.
+Callkit then invokes the `CXAnswerCallAction` and `CXEndCallAction` when the **end and accept** button is pressed.
+You can handle this scenario by : 
+
+```Swift 
+ var currentCall: Call?
+ var previousCall: Call?
+ //current calkit uuid
+ var callKitUUID: UUID?
+
+     func onIncomingCall(call: Call) {
+        guard let callId = call.callInfo?.callId else {
+            print("AppDelegate:: TxClientDelegate onIncomingCall() Error unknown call UUID")
+            return
+        }
+        print("AppDelegate:: TxClientDelegate onIncomingCall() callKitUUID [\(String(describing: self.callKitUUID))] callId [\(callId)]")
+
+        self.callKitUUID = call.callInfo?.callId
+        
+        //Update the previous call with the current call
+        self.previousCall = self.currentCall
+        
+        //Update the current call with the incoming call
+        self.currentCall = call 
+        ..
+  }
+
+```
+Subsequently, when the user clicks on the End and Accept or Decline Button, you will need to determine which og these buttons was clicked.
+You can do that as follows:
+
+```Swift
+    //Callkit invokes CXEndCallAction and  CXAnswerCallAction delegate function for accept and answer
+    func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
+        print("AppDelegate:: END call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
+        
+        // if the callKitUUID is the same as the one provided by the action
+        // callkit expects you to end the current call
+        if(self.callKitUUID == action.callUUID){
+            if let onGoingCall = self.previousCall {
+                self.currentCall = onGoingCall
+                self.callKitUUID = onGoingCall.callInfo?.callId
+            }
+        }else {
+            //endPrevious Call
+            self.callKitUUID = self.currentCall?.callInfo?.callId
+        }
+        self.telnyxClient?.endCallFromCallkit(endAction:action)
+    }
+```
+
+ **Note** 
+
+While handling multiple calls, you should **not** report the **call end** to callkit. This will keep your calls active with the callkit 
+user interface until there are no more active sessions.
+
+
 
 ### Disable Push Notification
  Push notfications can be disabled for the current user by calling : 

@@ -29,6 +29,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     var telnyxClient : TxClient?
     var currentCall: Call?
+    var previousCall: Call?
     var callKitUUID: UUID?
     
     var userDefaults: UserDefaults = UserDefaults.init()

@@ -157,13 +157,24 @@ extension AppDelegate : CXProviderDelegate {
         print("AppDelegate:: ANSWER call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
 
         self.telnyxClient?.answerFromCallkit(answerAction: action, customHeaders:  ["X-test-answer":"ios-test"])
+
     }
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         print("AppDelegate:: END call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
         
+        if(self.callKitUUID == action.callUUID){
+            //request to end current call
+            if let onGoingCall = self.previousCall {
+                self.currentCall = onGoingCall
+                self.callKitUUID = onGoingCall.callInfo?.callId
+            }
+        }else {
+            //request to end Previous Call
+            self.callKitUUID = self.currentCall?.callInfo?.callId
+        }
         self.telnyxClient?.endCallFromCallkit(endAction:action)
-    
+
     }
 
     func providerDidReset(_ provider: CXProvider) {
