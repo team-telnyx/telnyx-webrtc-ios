@@ -1,0 +1,18 @@
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/LoginMessage.swift":
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/LoginMessage.d"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/LoginMessage.dia"
+  const-values: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/LoginMessage.swiftconstvalues"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/LoginMessage.swiftdeps"
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/LoginMessage.o"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Call.swift":
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/Call.o"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/Call.dia"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/Call.swiftdeps"
+  const-values: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/Call.swiftconstvalues"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/Call.d"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/InternalConfig.swift":
+  const-values: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/InternalConfig.swiftconstvalues"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/InternalConfig.swiftdeps"
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/InternalConfig.o"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/InternalConfig.dia"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTC.build/Objects-normal/arm64/InternalConfig.d"

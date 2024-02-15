@@ -512,8 +512,6 @@ extension TxClient {
     /// - Throws: Error during the connection process
     public func processVoIPNotification(txConfig: TxConfig,
                                         serverConfiguration: TxServerConfiguration,pushMetaData:[String: Any]) throws {
-        Logger.log.i(message: "TxClient:: push flow voIPUUID")
-        
         
         let pnServerConfig = TxServerConfiguration(
             signalingServer:nil,
@@ -522,14 +520,15 @@ extension TxClient {
             pushMetaData: pushMetaData)
         // Check if we are already connected and logged in
         if !isConnected() {
-            Logger.log.i(message: "TxClient:: push flow socket already connected: disconnect")
             do {
+                Logger.log.i(message: "TxClient:: push flow socket is not conneccted")
                 try self.connect(txConfig: txConfig, serverConfiguration: pnServerConfig)
             } catch let error {
                 Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
             }
+        }else {
+            Logger.log.i(message: "TxClient:: push flow socket is conneccted")
         }
-        Logger.log.i(message: "TxClient:: push flow connect")
         self.isCallFromPush = true
     }
 
@@ -637,12 +636,13 @@ extension TxClient : SocketDelegate {
                     do {
                         try self.connect(txConfig: txConfig,serverConfiguration: self.serverConfiguration)
                     }catch let error {
-                        Logger.log.e(message: error.localizedDescription)
+                        Logger.log.e(message:"TxClient:: SocketDelegate reconnect error" +  error.localizedDescription)
                     }
                 }
             }
+        }else {
+            Logger.log.e(message:"TxClient:: SocketDelegate reconnect error" +  error.localizedDescription)
         }
-        
     }
 
     /**

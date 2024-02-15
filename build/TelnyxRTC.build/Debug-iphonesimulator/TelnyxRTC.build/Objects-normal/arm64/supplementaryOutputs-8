@@ -1,0 +1,18 @@
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/TxClientDelegate.swift":
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/TxClientDelegate.d"
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/TxClientDelegate.o"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/TxClientDelegate.swiftdeps"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/TxClientDelegate.dia"
+  const-values: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/TxClientDelegate.swiftconstvalues"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/Message.swift":
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/Message.o"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/Message.d"
+  const-values: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/Message.swiftconstvalues"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/Message.swiftdeps"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/Message.dia"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/ByeMessage.swift":
+  const-values: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/ByeMessage.swiftconstvalues"
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/ByeMessage.o"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/ByeMessage.swiftdeps"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/ByeMessage.dia"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/ByeMessage.d"

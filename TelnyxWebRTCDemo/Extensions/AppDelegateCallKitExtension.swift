@@ -155,16 +155,20 @@ extension AppDelegate : CXProviderDelegate {
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         print("AppDelegate:: ANSWER call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
-
         self.telnyxClient?.answerFromCallkit(answerAction: action, customHeaders:  ["X-test-answer":"ios-test"])
-
     }
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         print("AppDelegate:: END call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
         
+        if(previousCall?.callState == .HELD){
+            print("AppDelegate:: call held.. unholding call")
+            previousCall?.unhold()
+        }
+        //Run when we want to end or accept/Decline
         if(self.callKitUUID == action.callUUID){
             //request to end current call
+            print("AppDelegate:: End Current Call")
             if let onGoingCall = self.previousCall {
                 self.currentCall = onGoingCall
                 self.callKitUUID = onGoingCall.callInfo?.callId
@@ -174,7 +178,8 @@ extension AppDelegate : CXProviderDelegate {
             self.callKitUUID = self.currentCall?.callInfo?.callId
         }
         self.telnyxClient?.endCallFromCallkit(endAction:action)
-
+        //Check if call is held
+        
     }
 
     func providerDidReset(_ provider: CXProvider) {
@@ -201,6 +206,9 @@ extension AppDelegate : CXProviderDelegate {
     
     func provider(_ provider: CXProvider, perform action: CXSetHeldCallAction) {
         print("provider:performSetHeldAction:")
+        //request to hold previous call
+        previousCall?.hold()
+        action.fulfill()
     }
     
     func provider(_ provider: CXProvider, perform action: CXSetMutedCallAction) {
@@ -229,7 +237,8 @@ extension AppDelegate : CXProviderDelegate {
                                 ringtone: "incoming_call.mp3",
                                 ringBackTone: "ringback_tone.mp3",
                                 //You can choose the appropriate verbosity level of the SDK.
-                                logLevel: .all)
+                                logLevel: .all,
+                                reconnectClient: true)
         
         do {
             try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)

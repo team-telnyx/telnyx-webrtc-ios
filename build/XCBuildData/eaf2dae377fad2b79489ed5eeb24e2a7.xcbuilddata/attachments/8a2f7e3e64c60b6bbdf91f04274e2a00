@@ -1,0 +1,11 @@
+framework module TelnyxRTC {
+  umbrella header "TelnyxRTC-umbrella.h"
+
+  export *
+  module * { export * }
+}
+
+module TelnyxRTC.Swift {
+  header "TelnyxRTC-Swift.h"
+  requires objc
+}

@@ -1,0 +1,18 @@
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/SocketDelegate.swift":
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/SocketDelegate.swiftdeps"
+  const-values: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/SocketDelegate.swiftconstvalues"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/SocketDelegate.dia"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/SocketDelegate.d"
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/SocketDelegate.o"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/InfoMessage.swift":
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/InfoMessage.o"
+  const-values: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/InfoMessage.swiftconstvalues"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/InfoMessage.swiftdeps"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/InfoMessage.d"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/InfoMessage.dia"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/Params.swift":
+  const-values: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/Params.swiftconstvalues"
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/Params.o"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/Params.swiftdeps"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/Params.dia"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphonesimulator/TelnyxRTC.build/Objects-normal/arm64/Params.d"

@@ -1,0 +1,21 @@
+Target dependency graph (7 targets)
+Target 'TelnyxWebRTCDemo' in project 'TelnyxRTC'
+➜ Implicit dependency on target 'Pods-TelnyxWebRTCDemo' in project 'Pods' via file 'Pods_TelnyxWebRTCDemo.framework' in build phase 'Link Binary'
+➜ Implicit dependency on target 'Bugsnag' in project 'Pods' via options '-framework Bugsnag' in build setting 'OTHER_LDFLAGS'
+➜ Implicit dependency on target 'Starscream' in project 'Pods' via options '-framework Starscream' in build setting 'OTHER_LDFLAGS'
+➜ Implicit dependency on target 'TelnyxRTC' in project 'TelnyxRTC' via options '-framework TelnyxRTC' in build setting 'OTHER_LDFLAGS'
+Target 'TelnyxRTC' in project 'TelnyxRTC'
+➜ Implicit dependency on target 'Starscream' in project 'Pods' via file 'Starscream.framework' in build phase 'Link Binary'
+➜ Implicit dependency on target 'Pods-TelnyxRTC' in project 'Pods' via file 'Pods_TelnyxRTC.framework' in build phase 'Link Binary'
+➜ Implicit dependency on target 'Bugsnag' in project 'Pods' via options '-framework Bugsnag' in build setting 'OTHER_LDFLAGS'
+Target 'Pods-TelnyxWebRTCDemo' in project 'Pods'
+➜ Explicit dependency on target 'Bugsnag' in project 'Pods'
+➜ Explicit dependency on target 'Pods-TelnyxRTC' in project 'Pods'
+➜ Explicit dependency on target 'WebRTC-lib' in project 'Pods'
+Target 'Pods-TelnyxRTC' in project 'Pods'
+➜ Explicit dependency on target 'Bugsnag' in project 'Pods'
+➜ Explicit dependency on target 'Starscream' in project 'Pods'
+➜ Explicit dependency on target 'WebRTC-lib' in project 'Pods'
+Target 'WebRTC-lib' in project 'Pods' (no dependencies)
+Target 'Starscream' in project 'Pods' (no dependencies)
+Target 'Bugsnag' in project 'Pods' (no dependencies)

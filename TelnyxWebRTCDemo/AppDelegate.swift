@@ -54,6 +54,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         self.initCallKit()
         return true
     }
+    
+    func applicationDidEnterBackground(_ application: UIApplication) {
+        print("AppDelegate: applicationDidEnterBackground")
+    }
 
     func initPushKit() {
         pushRegistry.delegate = self
@@ -65,7 +69,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
      */
     func initCallKit() {
         let configuration = CXProviderConfiguration(localizedName: "TelnyxRTC")
-        configuration.maximumCallGroups = 1
+        configuration.maximumCallGroups = 2
         configuration.maximumCallsPerCallGroup = 1
         callKitProvider = CXProvider(configuration: configuration)
         if let provider = callKitProvider {

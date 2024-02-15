@@ -1,0 +1,18 @@
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/Pods/Starscream/Sources/Framer/FrameCollector.swift":
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FrameCollector.swiftdeps"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FrameCollector.d"
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FrameCollector.o"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FrameCollector.dia"
+  const-values: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FrameCollector.swiftconstvalues"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/Pods/Starscream/Sources/Framer/Framer.swift":
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/Framer.swiftdeps"
+  const-values: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/Framer.swiftconstvalues"
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/Framer.o"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/Framer.d"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/Framer.dia"
+"/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/Pods/Starscream/Sources/Transport/FoundationTransport.swift":
+  object: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FoundationTransport.o"
+  dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FoundationTransport.d"
+  diagnostics: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FoundationTransport.dia"
+  swift-dependencies: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FoundationTransport.swiftdeps"
+  const-values: "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/Pods.build/Debug-iphoneos/Starscream.build/Objects-normal/arm64/FoundationTransport.swiftconstvalues"

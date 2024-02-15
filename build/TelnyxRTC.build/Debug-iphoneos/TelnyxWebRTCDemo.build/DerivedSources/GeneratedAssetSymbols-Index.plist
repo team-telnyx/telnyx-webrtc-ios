@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>colors</key>
+	<array/>
+	<key>images</key>
+	<array>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxWebRTCDemo/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameIcCall</string>
+			<key>relativePath</key>
+			<string>./ic-call.imageset</string>
+			<key>swiftSymbol</key>
+			<string>icCall</string>
+		</dict>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxWebRTCDemo/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameIcHangup</string>
+			<key>relativePath</key>
+			<string>./ic-hangup.imageset</string>
+			<key>swiftSymbol</key>
+			<string>icHangup</string>
+		</dict>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxWebRTCDemo/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameLogo</string>
+			<key>relativePath</key>
+			<string>./logo.imageset</string>
+			<key>swiftSymbol</key>
+			<string>logo</string>
+		</dict>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxWebRTCDemo/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameLogoWhite</string>
+			<key>relativePath</key>
+			<string>./logo-white.imageset</string>
+			<key>swiftSymbol</key>
+			<string>logoWhite</string>
+		</dict>
+	</array>
+	<key>symbols</key>
+	<array/>
+</dict>
+</plist>

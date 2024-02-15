@@ -397,6 +397,7 @@ extension Call {
         let message = hold.encode() ?? ""
         self.socket?.sendMessage(message: message)
         self.updateCallState(callState: .HELD)
+        self.callState = .HELD
         Logger.log.s(message: "Call:: hold()")
     }
 

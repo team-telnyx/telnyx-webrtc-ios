@@ -1,0 +1,98 @@
+{
+  "" : {
+    "diagnostics" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TelnyxRTCTests-master.dia",
+    "emit-module-dependencies" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TelnyxRTCTests-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TelnyxRTCTests-master-emit-module.dia",
+    "swift-dependencies" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TelnyxRTCTests-master.swiftdeps"
+  },
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTCTests/Helpers/RTCTestDelegate.swift" : {
+    "const-values" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/RTCTestDelegate.swiftconstvalues",
+    "dependencies" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/RTCTestDelegate.d",
+    "diagnostics" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/RTCTestDelegate.dia",
+    "index-unit-output-path" : "/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/RTCTestDelegate.o",
+    "llvm-bc" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/RTCTestDelegate.bc",
+    "object" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/RTCTestDelegate.o",
+    "swift-dependencies" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/RTCTestDelegate.swiftdeps",
+    "swiftmodule" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/RTCTestDelegate~partial.swiftmodule"
+  },
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTCTests/Helpers/StringExtension.swift" : {
+    "const-values" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/StringExtension.swiftconstvalues",
+    "dependencies" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/StringExtension.d",
+    "diagnostics" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/StringExtension.dia",
+    "index-unit-output-path" : "/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/StringExtension.o",
+    "llvm-bc" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/StringExtension.bc",
+    "object" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/StringExtension.o",
+    "swift-dependencies" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/StringExtension.swiftdeps",
+    "swiftmodule" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/StringExtension~partial.swiftmodule"
+  },
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTCTests/Socket/SocketTests.swift" : {
+    "const-values" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/SocketTests.swiftconstvalues",
+    "dependencies" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/SocketTests.d",
+    "diagnostics" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/SocketTests.dia",
+    "index-unit-output-path" : "/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/SocketTests.o",
+    "llvm-bc" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/SocketTests.bc",
+    "object" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/SocketTests.o",
+    "swift-dependencies" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/SocketTests.swiftdeps",
+    "swiftmodule" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/SocketTests~partial.swiftmodule"
+  },
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTCTests/TelnyxRTCMulticallTests.swift" : {
+    "const-values" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TelnyxRTCMulticallTests.swiftconstvalues",
+    "dependencies" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TelnyxRTCMulticallTests.d",
+    "diagnostics" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TelnyxRTCMulticallTests.dia",
+    "index-unit-output-path" : "/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TelnyxRTCMulticallTests.o",
+    "llvm-bc" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TelnyxRTCMulticallTests.bc",
+    "object" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TelnyxRTCMulticallTests.o",
+    "swift-dependencies" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TelnyxRTCMulticallTests.swiftdeps",
+    "swiftmodule" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TelnyxRTCMulticallTests~partial.swiftmodule"
+  },
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTCTests/TelnyxRTCTests.swift" : {
+    "const-values" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TelnyxRTCTests.swiftconstvalues",
+    "dependencies" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TelnyxRTCTests.d",
+    "diagnostics" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TelnyxRTCTests.dia",
+    "index-unit-output-path" : "/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TelnyxRTCTests.o",
+    "llvm-bc" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TelnyxRTCTests.bc",
+    "object" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TelnyxRTCTests.o",
+    "swift-dependencies" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TelnyxRTCTests.swiftdeps",
+    "swiftmodule" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TelnyxRTCTests~partial.swiftmodule"
+  },
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTCTests/TestConstants.swift" : {
+    "const-values" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TestConstants.swiftconstvalues",
+    "dependencies" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TestConstants.d",
+    "diagnostics" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TestConstants.dia",
+    "index-unit-output-path" : "/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TestConstants.o",
+    "llvm-bc" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TestConstants.bc",
+    "object" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TestConstants.o",
+    "swift-dependencies" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TestConstants.swiftdeps",
+    "swiftmodule" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/TestConstants~partial.swiftmodule"
+  },
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTCTests/Verto/VertoMessagesTests.swift" : {
+    "const-values" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/VertoMessagesTests.swiftconstvalues",
+    "dependencies" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/VertoMessagesTests.d",
+    "diagnostics" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/VertoMessagesTests.dia",
+    "index-unit-output-path" : "/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/VertoMessagesTests.o",
+    "llvm-bc" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/VertoMessagesTests.bc",
+    "object" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/VertoMessagesTests.o",
+    "swift-dependencies" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/VertoMessagesTests.swiftdeps",
+    "swiftmodule" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/VertoMessagesTests~partial.swiftmodule"
+  },
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTCTests/WebRTC/CallTests.swift" : {
+    "const-values" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/CallTests.swiftconstvalues",
+    "dependencies" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/CallTests.d",
+    "diagnostics" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/CallTests.dia",
+    "index-unit-output-path" : "/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/CallTests.o",
+    "llvm-bc" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/CallTests.bc",
+    "object" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/CallTests.o",
+    "swift-dependencies" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/CallTests.swiftdeps",
+    "swiftmodule" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/CallTests~partial.swiftmodule"
+  },
+  "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/TelnyxRTCTests/WebRTC/PeerConnectionTests.swift" : {
+    "const-values" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/PeerConnectionTests.swiftconstvalues",
+    "dependencies" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/PeerConnectionTests.d",
+    "diagnostics" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/PeerConnectionTests.dia",
+    "index-unit-output-path" : "/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/PeerConnectionTests.o",
+    "llvm-bc" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/PeerConnectionTests.bc",
+    "object" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/PeerConnectionTests.o",
+    "swift-dependencies" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/PeerConnectionTests.swiftdeps",
+    "swiftmodule" : "/Users/isaacakakpo/Documents/rtc_prod/telnyx-webrtc-ios/build/TelnyxRTC.build/Debug-iphoneos/TelnyxRTCTests.build/Objects-normal/arm64/PeerConnectionTests~partial.swiftmodule"
+  }
+}

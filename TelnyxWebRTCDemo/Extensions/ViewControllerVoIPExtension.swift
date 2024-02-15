@@ -45,12 +45,10 @@ extension ViewController : VoIPDelegate {
             self.incomingCallView.isHidden = true
             self.telnyxClient?.disconnect()
             
-            
             if(error.self is NWError){
                 print("ERROR: socket connectiontion error \(error)")
             } else {
                 print("ERROR: client error \(error)")
-               
             }
            
         }
