@@ -1,5 +1,0 @@
- extern const unsigned char Pods_TelnyxRTC_TelnyxRTCTestsVersionString[];
- extern const double Pods_TelnyxRTC_TelnyxRTCTestsVersionNumber;
-
- const unsigned char Pods_TelnyxRTC_TelnyxRTCTestsVersionString[] __attribute__ ((used)) = "@(#)PROGRAM:Pods_TelnyxRTC_TelnyxRTCTests  PROJECT:Pods-1" "\n";
- const double Pods_TelnyxRTC_TelnyxRTCTestsVersionNumber __attribute__ ((used)) = (double)1.;

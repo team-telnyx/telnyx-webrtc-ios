@@ -1,5 +1,0 @@
- extern const unsigned char TelnyxRTCTestsVersionString[];
- extern const double TelnyxRTCTestsVersionNumber;
-
- const unsigned char TelnyxRTCTestsVersionString[] __attribute__ ((used)) = "@(#)PROGRAM:TelnyxRTCTests  PROJECT:TelnyxRTC-1" "\n";
- const double TelnyxRTCTestsVersionNumber __attribute__ ((used)) = (double)1.;
