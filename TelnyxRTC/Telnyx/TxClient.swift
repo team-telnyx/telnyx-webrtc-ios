@@ -257,16 +257,19 @@ public class TxClient {
     }
     
     /// To end and control callKit active and conn
-    public func endCallFromCallkit(endAction:CXEndCallAction) {
+    public func endCallFromCallkit(endAction:CXEndCallAction,callId:UUID? = nil) {
         self.endCallAction = endAction
         endAction.fulfill()
-        
-        ///Hangup call if there's a current pushCall
-        if(self.calls[currentCallId] != nil){
-            self.calls[currentCallId]?.hangup()
-            resetPushVariables()
-            currentCallId = UUID()
+        // Place the code you want to delay here
+        if let call = self.calls[endAction.callUUID] {
+            Logger.log.i(message: "EndClient:: Ended Call with Id \(endAction.callUUID)")
+            call.hangup()
+        } else {
+            Logger.log.i(message: "EndClient:: Ended Call")
+            self.calls[self.currentCallId]?.hangup()
         }
+        self.resetPushVariables()
+       
     }
     
     
@@ -509,8 +512,6 @@ extension TxClient {
     /// - Throws: Error during the connection process
     public func processVoIPNotification(txConfig: TxConfig,
                                         serverConfiguration: TxServerConfiguration,pushMetaData:[String: Any]) throws {
-        Logger.log.i(message: "TxClient:: push flow voIPUUID")
-        
         
         let pnServerConfig = TxServerConfiguration(
             signalingServer:nil,
@@ -518,16 +519,15 @@ extension TxClient {
             environment: serverConfiguration.environment,
             pushMetaData: pushMetaData)
         // Check if we are already connected and logged in
-        if isConnected() {
-            Logger.log.i(message: "TxClient:: push flow socket already connected: disconnect")
-            self.disconnect()
-        }
-
-        Logger.log.i(message: "TxClient:: push flow connect")
-        do {
-            try self.connect(txConfig: txConfig, serverConfiguration: pnServerConfig)
-        } catch let error {
-            Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
+        if !isConnected() {
+            do {
+                Logger.log.i(message: "TxClient:: push flow socket is not conneccted")
+                try self.connect(txConfig: txConfig, serverConfiguration: pnServerConfig)
+            } catch let error {
+                Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
+            }
+        }else {
+            Logger.log.i(message: "TxClient:: push flow socket is conneccted")
         }
         self.isCallFromPush = true
     }
@@ -636,12 +636,13 @@ extension TxClient : SocketDelegate {
                     do {
                         try self.connect(txConfig: txConfig,serverConfiguration: self.serverConfiguration)
                     }catch let error {
-                        Logger.log.e(message: error.localizedDescription)
+                        Logger.log.e(message:"TxClient:: SocketDelegate reconnect error" +  error.localizedDescription)
                     }
                 }
             }
+        }else {
+            Logger.log.e(message:"TxClient:: SocketDelegate reconnect error" +  error.localizedDescription)
         }
-        
     }
 
     /**

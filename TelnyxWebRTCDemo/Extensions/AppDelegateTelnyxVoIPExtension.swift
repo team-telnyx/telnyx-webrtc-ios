@@ -30,7 +30,7 @@ extension AppDelegate: TxClientDelegate {
     
     func onClientError(error: Error) {
         print("AppDelegate:: TxClientDelegate onClientError() error: \(error)")
-        self.executeEndCallAction(uuid: self.callKitUUID ?? UUID())
+        //self.executeEndCallAction(uuid: self.callKitUUID ?? UUID())
         self.voipDelegate?.onClientError(error: error)
     }
     
@@ -51,11 +51,8 @@ extension AppDelegate: TxClientDelegate {
         }
         print("AppDelegate:: TxClientDelegate onIncomingCall() callKitUUID [\(String(describing: self.callKitUUID))] callId [\(callId)]")
 
-        if let currentCallUUID = self.currentCall?.callInfo?.callId {
-            print("AppDelegate:: TxClientDelegate onIncomingCall() end previous call [\(currentCallUUID)]")
-            executeEndCallAction(uuid: currentCallUUID) //Hangup the previous call if there's one active
-        }
         self.callKitUUID = call.callInfo?.callId
+        self.previousCall = self.currentCall
         self.currentCall = call //Update the current call with the incoming call
         let headers = call.inviteCustomHeaders
         print("\n Custom Headers onIncomingCall: \(String(describing: headers)) \n")
@@ -72,12 +69,38 @@ extension AppDelegate: TxClientDelegate {
     
     func onRemoteCallEnded(callId: UUID) {
         print("AppDelegate:: TxClientDelegate onRemoteCallEnded() callKitUUID [\(String(describing: self.callKitUUID))] callId [\(callId)]")
-        self.voipDelegate?.onRemoteCallEnded(callId: callId)
-        let reason = CXCallEndedReason.remoteEnded
-        if let provider = self.callKitProvider,
-           let callKitUUID = self.callKitUUID {
-            provider.reportCall(with: callKitUUID, endedAt: Date(), reason: reason)
+        if (previousCall?.callInfo?.callId == callId) {
+            reportCallEnd(callId: callId)
+            self.previousCall = nil
         }
+        
+        if (currentCall?.callInfo?.callId == callId) {
+            reportCallEnd(callId: callId)
+            self.currentCall = nil
+            
+        }
+        self.voipDelegate?.onRemoteCallEnded(callId: callId)
+    }
+    
+    func reportCallEnd(callId:UUID){
+        if let provider = self.callKitProvider {
+            provider.reportCall(with: callId, endedAt: Date(), reason: .remoteEnded)
+        }
+    }
+    
+    func isCallActive(with uuid: UUID) -> Bool {
+        let callController = self.callKitCallController
+        let calls = callController.callObserver.calls
+        
+        // Look for a call with the given UUID
+        for call in calls {
+            if call.uuid == uuid {
+                return call.hasConnected && !call.hasEnded
+            }
+        }
+        
+        // If no call with the given UUID is found or it's not active, return false
+        return false
     }
     
     func onCallStateUpdated(callState: CallState, callId: UUID) {
@@ -93,7 +116,7 @@ extension AppDelegate: TxClientDelegate {
         if callState == .DONE {
             if let currentCallId = self.currentCall?.callInfo?.callId,
                currentCallId == callId {
-                self.currentCall = nil // clear current call
+               // self.currentCall = nil // clear current call
             }
         }
     }

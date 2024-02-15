@@ -91,8 +91,10 @@ extension Socket : WebSocketDelegate {
         case .pong(_):
             break
         case .viabilityChanged(_):
+            Logger.log.i(message: "Socket:: WebSocketDelegate viablility Changed")
             break
         case .reconnectSuggested(_):
+            Logger.log.i(message: "Socket:: WebSocketDelegate reconnect Suggested")
             break
         case .peerClosed:
             break

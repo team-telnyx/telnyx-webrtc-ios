@@ -23,3 +23,6 @@ fastlane/screenshots/**/*.png
 fastlane/test_output
 Gemfile.lock
 reports/
+
+#build
+build/*
