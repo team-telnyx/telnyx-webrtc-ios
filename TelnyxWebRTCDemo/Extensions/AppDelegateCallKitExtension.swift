@@ -175,11 +175,9 @@ extension AppDelegate : CXProviderDelegate {
             }
         }else {
             //request to end Previous Call
-            self.callKitUUID = self.currentCall?.callInfo?.callId
+            print("AppDelegate:: End Previous Call")
         }
         self.telnyxClient?.endCallFromCallkit(endAction:action)
-        //Check if call is held
-        
     }
 
     func providerDidReset(_ provider: CXProvider) {
