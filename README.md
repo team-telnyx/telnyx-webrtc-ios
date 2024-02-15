@@ -632,7 +632,7 @@ what action was performed on the callkit user interface.
 
 1. End and Accept or Decline : The **end and accept** button on the callkit user interface accepts the new call and ends the previous call.
 Callkit then invokes the `CXAnswerCallAction` and `CXEndCallAction` when the **end and accept** button is pressed.
-You can handle this scenario by : 
+You can handle this scenario by
 
 ```Swift 
  var currentCall: Call?
