@@ -684,7 +684,7 @@ You can do that as follows:
 
  **Note** 
 
-While handling multiple calls, you should **not** report the **call end** to callkit until all calls are done. This will keep your calls active with the callkit 
+While handling multiple calls, you should report the **call end** to callkit properly with the right callUUID. This will keep your  active calls with the callkit
 user interface until there are no more active sessions.
 
 2. Hold and Accept or Decline: The **hold and accept** button on the callkit user interface accepts the new call and holds the previous call.
@@ -712,7 +712,7 @@ Also, you will need to un-hold the previous call when the current call gets ende
 ```
 **Note**
 
-While handling multiple calls, you should **not** report the **call end** to callkit yet until all calls are done. This will keep your calls active with the callkit
+While handling multiple calls, you should report the **call end** to callkit properly with the right callUUID. This will keep your  active calls with the callkit
 user interface until there are no more active sessions.
 
 
