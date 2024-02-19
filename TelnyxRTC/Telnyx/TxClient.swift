@@ -126,7 +126,7 @@ public class TxClient {
     private static let DEFAULT_REGISTER_INTERVAL = 3.0 // In seconds
     private static let MAX_REGISTER_RETRY = 3 // Number of retry
     //re_connect buffer in secondds
-    private static let RECONNECT_BUFFER = 2.0
+    private static let RECONNECT_BUFFER = 0.0
     /// Keeps track of all the created calls by theirs UUIDs
     public internal(set) var calls: [UUID: Call] = [UUID: Call]()
     /// Subscribe to TxClient delegate to receive Telnyx SDK events
@@ -518,17 +518,25 @@ extension TxClient {
             webRTCIceServers: serverConfiguration.webRTCIceServers,
             environment: serverConfiguration.environment,
             pushMetaData: pushMetaData)
-        // Check if we are already connected and logged in
-        if !isConnected() {
+        
+        let noActiveCalls = self.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
+
+        if (noActiveCalls && isConnected()) {
+            Logger.log.i(message: "TxClient:: processVoIPNotification - No Active Calls disconnect")
+            self.disconnect()
+            
+        }
+        
+        if(noActiveCalls){
             do {
-                Logger.log.i(message: "TxClient:: push flow socket is not conneccted")
+                Logger.log.i(message: "TxClient:: No Active Calls Connecting Again")
                 try self.connect(txConfig: txConfig, serverConfiguration: pnServerConfig)
             } catch let error {
                 Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
             }
-        }else {
-            Logger.log.i(message: "TxClient:: push flow socket is conneccted")
         }
+       
+        // Check if we are already connected and logged in
         self.isCallFromPush = true
     }
 
@@ -629,6 +637,7 @@ extension TxClient : SocketDelegate {
     func onSocketError(error: Error) {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketError()")
         let scoketError = TxError.socketConnectionFailed(reason: .socketCancelled(nativeError: error))
+        //disconnect to rconect socket
         self.delegate?.onClientError(error: error)
         if let txConfig = self.txConfig {
             if(txConfig.reconnectClient){
