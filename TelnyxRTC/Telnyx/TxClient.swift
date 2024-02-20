@@ -637,8 +637,8 @@ extension TxClient : SocketDelegate {
     func onSocketError(error: Error) {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketError()")
         let scoketError = TxError.socketConnectionFailed(reason: .socketCancelled(nativeError: error))
-        //disconnect to rconect socket
         self.delegate?.onClientError(error: error)
+        //reconnect socket
         if let txConfig = self.txConfig {
             if(txConfig.reconnectClient){
                 DispatchQueue.main.asyncAfter(deadline: .now() + TxClient.RECONNECT_BUFFER) {
