@@ -24,7 +24,7 @@ class LoginMessage : Message {
         var params = [String: Any]()
         params["login"] = user
         params["passwd"] = password
-
+        params["User-Agent"] = Message.CLIENT_TYPE
         //Setup push variables
         var userVariables = [String: Any]()
         if let pushDeviceToken = pushDeviceToken {
@@ -58,7 +58,8 @@ class LoginMessage : Message {
          pushNotificationProvider: String? = nil) {
         var params = [String: Any]()
         params["login_token"] = token
-        
+        params["User-Agent"] = Message.CLIENT_TYPE
+
         var loginParams = [String: Any]()
         loginParams["attach_call"] = true.description
         params["loginParams"] = loginParams

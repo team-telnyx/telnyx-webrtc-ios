@@ -51,7 +51,7 @@ public struct TxServerConfiguration {
             } else {
                 
                 // Set signalingServer for push notifications
-                //pass voice_sdk_id fot proxy to assign the right instance to call
+                //pass voice_sdk_id for proxy to assign the right instance to call
                 if let pushId = rtc_id {
                     let query = "?voice_sdk_id=\(pushId)"
                     let pushRtcServer = "\(InternalConfig.default.developmentSignalingServer)\(query)"
