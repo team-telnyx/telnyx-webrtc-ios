@@ -36,7 +36,7 @@ public struct TxConfig {
                 ringtone: String? = nil,
                 ringBackTone: String? = nil,
                 logLevel: LogLevel = .none,
-                
+                reconnectClient:Bool = true
     ) {
         self.sipUser = sipUser
         self.password = password
