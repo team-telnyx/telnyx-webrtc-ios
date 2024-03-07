@@ -90,7 +90,7 @@ class FileLogger {
         body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
         
         request.httpBody = body
-        
+    
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 Logger.log.e(message:"FileLogger :: Error sending log file: \(error)")
