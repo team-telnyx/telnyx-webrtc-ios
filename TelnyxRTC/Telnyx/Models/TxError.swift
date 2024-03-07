@@ -30,6 +30,8 @@ public enum TxError : Error {
         case passwordIsRequired
         /// `token` is missing when using the Token login method.
         case tokenIsRequired
+        /// `token` is missing when using the Token login method.
+        case voiceSdkIsRequired
     }
 
     /// The underlying reason of the call errors
@@ -75,6 +77,7 @@ extension TxError.ClientConfigurationFailureReason {
         case .userNameAndPasswordAreRequired,
              .passwordIsRequired,
              .userNameIsRequired,
+             .voiceSdkIsRequired,
              .tokenIsRequired:
             return nil
         }
@@ -148,6 +151,8 @@ extension TxError.ClientConfigurationFailureReason {
             return "Password is required."
         case .tokenIsRequired:
             return "Token is required."
+        case .voiceSdkIsRequired:
+            return "Voice SDK is required."
         }
     }
 }

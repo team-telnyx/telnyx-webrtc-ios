@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1B0B82F8E58A096FBA0FB9CC /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		3B13D0162B9A0D8700E06121 /* FileLoger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B13D0152B9A0D8700E06121 /* FileLoger.swift */; };
 		3B1BE6F72AA9A467000B7962 /* TxPushIPConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */; };
 		3B1F43EF2AE0B01E00A610BA /* Params.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1F43EE2AE0B01E00A610BA /* Params.swift */; };
 		3B49B7152AA9B0A20026D36D /* AttachCallMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B49B7142AA9B0A20026D36D /* AttachCallMessage.swift */; };
@@ -103,6 +104,7 @@
 		237976FBAD1D75CD4CE09D03 /* Pods-TelnyxRTC.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC.release.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC/Pods-TelnyxRTC.release.xcconfig"; sourceTree = "<group>"; };
 		2863A4F1B4A0DEA270929B3A /* Pods-TelnyxWebRTCDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxWebRTCDemo.release.xcconfig"; path = "Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo.release.xcconfig"; sourceTree = "<group>"; };
 		32B652E983D4C9ED833E9501 /* Pods-TelnyxRTC.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC/Pods-TelnyxRTC.debug.xcconfig"; sourceTree = "<group>"; };
+		3B13D0152B9A0D8700E06121 /* FileLoger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileLoger.swift; sourceTree = "<group>"; };
 		3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxPushIPConfig.swift; sourceTree = "<group>"; };
 		3B1F43EE2AE0B01E00A610BA /* Params.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Params.swift; sourceTree = "<group>"; };
 		3B49B7142AA9B0A20026D36D /* AttachCallMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachCallMessage.swift; sourceTree = "<group>"; };
@@ -369,6 +371,7 @@
 			isa = PBXGroup;
 			children = (
 				B36FC8BF2612794A00A30BC4 /* Logger.swift */,
+				3B13D0152B9A0D8700E06121 /* FileLoger.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -697,6 +700,7 @@
 				3B49B7152AA9B0A20026D36D /* AttachCallMessage.swift in Sources */,
 				B36FC8C02612794A00A30BC4 /* Logger.swift in Sources */,
 				B3AF248B25EE7C350062EDA9 /* Socket.swift in Sources */,
+				3B13D0162B9A0D8700E06121 /* FileLoger.swift in Sources */,
 				B3BB8FA026BC076000DDCB84 /* GatewayMessage.swift in Sources */,
 				B309D1DB25F020D400A2AADF /* Method.swift in Sources */,
 				B39121AF25FFCE680051E076 /* TxError.swift in Sources */,
