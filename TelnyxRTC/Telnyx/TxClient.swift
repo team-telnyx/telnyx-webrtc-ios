@@ -225,7 +225,6 @@ public class TxClient {
         for (_ ,call) in self.calls {
             call.hangup()
         }
-
         self.calls.removeAll()
         socket?.disconnect()
         delegate?.onSocketDisconnected()
@@ -701,7 +700,6 @@ extension TxClient : SocketDelegate {
             let message : String = error["message"] as? String ?? "Unknown"
             let code : String = String(error["code"] as? Int ?? 0)
             let err = TxError.serverError(reason: .signalingServerError(message: message, code: code))
-            self.isCallFromPush = false
             self.delegate?.onClientError(error: err)
             FileLogger.shared.log("TxClient:: Server Error data: [\(message)]/n")
         }
