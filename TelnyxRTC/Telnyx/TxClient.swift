@@ -207,9 +207,6 @@ public class TxClient {
         }
 
         Logger.log.i(message: "TxClient:: serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
-        if(self.isCallFromPush){
-            FileLogger.shared.log("TxClient:: Connect - serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]/n")
-        }
         self.socket = Socket()
         self.socket?.delegate = self
         self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
@@ -496,7 +493,6 @@ extension TxClient {
                 currentCallId = UUID()
                 resetPushVariables()
             }
-            FileLogger.shared.log("TxClient:: Client createIncomingCall :: onPushCall \(call)")
         } else {
             self.delegate?.onIncomingCall(call: call)
         }
@@ -518,13 +514,6 @@ extension TxClient {
     /// - Throws: Error during the connection process
     public func processVoIPNotification(txConfig: TxConfig,
                                         serverConfiguration: TxServerConfiguration,pushMetaData:[String: Any]) throws {
-        
-        if(FileLogger.shared.checkIfLogFileNotEmpty()){
-            FileLogger.shared.sendLogFile()
-            Logger.log.e(message: "TxClient:: sendLogFile -")
-        }
-        
-        FileLogger.shared.log("--------- TxClient:: start processVoIPNotification ---------------")
         let rtc_id = (pushMetaData["voice_sdk_id"] as? String)
 
         if(rtc_id == nil){
@@ -533,9 +522,7 @@ extension TxClient {
         }
         
         self.pushMetaData = pushMetaData
-        
-        FileLogger.shared.log("TxClient:: processVoIPNotification - pushMetaData: \(pushMetaData)")
-        
+                
         let pnServerConfig = TxServerConfiguration(
             signalingServer:nil,
             webRTCIceServers: serverConfiguration.webRTCIceServers,
@@ -547,7 +534,6 @@ extension TxClient {
         if (noActiveCalls && isConnected()) {
             Logger.log.i(message: "TxClient:: processVoIPNotification - No Active Calls disconnect")
             self.disconnect()
-            FileLogger.shared.log("TxClient:: processVoIPNotification - No Active Calls disconnect")
         }
         
         if(noActiveCalls){
@@ -570,7 +556,6 @@ extension TxClient {
         let attachMessage = AttachCallMessage(pushNotificationProvider: pushProvider)
         let message = attachMessage.encode() ?? ""
         self.socket?.sendMessage(message: message)
-        FileLogger.shared.log("TxClient:: Client sendAttachCall \(message)")
     }
 }
 
@@ -641,9 +626,6 @@ extension TxClient : SocketDelegate {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with Token")
             let vertoLogin = LoginMessage(token: token, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush)
             self.socket?.sendMessage(message: vertoLogin.encode())
-            if(self.isCallFromPush){
-                FileLogger.shared.log("TxClient:: onSocketConnected Token Login - Login data: [\(String(describing: vertoLogin))]/n")
-            }
         } else {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with SIP User and Password")
             guard let sipUser = self.txConfig?.sipUser else { return }
@@ -651,9 +633,6 @@ extension TxClient : SocketDelegate {
             let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
             let vertoLogin = LoginMessage(user: sipUser, password: password, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush)
             self.socket?.sendMessage(message: vertoLogin.encode())
-            if(self.isCallFromPush){
-                FileLogger.shared.log("TxClient:: onSocketConnected Credential Login - Login data: [\(String(describing: vertoLogin))]/n")
-            }
         }
   
 
@@ -701,7 +680,6 @@ extension TxClient : SocketDelegate {
             let code : String = String(error["code"] as? Int ?? 0)
             let err = TxError.serverError(reason: .signalingServerError(message: message, code: code))
             self.delegate?.onClientError(error: err)
-            FileLogger.shared.log("TxClient:: Server Error data: [\(message)]/n")
         }
 
         //Check if we are getting the new sessionId in response to the "login" message.
@@ -757,7 +735,6 @@ extension TxClient : SocketDelegate {
                         //Check if isCallFromPush and sendAttachCall Message
                         if (self.isCallFromPush == true){
                             self.sendAttachCall()
-                            FileLogger.shared.log("TxClient:: Client sendAttachCall")
                         }
                     }
                     break
@@ -794,9 +771,6 @@ extension TxClient : SocketDelegate {
                             } catch {
                                 print("decoding error: \(error)")
                             }
-                        }
-                        if(self.isCallFromPush){
-                            FileLogger.shared.log("TxClient:: Client .INVITE :: onPushCall \(message)")
                         }
                         self.createIncomingCall(callerName: callerName,
                                                 callerNumber: callerNumber,
