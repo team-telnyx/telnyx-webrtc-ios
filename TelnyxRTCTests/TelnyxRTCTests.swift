@@ -1,4 +1,5 @@
 import XCTest
+
 @testable import TelnyxRTC
 
 class TelnyxRTCTests: XCTestCase {

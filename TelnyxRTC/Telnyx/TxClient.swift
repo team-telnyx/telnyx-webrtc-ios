@@ -11,6 +11,7 @@ import AVFoundation
 import Bugsnag
 import WebRTC
 import CallKit
+import JanusMessageSDK
 
 /// The `TelnyxRTC` client connects your application to the Telnyx backend,
 /// enabling you to make outgoing calls and handle incoming calls.
@@ -611,20 +612,23 @@ extension TxClient : SocketDelegate {
         // Get push token and push provider if available
         let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
         let pushProvider = self.txConfig?.pushNotificationConfig?.pushNotificationProvider
+        
+        //let janusTransaction = CreateTransaction(janus: "String", transaction: "String")
+        //self.socket?.sendMessage(message: "janusTransaction")
 
         //Login into the signaling server after the connection is produced.
-        if let token = self.txConfig?.token  {
-            Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with Token")
-            let vertoLogin = LoginMessage(token: token, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider)
-            self.socket?.sendMessage(message: vertoLogin.encode())
-        } else {
-            Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with SIP User and Password")
-            guard let sipUser = self.txConfig?.sipUser else { return }
-            guard let password = self.txConfig?.password else { return }
-            let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
-            let vertoLogin = LoginMessage(user: sipUser, password: password, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider)
-            self.socket?.sendMessage(message: vertoLogin.encode())
-        }
+//        if let token = self.txConfig?.token  {
+//            Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with Token")
+//            let vertoLogin = LoginMessage(token: token, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider)
+//            self.socket?.sendMessage(message: vertoLogin.encode())
+//        } else {
+//            Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with SIP User and Password")
+//            guard let sipUser = self.txConfig?.sipUser else { return }
+//            guard let password = self.txConfig?.password else { return }
+//            let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
+//            let vertoLogin = LoginMessage(user: sipUser, password: password, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider)
+//            self.socket?.sendMessage(message: vertoLogin.encode())
+//        }
     }
     
     func onSocketDisconnected() {
@@ -660,6 +664,8 @@ extension TxClient : SocketDelegate {
      */
     func onMessageReceived(message: String) {
         Logger.log.i(message: "TxClient:: SocketDelegate onMessageReceived() message: \(message)")
+        
+        
         guard let vertoMessage = Message().decode(message: message) else { return }
 
         //Check if server is sending an error code

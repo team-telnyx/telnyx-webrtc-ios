@@ -12,6 +12,9 @@
 		3B1F43EF2AE0B01E00A610BA /* Params.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1F43EE2AE0B01E00A610BA /* Params.swift */; };
 		3B49B7152AA9B0A20026D36D /* AttachCallMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B49B7142AA9B0A20026D36D /* AttachCallMessage.swift */; };
 		3B72695D2A9396BF00D2A602 /* DisablePushMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B72695C2A9396BF00D2A602 /* DisablePushMessage.swift */; };
+		3BC19F582B9F752A00BC86C3 /* JanusMessageSDK.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BC19F532B9F74B300BC86C3 /* JanusMessageSDK.xcframework */; };
+		3BC19F612B9F76EF00BC86C3 /* JanusMessageSDK.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3BC19F532B9F74B300BC86C3 /* JanusMessageSDK.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3BC19F622B9F773800BC86C3 /* JanusMessageSDK.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BC19F532B9F74B300BC86C3 /* JanusMessageSDK.xcframework */; };
 		568DF7EAE9BC54FA55C6C689 /* Pods_TelnyxRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E0D4B133B1289001948EE69E /* Pods_TelnyxRTC.framework */; };
 		90210E2FE737998B9A9B670B /* Pods_TelnyxRTC_TelnyxRTCTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9340ADCDB2DAD211BD6758D /* Pods_TelnyxRTC_TelnyxRTCTests.framework */; };
 		A07BEA5A6226170D52E4B13A /* Pods_TelnyxWebRTCDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 791F5C026AFBE02A4201DFEB /* Pods_TelnyxWebRTCDemo.framework */; };
@@ -29,7 +32,6 @@
 		B309D24025F06EA600A2AADF /* InviteMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D23F25F06EA600A2AADF /* InviteMessage.swift */; };
 		B309D24E25F0717B00A2AADF /* UICallScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = B309D24D25F0717B00A2AADF /* UICallScreen.xib */; };
 		B309D25325F071DD00A2AADF /* UICallScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D25225F071DD00A2AADF /* UICallScreen.swift */; };
-		B309D26225F1574C00A2AADF /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		B309D26325F1574C00A2AADF /* (null) in Embed Frameworks */ = {isa = PBXBuildFile; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B309D27B25F17C1700A2AADF /* UIIncomingCallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D27925F17C1700A2AADF /* UIIncomingCallView.swift */; };
 		B309D27C25F17C1700A2AADF /* UIIncomingCallView.xib in Resources */ = {isa = PBXBuildFile; fileRef = B309D27A25F17C1700A2AADF /* UIIncomingCallView.xib */; };
@@ -91,6 +93,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				3BC19F612B9F76EF00BC86C3 /* JanusMessageSDK.xcframework in Embed Frameworks */,
 				B309D26325F1574C00A2AADF /* (null) in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
@@ -107,6 +110,7 @@
 		3B1F43EE2AE0B01E00A610BA /* Params.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Params.swift; sourceTree = "<group>"; };
 		3B49B7142AA9B0A20026D36D /* AttachCallMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachCallMessage.swift; sourceTree = "<group>"; };
 		3B72695C2A9396BF00D2A602 /* DisablePushMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisablePushMessage.swift; sourceTree = "<group>"; };
+		3BC19F532B9F74B300BC86C3 /* JanusMessageSDK.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = JanusMessageSDK.xcframework; path = Pods/JanusMessageSDK/JanusMessageSDK.xcframework; sourceTree = "<group>"; };
 		791F5C026AFBE02A4201DFEB /* Pods_TelnyxWebRTCDemo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxWebRTCDemo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B309D11125EF107F00A2AADF /* Starscream.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Starscream.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B309D1D525F020B300A2AADF /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
@@ -180,8 +184,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3BC19F622B9F773800BC86C3 /* JanusMessageSDK.xcframework in Frameworks */,
 				B309D13D25EF119E00A2AADF /* Starscream.framework in Frameworks */,
-				B309D26225F1574C00A2AADF /* (null) in Frameworks */,
 				568DF7EAE9BC54FA55C6C689 /* Pods_TelnyxRTC.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -191,6 +195,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B368BED625EDDBC90032AE52 /* TelnyxRTC.framework in Frameworks */,
+				3BC19F582B9F752A00BC86C3 /* JanusMessageSDK.xcframework in Frameworks */,
 				90210E2FE737998B9A9B670B /* Pods_TelnyxRTC_TelnyxRTCTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -431,6 +436,7 @@
 		EA45B40E24738E41F9F44AA0 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3BC19F532B9F74B300BC86C3 /* JanusMessageSDK.xcframework */,
 				B309D11125EF107F00A2AADF /* Starscream.framework */,
 				E0D4B133B1289001948EE69E /* Pods_TelnyxRTC.framework */,
 				B9340ADCDB2DAD211BD6758D /* Pods_TelnyxRTC_TelnyxRTCTests.framework */,
@@ -840,7 +846,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -898,7 +904,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -925,6 +931,10 @@
 					"$(inherited)",
 					"$(BUILD_PRODUCTS_DIR)/Starscream",
 					"$(PROJECT_DIR)/Pods/GoogleWebRTC/Frameworks/frameworks",
+					"$(SOURCE_ROOT)/Pods/**/**",
+					"$(SRCROOT)/Pods/**",
+					"${PODS_ROOT}/**/**",
+					"$(PROJECT_DIR)/Pods/JanusMessageSDK/Frameworks/frameworks/**",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/TelnyxRTC/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -982,7 +992,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 0A2CF78F8707DC64099CACFD /* Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = TelnyxRTCTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1001,7 +1010,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = C04FE2CB1BF7C58A356AB9EE /* Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = TelnyxRTCTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (

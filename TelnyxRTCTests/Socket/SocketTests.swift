@@ -7,6 +7,7 @@
 //
 
 import XCTest
+import JanusMessageSDK
 @testable import TelnyxRTC
 
 class SocketTests : XCTestCase, SocketDelegate {
