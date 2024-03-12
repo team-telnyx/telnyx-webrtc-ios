@@ -50,7 +50,6 @@ public struct TxServerConfiguration {
                 }else {
                     self.signalingServer = InternalConfig.default.prodSignalingServer
                 }
-                
             } else {
                 
                 // Set signalingServer for push notifications
@@ -63,7 +62,6 @@ public struct TxServerConfiguration {
                 }else {
                     self.signalingServer = InternalConfig.default.developmentSignalingServer
                 }
-                
             }
             self.environment = environment
         }
