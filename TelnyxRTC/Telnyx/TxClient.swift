@@ -322,6 +322,10 @@ public class TxClient {
                 // - Propagate the client state to the app.
                 self.registerTimer.invalidate()
                 self.delegate?.onClientReady()
+                //Check if isCallFromPush and sendAttachCall Message
+                if (self.isCallFromPush == true){
+                    self.sendAttachCall()
+                }
                 Logger.log.i(message: "TxClient:: updateGatewayState() clientReady")
                 break
             default:
@@ -729,13 +733,6 @@ extension TxClient : SocketDelegate {
                     // If we are going to receive an incoming call
                     if let params = vertoMessage.params,
                        let _ = params["reattached_sessions"] {
-                        self.registerTimer.invalidate()
-                        self.delegate?.onClientReady()
-                        
-                        //Check if isCallFromPush and sendAttachCall Message
-                        if (self.isCallFromPush == true){
-                            self.sendAttachCall()
-                        }
                     }
                     break
 
