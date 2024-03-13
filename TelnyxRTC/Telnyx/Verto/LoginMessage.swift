@@ -19,12 +19,15 @@ class LoginMessage : Message {
     init(user: String,
          password: String,
          pushDeviceToken: String? = nil,
-         pushNotificationProvider: String? = nil) {
+         pushNotificationProvider: String? = nil,
+         startFromPush: Bool = false
+    ) {
         
         var params = [String: Any]()
         params["login"] = user
         params["passwd"] = password
         params["User-Agent"] = Message.CLIENT_TYPE
+        params["from_push"] = startFromPush
         //Setup push variables
         var userVariables = [String: Any]()
         if let pushDeviceToken = pushDeviceToken {
@@ -55,11 +58,14 @@ class LoginMessage : Message {
     //token login
     init(token: String,
          pushDeviceToken: String? = nil,
-         pushNotificationProvider: String? = nil) {
+         pushNotificationProvider: String? = nil,
+         startFromPush: Bool = false
+    ) {
         var params = [String: Any]()
         params["login_token"] = token
         params["User-Agent"] = Message.CLIENT_TYPE
-
+        params["from_push"] = startFromPush
+        
         var loginParams = [String: Any]()
         loginParams["attach_call"] = true.description
         params["loginParams"] = loginParams

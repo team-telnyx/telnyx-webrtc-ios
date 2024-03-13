@@ -17,6 +17,7 @@ public struct TxServerConfiguration {
 
     public internal(set) var environment: WebRTCEnvironment = .production
     public internal(set) var signalingServer: URL
+    public internal(set) var pushMetaData: [String:Any]?
     public internal(set) var webRTCIceServers: [RTCIceServer]
 
     /// Constructor for the Server configuration parameters.
@@ -29,6 +30,8 @@ public struct TxServerConfiguration {
         // Get rtc_ip and rct_port to setup TxPushServerConfig
         let rtc_id = (pushMetaData?["voice_sdk_id"] as? String)
 
+        self.pushMetaData = pushMetaData
+    
         Logger.log.i(message: "TxServerConfiguration:: signalingServer [\(String(describing: signalingServer))] webRTCIceServers [\(String(describing: webRTCIceServers))] environment [\(String(describing: environment))] ip - [\(String(describing: rtc_id))]")
         
         
@@ -47,7 +50,6 @@ public struct TxServerConfiguration {
                 }else {
                     self.signalingServer = InternalConfig.default.prodSignalingServer
                 }
-                
             } else {
                 
                 // Set signalingServer for push notifications
@@ -60,7 +62,6 @@ public struct TxServerConfiguration {
                 }else {
                     self.signalingServer = InternalConfig.default.developmentSignalingServer
                 }
-                
             }
             self.environment = environment
         }

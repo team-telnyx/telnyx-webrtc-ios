@@ -146,7 +146,7 @@ public class TxClient {
     private var currentCallId:UUID = UUID()
     private var pendingAnswerHeaders = [String:String]()
     private var speakerOn:Bool = false
-    
+    private var pushMetaData:[String:Any]? 
     
     func isSpeakerEnabled() -> Bool {
         return speakerOn
@@ -195,15 +195,18 @@ public class TxClient {
         Logger.log.i(message: "TxClient:: connect()")
         //Check connetion parameters
         try txConfig.validateParams()
-
         self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
         self.gatewayState = .NOREG
         self.txConfig = txConfig
 
-        self.serverConfiguration = serverConfiguration
+        
+        if(self.pushMetaData?.isEmpty == false && serverConfiguration.pushMetaData?.isEmpty == true){
+            self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,webRTCIceServers: serverConfiguration.webRTCIceServers,environment: serverConfiguration.environment,pushMetaData: self.pushMetaData)
+        } else {
+            self.serverConfiguration = serverConfiguration
+        }
 
         Logger.log.i(message: "TxClient:: serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
-
         self.socket = Socket()
         self.socket?.delegate = self
         self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
@@ -219,7 +222,6 @@ public class TxClient {
         for (_ ,call) in self.calls {
             call.hangup()
         }
-
         self.calls.removeAll()
         socket?.disconnect()
         delegate?.onSocketDisconnected()
@@ -320,6 +322,10 @@ public class TxClient {
                 // - Propagate the client state to the app.
                 self.registerTimer.invalidate()
                 self.delegate?.onClientReady()
+                //Check if isCallFromPush and sendAttachCall Message
+                if (self.isCallFromPush == true){
+                    self.sendAttachCall()
+                }
                 Logger.log.i(message: "TxClient:: updateGatewayState() clientReady")
                 break
             default:
@@ -512,7 +518,15 @@ extension TxClient {
     /// - Throws: Error during the connection process
     public func processVoIPNotification(txConfig: TxConfig,
                                         serverConfiguration: TxServerConfiguration,pushMetaData:[String: Any]) throws {
+        let rtc_id = (pushMetaData["voice_sdk_id"] as? String)
+
+        if(rtc_id == nil){
+            Logger.log.e(message: "TxClient:: processVoIPNotification - pushMetaData is empty")
+            throw TxError.clientConfigurationFailed(reason: .voiceSdkIsRequired)
+        }
         
+        self.pushMetaData = pushMetaData
+                
         let pnServerConfig = TxServerConfiguration(
             signalingServer:nil,
             webRTCIceServers: serverConfiguration.webRTCIceServers,
@@ -524,7 +538,6 @@ extension TxClient {
         if (noActiveCalls && isConnected()) {
             Logger.log.i(message: "TxClient:: processVoIPNotification - No Active Calls disconnect")
             self.disconnect()
-            
         }
         
         if(noActiveCalls){
@@ -615,16 +628,18 @@ extension TxClient : SocketDelegate {
         //Login into the signaling server after the connection is produced.
         if let token = self.txConfig?.token  {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with Token")
-            let vertoLogin = LoginMessage(token: token, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider)
+            let vertoLogin = LoginMessage(token: token, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush)
             self.socket?.sendMessage(message: vertoLogin.encode())
         } else {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with SIP User and Password")
             guard let sipUser = self.txConfig?.sipUser else { return }
             guard let password = self.txConfig?.password else { return }
             let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
-            let vertoLogin = LoginMessage(user: sipUser, password: password, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider)
+            let vertoLogin = LoginMessage(user: sipUser, password: password, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush)
             self.socket?.sendMessage(message: vertoLogin.encode())
         }
+  
+
     }
     
     func onSocketDisconnected() {
@@ -641,6 +656,7 @@ extension TxClient : SocketDelegate {
         //reconnect socket
         if let txConfig = self.txConfig {
             if(txConfig.reconnectClient){
+                Logger.log.i(message: "TxClient:: SocketDelegate onSocketError() Reconnecting")
                 DispatchQueue.main.asyncAfter(deadline: .now() + TxClient.RECONNECT_BUFFER) {
                     do {
                         try self.connect(txConfig: txConfig,serverConfiguration: self.serverConfiguration)
@@ -667,7 +683,6 @@ extension TxClient : SocketDelegate {
             let message : String = error["message"] as? String ?? "Unknown"
             let code : String = String(error["code"] as? Int ?? 0)
             let err = TxError.serverError(reason: .signalingServerError(message: message, code: code))
-            self.isCallFromPush = false
             self.delegate?.onClientError(error: err)
         }
 
@@ -718,13 +733,6 @@ extension TxClient : SocketDelegate {
                     // If we are going to receive an incoming call
                     if let params = vertoMessage.params,
                        let _ = params["reattached_sessions"] {
-                        self.registerTimer.invalidate()
-                        self.delegate?.onClientReady()
-                        
-                        //Check if isCallFromPush and sendAttachCall Message
-                        if (self.isCallFromPush == true){
-                            self.sendAttachCall()
-                        }
                     }
                     break
 
@@ -769,6 +777,7 @@ extension TxClient : SocketDelegate {
                                                 telnyxLegId: telnyxLegId,
                                                 customHeaders: customHeaders)
                     }
+                   
                     break;
                 //Mark: to send meassage to pong
             case .PING:

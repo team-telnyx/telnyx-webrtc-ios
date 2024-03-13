@@ -94,8 +94,8 @@ class TelnyxRTCTests: XCTestCase {
             override func onClientError(error:Error) {
                 XCTAssertEqual(error.localizedDescription,
                                TxError.serverError(reason:
-                                    .signalingServerError(message: "Login Incorrect",
-                                                          code: "-32001")).localizedDescription)
+                                    .signalingServerError(message: "Gateway state not found",
+                                                          code: "0")).localizedDescription)
                 self.expectation.fulfill()
             }
         }
