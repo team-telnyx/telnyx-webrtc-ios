@@ -12,7 +12,6 @@ import Bugsnag
 import WebRTC
 import CallKit
 import JanusMessageSDK
-
 /// The `TelnyxRTC` client connects your application to the Telnyx backend,
 /// enabling you to make outgoing calls and handle incoming calls.
 ///
@@ -128,6 +127,7 @@ public class TxClient {
     private static let MAX_REGISTER_RETRY = 3 // Number of retry
     //re_connect buffer in secondds
     private static let RECONNECT_BUFFER = 0.0
+    private static let KEEP_ALIVE_BUFFER = 20.0
     /// Keeps track of all the created calls by theirs UUIDs
     public internal(set) var calls: [UUID: Call] = [UUID: Call]()
     /// Subscribe to TxClient delegate to receive Telnyx SDK events
@@ -137,6 +137,8 @@ public class TxClient {
     private var answerCallAction:CXAnswerCallAction? = nil
     private var endCallAction:CXEndCallAction? = nil
     private var sessionId : String?
+    private var janusSessionId:Int64 = 0
+    private var janusHandleId:Int64 = 0
     private var txConfig: TxConfig?
     private var serverConfiguration: TxServerConfiguration
 
@@ -147,7 +149,7 @@ public class TxClient {
     private var currentCallId:UUID = UUID()
     private var pendingAnswerHeaders = [String:String]()
     private var speakerOn:Bool = false
-    
+    private var keepAliveCreated:Bool = false
     
     func isSpeakerEnabled() -> Bool {
         return speakerOn
@@ -613,8 +615,10 @@ extension TxClient : SocketDelegate {
         let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
         let pushProvider = self.txConfig?.pushNotificationConfig?.pushNotificationProvider
         
-        //let janusTransaction = CreateTransaction(janus: "String", transaction: "String")
-        //self.socket?.sendMessage(message: "janusTransaction")
+    
+        let janusTransaction =  CreateTransaction(transaction: "").default()
+        self.socket?.sendMessage(message: janusTransaction.encode())
+        
 
         //Login into the signaling server after the connection is produced.
 //        if let token = self.txConfig?.token  {
@@ -657,14 +661,62 @@ extension TxClient : SocketDelegate {
             Logger.log.e(message:"TxClient:: SocketDelegate reconnect error" +  error.localizedDescription)
         }
     }
+    
 
+    func sendKeepAlive(){
+        
+        let buffer = self.keepAliveCreated ? TxClient.KEEP_ALIVE_BUFFER : 0.0
+
+        if(!keepAliveCreated){
+            keepAliveCreated = true
+            
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + buffer) {
+            let keepAlive = KeepAliveAck(janus: "", sessionId: self.janusSessionId, transaction: "")
+            self.socket?.sendMessage(message: keepAlive.janus)
+        }
+    }
     /**
      Each time we receive a message throught  the WSS this method will be called.
      Here we are checking the mesaging
      */
     func onMessageReceived(message: String) {
         Logger.log.i(message: "TxClient:: SocketDelegate onMessageReceived() message: \(message)")
-        
+    
+        JanusKt.decodeJanusMessage(message: message) { event, data in
+            switch event {
+            case JanusEvent.seeionCreated:
+                // Session created, send attach plugin
+                let transaction = data as! TransactionSuccess
+                self.janusSessionId = transaction.data.id
+                let sipPlugin = SipPlugin(janus: "", opaqueId: "", plugin: "", sessionId: self.janusSessionId, transaction: "").default(sessionId: self.janusSessionId)
+                self.socket?.sendMessage(message: sipPlugin.encode())
+
+            case .pluginAttached:
+                // Plugin attached, send keepAlive
+                guard let config = self.txConfig else { return } // Assuming txConfig is optional
+                let transaction = data as! TransactionSuccess
+                self.janusHandleId = transaction.data.id
+                let body = Body(displayName: config.sipUser ?? "", proxy: "", request: "",
+                                loginToken: config.token ?? "",
+                                login: config.password ?? "",
+                                username: config.sipUser ?? "")
+                let register = Register(body: body, handleId: self.janusHandleId, sessionId: self.janusSessionId, transaction: "").default(handleId: self.janusHandleId, body: body)
+                self.socket?.sendMessage(message: register.encode())
+                self.sendKeepAlive()
+
+            case JanusEvent.registered:
+                // Handle event when registered
+                self.delegate?.onClientReady()
+                break
+            case JanusEvent.keepAlive:
+                break
+            default:
+                break
+            }
+
+        }
         
         guard let vertoMessage = Message().decode(message: message) else { return }
 

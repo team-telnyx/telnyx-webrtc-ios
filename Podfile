@@ -18,7 +18,7 @@ target 'TelnyxRTC' do
   pod 'Bugsnag', '~> 6.9.1'
   pod 'Starscream', '~> 4.0.6'
   pod 'WebRTC-lib', "~> 117.0.0"
-  pod 'JanusMessageSDK', '~> 0.7.20'
+  pod 'JanusMessageSDK', '~> 0.7.24'
 
   target 'TelnyxRTCTests' do
     # Pods for testing
@@ -34,6 +34,7 @@ post_install do |installer|
               target.build_configurations.each do |config|
                   config.build_settings['ENABLE_BITCODE'] = 'NO'
                   config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.1'
+                  config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'x86_64'
                end
           end
    end

@@ -10,8 +10,8 @@ import Foundation
 import WebRTC
 
 //Servers
-fileprivate let PROD_HOST = "wss://sipdev.telnyx.com"
-fileprivate let DEVELOPMENT_HOST = "wss://sipdev.telnyx.com"
+fileprivate let PROD_HOST = "wss://rtcdev.telnyx.com/v2/"
+fileprivate let DEVELOPMENT_HOST = "wss://rtcdev.telnyx.com/v2/"
 fileprivate let TURN_SERVER  = "turn:turn.telnyx.com:3478?transport=tcp"
 fileprivate let STUN_SERVER = "stun:stun.telnyx.com:3478"
 fileprivate let DEFAULT_TURN = RTCIceServer(urlStrings: [TURN_SERVER],

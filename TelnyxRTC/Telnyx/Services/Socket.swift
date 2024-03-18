@@ -20,7 +20,8 @@ class Socket {
         var request = URLRequest(url: signalingServer)
         request.timeoutInterval = 5
         let pinner = FoundationSecurity(allowSelfSigned: true) // don't validate SSL certificates
-        
+        request.setValue("Sec-WebSocket-Protocol", forHTTPHeaderField: "janus-protocol")
+
         self.socket = WebSocket(request: request, certPinner: pinner)
         self.socket?.delegate = self
         self.socket?.connect()

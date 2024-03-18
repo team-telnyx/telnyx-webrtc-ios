@@ -1,5 +1,5 @@
 import XCTest
-
+import JanusMessageSDK
 @testable import TelnyxRTC
 
 class TelnyxRTCTests: XCTestCase {

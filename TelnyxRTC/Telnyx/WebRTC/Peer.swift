@@ -351,7 +351,8 @@ extension Peer : RTCPeerConnectionDelegate {
         Logger.log.i(message: "Peer:: connection didGenerate RCIceCandidate: \(candidate)")
         //once an ICE candidate is generated, let's added into the peerConnection so the ICE Candidate
         //information is added to the local SDP.
-
+        // Use Janus Trickle Here
+        
         
         connection?.add(candidate, completionHandler: { error in
             Logger.log.i(message: "Peer::add [RTCIceCandidate]: \(String(describing: error)) \(candidate) ")

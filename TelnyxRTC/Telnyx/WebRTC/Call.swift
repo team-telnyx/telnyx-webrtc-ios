@@ -443,6 +443,7 @@ extension Call : PeerDelegate {
     //If we received at least one ICE Candidate, then we can send the telnyx_rtc.invite message to start a call
     func onICECandidate(sdp: RTCSessionDescription?, iceCandidate: RTCIceCandidate) {
         
+        // Send Janus Invite Here
         guard let sdp = sdp,
               let sessionId = self.sessionId,
               let callInfo = self.callInfo,
