@@ -142,6 +142,7 @@ class ViewController: UIViewController {
                                     pushDeviceToken: deviceToken,
                                     ringtone: "incoming_call.mp3",
                                     ringBackTone: "ringback_tone.mp3",
+                                    pushEnvironment: .production,
                                     //You can choose the appropriate verbosity level of the SDK.
                                     logLevel: .all)
             } else {
@@ -157,6 +158,7 @@ class ViewController: UIViewController {
                          pushDeviceToken: deviceToken,
                          ringtone: "incoming_call.mp3",
                          ringBackTone: "ringback_tone.mp3",
+                         pushEnvironment: .production,
                          //You can choose the appropriate verbosity level of the SDK.
                          logLevel: .all)
 

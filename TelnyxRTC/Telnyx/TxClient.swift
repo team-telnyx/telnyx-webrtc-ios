@@ -282,7 +282,7 @@ public class TxClient {
 
         if let sipUser = self.txConfig?.sipUser {
             let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
-            let disablePushMessage = DisablePushMessage(user: sipUser,pushDeviceToken: pushToken,pushNotificationProvider: pushProvider)
+            let disablePushMessage = DisablePushMessage(user: sipUser,pushDeviceToken: pushToken,pushNotificationProvider: pushProvider,pushEnvironment: self.txConfig?.pushEnvironment)
             let message = disablePushMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
             return
@@ -290,7 +290,7 @@ public class TxClient {
         
         if let token = self.txConfig?.token {
             let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
-            let disablePushMessage = DisablePushMessage(loginToken:token,pushDeviceToken: pushToken,pushNotificationProvider: pushProvider)
+            let disablePushMessage = DisablePushMessage(loginToken:token,pushDeviceToken: pushToken,pushNotificationProvider: pushProvider,pushEnvironment: self.txConfig?.pushEnvironment)
             let message = disablePushMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
         }
@@ -557,7 +557,7 @@ extension TxClient {
     fileprivate func sendAttachCall() {
         Logger.log.e(message: "TxClient:: PN Recieved.. Sending reattach call ")
         let pushProvider = self.txConfig?.pushNotificationConfig?.pushNotificationProvider
-        let attachMessage = AttachCallMessage(pushNotificationProvider: pushProvider)
+        let attachMessage = AttachCallMessage(pushNotificationProvider: pushProvider,pushEnvironment:self.txConfig?.pushEnvironment)
         let message = attachMessage.encode() ?? ""
         self.socket?.sendMessage(message: message)
     }
@@ -628,14 +628,14 @@ extension TxClient : SocketDelegate {
         //Login into the signaling server after the connection is produced.
         if let token = self.txConfig?.token  {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with Token")
-            let vertoLogin = LoginMessage(token: token, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush)
+            let vertoLogin = LoginMessage(token: token, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush,pushEnvironment: self.txConfig?.pushEnvironment)
             self.socket?.sendMessage(message: vertoLogin.encode())
         } else {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with SIP User and Password")
             guard let sipUser = self.txConfig?.sipUser else { return }
             guard let password = self.txConfig?.password else { return }
             let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
-            let vertoLogin = LoginMessage(user: sipUser, password: password, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush)
+            let vertoLogin = LoginMessage(user: sipUser, password: password, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush,pushEnvironment: self.txConfig?.pushEnvironment)
             self.socket?.sendMessage(message: vertoLogin.encode())
         }
   
