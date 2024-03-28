@@ -8,8 +8,14 @@
 
 import Foundation
 
+public enum PushEnvironment: String {
+    case production = "production"
+    case debug = "debug"
+}
 /// This structure is intended to used for Telnyx SDK configurations.
 public struct TxConfig {
+
+
     
     // MARK: - Properties
     public internal(set) var sipUser: String?
@@ -20,6 +26,7 @@ public struct TxConfig {
     public internal(set) var ringBackTone: String?
     public internal(set) var ringtone: String?
     public internal(set) var reconnectClient: Bool = false
+    public internal(set) var pushEnvironment: PushEnvironment?
 
     // MARK: - Initializers
 
@@ -35,6 +42,7 @@ public struct TxConfig {
                 pushDeviceToken: String? = nil,
                 ringtone: String? = nil,
                 ringBackTone: String? = nil,
+                pushEnvironment: PushEnvironment? = nil,
                 logLevel: LogLevel = .none,
                 reconnectClient:Bool = true
     ) {
@@ -47,6 +55,7 @@ public struct TxConfig {
         self.ringBackTone = ringBackTone
         self.ringtone = ringtone
         self.reconnectClient = reconnectClient
+        self.pushEnvironment = pushEnvironment
         Logger.log.verboseLevel = logLevel
     }
 
@@ -62,6 +71,7 @@ public struct TxConfig {
                 pushDeviceToken: String? = nil,
                 ringtone: String? = nil,
                 ringBackTone: String? = nil,
+                pushEnvironment: PushEnvironment? = nil,
                 logLevel: LogLevel = .none) {
         self.token = token
         if let pushToken = pushDeviceToken {
@@ -70,6 +80,7 @@ public struct TxConfig {
         }
         self.ringBackTone = ringBackTone
         self.ringtone = ringtone
+        self.pushEnvironment = pushEnvironment
         Logger.log.verboseLevel = logLevel
     }
 
