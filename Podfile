@@ -18,7 +18,7 @@ target 'TelnyxRTC' do
   pod 'Bugsnag', '~> 6.9.1'
   pod 'Starscream', '~> 4.0.6'
   pod 'WebRTC-lib', "~> 117.0.0"
-  pod 'JanusMessageSDK', '~> 0.7.24'
+  pod 'JanusMessageSDK', '~> 0.7.26'
 
   target 'TelnyxRTCTests' do
     # Pods for testing

@@ -673,7 +673,7 @@ extension TxClient : SocketDelegate {
         }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + buffer) {
-            let keepAlive = KeepAliveAck(janus: "", sessionId: self.janusSessionId, transaction: "")
+            let keepAlive = KeepAliveAck(sessionId: self.janusSessionId, transaction: UUID().uuidString)
             self.socket?.sendMessage(message: keepAlive.janus)
         }
     }
