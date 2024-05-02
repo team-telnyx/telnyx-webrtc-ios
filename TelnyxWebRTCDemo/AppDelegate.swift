@@ -55,6 +55,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
     
+    func applicationWillEnterForeground(_ application: UIApplication) {
+        
+    }
+    
     func applicationDidEnterBackground(_ application: UIApplication) {
         print("AppDelegate: applicationDidEnterBackground")
     }
