@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/bugsnag/bugsnag-cocoa.git",
       "state" : {
-        "revision" : "7410780b8e579be1d38e0245e2b3ccb6ae283ae1",
-        "version" : "6.27.0"
+        "revision" : "16b9145fc66e5296f16e733f6feb5d0e450574e8",
+        "version" : "6.28.1"
       }
     },
     {
@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/stasel/WebRTC.git",
       "state" : {
-        "revision" : "046c9056a72e769eb01e7fec96a5adbfefbfd663",
-        "version" : "117.0.0"
+        "revision" : "cbe72674a92976aaab93f556f126d263340ef9a1",
+        "version" : "124.0.0"
       }
     }
   ],
