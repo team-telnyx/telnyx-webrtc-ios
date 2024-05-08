@@ -18,6 +18,7 @@ let package = Package(
     targets: [
         .target(
             name: "TelnyxRTC",
+            resources: [.copy("PrivacyInfo.xcprivacy")],
             dependencies: [
                 .product(name: "Bugsnag", package: "bugsnag-cocoa"),
                 .product(name: "Starscream", package: "Starscream"),

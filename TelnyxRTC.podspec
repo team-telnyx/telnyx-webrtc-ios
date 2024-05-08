@@ -2,7 +2,7 @@
 Pod::Spec.new do |spec|
 
   spec.name = "TelnyxRTC"
-  spec.version = "0.1.23"
+  spec.version = "0.1.26-beta"
   spec.summary = "Enable Telnyx real-time communication services on iOS."
   spec.description = "The Telnyx iOS WebRTC Client SDK provides all the functionality you need to start making voice calls from an iPhone."
   spec.homepage = "https://github.com/team-telnyx/telnyx-webrtc-ios"
@@ -20,6 +20,7 @@ Pod::Spec.new do |spec|
 
   spec.source_files = "TelnyxRTC", "TelnyxRTC/**/*.{h,m,swift}"
   spec.exclude_files = "TelnyxRTC/Exclude"
+  spec.resource_bundles = {"TelnyxRTC" => ["TelnyxRTC/PrivacyInfo.xcprivacy"]}
 
   spec.dependency  "Bugsnag", "~> 6.9.1"
   spec.dependency  "Starscream", "~> 4.0.6"
