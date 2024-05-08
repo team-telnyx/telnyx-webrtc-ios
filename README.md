@@ -723,6 +723,9 @@ telnyxClient.disablePushNotifications()
 ```
 Note : Signing back in, using same credentials will re-enable push notifications.
 
+### Privacy Manifest
+Support for privacy manifest is add from version 0.1.26
+
 
 ### Documentation:
 For more information you can:
