@@ -38,7 +38,7 @@ class Socket {
             socket.write(string: message)
             Logger.log.verto(message: "Socket:: sendMessage() message: \(message)", direction: .outbound)
         } else {
-            Logger.log.e(message: "Socket:: sendMessage() Error sending message... ")
+            Logger.log.e(message: "Socket:: sendMessage() Error sending message...")
         }
     }
     
