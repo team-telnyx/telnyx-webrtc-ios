@@ -8,7 +8,7 @@ let package = Package(
     products: [
         .library(
             name: "telnyx-webrtc-ios",
-            targets: ["TelnyxRTC"]),
+            targets: ["TelnyxRTC"])
     ],
     dependencies: [
         .package(url: "https://github.com/bugsnag/bugsnag-cocoa.git", from: "6.28.1"),
