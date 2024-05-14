@@ -101,7 +101,7 @@ class FileLogger {
                 Logger.log.i(message:"FileLogger:: Log file successfully uploaded \(String(describing: response))")
 
             } else {
-                Logger.log.i(message:"FileLogger:: Error From Server \(String(describing: response))")
+                Logger.log.i(message:"FileLogger:: Error sending file \(String(describing: response))")
                 print("FileLogger :: Error From Server \(String(describing: response))")
             }
         }.resume()
