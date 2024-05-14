@@ -122,6 +122,7 @@ public class Call {
 
     private var ringTonePlayer: AVAudioPlayer?
     private var ringbackPlayer: AVAudioPlayer?
+    private var client: TxClient?
 
     // MARK: - Initializers
     /// Constructor for incoming calls
@@ -266,6 +267,12 @@ public class Call {
         self.stopRingbackTone()
         self.peer?.dispose()
         self.updateCallState(callState: .DONE)
+        if(self.client != nil){
+            if(self.client!.sendFileLogs == true){
+                FileLogger.shared.sendLogFile()
+                self.client?.sendFileLogs = false
+            }
+        }
     }
 
     private func updateCallState(callState: CallState) {
