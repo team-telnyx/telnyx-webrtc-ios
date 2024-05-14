@@ -473,6 +473,7 @@ extension TxClient {
                         ringtone: self.txConfig?.ringtone,
                         ringbackTone: self.txConfig?.ringBackTone,
                         iceServers: self.serverConfiguration.webRTCIceServers)
+        call.client = self
         call.callInfo?.callerName = callerName
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)

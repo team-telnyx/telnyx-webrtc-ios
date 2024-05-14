@@ -122,7 +122,7 @@ public class Call {
 
     private var ringTonePlayer: AVAudioPlayer?
     private var ringbackPlayer: AVAudioPlayer?
-    private var client: TxClient?
+    internal var client: TxClient?
 
     // MARK: - Initializers
     /// Constructor for incoming calls
@@ -263,16 +263,16 @@ public class Call {
     }
 
     private func endCall() {
-        self.stopRingtone()
-        self.stopRingbackTone()
-        self.peer?.dispose()
-        self.updateCallState(callState: .DONE)
         if(self.client != nil){
             if(self.client!.sendFileLogs == true){
                 FileLogger.shared.sendLogFile()
                 self.client?.sendFileLogs = false
             }
         }
+        self.stopRingtone()
+        self.stopRingbackTone()
+        self.peer?.dispose()
+        self.updateCallState(callState: .DONE)
     }
 
     private func updateCallState(callState: CallState) {
@@ -496,16 +496,13 @@ extension Call : PeerDelegate {
 extension Call {
 
     internal func handleVertoMessage(message: Message,dataMessage: String,txClient:TxClient) {
-
         switch message.method {
         case .BYE:
             //Close call
-            self.endCall()
             if(txClient.sendFileLogs){
                 FileLogger.shared.log("Call:: BYE \(dataMessage)")
-                FileLogger.shared.sendLogFile()
-                txClient.sendFileLogs = false
             }
+            self.endCall()
             break
         case .MEDIA:
             self.stopRingtone()
