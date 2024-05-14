@@ -770,6 +770,14 @@ extension TxClient : SocketDelegate {
                                 print("decoding error: \(error)")
                             }
                         }
+                        
+                        
+                        if(self.isCallFromPush == true){
+                            FileLogger.shared.log("INVITE : \(message) \n")
+                            FileLogger.shared.log("INVITE telnyxLegId: \(telnyxLegId) \n")
+                            self.sendFileLogs = true
+                        }
+                        
                         self.createIncomingCall(callerName: callerName,
                                                 callerNumber: callerNumber,
                                                 callId: uuid,
@@ -777,11 +785,8 @@ extension TxClient : SocketDelegate {
                                                 telnyxSessionId: telnyxSessionId,
                                                 telnyxLegId: telnyxLegId,
                                                 customHeaders: customHeaders)
-                        if(isCallFromPush){
-                            FileLogger.shared.log("INVITE : \(message) \n")
-                            FileLogger.shared.log("INVITE telnyxLegId: \(telnyxLegId) \n")
-                            self.sendFileLogs = true
-                        }
+              
+                      
                         
                     }
                    

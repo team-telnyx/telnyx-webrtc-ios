@@ -18,7 +18,7 @@ class FileLogger {
     func log(_ message: String) {
         let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .medium, timeStyle: .medium)
         let logMessage = "\(timestamp): \(message)\n\n\n\n"
-        print(logMessage)
+        Logger.log.i(message: "filelogger :: \(logMessage)")
         appendTextToFile(text: logMessage, fileURL: logFileURL)
     }
     
