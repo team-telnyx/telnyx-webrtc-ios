@@ -146,7 +146,8 @@ public class TxClient {
     private var currentCallId:UUID = UUID()
     private var pendingAnswerHeaders = [String:String]()
     private var speakerOn:Bool = false
-    private var pushMetaData:[String:Any]? 
+    internal var sendFileLogs:Bool = false
+    private var pushMetaData:[String:Any]?
     
     func isSpeakerEnabled() -> Bool {
         return speakerOn
@@ -776,6 +777,12 @@ extension TxClient : SocketDelegate {
                                                 telnyxSessionId: telnyxSessionId,
                                                 telnyxLegId: telnyxLegId,
                                                 customHeaders: customHeaders)
+                        if(isCallFromPush){
+                            FileLogger.shared.log("INVITE : \(message) \n")
+                            FileLogger.shared.log("INVITE telnyxLegId: \(telnyxLegId) \n")
+                            self.sendFileLogs = true
+                        }
+                        
                     }
                    
                     break;
