@@ -360,7 +360,7 @@ extension Peer : RTCPeerConnectionDelegate {
         Logger.log.i(message: "Peer::serverUrl [RTCIceCandidate]: \(String(describing: candidate.serverUrl))")
         gatheredICECandidates.append(candidate.serverUrl ?? "")
         
-        if(gatheredICECandidates.contains(InternalConfig.stunServer) &&
+        if(gatheredICECandidates.contains(InternalConfig.stunServer) ||
             gatheredICECandidates.contains(InternalConfig.turnServer)){
             
             self.startNegotiation(peerConnection: connection!, didGenerate: candidate)
