@@ -777,11 +777,6 @@ extension TxClient : SocketDelegate {
                                                 telnyxSessionId: telnyxSessionId,
                                                 telnyxLegId: telnyxLegId,
                                                 customHeaders: customHeaders)
-                        if(isCallFromPush){
-                            FileLogger.shared.log("INVITE : \(message) \n")
-                            FileLogger.shared.log("INVITE telnyxLegId: \(telnyxLegId) \n")
-                            self.sendFileLogs = true
-                        }
                         
                     }
                    
