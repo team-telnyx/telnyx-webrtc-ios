@@ -494,11 +494,6 @@ extension Call {
         case .BYE:
             //Close call
             self.endCall()
-            if(txClient.sendFileLogs){
-                FileLogger.shared.log("Call:: BYE \(message)")
-                FileLogger.shared.sendLogFile()
-                txClient.sendFileLogs = false
-            }
             break
         case .MEDIA:
             self.stopRingtone()
