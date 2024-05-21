@@ -320,7 +320,7 @@ extension Call {
         self.peer = Peer(iceServers: self.iceServers)
         self.peer?.delegate = self
         self.incomingOffer(sdp: remoteSdp)
-        self.peer?.answer(completion: { (sdp, error)  in
+        self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "",completion: { (sdp, error)  in
 
             if let error = error {
                 Logger.log.e(message: "Call:: Error creating the answering: \(error)")

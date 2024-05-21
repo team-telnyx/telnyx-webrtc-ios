@@ -37,6 +37,7 @@ class Peer : NSObject {
     private var videoCapturer: RTCVideoCapturer?
     private var localVideoTrack: RTCVideoTrack?
     private var remoteVideoTrack: RTCVideoTrack?
+    private var callLegID: String?
 
     //Data channel
     private var localDataChannel: RTCDataChannel?
@@ -168,10 +169,11 @@ class Peer : NSObject {
 
 
     // MARK: Signaling ANSWER
-    func answer(completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
+    func answer(callLegId:String,completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
         self.negotiationEnded = false
         let constrains = RTCMediaConstraints(mandatoryConstraints: self.mediaConstrains,
                                              optionalConstraints: nil)
+        self.callLegID = callLegId
         self.connection?.answer(for: constrains) { (sdp, error) in
             
             if let error = error {
@@ -193,6 +195,65 @@ class Peer : NSObject {
             })
         }
     }
+    
+    private var timer: DispatchSourceTimer?
+
+    private var statsEvent = [String: Any]()
+    private var inboundStats = [Any]()
+    private var outBoundStats = [Any]()
+    private var statsData = [String: Any]()
+    private var audio = [String: [Any]]()
+
+    func startTimer() {
+            let queue = DispatchQueue.main
+            timer = DispatchSource.makeTimerSource(queue: queue)
+            timer?.schedule(deadline: .now(), repeating: 2.0)
+            timer?.setEventHandler { [weak self] in
+                self?.executeTask()
+            }
+            timer?.resume()
+        }
+
+        private func stopTimer() {
+            statsData["audio"] = audio
+            statsEvent["data"] = statsData
+            statsEvent.printJson()
+
+
+            timer?.cancel()
+            timer = nil
+        }
+    
+    
+
+        private func executeTask() {
+            print("Task executed at \(Date())")
+          
+            statsEvent["event"] = "stats"
+            statsEvent["tag"] = "stats"
+            statsEvent["peerId"] = "stats"
+            statsEvent["connectionId"] = self.callLegID ?? ""
+            statsEvent["timeTaken"] = 1
+            
+
+            self.connection?.statistics(completionHandler: { reports in
+                reports.statistics.forEach { report in
+                    if(report.value.type == "inbound-rtp") {
+                        //Logger.log.i(message: "Peer:: ICE negotiation updated. Report New: \(report.values)")
+                        self.inboundStats.append(report.value.values)
+                    }
+                    if(report.value.type == "outbound-rtp") {
+                        //Logger.log.i(message: "Peer:: ICE negotiation updated. Report New: \(report.values)")
+                        self.outBoundStats.append(report.value.values)
+                    }
+                }
+            })
+            audio["outbound"] = outBoundStats
+            audio["inbound"] = inboundStats
+          
+
+        }
+
 
     /**
      This code should be started when the first ICE candidate is created.
@@ -202,6 +263,8 @@ class Peer : NSObject {
      */
     fileprivate func startNegotiation(peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
         Logger.log.i(message: "Peer:: ICE negotiation updated.")
+        
+        startTimer()
         
         //Set gathered candidates to 
         
@@ -228,6 +291,7 @@ class Peer : NSObject {
     /// Close connection and release resources
     func dispose() {
         Logger.log.i(message: "Peer:: dispose()")
+        stopTimer()
         //This should release all the connection resources
         //including audio / video streams
         self.connection?.close()
@@ -376,4 +440,21 @@ extension Peer : RTCPeerConnectionDelegate {
     func peerConnection(_ peerConnection: RTCPeerConnection, didOpen dataChannel: RTCDataChannel) {
         Logger.log.i(message: "Peer:: connection didOpen RTCDataChannel: \(dataChannel)")
     }
+}
+extension Dictionary {
+
+    var json: String {
+        let invalidJson = "Not a valid JSON"
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: self, options: .prettyPrinted)
+            return String(bytes: jsonData, encoding: String.Encoding.utf8) ?? invalidJson
+        } catch {
+            return invalidJson
+        }
+    }
+
+    func printJson() {
+        print(json)
+    }
+
 }
