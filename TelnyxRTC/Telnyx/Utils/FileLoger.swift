@@ -15,9 +15,17 @@ class FileLogger {
         return documentsDirectory.appendingPathComponent("appLog2.txt")
     }
     
+    private func remoteFile(fileURL:URL) {
+        do {
+            try FileManager.default.removeItem(at: fileURL)
+        }catch {
+            Logger.log.e(message: "FileLogger :: Error deleting log file: \(error)")
+        }
+    }
+    
     func log(_ message: String) {
         let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .medium, timeStyle: .medium)
-        let logMessage = "\(timestamp): \(message)\n\n\n\n"
+        let logMessage = "\(message)\n\n\n\n"
         print(logMessage)
         appendTextToFile(text: logMessage, fileURL: logFileURL)
     }
@@ -99,7 +107,7 @@ class FileLogger {
             
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
                 Logger.log.i(message:"FileLogger:: Log file successfully uploaded \(String(describing: response))")
-
+                self.remoteFile(fileURL: logFileURL)
             } else {
                 Logger.log.i(message:"FileLogger:: Error From Server \(String(describing: response))")
                 print("FileLogger :: Error From Server \(String(describing: response))")

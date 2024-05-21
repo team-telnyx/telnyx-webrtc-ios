@@ -215,11 +215,7 @@ class Peer : NSObject {
         }
 
         private func stopTimer() {
-            statsData["audio"] = audio
-            statsEvent["data"] = statsData
-            statsEvent.printJson()
-
-
+            FileLogger.shared.sendLogFile()
             timer?.cancel()
             timer = nil
         }
@@ -246,11 +242,19 @@ class Peer : NSObject {
                         //Logger.log.i(message: "Peer:: ICE negotiation updated. Report New: \(report.values)")
                         self.outBoundStats.append(report.value.values)
                     }
+                   // Logger.log.i(message: "Peer:: ICE negotiation updated. Report New:\(report.value.type) ->  \(report.value.values)")
+                    
                 }
             })
             audio["outbound"] = outBoundStats
             audio["inbound"] = inboundStats
-          
+            statsData["audio"] = audio
+            statsEvent["data"] = statsData
+            let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .medium, timeStyle: .medium)
+            statsEvent["timestamp"] = timestamp
+            FileLogger.shared.log(statsEvent.printJson())
+            outBoundStats = []
+            inboundStats = []
 
         }
 
@@ -453,8 +457,10 @@ extension Dictionary {
         }
     }
 
-    func printJson() {
-        print(json)
+    func printJson() -> String {
+        print("Report \(json)")
+        return json
     }
+    
 
 }
