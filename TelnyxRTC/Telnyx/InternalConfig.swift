@@ -17,6 +17,8 @@ fileprivate let DEFAULT_TURN = RTCIceServer(urlStrings: [TURN_SERVER],
                                             username: "testuser",
                                             credential: "testpassword")
 fileprivate let DEFAULT_STUN = RTCIceServer(urlStrings: [STUN_SERVER])
+fileprivate let GOOGLE_STUN_SERVER = RTCIceServer(urlStrings: ["stun:stun.l.google.com:19302"])
+
 
 // Set this to the machine's address which runs the signaling server
 fileprivate let defaultSignalingServerUrl = URL(string: PROD_HOST)!

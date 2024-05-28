@@ -92,7 +92,7 @@ class PeerConnectionTests: XCTestCase {
         })
 
         //Answer the call
-        self.peerConnection?.answer(completion: { (sdp, error)  in
+        self.peerConnection?.answer(callLegId: "", completion: { (sdp, error)  in
 
             if let error = error {
                 print("Error creating the answering: \(error)")

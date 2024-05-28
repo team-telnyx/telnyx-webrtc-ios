@@ -67,8 +67,8 @@ class Peer : NSObject {
         config.iceServers = iceServers
 
         // Unified plan is more superior than planB
-        config.sdpSemantics = .planB
-        config.bundlePolicy = .maxCompat
+        config.sdpSemantics = .unifiedPlan
+        config.bundlePolicy = .balanced
 
         // gatherContinually will let WebRTC to listen to any network changes and send any new candidates to the other client
         config.continualGatheringPolicy = .gatherContinually
@@ -85,6 +85,7 @@ class Peer : NSObject {
     }
 
     private func createMediaSenders() {
+        // TODO Check StreamID
         let streamId = UUID.init().uuidString.lowercased()
 
         // let's support Audio first.
@@ -105,7 +106,7 @@ class Peer : NSObject {
             self.rtcAudioSession.lockForConfiguration()
             do {
                 Logger.log.i(message: "Peer:: Configuring AVAudioSession")
-                try self.rtcAudioSession.setCategory(AVAudioSession.Category(rawValue: AVAudioSession.Category.playAndRecord.rawValue))
+                try self.rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord)
                 try self.rtcAudioSession.setMode(AVAudioSession.Mode.voiceChat)
                 self.rtcAudioSession.useManualAudio = true
                 Logger.log.i(message: "Peer:: Configuring AVAudioSession configured")
@@ -201,15 +202,19 @@ class Peer : NSObject {
     private var statsEvent = [String: Any]()
     private var inboundStats = [Any]()
     private var outBoundStats = [Any]()
+    private var candidatePairs = [Any]()
     private var statsData = [String: Any]()
     private var audio = [String: [Any]]()
+    private var shouldEmptyCandidates = false
 
     func startTimer() {
             let queue = DispatchQueue.main
             timer = DispatchSource.makeTimerSource(queue: queue)
-            timer?.schedule(deadline: .now(), repeating: 2.0)
+            timer?.schedule(deadline: .now(), repeating: 5.0)
             timer?.setEventHandler { [weak self] in
+             
                 self?.executeTask()
+                print("Task executed at \(Date())")
             }
             timer?.resume()
         }
@@ -223,7 +228,6 @@ class Peer : NSObject {
     
 
         private func executeTask() {
-            print("Task executed at \(Date())")
           
             statsEvent["event"] = "stats"
             statsEvent["tag"] = "stats"
@@ -242,20 +246,33 @@ class Peer : NSObject {
                         //Logger.log.i(message: "Peer:: ICE negotiation updated. Report New: \(report.values)")
                         self.outBoundStats.append(report.value.values)
                     }
+                    if(report.value.type == "candidate-pair") {
+                        if(self.candidatePairs.count < 2){
+                            self.candidatePairs.append(report.value.values)
+                            return
+                        }
+                        //Logger.log.i(message: "Peer:: ICE negotiation updated. Report New: \(report.values)")
+                        if(self.candidatePairs.count < 2 && (report.value.values["state"] as! String) != "waiting"){
+                            self.candidatePairs.append(report.value.values)
+                        }
+                    }
                    // Logger.log.i(message: "Peer:: ICE negotiation updated. Report New:\(report.value.type) ->  \(report.value.values)")
                     
                 }
             })
             audio["outbound"] = outBoundStats
             audio["inbound"] = inboundStats
+            audio["candidate"] = candidatePairs
             statsData["audio"] = audio
             statsEvent["data"] = statsData
             let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .medium, timeStyle: .medium)
             statsEvent["timestamp"] = timestamp
-            FileLogger.shared.log(statsEvent.printJson())
-            outBoundStats = []
-            inboundStats = []
-
+            if(!inboundStats.isEmpty && !outBoundStats.isEmpty && !candidatePairs.isEmpty){
+                FileLogger.shared.log(statsEvent.printJson())
+                self.inboundStats = []
+                self.outBoundStats = []
+                self.candidatePairs = []
+            }
         }
 
 
@@ -268,7 +285,6 @@ class Peer : NSObject {
     fileprivate func startNegotiation(peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
         Logger.log.i(message: "Peer:: ICE negotiation updated.")
         
-        startTimer()
         
         //Set gathered candidates to 
         
@@ -282,6 +298,7 @@ class Peer : NSObject {
                     Logger.log.w(message: "ICE negotiation has ended:: ICE negotiation has ended.")
                     return
                 }
+                
                 self.negotiationTimer?.invalidate()
                 self.negotiationEnded = true
                 // At this moment we should have at least one ICE candidate.
@@ -385,6 +402,7 @@ extension Peer : RTCPeerConnectionDelegate {
             case .new:
                 state = "new"
             case .connected:
+                self.startTimer()
                 state = "connected"
             case .completed:
                 state = "completed"
