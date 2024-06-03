@@ -7,8 +7,8 @@
 
 import Foundation
 
-class FileLogger {
-    static let shared = FileLogger()
+public class FileLogger {
+    public static let shared = FileLogger()
     
     private var logFileURL: URL {
         let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
@@ -23,7 +23,7 @@ class FileLogger {
         }
     }
     
-    func log(_ message: String) {
+    public func log(_ message: String) {
         let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .medium, timeStyle: .medium)
         let logMessage = "\(message)\n\n\n\n"
         print(logMessage)
@@ -72,7 +72,7 @@ class FileLogger {
             }
     }
     
-    func sendLogFile() {
+    public func sendLogFile() {
         let url = URL(string: "https://uploadfile-qodmzphl4q-uc.a.run.app/uploadFile")! // Change to your server's URL
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

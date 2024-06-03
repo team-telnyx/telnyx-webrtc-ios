@@ -147,6 +147,11 @@ class Peer : NSObject {
         let constrains = RTCMediaConstraints(mandatoryConstraints: self.mediaConstrains,
                                              optionalConstraints: nil)
         self.negotiationEnded = false
+                
+
+        // Assuming you have a connection established
+
+   
         self.connection?.offer(for: constrains) { (sdp, error) in
 
             if let error = error {
@@ -159,6 +164,7 @@ class Peer : NSObject {
                 Logger.log.w(message: "Peer:: SDP is missing")
                 return
             }
+          
 
             //Once we set the local description, the ICE negotiation starts and at least one ICE candidate should be created.
             //Check RTCPeerConnectionDelegate :: didGenerate candidate
@@ -166,7 +172,10 @@ class Peer : NSObject {
                 completion(sdp, nil)
             })
         }
+        
     }
+    
+
 
 
     // MARK: Signaling ANSWER
@@ -260,6 +269,15 @@ class Peer : NSObject {
                     
                 }
             })
+            self.connection?.transceivers.forEach{ transceiver in
+                
+                transceiver.sender.parameters.codecs.forEach { codec in
+                    Logger.log.i(message: "Peer Sender:: codec \(codec.name)")
+                }
+                transceiver.sender.parameters.codecs.forEach { codec in
+                    Logger.log.i(message: "Peer Reciever:: codec \(codec.name)")
+                }
+            }
             audio["outbound"] = outBoundStats
             audio["inbound"] = inboundStats
             audio["candidate"] = candidatePairs

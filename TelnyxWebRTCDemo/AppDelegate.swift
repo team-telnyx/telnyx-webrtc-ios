@@ -140,6 +140,7 @@ extension AppDelegate: PKPushRegistryDelegate {
     
 
     func handleVoIPPushNotification(payload: PKPushPayload) {
+        
         if let metadata = payload.dictionaryPayload["metadata"] as? [String: Any] {
             var callID = UUID.init().uuidString
             if let newCallId = (metadata["call_id"] as? String),
