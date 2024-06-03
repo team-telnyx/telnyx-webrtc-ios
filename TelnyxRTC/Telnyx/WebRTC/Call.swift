@@ -503,7 +503,7 @@ extension Call : PeerDelegate {
                 return
             }
             
-            let finalSdp = modifySDPToSupportCodecs(sdp: sdp.sdp, allowedCodecs: ["opus", "PCMU", "PCMA", "G722", "ILBC", "CN", "telephone-event/48000", "telephone-event/8000"])
+            let finalSdp = modifySDPToSupportCodecs(sdp: sdp.sdp, allowedCodecs: ["opus"])
 
             //Build the telnyx_rtc.invite message and send it
             let inviteMessage = InviteMessage(sessionId: sessionId,
@@ -518,7 +518,7 @@ extension Call : PeerDelegate {
             Logger.log.s(message: "Call:: Send invite >> \(message)")
         } else {
             //Build the telnyx_rtc.answer message and send it
-            let finalSdp = modifySDPToSupportCodecs(sdp: sdp.sdp, allowedCodecs: ["opus", "PCMU", "PCMA", "G722", "ILBC", "CN", "telephone-event/48000", "telephone-event/8000"])
+            let finalSdp = modifySDPToSupportCodecs(sdp: sdp.sdp, allowedCodecs: ["opus"])
             let answerMessage = AnswerMessage(sessionId: sessionId, sdp: sdp.sdp, callInfo: callInfo, callOptions: callOptions,
                                               customHeaders: self.answerCustomHeaders ?? [:]
             )
