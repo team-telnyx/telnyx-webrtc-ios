@@ -152,10 +152,10 @@ public class Call {
         self.iceServers = iceServers
 
         //Ringtone and ringbacktone
-        self.ringTonePlayer = self.buildAudioPlayer(fileName: ringtone,fileType: .RINGTONE)
-        self.ringbackPlayer = self.buildAudioPlayer(fileName: ringbackTone,fileType: .RINGBACK)
+        //self.ringTonePlayer = self.buildAudioPlayer(fileName: ringtone,fileType: .RINGTONE)
+        //self.ringbackPlayer = self.buildAudioPlayer(fileName: ringbackTone,fileType: .RINGBACK)
 
-        self.playRingtone()
+        //self.playRingtone()
 
         updateCallState(callState: .NEW)
     }
@@ -335,6 +335,7 @@ extension Call {
             }
             Logger.log.i(message: "Call:: Answer completed >> SDP: \(sdp)")
             self.updateCallState(callState: .ACTIVE)
+            self.peer?.configureAudioSession()
         })
     }
 }
@@ -503,11 +504,11 @@ extension Call : PeerDelegate {
                 return
             }
             
-            let finalSdp = modifySDPToSupportCodecs(sdp: sdp.sdp, allowedCodecs: ["opus"])
+            let finalSdp = removeVideoCodecAndPort(from: sdp.sdp)
 
             //Build the telnyx_rtc.invite message and send it
             let inviteMessage = InviteMessage(sessionId: sessionId,
-                                              sdp: finalSdp,
+                                              sdp: sdp.sdp,
                                               callInfo: callInfo,
                                               callOptions: callOptions,
                                               customHeaders: self.inviteCustomHeaders ?? [:])
@@ -518,7 +519,7 @@ extension Call : PeerDelegate {
             Logger.log.s(message: "Call:: Send invite >> \(message)")
         } else {
             //Build the telnyx_rtc.answer message and send it
-            let finalSdp = modifySDPToSupportCodecs(sdp: sdp.sdp, allowedCodecs: ["opus"])
+            let finalSdp = removeVideoCodecAndPort(from: sdp.sdp)
             let answerMessage = AnswerMessage(sessionId: sessionId, sdp: sdp.sdp, callInfo: callInfo, callOptions: callOptions,
                                               customHeaders: self.answerCustomHeaders ?? [:]
             )
@@ -526,7 +527,31 @@ extension Call : PeerDelegate {
             self.socket?.sendMessage(message: message)
             self.updateCallState(callState: .ACTIVE)
             Logger.log.s(message:"Send answer >> \(answerMessage)")
+            self.peer?.startTimer()
         }
+    }
+    
+    func removeVideoCodecAndPort(from sdp: String) -> String {
+        // Split the SDP into lines
+        let lines = sdp.components(separatedBy: "\n")
+        
+        // Create a new array to store the modified lines
+        var modifiedLines: [String] = []
+
+        // Loop through each line
+        for line in lines {
+            // Check if the line starts with "m=video"
+            if line.hasPrefix("m=video") {
+                // Skip the video line
+                continue
+            } else {
+                // Add the line to the modified array
+                modifiedLines.append(line)
+            }
+        }
+
+        // Join the modified lines back into a string
+        return modifiedLines.joined(separator: "\n")
     }
 }
 

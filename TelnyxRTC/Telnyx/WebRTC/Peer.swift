@@ -24,7 +24,8 @@ class Peer : NSObject {
     private let VIDEO_DEMO_LOCAL_VIDEO = "local_video_streaming.mp4"
     private var gatheredICECandidates:[String] = []
 
-    private let mediaConstrains = [kRTCMediaConstraintsOfferToReceiveAudio: kRTCMediaConstraintsValueTrue, kRTCMediaConstraintsOfferToReceiveVideo: kRTCMediaConstraintsValueFalse]
+    private let mediaConstrains = [kRTCMediaConstraintsOfferToReceiveAudio: kRTCMediaConstraintsValueTrue, kRTCMediaConstraintsOfferToReceiveVideo: kRTCMediaConstraintsValueTrue]
+    
 
     weak var delegate: PeerDelegate?
     var connection : RTCPeerConnection?
@@ -91,6 +92,7 @@ class Peer : NSObject {
         // let's support Audio first.
         let audioTrack = self.createAudioTrack()
         self.localAudioTrack = audioTrack
+        audioTrack.isEnabled = true
         self.connection?.add(audioTrack, streamIds: [streamId])
         self.muteUnmuteAudio(mute: false)
     }
@@ -98,7 +100,7 @@ class Peer : NSObject {
     /**
      iOS specific: we need to configure the device AudioSession.
      */
-    private func configureAudioSession() {
+    public func configureAudioSession() {
         self.audioQueue.async { [weak self] in
             guard let self = self else {
                 return
@@ -151,6 +153,7 @@ class Peer : NSObject {
 
         // Assuming you have a connection established
 
+        
    
         self.connection?.offer(for: constrains) { (sdp, error) in
 
@@ -176,6 +179,7 @@ class Peer : NSObject {
     }
     
 
+    
 
 
     // MARK: Signaling ANSWER
@@ -197,7 +201,7 @@ class Peer : NSObject {
                 Logger.log.w(message: "Peer:: SDP is missing")
                 return
             }
-
+            
             //Once we set the local description, the ICE negotiation starts and at least one ICE candidate should be created.
             //Check RTCPeerConnectionDelegate :: didGenerate candidate
             self.connection?.setLocalDescription(sdp, completionHandler: { (error) in
@@ -229,7 +233,7 @@ class Peer : NSObject {
         }
 
         private func stopTimer() {
-            FileLogger.shared.sendLogFile()
+           // FileLogger.shared.sendLogFile()
             timer?.cancel()
             timer = nil
         }
@@ -249,6 +253,22 @@ class Peer : NSObject {
                 reports.statistics.forEach { report in
                     if(report.value.type == "inbound-rtp") {
                         //Logger.log.i(message: "Peer:: ICE negotiation updated. Report New: \(report.values)")
+                        let audioLevel = report.value.values["audioLevel"]
+                        if(audioLevel != nil){
+                          let audioNumber =  (audioLevel as! NSNumber)
+                          if(audioNumber.doubleValue > 0){
+                              Logger.log.i(message: "Audio Level Greater than 0: \(audioNumber)")
+                              
+                              
+                          }else {
+                              Logger.log.i(message: "Audio Level Equals 0: \(audioNumber)")
+                              self.connection?.transceivers.forEach{ transceiver in
+                                  self.remoteVideoTrack?.isEnabled = false
+                              }
+                              
+                          }
+                            
+                        }
                         self.inboundStats.append(report.value.values)
                     }
                     if(report.value.type == "outbound-rtp") {
@@ -271,12 +291,10 @@ class Peer : NSObject {
             })
             self.connection?.transceivers.forEach{ transceiver in
                 
-                transceiver.sender.parameters.codecs.forEach { codec in
-                    Logger.log.i(message: "Peer Sender:: codec \(codec.name)")
-                }
-                transceiver.sender.parameters.codecs.forEach { codec in
-                    Logger.log.i(message: "Peer Reciever:: codec \(codec.name)")
-                }
+                Logger.log.i(message: "Peer Reciever:: Enabled \(String(describing: transceiver.receiver.track? .isEnabled))")
+                Logger.log.i(message: "Peer Sender:: Enabled \(String(describing: transceiver.sender.track?.isEnabled))")
+
+                
             }
             audio["outbound"] = outBoundStats
             audio["inbound"] = inboundStats
@@ -400,6 +418,7 @@ extension Peer : RTCPeerConnectionDelegate {
     func peerConnection(_ peerConnection: RTCPeerConnection, didAdd stream: RTCMediaStream) {
         Logger.log.i(message: "Peer:: connection didAdd: \(stream)")
         if stream.videoTracks.count > 0 {
+            Logger.log.i(message: "Peer:: connection didAdd Video: \(stream.videoTracks[0])")
             self.remoteVideoTrack = stream.videoTracks[0]
         }
     }
@@ -420,7 +439,6 @@ extension Peer : RTCPeerConnectionDelegate {
             case .new:
                 state = "new"
             case .connected:
-                self.startTimer()
                 state = "connected"
             case .completed:
                 state = "completed"
@@ -458,7 +476,7 @@ extension Peer : RTCPeerConnectionDelegate {
 
         
         connection?.add(candidate, completionHandler: { error in
-            Logger.log.i(message: "Peer::add [RTCIceCandidate]: \(String(describing: error)) \(candidate) ")
+            Logger.log.i(message: "Peer::add [RTCIceCandidate]: \(String(describing: error)) \(candidate)")
         })
         
         Logger.log.i(message: "Peer::serverUrl [RTCIceCandidate]: \(String(describing: candidate.serverUrl))")
