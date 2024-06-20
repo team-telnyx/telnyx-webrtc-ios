@@ -170,6 +170,17 @@ public class TxClient {
         }
     }
     
+    
+    public func setAudioSession(audioSession: AVAudioSession){
+        RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
+        RTCAudioSession.sharedInstance().isAudioEnabled = true
+    }
+    
+    public func setDeAudioSession(audioSession: AVAudioSession){
+        RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
+        RTCAudioSession.sharedInstance().isAudioEnabled = false
+    }
+    
     let currentRoute = AVAudioSession.sharedInstance().currentRoute
     
     /// Client must be registered in order to receive or place calls.
@@ -262,7 +273,6 @@ public class TxClient {
     /// To end and control callKit active and conn
     public func endCallFromCallkit(endAction:CXEndCallAction,callId:UUID? = nil) {
         self.endCallAction = endAction
-        endAction.fulfill()
         // Place the code you want to delay here
         if let call = self.calls[endAction.callUUID] {
             Logger.log.i(message: "EndClient:: Ended Call with Id \(endAction.callUUID)")
@@ -272,7 +282,7 @@ public class TxClient {
             self.calls[self.currentCallId]?.hangup()
         }
         self.resetPushVariables()
-       
+        endAction.fulfill()
     }
     
     
