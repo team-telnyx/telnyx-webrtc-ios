@@ -69,8 +69,7 @@ class Peer : NSObject {
 
         // Unified plan is more superior than planB
         config.sdpSemantics = .unifiedPlan
-        config.bundlePolicy = .balanced
-        config.offerExtmapAllowMixed = true
+        config.bundlePolicy = .maxCompat
         
         
 

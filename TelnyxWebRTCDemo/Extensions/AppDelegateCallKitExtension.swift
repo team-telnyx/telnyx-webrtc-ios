@@ -190,7 +190,8 @@ extension AppDelegate : CXProviderDelegate {
     
     func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
         print("provider:didActivateAudioSession:")
-        self.telnyxClient?.isAudioDeviceEnabled = true
+        //self.telnyxClient?.isAudioDeviceEnabled = true
+        self.telnyxClient?.setAudioSession(audioSession: audioSession)
     }
     
     func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
