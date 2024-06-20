@@ -335,7 +335,6 @@ extension Call {
             }
             Logger.log.i(message: "Call:: Answer completed >> SDP: \(sdp)")
             self.updateCallState(callState: .ACTIVE)
-            self.peer?.configureAudioSession()
         })
     }
 }

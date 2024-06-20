@@ -102,7 +102,7 @@ class Peer : NSObject {
     /**
      iOS specific: we need to configure the device AudioSession.
      */
-    public func configureAudioSession() {
+    private func configureAudioSession() {
         self.audioQueue.async { [weak self] in
             guard let self = self else {
                 return
@@ -112,7 +112,7 @@ class Peer : NSObject {
                 Logger.log.i(message: "Peer:: Configuring AVAudioSession")
                 self.rtcAudioSession.useManualAudio = true
                 self.rtcAudioSession.isAudioEnabled = false
-                try self.rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord)
+                try self.rtcAudioSession.setCategory(AVAudioSession.Category(rawValue: AVAudioSession.Category.playAndRecord.rawValue))
                 try self.rtcAudioSession.setMode(AVAudioSession.Mode.voiceChat)
                 Logger.log.i(message: "Peer:: Configuring AVAudioSession configured")
             } catch let error {
