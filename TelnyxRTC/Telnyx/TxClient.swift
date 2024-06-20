@@ -170,6 +170,17 @@ public class TxClient {
         }
     }
     
+    public func setAudioSession(audioSession: AVAudioSession){
+        RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
+        RTCAudioSession.sharedInstance().isAudioEnabled = true
+    }
+    
+    public func setDeAudioSession(audioSession: AVAudioSession){
+        RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
+        RTCAudioSession.sharedInstance().isAudioEnabled = false
+    }
+    
+    
     let currentRoute = AVAudioSession.sharedInstance().currentRoute
     
     /// Client must be registered in order to receive or place calls.

@@ -111,10 +111,10 @@ class Peer : NSObject {
             self.rtcAudioSession.lockForConfiguration()
             do {
                 Logger.log.i(message: "Peer:: Configuring AVAudioSession")
+                self.rtcAudioSession.useManualAudio = true
+                self.rtcAudioSession.isAudioEnabled = false
                 try self.rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord)
                 try self.rtcAudioSession.setMode(AVAudioSession.Mode.voiceChat)
-                try self.rtcAudioSession.setPreferredSampleRate(20000)
-                self.rtcAudioSession.useManualAudio = true
                 Logger.log.i(message: "Peer:: Configuring AVAudioSession configured")
             } catch let error {
                 Logger.log.e(message: "Peer:: Error changing AVAudioSession category: \(error.localizedDescription)")
@@ -421,9 +421,6 @@ extension Peer : RTCPeerConnectionDelegate {
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didAdd stream: RTCMediaStream) {
         Logger.log.i(message: "Peer:: connection didAdd: \(stream)")
-        if let videoTrack = stream.videoTracks.first {
-            videoTrack.isEnabled = false
-        }
 
         if stream.videoTracks.count > 0 {
             Logger.log.i(message: "Peer:: connection didAdd Video: \(stream.videoTracks[0])")
