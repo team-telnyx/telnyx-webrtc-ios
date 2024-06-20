@@ -67,7 +67,7 @@ class Peer : NSObject {
         config.iceServers = iceServers
 
         // Unified plan is more superior than planB
-        config.sdpSemantics = .planB
+        config.sdpSemantics = .unifiedPlan
         config.bundlePolicy = .maxCompat
 
         // gatherContinually will let WebRTC to listen to any network changes and send any new candidates to the other client
