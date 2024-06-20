@@ -24,7 +24,7 @@ class Peer : NSObject {
     private let VIDEO_DEMO_LOCAL_VIDEO = "local_video_streaming.mp4"
     private var gatheredICECandidates:[String] = []
 
-    private let mediaConstrains = [kRTCMediaConstraintsOfferToReceiveAudio: kRTCMediaConstraintsValueTrue, kRTCMediaConstraintsOfferToReceiveVideo: kRTCMediaConstraintsValueTrue]
+    private let mediaConstrains = [kRTCMediaConstraintsOfferToReceiveAudio: kRTCMediaConstraintsValueTrue, kRTCMediaConstraintsOfferToReceiveVideo: kRTCMediaConstraintsValueFalse]
     
 
     weak var delegate: PeerDelegate?
@@ -70,6 +70,9 @@ class Peer : NSObject {
         // Unified plan is more superior than planB
         config.sdpSemantics = .unifiedPlan
         config.bundlePolicy = .balanced
+        config.offerExtmapAllowMixed = true
+        
+        
 
         // gatherContinually will let WebRTC to listen to any network changes and send any new candidates to the other client
         config.continualGatheringPolicy = .gatherContinually
@@ -110,6 +113,7 @@ class Peer : NSObject {
                 Logger.log.i(message: "Peer:: Configuring AVAudioSession")
                 try self.rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord)
                 try self.rtcAudioSession.setMode(AVAudioSession.Mode.voiceChat)
+                try self.rtcAudioSession.setPreferredSampleRate(20000)
                 self.rtcAudioSession.useManualAudio = true
                 Logger.log.i(message: "Peer:: Configuring AVAudioSession configured")
             } catch let error {
@@ -178,6 +182,8 @@ class Peer : NSObject {
         
     }
     
+
+
 
     
 
@@ -257,14 +263,12 @@ class Peer : NSObject {
                         if(audioLevel != nil){
                           let audioNumber =  (audioLevel as! NSNumber)
                           if(audioNumber.doubleValue > 0){
-                              Logger.log.i(message: "Audio Level Greater than 0: \(audioNumber)")
+                              Logger.log.i(message: "Peer Audio Level Greater than 0: \(audioNumber)")
                               
                               
                           }else {
-                              Logger.log.i(message: "Audio Level Equals 0: \(audioNumber)")
-                              self.connection?.transceivers.forEach{ transceiver in
-                                  self.remoteVideoTrack?.isEnabled = false
-                              }
+                              Logger.log.i(message: "Peer Audio Level Equals 0: \(audioNumber)")
+                        
                               
                           }
                             
@@ -291,8 +295,8 @@ class Peer : NSObject {
             })
             self.connection?.transceivers.forEach{ transceiver in
                 
-                Logger.log.i(message: "Peer Reciever:: Enabled \(String(describing: transceiver.receiver.track? .isEnabled))")
-                Logger.log.i(message: "Peer Sender:: Enabled \(String(describing: transceiver.sender.track?.isEnabled))")
+                Logger.log.i(message: "Peer Audio  Reciever:: Enabled \(String(describing: transceiver.receiver.track? .kind)) \(String(describing: transceiver.receiver.track? .isEnabled))")
+                Logger.log.i(message: "Peer Audio Sender:: Enabled \(String(describing: transceiver.sender.track? .kind)) \(String(describing: transceiver.sender.track?.isEnabled))")
 
                 
             }
@@ -417,6 +421,10 @@ extension Peer : RTCPeerConnectionDelegate {
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didAdd stream: RTCMediaStream) {
         Logger.log.i(message: "Peer:: connection didAdd: \(stream)")
+        if let videoTrack = stream.videoTracks.first {
+            videoTrack.isEnabled = false
+        }
+
         if stream.videoTracks.count > 0 {
             Logger.log.i(message: "Peer:: connection didAdd Video: \(stream.videoTracks[0])")
             self.remoteVideoTrack = stream.videoTracks[0]
@@ -439,6 +447,7 @@ extension Peer : RTCPeerConnectionDelegate {
             case .new:
                 state = "new"
             case .connected:
+                startTimer()
                 state = "connected"
             case .completed:
                 state = "completed"

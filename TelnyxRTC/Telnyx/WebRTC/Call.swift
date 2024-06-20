@@ -527,7 +527,6 @@ extension Call : PeerDelegate {
             self.socket?.sendMessage(message: message)
             self.updateCallState(callState: .ACTIVE)
             Logger.log.s(message:"Send answer >> \(answerMessage)")
-            self.peer?.startTimer()
         }
     }
     
