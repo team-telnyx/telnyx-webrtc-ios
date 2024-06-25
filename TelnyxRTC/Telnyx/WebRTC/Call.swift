@@ -152,10 +152,10 @@ public class Call {
         self.iceServers = iceServers
 
         //Ringtone and ringbacktone
-        //self.ringTonePlayer = self.buildAudioPlayer(fileName: ringtone,fileType: .RINGTONE)
-        //self.ringbackPlayer = self.buildAudioPlayer(fileName: ringbackTone,fileType: .RINGBACK)
+        self.ringTonePlayer = self.buildAudioPlayer(fileName: ringtone,fileType: .RINGTONE)
+        self.ringbackPlayer = self.buildAudioPlayer(fileName: ringbackTone,fileType: .RINGBACK)
 
-        //self.playRingtone()
+        self.playRingtone()
 
         updateCallState(callState: .NEW)
     }
@@ -259,9 +259,6 @@ public class Call {
             }
             Logger.log.e(message: "Call:: Error setting remote description: \(error)")
         })
-        if(self.peer?.connection == nil){
-            Logger.log.e(message: "Call:: Error setting remote description: Peerconnection nil")
-        }
     }
 
     private func endCall() {
@@ -443,48 +440,6 @@ extension Call {
  */
 extension Call : PeerDelegate {
     
-    func modifySDPToSupportCodecs(sdp: String, allowedCodecs: [String]) -> String {
-        // Define the codec payload types
-        let codecMap: [String: Int] = [
-            "opus": 111,
-            "PCMU": 0,
-            "PCMA": 8,
-            "G722": 9,
-            "ILBC": 102,
-            "CN": 13,
-            "telephone-event/48000": 110,
-            "telephone-event/8000": 126
-        ]
-        
-        // Find the allowed payload types
-        let allowedPayloadTypes = allowedCodecs.compactMap { codecMap[$0] }
-        
-        // Split the SDP into lines
-        var sdpLines = sdp.components(separatedBy: "\r\n")
-        
-        // Modify the "m=audio" line to include only allowed payload types
-        if let audioLineIndex = sdpLines.firstIndex(where: { $0.hasPrefix("m=audio") }) {
-            let parts = sdpLines[audioLineIndex].components(separatedBy: " ")
-            let newAudioLine = parts.prefix(3).joined(separator: " ") + " " + allowedPayloadTypes.map { String($0) }.joined(separator: " ")
-            sdpLines[audioLineIndex] = newAudioLine
-        }
-        
-        // Filter the codec attributes to keep only the allowed ones
-        let allowedAttributes = allowedPayloadTypes.map { "a=rtpmap:\($0)" }
-        sdpLines = sdpLines.filter { line in
-            if line.hasPrefix("a=rtpmap:") {
-                return allowedAttributes.contains { line.hasPrefix($0) }
-            }
-            return true
-        }
-        
-        // Join the lines back into a single SDP string
-        let modifiedSDP = sdpLines.joined(separator: "\r\n")
-        
-        return modifiedSDP
-    }
-
-    
     //If we received at least one ICE Candidate, then we can send the telnyx_rtc.invite message to start a call
     func onICECandidate(sdp: RTCSessionDescription?, iceCandidate: RTCIceCandidate) {
         
@@ -502,8 +457,6 @@ extension Call : PeerDelegate {
                 Logger.log.e(message: "Send invite error  >> NO DESTINATION NUMBER")
                 return
             }
-            
-            let finalSdp = removeVideoCodecAndPort(from: sdp.sdp)
 
             //Build the telnyx_rtc.invite message and send it
             let inviteMessage = InviteMessage(sessionId: sessionId,
@@ -518,7 +471,6 @@ extension Call : PeerDelegate {
             Logger.log.s(message: "Call:: Send invite >> \(message)")
         } else {
             //Build the telnyx_rtc.answer message and send it
-            let finalSdp = removeVideoCodecAndPort(from: sdp.sdp)
             let answerMessage = AnswerMessage(sessionId: sessionId, sdp: sdp.sdp, callInfo: callInfo, callOptions: callOptions,
                                               customHeaders: self.answerCustomHeaders ?? [:]
             )
@@ -527,29 +479,6 @@ extension Call : PeerDelegate {
             self.updateCallState(callState: .ACTIVE)
             Logger.log.s(message:"Send answer >> \(answerMessage)")
         }
-    }
-    
-    func removeVideoCodecAndPort(from sdp: String) -> String {
-        // Split the SDP into lines
-        let lines = sdp.components(separatedBy: "\n")
-        
-        // Create a new array to store the modified lines
-        var modifiedLines: [String] = []
-
-        // Loop through each line
-        for line in lines {
-            // Check if the line starts with "m=video"
-            if line.hasPrefix("m=video") {
-                // Skip the video line
-                continue
-            } else {
-                // Add the line to the modified array
-                modifiedLines.append(line)
-            }
-        }
-
-        // Join the modified lines back into a string
-        return modifiedLines.joined(separator: "\n")
     }
 }
 
