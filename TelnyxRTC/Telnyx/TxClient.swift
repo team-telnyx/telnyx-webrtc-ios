@@ -171,12 +171,12 @@ public class TxClient {
     }
     
     
-    public func setAudioSession(audioSession: AVAudioSession){
+    public func enableAudioSession(audioSession: AVAudioSession){
         RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
         RTCAudioSession.sharedInstance().isAudioEnabled = true
     }
     
-    public func setDeAudioSession(audioSession: AVAudioSession){
+    public func disableAudioSession(audioSession: AVAudioSession){
         RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
         RTCAudioSession.sharedInstance().isAudioEnabled = false
     }
