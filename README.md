@@ -500,11 +500,11 @@ extension AppDelegate : CXProviderDelegate {
     ...
     
     func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
-        self.telnyxClient?.isAudioDeviceEnabled = true
+        self.telnyxClient?.enableAudioSession(audioSession: audioSession)
     }
     
     func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
-        self.telnyxClient?.isAudioDeviceEnabled = false
+        self.telnyxClient?.disableAudioSession(audioSession: audioSession)
     }
 }
 ```
