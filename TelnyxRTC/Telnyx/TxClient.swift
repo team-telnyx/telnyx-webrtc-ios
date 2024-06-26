@@ -146,7 +146,8 @@ public class TxClient {
     private var currentCallId:UUID = UUID()
     private var pendingAnswerHeaders = [String:String]()
     private var speakerOn:Bool = false
-    private var pushMetaData:[String:Any]? 
+    internal var sendFileLogs:Bool = false
+    private var pushMetaData:[String:Any]?
     
     func isSpeakerEnabled() -> Bool {
         return speakerOn
@@ -167,6 +168,17 @@ public class TxClient {
             }
             RTCAudioSession.sharedInstance().isAudioEnabled = newValue
         }
+    }
+    
+    
+    public func enableAudioSession(audioSession: AVAudioSession){
+        RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
+        RTCAudioSession.sharedInstance().isAudioEnabled = true
+    }
+    
+    public func disableAudioSession(audioSession: AVAudioSession){
+        RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
+        RTCAudioSession.sharedInstance().isAudioEnabled = false
     }
     
     let currentRoute = AVAudioSession.sharedInstance().currentRoute
@@ -261,7 +273,6 @@ public class TxClient {
     /// To end and control callKit active and conn
     public func endCallFromCallkit(endAction:CXEndCallAction,callId:UUID? = nil) {
         self.endCallAction = endAction
-        endAction.fulfill()
         // Place the code you want to delay here
         if let call = self.calls[endAction.callUUID] {
             Logger.log.i(message: "EndClient:: Ended Call with Id \(endAction.callUUID)")
@@ -271,7 +282,7 @@ public class TxClient {
             self.calls[self.currentCallId]?.hangup()
         }
         self.resetPushVariables()
-       
+        endAction.fulfill()
     }
     
     
@@ -776,6 +787,12 @@ extension TxClient : SocketDelegate {
                                                 telnyxSessionId: telnyxSessionId,
                                                 telnyxLegId: telnyxLegId,
                                                 customHeaders: customHeaders)
+                        if(isCallFromPush){
+                            FileLogger.shared.log("INVITE : \(message) \n")
+                            FileLogger.shared.log("INVITE telnyxLegId: \(telnyxLegId) \n")
+                            self.sendFileLogs = true
+                        }
+                        
                     }
                    
                     break;

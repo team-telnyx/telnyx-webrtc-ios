@@ -34,8 +34,9 @@ class PeerConnectionTests: XCTestCase {
         XCTAssertNotNil(self.peerConnection?.connection)
 
         //Check valid semantics
+        // The sdk currently only supports audio
         let semantics = self.peerConnection?.connection?.configuration.sdpSemantics
-        XCTAssertEqual(semantics, .planB) //Currently we support planB for video calls.
+        XCTAssertEqual(semantics, .unifiedPlan) //Currently we support planB for video calls.
                                           //Unified plan for video calls is currently not supported from the backend.
 
         //Check valid audio sender
@@ -92,7 +93,7 @@ class PeerConnectionTests: XCTestCase {
         })
 
         //Answer the call
-        self.peerConnection?.answer(completion: { (sdp, error)  in
+        self.peerConnection?.answer(callLegId: "",completion: { (sdp, error)  in
 
             if let error = error {
                 print("Error creating the answering: \(error)")
