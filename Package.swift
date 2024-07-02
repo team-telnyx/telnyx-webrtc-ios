@@ -24,7 +24,7 @@ let package = Package(
                 .product(name: "WebRTC", package: "WebRTC")
             ],
             path: "TelnyxRTC",
-            sources: ["Info.plist"],
+            exclude: ["Info.plist"],
             resources: [.copy("PrivacyInfo.xcprivacy")]
         )
     ],
