@@ -277,12 +277,14 @@ public class TxClient {
         if let call = self.calls[endAction.callUUID] {
             Logger.log.i(message: "EndClient:: Ended Call with Id \(endAction.callUUID)")
             call.hangup()
-        } else {
+            self.resetPushVariables()
+            endAction.fulfill()
+        } else if(self.calls[self.currentCallId] != nil) {
             Logger.log.i(message: "EndClient:: Ended Call")
             self.calls[self.currentCallId]?.hangup()
+            self.resetPushVariables()
+            endAction.fulfill()
         }
-        self.resetPushVariables()
-        endAction.fulfill()
     }
     
     
