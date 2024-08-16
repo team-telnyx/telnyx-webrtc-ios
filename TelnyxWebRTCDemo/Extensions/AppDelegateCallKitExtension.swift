@@ -119,6 +119,7 @@ extension AppDelegate : CXProviderDelegate {
 
         let endCallAction = CXEndCallAction(call: endUUID)
         let transaction = CXTransaction(action: endCallAction)
+        
 
         callKitCallController.request(transaction) { error in
             if let error = error {

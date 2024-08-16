@@ -184,6 +184,14 @@ public class Call {
 
         self.updateCallState(callState: .RINGING)
     }
+    
+    public func startDebugStats() {
+        self.peer?.startTimer()
+    }
+    
+    public func stopDebugStats() {
+        self.peer?.stopTimer()
+    }
 
     // MARK: - Private functions
     /**
@@ -200,6 +208,7 @@ public class Call {
 
         self.peer = Peer(iceServers: self.iceServers)
         self.peer?.delegate = self
+        self.peer?.socket = self.socket
         self.peer?.offer(completion: { (sdp, error)  in
             
             if let error = error {
@@ -319,6 +328,7 @@ extension Call {
         self.answerCustomHeaders = customHeaders
         self.peer = Peer(iceServers: self.iceServers)
         self.peer?.delegate = self
+        self.peer?.socket = self.socket
         self.incomingOffer(sdp: remoteSdp)
         self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "",completion: { (sdp, error)  in
 

@@ -43,7 +43,7 @@ extension ViewController : VoIPDelegate {
         DispatchQueue.main.async {
             self.removeLoadingView()
             self.incomingCallView.isHidden = true
-            //self.telnyxClient?.disconnect()
+            self.appDelegate.executeEndCallAction(uuid: UUID());
             
             if(error.self is NWError){
                 print("ERROR: socket connectiontion error \(error)")
