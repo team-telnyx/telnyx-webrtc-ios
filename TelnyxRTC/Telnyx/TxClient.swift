@@ -138,6 +138,7 @@ public class TxClient {
     private var sessionId : String?
     private var txConfig: TxConfig?
     private var serverConfiguration: TxServerConfiguration
+    private var voiceSdkId:String? = nil
 
     private var registerRetryCount: Int = MAX_REGISTER_RETRY
     private var registerTimer: Timer = Timer()
@@ -215,7 +216,11 @@ public class TxClient {
         if(self.pushMetaData?.isEmpty == false && serverConfiguration.pushMetaData?.isEmpty == true){
             self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,webRTCIceServers: serverConfiguration.webRTCIceServers,environment: serverConfiguration.environment,pushMetaData: self.pushMetaData)
         } else {
-            self.serverConfiguration = serverConfiguration
+            if(self.voiceSdkId != nil){
+                self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,webRTCIceServers: serverConfiguration.webRTCIceServers,environment: serverConfiguration.environment,pushMetaData: ["voice_sdk_id":self.voiceSdkId!])
+            } else {
+                self.serverConfiguration = serverConfiguration
+            }
         }
 
         Logger.log.i(message: "TxClient:: serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
@@ -747,6 +752,7 @@ extension TxClient : SocketDelegate {
                     if let params = vertoMessage.params,
                        let _ = params["reattached_sessions"] {
                     }
+                    
                     break
 
                 case .INVITE:
@@ -757,6 +763,8 @@ extension TxClient : SocketDelegate {
                               let uuid = UUID(uuidString: callId) else {
                             return
                         }
+                        
+                        self.voiceSdkId = vertoMessage.voiceSdkId
 
                         let callerName = params["caller_id_name"] as? String ?? ""
                         let callerNumber = params["caller_id_number"] as? String ?? ""

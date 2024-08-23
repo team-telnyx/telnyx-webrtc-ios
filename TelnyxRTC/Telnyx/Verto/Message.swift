@@ -26,6 +26,7 @@ class Message {
     let jsonrpc = PROTOCOL_VERSION
     var id: String = UUID.init().uuidString.lowercased()
     var method: Method?
+    var voiceSdkId : String? = nil
     var params: [String: Any]?
     var result: [String: Any]?
     var serverError: [String: Any]?
@@ -68,6 +69,7 @@ class Message {
         self.result = jsonMessage["result"] as? [String: Any]
         self.params = jsonMessage["params"] as? [String: Any]
         self.serverError = jsonMessage["error"] as? [String: Any]
+        self.voiceSdkId = jsonMessage["voice_sdk_id"] as? String
         self.jsonMessage = jsonMessage
 
         Logger.log.i(message: "Message:: decode() \(self.jsonMessage)")

@@ -33,9 +33,20 @@ extension ViewController : VoIPDelegate {
             self.connectButton.setTitle("Connect", for: .normal)
             self.sessionIdLabel.text = "-"
             self.settingsView.isHidden = false
-            self.callView.isHidden = true
+            self.callView.isHidden = false
             self.incomingCallView.isHidden = true
         }
+        
+        self.reachability.whenReachable = { reachability in
+            if reachability.connection == .wifi {
+                print("Reachable via WiFi")
+                self.connectButtonTapped("")
+            } else {
+                print("Reachable via Cellular")
+                self.connectButtonTapped("")
+            }
+        }
+        
     }
     
     func onClientError(error: Error) {
