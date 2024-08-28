@@ -236,14 +236,14 @@ class Peer : NSObject {
     
     /// To receive INVITE message after Push Noficiation is Received. Send attachCall Command
     fileprivate func sendStats(id:UUID,data:[String:Any]) {
-        Logger.log.e(message: "TxClient:: PN Recieved.. Sending reattach call ")
-        let statsMessage = StatsMessage(reportID: id.uuidString, reportData: data)
+        Logger.log.e(message: "TxClient:: Sending Stats")
+        let statsMessage = StatsMessage(reportID: id.uuidString.lowercased(), reportData: data)
         self.socket?.sendMessage(message: statsMessage.encode())
     }
     
     fileprivate func sendStatsType(id:UUID,type:String) {
-        Logger.log.e(message: "TxClient:: PN Recieved.. Sending reattach call ")
-        let statsMessage = InitiateOrStopStats(type: type, reportID: id.uuidString)
+        Logger.log.e(message: "TxClient:: Sending Stats \(type)")
+        let statsMessage = InitiateOrStopStats(type: type, reportID: id.uuidString.lowercased())
         self.socket?.sendMessage(message: statsMessage.encode())
     }
     
@@ -287,7 +287,7 @@ class Peer : NSObject {
             audio["inbound"] = inboundStats
             statsData["audio"] = audio
             statsEvent["data"] = statsData
-            statsEvent["timestamp"] = timeStamp.printTimestamp()
+            statsEvent["timestamp"] = timeStamp.getTimestamp()
 
             if(inboundStats.count > 0 && outBoundStats.count > 0 && candidatePairs.count > 0){
                 inboundStats.removeAll()
@@ -509,35 +509,7 @@ extension Dictionary {
 
 private let PROTOCOL_VERSION: String = "2.0"
 
-class StatsMessage  {
-    
-    private var jsonMessage: [String: Any] = [String: Any]()
-    let jsonrpc = PROTOCOL_VERSION
-    var id: String = UUID.init().uuidString.lowercased()
 
-    
-    init(reportID:String,reportData:[String:Any]) {
-        self.jsonMessage = [String: Any]()
-        self.jsonMessage["jsonrpc"] = self.jsonrpc
-        self.jsonMessage["id"] = self.id
-        self.jsonMessage["debug_report_version"] = 1
-        self.jsonMessage["debug_report_data"] = reportData
-        self.jsonMessage["type"] = "debug_report_data"
-        self.jsonMessage["debug_report_id"] = reportID
-    }
-    
-    func encode() -> String? {
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: jsonMessage, options: []),
-              let jsonString = String(data: jsonData, encoding: .utf8) else {
-            Logger.log.e(message: "Message:: encode() error")
-            return nil
-        }
-        Logger.log.i(message: "Message:: encode() " + jsonString)
-        return jsonString
-    }
-    
-    
-}
 
 enum StatsType : String  {
     case STOP_STARTS = "debug_report_stop"
@@ -555,7 +527,7 @@ class InitiateOrStopStats {
         self.jsonMessage["jsonrpc"] = self.jsonrpc
         self.jsonMessage["id"] = self.id
         self.jsonMessage["debug_report_version"] = 1
-        self.jsonMessage["type"] = "debug_report_stop"
+        self.jsonMessage["type"] = type
         self.jsonMessage["debug_report_id"] = reportID
     }
     
@@ -565,7 +537,6 @@ class InitiateOrStopStats {
             Logger.log.e(message: "Message:: encode() error")
             return nil
         }
-        Logger.log.i(message: "Message:: encode() " + jsonString)
         return jsonString
     }
 }

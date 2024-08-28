@@ -189,7 +189,7 @@ public class Call {
         self.peer?.startTimer()
     }
     
-    public func stopDebugStats() {
+    private func stopDebugStats() {
         self.peer?.stopTimer()
     }
 

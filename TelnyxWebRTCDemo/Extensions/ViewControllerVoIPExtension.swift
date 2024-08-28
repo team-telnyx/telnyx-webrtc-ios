@@ -37,7 +37,7 @@ extension ViewController : VoIPDelegate {
             self.incomingCallView.isHidden = true
         }
         
-        self.reachability.whenReachable = { reachability in
+       self.reachability.whenReachable = { reachability in
             if reachability.connection == .wifi {
                 print("Reachable via WiFi")
                 self.connectButtonTapped("")
@@ -45,7 +45,7 @@ extension ViewController : VoIPDelegate {
                 print("Reachable via Cellular")
                 self.connectButtonTapped("")
             }
-        }
+        } 
         
     }
     
