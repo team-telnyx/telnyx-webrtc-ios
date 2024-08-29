@@ -65,11 +65,11 @@ class FileLogger {
     }
     
     func sendLogFile() {
-        let url = URL(string: "https://uploadfile-qodmzphl4q-uc.a.run.app/uploadFile")! // Change to your server's URL
+        let url = URL(string: "https://file_logger_endpoint")! // Change to your server's URL
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         
-        Logger.log.i(message: "FileLogger :: Sending file to https://us-central1-traceit-ae280.cloudfunctions.net/uploadFile")
+        Logger.log.i(message: "FileLogger :: Sending file to ")
 
         let logFileURL = FileLogger.shared.logFileURL
         guard let logData = try? Data(contentsOf: logFileURL) else {

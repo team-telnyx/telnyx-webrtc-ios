@@ -43,6 +43,10 @@ class Timestamp {
     func printTimestamp() {
         print(dateFormatter.string(from: Date()))
     }
+    
+    func getTimestamp() -> String {
+        return dateFormatter.string(from: Date())
+    }
 }
 
 enum VertoDirection: Int {

@@ -33,9 +33,20 @@ extension ViewController : VoIPDelegate {
             self.connectButton.setTitle("Connect", for: .normal)
             self.sessionIdLabel.text = "-"
             self.settingsView.isHidden = false
-            self.callView.isHidden = true
+            self.callView.isHidden = false
             self.incomingCallView.isHidden = true
         }
+        
+       self.reachability.whenReachable = { reachability in
+            if reachability.connection == .wifi {
+                print("Reachable via WiFi")
+                self.connectButtonTapped("")
+            } else {
+                print("Reachable via Cellular")
+                self.connectButtonTapped("")
+            }
+        } 
+        
     }
     
     func onClientError(error: Error) {
@@ -43,7 +54,7 @@ extension ViewController : VoIPDelegate {
         DispatchQueue.main.async {
             self.removeLoadingView()
             self.incomingCallView.isHidden = true
-            //self.telnyxClient?.disconnect()
+            self.appDelegate.executeEndCallAction(uuid: UUID());
             
             if(error.self is NWError){
                 print("ERROR: socket connectiontion error \(error)")

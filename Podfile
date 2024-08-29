@@ -4,6 +4,8 @@ platform :ios, '12.0'
 target 'TelnyxWebRTCDemo' do
   # Comment the next line if you don't want to use dynamic frameworks
   use_frameworks!
+  
+  pod 'ReachabilitySwift', '~> 5.2.1'
 
   # Pods for TelnyxWebRTCDemo
   pod 'TelnyxRTC', :path => '.'
@@ -18,6 +20,8 @@ target 'TelnyxRTC' do
   pod 'Bugsnag', '~> 6.28.1'
   pod 'Starscream', '~> 4.0.6'
   pod 'WebRTC-lib', "~> 124.0.0"
+  
+
 
   target 'TelnyxRTCTests' do
     # Pods for testing

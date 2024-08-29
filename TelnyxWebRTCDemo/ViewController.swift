@@ -10,6 +10,7 @@ import UIKit
 import CallKit
 import TelnyxRTC
 import AVFAudio
+import Reachability
 
 
 class ViewController: UIViewController {
@@ -18,6 +19,8 @@ class ViewController: UIViewController {
     var telnyxClient: TxClient?
     var incomingCall: Bool = false
     var isSpeakerActive : Bool = false
+    let reachability = try! Reachability()
+
 
     var loadingView: UIAlertController?
 
