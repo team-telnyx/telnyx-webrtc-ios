@@ -724,7 +724,14 @@ telnyxClient.disablePushNotifications()
 Note : Signing back in, using same credentials will re-enable push notifications.
 
 ### Privacy Manifest
-Support for privacy manifest is add from version 0.1.26
+Support for privacy manifest is added from version 0.1.26
+
+### Sending Debug Stats
+You can send debug stats for further investigation: 
+```Swift
+currentCall?.startDebugStats()
+``` 
+This sends debug stats to the telnyx backend. Note the **debug_stats_id** that would be use for investigation
 
 
 ### Documentation:
