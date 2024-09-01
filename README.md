@@ -727,7 +727,8 @@ Note : Signing back in, using same credentials will re-enable push notifications
 Support for privacy manifest is added from version 0.1.26
 
 ### Sending Debug Stats
-You can send debug stats for further investigation: 
+In case of any need to investigate any issue by Telnyx, please enable the debug stats that will be sent to Telnyx for analysis.
+
 ```Swift
 currentCall?.startDebugStats()
 ``` 
