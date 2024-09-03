@@ -148,6 +148,7 @@ public class TxClient {
     private var pendingAnswerHeaders = [String:String]()
     private var speakerOn:Bool = false
     internal var sendFileLogs:Bool = false
+    private var attachCallId:String?
     private var pushMetaData:[String:Any]?
     
     func isSpeakerEnabled() -> Bool {
@@ -577,6 +578,7 @@ extension TxClient {
         let pushProvider = self.txConfig?.pushNotificationConfig?.pushNotificationProvider
         let attachMessage = AttachCallMessage(pushNotificationProvider: pushProvider,pushEnvironment:self.txConfig?.pushEnvironment)
         let message = attachMessage.encode() ?? ""
+        attachCallId = attachMessage.id
         self.socket?.sendMessage(message: message)
     }
 }
@@ -698,6 +700,14 @@ extension TxClient : SocketDelegate {
 
         //Check if server is sending an error code
         if let error = vertoMessage.serverError {
+            if(attachCallId == vertoMessage.id){
+                // Call failed from remote end
+              if let callId = pushMetaData?["call_id"] as? String {
+                  Logger.log.i(message: "TxClient:: Attach Call ID \(String(describing: callId))")
+                  self.delegate?.onRemoteCallEnded(callId: UUID(uuidString: callId)!)
+                }
+                return
+            }
             let message : String = error["message"] as? String ?? "Unknown"
             let code : String = String(error["code"] as? Int ?? 0)
             let err = TxError.serverError(reason: .signalingServerError(message: message, code: code))
