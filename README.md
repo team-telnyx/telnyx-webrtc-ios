@@ -732,7 +732,7 @@ In case of any need to investigate any issue by Telnyx, please enable the debug 
 ```Swift
 currentCall?.startDebugStats()
 ``` 
-Please store the **debug_stats_id that** would be used for investigation
+Please store the **debug_stats_id** that would be used for investigation
 
 ### Documentation:
 For more information you can:
