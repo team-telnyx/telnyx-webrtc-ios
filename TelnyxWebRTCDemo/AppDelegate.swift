@@ -52,6 +52,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         //init pushkit to handle VoIP push notifications
         self.initPushKit()
         self.initCallKit()
+        Monitor().status
         return true
     }
     
@@ -148,8 +149,6 @@ extension AppDelegate: PKPushRegistryDelegate {
             }
             let callerName = (metadata["caller_name"] as? String) ?? ""
             let callerNumber = (metadata["caller_number"] as? String) ?? ""
-            
-          
             
             let caller = callerName.isEmpty ? (callerNumber.isEmpty ? "Unknown" : callerNumber) : callerName
             let uuid = UUID(uuidString: callID)

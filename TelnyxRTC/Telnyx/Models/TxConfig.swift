@@ -25,7 +25,7 @@ public struct TxConfig {
 
     public internal(set) var ringBackTone: String?
     public internal(set) var ringtone: String?
-    public internal(set) var reconnectClient: Bool = false
+    public internal(set) var reconnectClient: Bool = true
     public internal(set) var pushEnvironment: PushEnvironment?
 
     // MARK: - Initializers

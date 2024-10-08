@@ -239,7 +239,7 @@ extension AppDelegate : CXProviderDelegate {
                                 ringBackTone: "ringback_tone.mp3",
                                 //You can choose the appropriate verbosity level of the SDK.
                                 logLevel: .all,
-                                reconnectClient: false)
+                                reconnectClient: true)
         
         do {
             try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)
