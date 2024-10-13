@@ -197,10 +197,11 @@ public class TxClient {
     public init() {
         self.serverConfiguration = TxServerConfiguration()
         self.configure()
+        sessionId = UUID().uuidString.lowercased()
     }
 
     // MARK: - Connection handling
-    /// Connects to the iOS client to the Telnyx signaling server using the desired login credentials.
+    /// Connects to the iOS cloglient to the Telnyx signaling server using the desired login credentials.
     /// - Parameters:
     ///   - txConfig: The desired login credentials. See TxConfig docummentation for more information.
     ///   - serverConfiguration: (Optional) To define a custom `signaling server` and `TURN/ STUN servers`. As default we use the internal Telnyx Production servers.
@@ -492,7 +493,7 @@ extension TxClient {
                                     customHeaders:[String:String] = [:]) {
 
         guard let sessionId = self.sessionId,
-              let socket = self.socket else {
+        let socket = self.socket else {
             return
         }
 
@@ -679,14 +680,14 @@ extension TxClient : SocketDelegate {
         //Login into the signaling server after the connection is produced.
         if let token = self.txConfig?.token  {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with Token")
-            let vertoLogin = LoginMessage(token: token, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush,pushEnvironment: self.txConfig?.pushEnvironment)
+            let vertoLogin = LoginMessage(token: token, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush,pushEnvironment: self.txConfig?.pushEnvironment,sessionId: self.sessionId!)
             self.socket?.sendMessage(message: vertoLogin.encode())
         } else {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with SIP User and Password")
             guard let sipUser = self.txConfig?.sipUser else { return }
             guard let password = self.txConfig?.password else { return }
             let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
-            let vertoLogin = LoginMessage(user: sipUser, password: password, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush,pushEnvironment: self.txConfig?.pushEnvironment)
+            let vertoLogin = LoginMessage(user: sipUser, password: password, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush,pushEnvironment: self.txConfig?.pushEnvironment,sessionId: self.sessionId!)
             self.socket?.sendMessage(message: vertoLogin.encode())
         }
   
@@ -711,6 +712,7 @@ extension TxClient : SocketDelegate {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketDisconnected()")
         self.socket = nil
         self.sessionId = nil
+        self.sessionId = UUID().uuidString.lowercased()
         self.delegate?.onSocketDisconnected()
     }
     
@@ -857,6 +859,76 @@ extension TxClient : SocketDelegate {
                     }
                    
                     break;
+            case .ATTACH:
+                Logger.log.i(message: "Attach Received")
+                if let params = vertoMessage.params {
+                    guard let sdp = params["sdp"] as? String,
+                          let callId = params["callID"] as? String,
+                          let uuid = UUID(uuidString: callId) else {
+                        return
+                    }
+                    
+                    self.voiceSdkId = vertoMessage.voiceSdkId
+
+                    let callerName = params["caller_id_name"] as? String ?? ""
+                    let callerNumber = params["caller_id_number"] as? String ?? ""
+                    let telnyxSessionId = params["telnyx_session_id"] as? String ?? ""
+                    let telnyxLegId = params["telnyx_leg_id"] as? String ?? ""
+                    
+                    if telnyxSessionId.isEmpty {
+                        Logger.log.w(message: "TxClient:: Telnyx Session ID unavailable on INVITE message")
+                    }
+                    if telnyxLegId.isEmpty {
+                        Logger.log.w(message: "TxClient:: Telnyx Leg ID unavailable on INVITE message")
+                    }
+                    
+                    var customHeaders = [String:String]()
+                    if params["dialogParams"] is [String:Any] {
+                        do {
+                            let dataDecoded = try JSONDecoder().decode(CustomHeaderData.self, from: message.data(using: .utf8)!)
+                            dataDecoded.params.dialogParams.custom_headers.forEach { xHeader in
+                                customHeaders[xHeader.name] = xHeader.value
+                            }
+                            print("Data Decode : \(dataDecoded)")
+                        } catch {
+                            print("decoding error: \(error)")
+                        }
+                    }
+        
+                    
+                    let socket = self.socket
+                    
+                    guard let currentCall = self.calls[self.currentCallId] else {
+
+                        Logger.log.e(message: "Current Call not available for ATTACH")
+                        return
+                    }
+
+                    
+                    
+                    
+                    let call = Call(callId: uuid,
+                         remoteSdp: sdp,
+                         sessionId: telnyxSessionId,
+                         socket: socket!,
+                         delegate: self,
+                         telnyxSessionId:  UUID(uuidString: telnyxSessionId),
+                         telnyxLegId:   UUID(uuidString: telnyxLegId),
+                         iceServers: self.serverConfiguration.webRTCIceServers)
+         
+                    
+                    call.callInfo?.callerName = callerName
+                    call.callInfo?.callerNumber = callerNumber
+                    call.callOptions = TxCallOptions(audio: true)
+                    call.inviteCustomHeaders = customHeaders
+                    call.direction = CallDirection.ATTACH
+                    
+                    self.calls[uuid] = call
+                    
+                    call.acceptReAttach(peer:currentCall.peer,customHeaders: pendingAnswerHeaders)
+                    
+                }
+                 break;
                 //Mark: to send meassage to pong
             case .PING:
                 self.socket?.sendMessage(message: message)

@@ -29,6 +29,7 @@ public enum CallState {
 enum CallDirection : String {
     case INBOUND = "inbound"
     case OUTBOUND = "outbound"
+    case ATTACH = "attach"
 }
 
 enum SoundFileType : String {
@@ -159,6 +160,32 @@ public class Call {
 
         updateCallState(callState: .NEW)
     }
+    
+    //Contructor for attachCalls
+    init(callId: UUID,
+         remoteSdp: String,
+         sessionId: String,
+         socket: Socket,
+         delegate: CallProtocol,
+         telnyxSessionId: UUID? = nil,
+         telnyxLegId: UUID? = nil,
+         iceServers: [RTCIceServer]) {
+        self.direction = CallDirection.ATTACH
+        //Session obtained after login with the signaling socket
+        self.sessionId = sessionId
+        //this is the signaling server socket
+        self.socket = socket
+
+        self.telnyxSessionId = telnyxSessionId
+        self.telnyxLegId = telnyxLegId
+
+        self.remoteSdp = remoteSdp
+        self.callInfo = TxCallInfo(callId: callId)
+        self.delegate = delegate
+
+        // Configure iceServers
+        self.iceServers = iceServers
+    }
 
     /// Constructor for outgoing calls
     init(callId: UUID,
@@ -273,8 +300,14 @@ public class Call {
     private func endCall() {
         self.stopRingtone()
         self.stopRingbackTone()
-        self.peer?.dispose()
+       // self.peer?.dispose()
         self.updateCallState(callState: .DONE)
+    }
+    
+    internal func endForAttachCall() {
+        self.stopRingtone()
+        self.stopRingbackTone()
+        self.peer?.dispose()
     }
 
     private func updateCallState(callState: CallState) {
@@ -342,6 +375,41 @@ extension Call {
             }
             Logger.log.i(message: "Call:: Answer completed >> SDP: \(sdp)")
             self.updateCallState(callState: .ACTIVE)
+        })
+    }
+    
+    
+    /// Starts the process to answer the incoming call.
+    /// ### Example:
+    ///     call.answer()
+    ///  - Parameters:
+    ///         - customHeaders: (optional) Custom Headers to be passed over webRTC Messages, should be in the
+    ///     format `X-key:Value` `X` is required for headers to be passed.
+    internal func acceptReAttach(peer:Peer?,customHeaders:[String:String] = [:]) {
+        self.direction = CallDirection.ATTACH
+        //TODO: Create an error if there's no remote SDP
+        guard let remoteSdp = self.remoteSdp else {
+            return
+        }
+        peer?.dispose()
+        self.answerCustomHeaders = customHeaders
+        self.peer = Peer(iceServers: self.iceServers)
+        self.peer?.delegate = self
+        self.peer?.socket = self.socket
+        self.incomingOffer(sdp: remoteSdp)
+        self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "",completion: { (sdp, error)  in
+
+            if let error = error {
+                Logger.log.e(message: "Call:: Error creating the answering: \(error)")
+                return
+            }
+
+            guard let sdp = sdp else {
+                return
+            }
+            Logger.log.i(message: "Call:: Attach completed >> SDP: \(sdp)")
+            //self.peer?.startTimer()
+            //self.updateCallState(callState: .ACTIVE)
         })
     }
 }
@@ -467,7 +535,7 @@ extension Call : PeerDelegate {
                 Logger.log.e(message: "Send invite error  >> NO DESTINATION NUMBER")
                 return
             }
-
+            
             //Build the telnyx_rtc.invite message and send it
             let inviteMessage = InviteMessage(sessionId: sessionId,
                                               sdp: sdp.sdp,
@@ -479,8 +547,22 @@ extension Call : PeerDelegate {
             self.socket?.sendMessage(message: message)
             self.updateCallState(callState: .CONNECTING)
             Logger.log.s(message: "Call:: Send invite >> \(message)")
+        }
+        else if (self.direction == .ATTACH){
+            
+            let attachCallOption = TxCallOptions(destinationNumber: callOptions.destinationNumber,attach: true,userVariables: callOptions.userVariables)
+
+            
+            let attachMessage = ReAttachMessage(sessionId: sessionId, sdp: sdp.sdp, callInfo: callInfo, callOptions: attachCallOption,
+                                              customHeaders: self.answerCustomHeaders ?? [:]
+            )
+            let message = attachMessage.encode() ?? ""
+            self.socket?.sendMessage(message: message)
+            self.updateCallState(callState: .ACTIVE)
+            Logger.log.s(message:"Send attach >> \(attachMessage)")
         } else {
             //Build the telnyx_rtc.answer message and send it
+
             let answerMessage = AnswerMessage(sessionId: sessionId, sdp: sdp.sdp, callInfo: callInfo, callOptions: callOptions,
                                               customHeaders: self.answerCustomHeaders ?? [:]
             )

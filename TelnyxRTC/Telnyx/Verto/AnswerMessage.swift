@@ -34,3 +34,31 @@ class AnswerMessage : Message {
         super.init(params, method: .ANSWER)
     }
 }
+
+
+class ReAttachMessage : Message {
+
+    init(sessionId: String,
+         sdp: String,
+         callInfo: TxCallInfo,
+         callOptions: TxCallOptions,
+         customHeaders:[String:String] = [:]) {
+
+        var params = [String: Any]()
+        var dialogParams = [String: Any]()
+        // Merge callInfo into dialogParams
+        callInfo.encode().forEach { (key, value) in dialogParams[key] = value }
+        // Merge callOptions into dialogParams
+        callOptions.encode().forEach { (key, value) in dialogParams[key] = value }
+
+        params["User-Agent"] = Message.USER_AGENT
+
+        params["sessionId"] = sessionId
+        params["sdp"] = sdp
+        if(!customHeaders.isEmpty){
+            dialogParams["custom_headers"] = appendCustomHeaders(customHeaders: customHeaders)
+        }
+        params["dialogParams"] = dialogParams
+        super.init(params, method: .ATTACH)
+    }
+}
