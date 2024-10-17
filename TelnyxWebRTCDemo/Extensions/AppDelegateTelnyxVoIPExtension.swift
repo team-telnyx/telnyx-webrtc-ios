@@ -69,13 +69,14 @@ extension AppDelegate: TxClientDelegate {
     
     func onRemoteCallEnded(callId: UUID) {
         print("AppDelegate:: TxClientDelegate onRemoteCallEnded() callKitUUID [\(String(describing: self.callKitUUID))] callId [\(callId)]")
+        reportCallEnd(callId: callId)
+
+        // There can be a race condition, where remote peer ends call before previousCall or currentCall is set
         if (previousCall?.callInfo?.callId == callId) {
-            reportCallEnd(callId: callId)
             self.previousCall = nil
         }
         
         if (currentCall?.callInfo?.callId == callId) {
-            reportCallEnd(callId: callId)
             self.currentCall = nil
             
         }
