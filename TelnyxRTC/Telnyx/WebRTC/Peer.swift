@@ -64,7 +64,7 @@ class Peer : NSObject {
         fatalError("Peer:init is unavailable")
     }
 
-    required init(iceServers: [RTCIceServer]) {
+    required init(iceServers: [RTCIceServer],isAttach:Bool = false) {
         let config = RTCConfiguration()
         config.iceServers = iceServers
 
@@ -81,7 +81,9 @@ class Peer : NSObject {
 
         super.init()
         self.createMediaSenders()
-        self.configureAudioSession()
+        if(!isAttach){
+            self.configureAudioSession()
+        }
         //listen RTCPeer connection events
         self.connection?.delegate = self
     }
@@ -99,7 +101,7 @@ class Peer : NSObject {
     /**
      iOS specific: we need to configure the device AudioSession.
      */
-    private func configureAudioSession() {
+    internal func configureAudioSession() {
         self.audioQueue.async { [weak self] in
             guard let self = self else {
                 return
@@ -429,6 +431,7 @@ extension Peer : RTCPeerConnectionDelegate {
                 state = "new"
             case .connected:
                 state = "connected"
+               // self.configureAudioSession()
             case .completed:
                 state = "completed"
             case .failed:

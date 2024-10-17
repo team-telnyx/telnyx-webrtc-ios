@@ -7,15 +7,17 @@
 
 import Foundation
 
-class FileLogger {
-    static let shared = FileLogger()
+public class FileLogger {
+    public static let shared = FileLogger()
+    
+    static var isCallFromPush = false
     
     private var logFileURL: URL {
         let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         return documentsDirectory.appendingPathComponent("appLog2.txt")
     }
     
-    func log(_ message: String) {
+    public func log(_ message: String) {
         let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .medium, timeStyle: .medium)
         let logMessage = "\(timestamp): \(message)\n\n\n\n"
         print(logMessage)
@@ -23,6 +25,10 @@ class FileLogger {
     }
     
     private func appendTextToFile(text: String, fileURL: URL) {
+        if(!FileLogger.isCallFromPush){
+            print("Not from Push")
+            return
+        }
         do {
             // If the file does not exist, create it
             if !FileManager.default.fileExists(atPath: fileURL.path) {
@@ -33,10 +39,27 @@ class FileLogger {
                 if let data = text.data(using: .utf8) {
                     fileHandle.write(data)
                 }
+                
                 fileHandle.closeFile()
             }
         } catch {
             Logger.log.e(message: "FileLogger :: Error writing to log file: \(error)")
+        }
+    }
+    
+    func emptyFile() {
+        do {
+            // Check if the file exists at the specified URL
+            if FileManager.default.fileExists(atPath: logFileURL.path) {
+                // Try to delete the file
+                try FileManager.default.removeItem(at: logFileURL)
+                print("Log file successfully deleted.")
+            } else {
+                print("Log file does not exist.")
+            }
+        } catch {
+            // Handle any errors that may occur during file deletion
+            print("Failed to delete log file: \(error.localizedDescription)")
         }
     }
     
@@ -76,8 +99,18 @@ class FileLogger {
             print("Failed to read log file")
             return
         }
+        
+        
         let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .medium, timeStyle: .medium)
+        
+        if let logString = String(data: logData, encoding: .utf8) {
+                // Print the contents of the file
+                print("LogFile OutPut" + logString)
+            } else {
+                print("Failed to convert log data to string")
+        }
 
+        /*
         let boundary = "Boundary-\(UUID().uuidString)"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         
@@ -105,6 +138,7 @@ class FileLogger {
                 print("FileLogger :: Error From Server \(String(describing: response))")
             }
         }.resume()
+         */
     }
 
 }

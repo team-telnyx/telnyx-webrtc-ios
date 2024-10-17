@@ -36,6 +36,7 @@ extension AppDelegate : CXProviderDelegate {
             print("StartCallAction transaction request successful")
 
             let callUpdate = CXCallUpdate()
+            
 
             callUpdate.remoteHandle = callHandle
             callUpdate.supportsDTMF = true

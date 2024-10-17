@@ -135,8 +135,14 @@ public class Call {
          telnyxLegId: UUID? = nil,
          ringtone: String? = nil,
          ringbackTone: String? = nil,
-         iceServers: [RTCIceServer]) {
-        self.direction = CallDirection.INBOUND
+         iceServers: [RTCIceServer],
+         isAttach:Bool = false
+    ) {
+        if(isAttach){
+            self.direction = CallDirection.ATTACH
+        } else {
+            self.direction = CallDirection.INBOUND
+        }
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
         //this is the signaling server socket
@@ -152,13 +158,17 @@ public class Call {
         // Configure iceServers
         self.iceServers = iceServers
 
-        //Ringtone and ringbacktone
-        self.ringTonePlayer = self.buildAudioPlayer(fileName: ringtone,fileType: .RINGTONE)
-        self.ringbackPlayer = self.buildAudioPlayer(fileName: ringbackTone,fileType: .RINGBACK)
+        if(!isAttach){
+            //Ringtone and ringbacktone
+            self.ringTonePlayer = self.buildAudioPlayer(fileName: ringtone,fileType: .RINGTONE)
+            self.ringbackPlayer = self.buildAudioPlayer(fileName: ringbackTone,fileType: .RINGBACK)
 
-        self.playRingtone()
-
-        updateCallState(callState: .NEW)
+            self.playRingtone()
+        }
+      
+        if(!isAttach){
+            updateCallState(callState: .NEW)
+        }
     }
     
     //Contructor for attachCalls
@@ -300,14 +310,13 @@ public class Call {
     private func endCall() {
         self.stopRingtone()
         self.stopRingbackTone()
-       // self.peer?.dispose()
+        self.peer?.dispose()
         self.updateCallState(callState: .DONE)
     }
     
     internal func endForAttachCall() {
-        self.stopRingtone()
-        self.stopRingbackTone()
         self.peer?.dispose()
+       // self.updateCallState(callState: .DONE)
     }
 
     private func updateCallState(callState: CallState) {
@@ -386,14 +395,13 @@ extension Call {
     ///         - customHeaders: (optional) Custom Headers to be passed over webRTC Messages, should be in the
     ///     format `X-key:Value` `X` is required for headers to be passed.
     internal func acceptReAttach(peer:Peer?,customHeaders:[String:String] = [:]) {
-        self.direction = CallDirection.ATTACH
         //TODO: Create an error if there's no remote SDP
         guard let remoteSdp = self.remoteSdp else {
             return
         }
         peer?.dispose()
         self.answerCustomHeaders = customHeaders
-        self.peer = Peer(iceServers: self.iceServers)
+        self.peer = Peer(iceServers: self.iceServers,isAttach: true)
         self.peer?.delegate = self
         self.peer?.socket = self.socket
         self.incomingOffer(sdp: remoteSdp)

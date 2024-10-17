@@ -490,7 +490,9 @@ extension TxClient {
                                     remoteSdp: String,
                                     telnyxSessionId: String,
                                     telnyxLegId: String,
-                                    customHeaders:[String:String] = [:]) {
+                                    customHeaders:[String:String] = [:],
+                                    isAttach:Bool = false
+    ) {
 
         guard let sessionId = self.sessionId,
         let socket = self.socket else {
@@ -506,7 +508,9 @@ extension TxClient {
                         telnyxLegId: UUID(uuidString: telnyxLegId),
                         ringtone: self.txConfig?.ringtone,
                         ringbackTone: self.txConfig?.ringBackTone,
-                        iceServers: self.serverConfiguration.webRTCIceServers)
+                        iceServers: self.serverConfiguration.webRTCIceServers,
+                        isAttach: isAttach
+        )
         call.callInfo?.callerName = callerName
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)
@@ -516,6 +520,12 @@ extension TxClient {
         Logger.log.i(message: "TxClient:: push flow createIncomingCall \(call)")
         
         currentCallId = callId
+        
+        if isAttach {
+            Logger.log.i(message: "TxClient :: Attaching Call....")
+            call.acceptReAttach(peer: nil)
+            return
+        }
 
         if isCallFromPush {
             self.delegate?.onPushCall(call: call)
@@ -553,7 +563,12 @@ extension TxClient {
     /// - Throws: Error during the connection process
     public func processVoIPNotification(txConfig: TxConfig,
                                         serverConfiguration: TxServerConfiguration,pushMetaData:[String: Any]) throws {
+        
+        
         let rtc_id = (pushMetaData["voice_sdk_id"] as? String)
+        
+        // Check if we are already connected and logged in
+        FileLogger.isCallFromPush = true
 
         if(rtc_id == nil){
             Logger.log.e(message: "TxClient:: processVoIPNotification - pushMetaData is empty")
@@ -579,12 +594,17 @@ extension TxClient {
             do {
                 Logger.log.i(message: "TxClient:: No Active Calls Connecting Again")
                 try self.connectFromPush(txConfig: txConfig, serverConfiguration: pnServerConfig)
+                
+                // Create an initial call_object to handle early bye message
+                if let newCallId = (pushMetaData["call_id"] as? String) {
+                    self.calls[UUID(uuidString: newCallId)!] = Call(callId: UUID(uuidString: newCallId)! , sessionId: newCallId, socket: self.socket!, delegate: self, iceServers: self.serverConfiguration.webRTCIceServers)
+                }
             } catch let error {
                 Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
             }
         }
        
-        // Check if we are already connected and logged in
+    
         self.isCallFromPush = true
     }
 
@@ -657,6 +677,12 @@ extension TxClient : SocketDelegate {
         Logger.log.i(message: "Reconnect Called 1")
         if let txConfig = self.txConfig {
             if(txConfig.reconnectClient){
+                guard let currentCall = self.calls[self.currentCallId] else {
+
+                    Logger.log.e(message: "Current Call not available for ATTACH")
+                    return
+                }
+                currentCall.endForAttachCall()
                 self.socket?.disconnect(reconnect: true)
              
             }else {
@@ -690,6 +716,8 @@ extension TxClient : SocketDelegate {
             let vertoLogin = LoginMessage(user: sipUser, password: password, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush,pushEnvironment: self.txConfig?.pushEnvironment,sessionId: self.sessionId!)
             self.socket?.sendMessage(message: vertoLogin.encode())
         }
+        
+        //FileLogger.shared.sendLogFile()
   
 
     }
@@ -736,14 +764,22 @@ extension TxClient : SocketDelegate {
     func onMessageReceived(message: String) {
         Logger.log.i(message: "TxClient:: SocketDelegate onMessageReceived() message: \(message)")
         guard let vertoMessage = Message().decode(message: message) else { return }
+        
+       // FileLogger().log(message)
 
         //Check if server is sending an error code
         if let error = vertoMessage.serverError {
+            
+            FileLogger().log("Error Recieved at Line 757")
+
+            
             if(attachCallId == vertoMessage.id){
                 // Call failed from remote end
               if let callId = pushMetaData?["call_id"] as? String {
                   Logger.log.i(message: "TxClient:: Attach Call ID \(String(describing: callId))")
+                  FileLogger.shared.log("Error Recieved, Remote Call Ended Line 764")
                   self.delegate?.onRemoteCallEnded(callId: UUID(uuidString: callId)!)
+                  
                 }
                 return
             }
@@ -896,20 +932,29 @@ extension TxClient : SocketDelegate {
                     }
         
                     
-                    let socket = self.socket
                     
-                    guard let currentCall = self.calls[self.currentCallId] else {
-
-                        Logger.log.e(message: "Current Call not available for ATTACH")
-                        return
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+                        // Code to be executed after the delay
+                        print("This is run after a 10-second delay")
+                        Logger.log.i(message: "isAudioEnabled : \(self.isAudioDeviceEnabled)")
+                        self.createIncomingCall(callerName: callerName,
+                                                callerNumber: callerNumber,
+                                                callId: uuid,
+                                                remoteSdp: sdp,
+                                                telnyxSessionId: telnyxSessionId,
+                                                telnyxLegId: telnyxLegId,
+                                                customHeaders: customHeaders,
+                                                isAttach: true
+                        )
                     }
+                    
+                  
 
+        
                     
-                    
-                    
-                    let call = Call(callId: uuid,
+                  /*  let call = Call(callId: uuid,
                          remoteSdp: sdp,
-                         sessionId: telnyxSessionId,
+                         sessionId: self.sessionId ?? "",
                          socket: socket!,
                          delegate: self,
                          telnyxSessionId:  UUID(uuidString: telnyxSessionId),
@@ -925,7 +970,7 @@ extension TxClient : SocketDelegate {
                     
                     self.calls[uuid] = call
                     
-                    call.acceptReAttach(peer:currentCall.peer,customHeaders: pendingAnswerHeaders)
+                    call.acceptReAttach(peer:currentCall.peer,customHeaders: pendingAnswerHeaders) */
                     
                 }
                  break;

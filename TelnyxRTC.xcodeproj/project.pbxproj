@@ -7,13 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1B0B82F8E58A096FBA0FB9CC /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
+		1B0B82F8E58A096FBA0FB9CC /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		3B0F56CB2C7F15830011A48A /* StatsMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B0F56CA2C7F15830011A48A /* StatsMessage.swift */; };
 		3B0F56CD2C7F1CCA0011A48A /* Reachability.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B0F56CC2C7F1CCA0011A48A /* Reachability.framework */; };
 		3B1BE6F72AA9A467000B7962 /* TxPushIPConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */; };
 		3B1F43EF2AE0B01E00A610BA /* Params.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1F43EE2AE0B01E00A610BA /* Params.swift */; };
-		3B304DB32CAD823600459A97 /* Pods_TelnyxRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B304DB22CAD823600459A97 /* Pods_TelnyxRTC.framework */; };
-		3B304DB42CAD823600459A97 /* Pods_TelnyxRTC.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B304DB22CAD823600459A97 /* Pods_TelnyxRTC.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B23BF802CBC86B4002B89C4 /* Pods_TelnyxRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B304DB22CAD823600459A97 /* Pods_TelnyxRTC.framework */; };
 		3B49B7152AA9B0A20026D36D /* AttachCallMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B49B7142AA9B0A20026D36D /* AttachCallMessage.swift */; };
 		3B72695D2A9396BF00D2A602 /* DisablePushMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B72695C2A9396BF00D2A602 /* DisablePushMessage.swift */; };
 		3B758F1A2BF44D7800D50069 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3B758F192BF44D7800D50069 /* PrivacyInfo.xcprivacy */; };
@@ -35,8 +34,8 @@
 		B309D24025F06EA600A2AADF /* InviteMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D23F25F06EA600A2AADF /* InviteMessage.swift */; };
 		B309D24E25F0717B00A2AADF /* UICallScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = B309D24D25F0717B00A2AADF /* UICallScreen.xib */; };
 		B309D25325F071DD00A2AADF /* UICallScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D25225F071DD00A2AADF /* UICallScreen.swift */; };
-		B309D26225F1574C00A2AADF /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
-		B309D26325F1574C00A2AADF /* BuildFile in Embed Frameworks */ = {isa = PBXBuildFile; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		B309D26225F1574C00A2AADF /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		B309D26325F1574C00A2AADF /* (null) in Embed Frameworks */ = {isa = PBXBuildFile; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B309D27B25F17C1700A2AADF /* UIIncomingCallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D27925F17C1700A2AADF /* UIIncomingCallView.swift */; };
 		B309D27C25F17C1700A2AADF /* UIIncomingCallView.xib in Resources */ = {isa = PBXBuildFile; fileRef = B309D27A25F17C1700A2AADF /* UIIncomingCallView.xib */; };
 		B309D28225F1838700A2AADF /* ByeMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D28125F1838700A2AADF /* ByeMessage.swift */; };
@@ -98,8 +97,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				3B304DB42CAD823600459A97 /* Pods_TelnyxRTC.framework in Embed Frameworks */,
-				B309D26325F1574C00A2AADF /* BuildFile in Embed Frameworks */,
+				B309D26325F1574C00A2AADF /* (null) in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -195,9 +193,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3B304DB32CAD823600459A97 /* Pods_TelnyxRTC.framework in Frameworks */,
+				3B23BF802CBC86B4002B89C4 /* Pods_TelnyxRTC.framework in Frameworks */,
 				B309D13D25EF119E00A2AADF /* Starscream.framework in Frameworks */,
-				B309D26225F1574C00A2AADF /* BuildFile in Frameworks */,
+				B309D26225F1574C00A2AADF /* (null) in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -214,7 +212,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1B0B82F8E58A096FBA0FB9CC /* BuildFile in Frameworks */,
+				1B0B82F8E58A096FBA0FB9CC /* (null) in Frameworks */,
 				3B0F56CD2C7F1CCA0011A48A /* Reachability.framework in Frameworks */,
 				4F0C6EBA712F248F63AAE284 /* Pods_TelnyxWebRTCDemo.framework in Frameworks */,
 			);
@@ -943,8 +941,10 @@
 			baseConfigurationReference = 711958501DD45FDFBD112FC6 /* Pods-TelnyxRTC.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = YKUVNPU9FS;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -1054,7 +1054,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = TelnyxWebRTCDemo/TelnyxWebRTCDemo.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 21;
 				DEVELOPMENT_TEAM = YKUVNPU9FS;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = TelnyxWebRTCDemo/Info.plist;
@@ -1063,7 +1063,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.17;
+				MARKETING_VERSION = 0.1.19;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -1079,7 +1079,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = TelnyxWebRTCDemo/TelnyxWebRTCDemo.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 21;
 				DEVELOPMENT_TEAM = YKUVNPU9FS;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = TelnyxWebRTCDemo/Info.plist;
@@ -1088,7 +1088,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.17;
+				MARKETING_VERSION = 0.1.19;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
