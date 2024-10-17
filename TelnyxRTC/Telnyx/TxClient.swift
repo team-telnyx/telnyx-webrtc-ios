@@ -563,6 +563,13 @@ extension TxClient {
             do {
                 Logger.log.i(message: "TxClient:: No Active Calls Connecting Again")
                 try self.connect(txConfig: txConfig, serverConfiguration: pnServerConfig)
+                // Create an initial call_object to handle early bye message
+                if let socket = self.socket {
+                    if let newCallId = (pushMetaData["call_id"] as? String) {
+                        self.calls[UUID(uuidString: newCallId)!] = Call(callId: UUID(uuidString: newCallId)! , sessionId: newCallId, socket: socket, delegate: self, iceServers: self.serverConfiguration.webRTCIceServers)
+                    }
+                }
+                
             } catch let error {
                 Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
             }
