@@ -321,7 +321,9 @@ class Peer : NSObject {
             self.negotiationTimer = Timer.scheduledTimer(withTimeInterval: self.NEGOTIATION_TIMOUT, repeats: false) { timer in
                 // Check if the negotiation process has ended to avoid duplicated calls to the delegate method.
                 if (self.negotiationEnded) {
-                    Logger.log.w(message: "ICE negotiation has ended:: ICE negotiation has ended.")
+                    // Means we have an active call for this peer object
+                    self.socket?.delegate?.onSocketReconnectSuggested()
+                    Logger.log.w(message: "ICE negotiation has ended:: For Peer")
                     return
                 }
                 self.negotiationTimer?.invalidate()

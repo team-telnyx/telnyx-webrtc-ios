@@ -933,20 +933,16 @@ extension TxClient : SocketDelegate {
         
                     
                     
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
-                        // Code to be executed after the delay
-                        print("This is run after a 10-second delay")
-                        Logger.log.i(message: "isAudioEnabled : \(self.isAudioDeviceEnabled)")
-                        self.createIncomingCall(callerName: callerName,
-                                                callerNumber: callerNumber,
-                                                callId: uuid,
-                                                remoteSdp: sdp,
-                                                telnyxSessionId: telnyxSessionId,
-                                                telnyxLegId: telnyxLegId,
-                                                customHeaders: customHeaders,
-                                                isAttach: true
-                        )
-                    }
+                    Logger.log.i(message: "isAudioEnabled : \(self.isAudioDeviceEnabled)")
+                    self.createIncomingCall(callerName: callerName,
+                                            callerNumber: callerNumber,
+                                            callId: uuid,
+                                            remoteSdp: sdp,
+                                            telnyxSessionId: telnyxSessionId,
+                                            telnyxLegId: telnyxLegId,
+                                            customHeaders: customHeaders,
+                                            isAttach: true
+                    )
                     
                   
 
