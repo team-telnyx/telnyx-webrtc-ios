@@ -754,7 +754,7 @@ extension TxClient : SocketDelegate {
         self.delegate?.onClientError(error: error)
         //reconnect socket
         Logger.log.e(message:"TxClient:: SocketDelegate reconnect error" +  error.localizedDescription)
-        recconectClient()
+        //recconectClient()
     }
 
     /**

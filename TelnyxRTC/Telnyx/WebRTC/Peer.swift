@@ -71,6 +71,7 @@ class Peer : NSObject {
         // Unified plan is more superior than planB
         config.sdpSemantics = .unifiedPlan
         config.bundlePolicy = .maxCompat
+        
 
         // gatherContinually will let WebRTC to listen to any network changes and send any new candidates to the other client
         config.continualGatheringPolicy = .gatherContinually
@@ -311,6 +312,7 @@ class Peer : NSObject {
      */
     fileprivate func startNegotiation(peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
         Logger.log.i(message: "Peer:: ICE negotiation updated.")
+        
             
         //Set gathered candidates to 
         
@@ -322,7 +324,10 @@ class Peer : NSObject {
                 // Check if the negotiation process has ended to avoid duplicated calls to the delegate method.
                 if (self.negotiationEnded) {
                     // Means we have an active call for this peer object
-                    self.socket?.delegate?.onSocketReconnectSuggested()
+                    if(self.connection?.connectionState == .disconnected){
+                        // Reconnect if the peer is disconnected
+                        self.socket?.delegate?.onSocketReconnectSuggested()
+                    }
                     Logger.log.w(message: "ICE negotiation has ended:: For Peer")
                     return
                 }
@@ -433,7 +438,6 @@ extension Peer : RTCPeerConnectionDelegate {
                 state = "new"
             case .connected:
                 state = "connected"
-               // self.configureAudioSession()
             case .completed:
                 state = "completed"
             case .failed:
@@ -488,6 +492,8 @@ extension Peer : RTCPeerConnectionDelegate {
     func peerConnection(_ peerConnection: RTCPeerConnection, didRemove candidates: [RTCIceCandidate]) {
      //   Logger.log.i(message: "Peer:: connection didRemove [RTCIceCandidate]: \(candidates)")
     }
+    
+
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didOpen dataChannel: RTCDataChannel) {
         Logger.log.i(message: "Peer:: connection didOpen RTCDataChannel: \(dataChannel)")
