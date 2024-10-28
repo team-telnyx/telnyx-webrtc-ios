@@ -52,7 +52,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         //init pushkit to handle VoIP push notifications
         self.initPushKit()
         self.initCallKit()
-        Monitor().status
         return true
     }
     
@@ -64,6 +63,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         print("AppDelegate: applicationDidEnterBackground")
     }
 
+    lazy var dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS "
+        return formatter
+    }()
+    
+    
     func initPushKit() {
         pushRegistry.delegate = self
         pushRegistry.desiredPushTypes = Set([.voIP])

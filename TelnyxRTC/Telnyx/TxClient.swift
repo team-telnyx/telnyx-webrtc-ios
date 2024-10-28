@@ -150,6 +150,7 @@ public class TxClient {
     internal var sendFileLogs:Bool = false
     private var attachCallId:String?
     private var pushMetaData:[String:Any]?
+    private let AUTH_ERROR_CODE = "-32001"
     
     func isSpeakerEnabled() -> Bool {
         return speakerOn
@@ -754,7 +755,7 @@ extension TxClient : SocketDelegate {
         self.delegate?.onClientError(error: error)
         //reconnect socket
         Logger.log.e(message:"TxClient:: SocketDelegate reconnect error" +  error.localizedDescription)
-        //recconectClient()
+        recconectClient()
     }
 
     /**
@@ -769,10 +770,6 @@ extension TxClient : SocketDelegate {
 
         //Check if server is sending an error code
         if let error = vertoMessage.serverError {
-            
-            FileLogger().log("Error Recieved at Line 757")
-
-            
             if(attachCallId == vertoMessage.id){
                 // Call failed from remote end
               if let callId = pushMetaData?["call_id"] as? String {
@@ -785,6 +782,8 @@ extension TxClient : SocketDelegate {
             }
             let message : String = error["message"] as? String ?? "Unknown"
             let code : String = String(error["code"] as? Int ?? 0)
+            let noActiveCalls = self.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
+
             let err = TxError.serverError(reason: .signalingServerError(message: message, code: code))
             self.delegate?.onClientError(error: err)
         }
@@ -887,8 +886,8 @@ extension TxClient : SocketDelegate {
                                                 telnyxLegId: telnyxLegId,
                                                 customHeaders: customHeaders)
                         if(isCallFromPush){
-                            FileLogger.shared.log("INVITE : \(message) \n")
-                            FileLogger.shared.log("INVITE telnyxLegId: \(telnyxLegId) \n")
+                            /*FileLogger.shared.log("INVITE : \(message) \n")
+                            FileLogger.shared.log("INVITE telnyxLegId: \(telnyxLegId) \n") */
                             self.sendFileLogs = true
                         }
                         
