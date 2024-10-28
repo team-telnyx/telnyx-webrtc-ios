@@ -594,7 +594,7 @@ extension TxClient {
         if(noActiveCalls){
             do {
                 Logger.log.i(message: "TxClient:: No Active Calls Connecting Again")
-                try self.connectFromPush(txConfig: txConfig, serverConfiguration: pnServerConfig)
+                 try self.connectFromPush(txConfig: txConfig, serverConfiguration: pnServerConfig)
                 
                 // Create an initial call_object to handle early bye message
                 if let newCallId = (pushMetaData["call_id"] as? String) {

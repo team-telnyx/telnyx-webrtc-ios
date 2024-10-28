@@ -69,9 +69,7 @@ extension AppDelegate: TxClientDelegate {
     
     func onRemoteCallEnded(callId: UUID) {
         print("AppDelegate:: TxClientDelegate onRemoteCallEnded() callKitUUID [\(String(describing: self.callKitUUID))] callId [\(callId)]")
-        FileLogger.shared.log("AppDelegate:: TxClientDelegate onRemoteCallEnded() callKitUUID [\(String(describing: self.callKitUUID))] callId [\(callId)]")
         reportCallEnd(callId: callId)
-
         if (previousCall?.callInfo?.callId == callId) {
             self.previousCall = nil
         }
