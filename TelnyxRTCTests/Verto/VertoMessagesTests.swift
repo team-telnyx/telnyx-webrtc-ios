@@ -23,7 +23,7 @@ class VertoMessagesTests: XCTestCase {
         print("VertoMessagesTest :: Testing LoginMessage token init")
         let loginWithToken: LoginMessage = LoginMessage(token: loginToken,
                                                         pushDeviceToken: pushDeviceToken,
-                                                        pushNotificationProvider: pushNotificationProvider)
+                                                        pushNotificationProvider: pushNotificationProvider, sessionId: UUID().uuidString)
         let loginEncodedToken : String = loginWithToken.params?["login_token"] as! String
         let userVariables = loginWithToken.params?["userVariables"] as? [String: Any]
         let loginEncodedPushToken : String = userVariables?["push_device_token"] as! String
@@ -63,7 +63,7 @@ class VertoMessagesTests: XCTestCase {
         let loginWithUserAndPassoword: LoginMessage = LoginMessage(user: userName,
                                                                     password: password,
                                                                     pushDeviceToken: pushDeviceToken,
-                                                                    pushNotificationProvider: pushNotificationProvider)
+                                                                   pushNotificationProvider: pushNotificationProvider, sessionId: UUID().uuidString)
         let loginUser : String = loginWithUserAndPassoword.params?["login"] as! String
         let loginPassword : String = loginWithUserAndPassoword.params?["passwd"] as! String
 

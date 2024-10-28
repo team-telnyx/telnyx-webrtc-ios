@@ -77,7 +77,7 @@ class SocketTests : XCTestCase, SocketDelegate {
         XCTAssertEqual(code, -32000) //check auth error
 
         socketDisconnectedExpectation = expectation(description: "socketDisconnection")
-        socket.disconnect()
+        socket.disconnect(reconnect: false)
         waitForExpectations(timeout: 5)
         XCTAssertFalse(socket.isConnected)
     }
