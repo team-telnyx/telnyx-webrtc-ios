@@ -10,6 +10,15 @@ import XCTest
 @testable import TelnyxRTC
 
 class SocketTests : XCTestCase, SocketDelegate {
+    func onSocketReconnectSuggested() {
+        //TODO: find a way to unit test `telnhyx_rtc.attach` method
+    }
+    
+    func onSocketDisconnected(reconnect: Bool) {
+        //Handle socket disconnected
+        socketDisconnectedExpectation.fulfill()
+    }
+    
 
     private weak var socketConnectedExpectation: XCTestExpectation!
     private weak var socketPingExpectation: XCTestExpectation!
