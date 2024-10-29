@@ -63,6 +63,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         print("AppDelegate: applicationDidEnterBackground")
     }
 
+    lazy var dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS "
+        return formatter
+    }()
+    
+    
     func initPushKit() {
         pushRegistry.delegate = self
         pushRegistry.desiredPushTypes = Set([.voIP])
@@ -148,8 +155,6 @@ extension AppDelegate: PKPushRegistryDelegate {
             }
             let callerName = (metadata["caller_name"] as? String) ?? ""
             let callerNumber = (metadata["caller_number"] as? String) ?? ""
-            
-          
             
             let caller = callerName.isEmpty ? (callerNumber.isEmpty ? "Unknown" : callerNumber) : callerName
             let uuid = UUID(uuidString: callID)

@@ -36,6 +36,7 @@ extension AppDelegate : CXProviderDelegate {
             print("StartCallAction transaction request successful")
 
             let callUpdate = CXCallUpdate()
+            
 
             callUpdate.remoteHandle = callHandle
             callUpdate.supportsDTMF = true
@@ -239,7 +240,7 @@ extension AppDelegate : CXProviderDelegate {
                                 ringBackTone: "ringback_tone.mp3",
                                 //You can choose the appropriate verbosity level of the SDK.
                                 logLevel: .all,
-                                reconnectClient: false)
+                                reconnectClient: true)
         
         do {
             try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)

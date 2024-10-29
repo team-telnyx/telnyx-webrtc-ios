@@ -20,12 +20,28 @@ extension ViewController : VoIPDelegate {
         DispatchQueue.main.async {
             self.socketStateLabel.text = "Connected"
             self.connectButton.setTitle("Disconnect", for: .normal)
+            
         }
         
     }
     
     func onSocketDisconnected() {
         print("ViewController:: TxClientDelegate onSocketDisconnected()")
+        let noActiveCalls = self.telnyxClient?.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
+        
+        if(noActiveCalls != true){
+            self.reachability.whenReachable = { reachability in
+                 if reachability.connection == .wifi {
+                     print("Reachable via WiFi")
+                     self.connectButtonTapped("")
+                 } else {
+                     print("Reachable via Cellular")
+                     self.connectButtonTapped("")
+                 }
+             } 
+            return
+        }
+
         DispatchQueue.main.async {
             self.removeLoadingView()
             self.resetCallStates()
@@ -37,20 +53,18 @@ extension ViewController : VoIPDelegate {
             self.incomingCallView.isHidden = true
         }
         
-       self.reachability.whenReachable = { reachability in
-            if reachability.connection == .wifi {
-                print("Reachable via WiFi")
-                self.connectButtonTapped("")
-            } else {
-                print("Reachable via Cellular")
-                self.connectButtonTapped("")
-            }
-        } 
+      
         
     }
     
     func onClientError(error: Error) {
         print("ViewController:: TxClientDelegate onClientError() error: \(error)")
+        let noActiveCalls = self.telnyxClient?.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
+        
+        if(noActiveCalls != true){
+            return
+        }
+        
         DispatchQueue.main.async {
             self.removeLoadingView()
             self.incomingCallView.isHidden = true

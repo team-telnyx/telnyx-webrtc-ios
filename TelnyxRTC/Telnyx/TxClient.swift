@@ -126,7 +126,7 @@ public class TxClient {
     private static let DEFAULT_REGISTER_INTERVAL = 3.0 // In seconds
     private static let MAX_REGISTER_RETRY = 3 // Number of retry
     //re_connect buffer in secondds
-    private static let RECONNECT_BUFFER = 0.0
+    private static let RECONNECT_BUFFER = 1.0
     /// Keeps track of all the created calls by theirs UUIDs
     public internal(set) var calls: [UUID: Call] = [UUID: Call]()
     /// Subscribe to TxClient delegate to receive Telnyx SDK events
@@ -150,6 +150,7 @@ public class TxClient {
     internal var sendFileLogs:Bool = false
     private var attachCallId:String?
     private var pushMetaData:[String:Any]?
+    private let AUTH_ERROR_CODE = "-32001"
     
     func isSpeakerEnabled() -> Bool {
         return speakerOn
@@ -197,10 +198,11 @@ public class TxClient {
     public init() {
         self.serverConfiguration = TxServerConfiguration()
         self.configure()
+        sessionId = UUID().uuidString.lowercased()
     }
 
     // MARK: - Connection handling
-    /// Connects to the iOS client to the Telnyx signaling server using the desired login credentials.
+    /// Connects to the iOS cloglient to the Telnyx signaling server using the desired login credentials.
     /// - Parameters:
     ///   - txConfig: The desired login credentials. See TxConfig docummentation for more information.
     ///   - serverConfiguration: (Optional) To define a custom `signaling server` and `TURN/ STUN servers`. As default we use the internal Telnyx Production servers.
@@ -213,16 +215,31 @@ public class TxClient {
         self.gatewayState = .NOREG
         self.txConfig = txConfig
 
-        
-        if(self.pushMetaData?.isEmpty == false && serverConfiguration.pushMetaData?.isEmpty == true){
-            self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,webRTCIceServers: serverConfiguration.webRTCIceServers,environment: serverConfiguration.environment,pushMetaData: self.pushMetaData)
+
+        if(self.voiceSdkId != nil){
+            Logger.log.i(message: "with_id")
+            self.serverConfiguration = TxServerConfiguration(signalingServer: nil,webRTCIceServers: serverConfiguration.webRTCIceServers,environment: serverConfiguration.environment,pushMetaData: ["voice_sdk_id":self.voiceSdkId!])
         } else {
-            if(self.voiceSdkId != nil){
-                self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,webRTCIceServers: serverConfiguration.webRTCIceServers,environment: serverConfiguration.environment,pushMetaData: ["voice_sdk_id":self.voiceSdkId!])
-            } else {
-                self.serverConfiguration = serverConfiguration
-            }
+            Logger.log.i(message: "without_id")
+            self.serverConfiguration = serverConfiguration
         }
+        Logger.log.i(message: "TxClient:: serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
+        self.socket = Socket()
+        self.socket?.delegate = self
+        self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
+    }
+    
+    
+    private func connectFromPush(txConfig: TxConfig, serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
+        Logger.log.i(message: "TxClient:: connect from_push")
+        //Check connetion parameters
+        try txConfig.validateParams()
+        self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
+        self.gatewayState = .NOREG
+        self.txConfig = txConfig
+
+
+        self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,webRTCIceServers: serverConfiguration.webRTCIceServers,environment: serverConfiguration.environment,pushMetaData: self.pushMetaData)
 
         Logger.log.i(message: "TxClient:: serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
         self.socket = Socket()
@@ -241,7 +258,7 @@ public class TxClient {
             call.hangup()
         }
         self.calls.removeAll()
-        socket?.disconnect()
+        socket?.disconnect(reconnect: false)
         delegate?.onSocketDisconnected()
     }
 
@@ -474,10 +491,12 @@ extension TxClient {
                                     remoteSdp: String,
                                     telnyxSessionId: String,
                                     telnyxLegId: String,
-                                    customHeaders:[String:String] = [:]) {
+                                    customHeaders:[String:String] = [:],
+                                    isAttach:Bool = false
+    ) {
 
         guard let sessionId = self.sessionId,
-              let socket = self.socket else {
+        let socket = self.socket else {
             return
         }
 
@@ -490,7 +509,9 @@ extension TxClient {
                         telnyxLegId: UUID(uuidString: telnyxLegId),
                         ringtone: self.txConfig?.ringtone,
                         ringbackTone: self.txConfig?.ringBackTone,
-                        iceServers: self.serverConfiguration.webRTCIceServers)
+                        iceServers: self.serverConfiguration.webRTCIceServers,
+                        isAttach: isAttach
+        )
         call.callInfo?.callerName = callerName
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)
@@ -500,6 +521,12 @@ extension TxClient {
         Logger.log.i(message: "TxClient:: push flow createIncomingCall \(call)")
         
         currentCallId = callId
+        
+        if isAttach {
+            Logger.log.i(message: "TxClient :: Attaching Call....")
+            call.acceptReAttach(peer: nil)
+            return
+        }
 
         if isCallFromPush {
             self.delegate?.onPushCall(call: call)
@@ -537,7 +564,12 @@ extension TxClient {
     /// - Throws: Error during the connection process
     public func processVoIPNotification(txConfig: TxConfig,
                                         serverConfiguration: TxServerConfiguration,pushMetaData:[String: Any]) throws {
+        
+        
         let rtc_id = (pushMetaData["voice_sdk_id"] as? String)
+        
+        // Check if we are already connected and logged in
+        FileLogger.isCallFromPush = true
 
         if(rtc_id == nil){
             Logger.log.e(message: "TxClient:: processVoIPNotification - pushMetaData is empty")
@@ -562,20 +594,18 @@ extension TxClient {
         if(noActiveCalls){
             do {
                 Logger.log.i(message: "TxClient:: No Active Calls Connecting Again")
-                try self.connect(txConfig: txConfig, serverConfiguration: pnServerConfig)
-                // Create an initial call_object to handle early bye message
-                if let socket = self.socket {
-                    if let newCallId = (pushMetaData["call_id"] as? String) {
-                        self.calls[UUID(uuidString: newCallId)!] = Call(callId: UUID(uuidString: newCallId)! , sessionId: newCallId, socket: socket, delegate: self, iceServers: self.serverConfiguration.webRTCIceServers)
-                    }
-                }
+                 try self.connectFromPush(txConfig: txConfig, serverConfiguration: pnServerConfig)
                 
+                // Create an initial call_object to handle early bye message
+                if let newCallId = (pushMetaData["call_id"] as? String) {
+                    self.calls[UUID(uuidString: newCallId)!] = Call(callId: UUID(uuidString: newCallId)! , sessionId: newCallId, socket: self.socket!, delegate: self, iceServers: self.serverConfiguration.webRTCIceServers)
+                }
             } catch let error {
                 Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
             }
         }
        
-        // Check if we are already connected and logged in
+    
         self.isCallFromPush = true
     }
 
@@ -643,6 +673,28 @@ extension TxClient: CallProtocol {
  Listen for wss socket events
  */
 extension TxClient : SocketDelegate {
+   
+    func recconectClient(){
+        Logger.log.i(message: "Reconnect Called 1")
+        if let txConfig = self.txConfig {
+            if(txConfig.reconnectClient){
+                guard let currentCall = self.calls[self.currentCallId] else {
+
+                    Logger.log.e(message: "Current Call not available for ATTACH")
+                    return
+                }
+                currentCall.endForAttachCall()
+                self.socket?.disconnect(reconnect: true)
+             
+            }else {
+                Logger.log.i(message: "TxClient:: Reconnect Disabled")
+            }
+        }else {
+            Logger.log.e(message:"TxClient:: Not Reconnecting")
+
+        }
+    }
+    
   
     func onSocketConnected() {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected()")
@@ -655,46 +707,55 @@ extension TxClient : SocketDelegate {
         //Login into the signaling server after the connection is produced.
         if let token = self.txConfig?.token  {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with Token")
-            let vertoLogin = LoginMessage(token: token, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush,pushEnvironment: self.txConfig?.pushEnvironment)
+            let vertoLogin = LoginMessage(token: token, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush,pushEnvironment: self.txConfig?.pushEnvironment,sessionId: self.sessionId!)
             self.socket?.sendMessage(message: vertoLogin.encode())
         } else {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with SIP User and Password")
             guard let sipUser = self.txConfig?.sipUser else { return }
             guard let password = self.txConfig?.password else { return }
             let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
-            let vertoLogin = LoginMessage(user: sipUser, password: password, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush,pushEnvironment: self.txConfig?.pushEnvironment)
+            let vertoLogin = LoginMessage(user: sipUser, password: password, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush,pushEnvironment: self.txConfig?.pushEnvironment,sessionId: self.sessionId!)
             self.socket?.sendMessage(message: vertoLogin.encode())
         }
+        
+        //FileLogger.shared.sendLogFile()
   
 
     }
     
-    func onSocketDisconnected() {
+    func onSocketDisconnected(reconnect: Bool) {
+        
+        if(reconnect){
+            Logger.log.i(message: "TxClient:: SocketDelegate  Reconnecting")
+            DispatchQueue.main.asyncAfter(deadline: .now() + TxClient.RECONNECT_BUFFER) {
+                do {
+                    try self.connect(txConfig: self.txConfig!,serverConfiguration: self.serverConfiguration)
+                }catch let error {
+                    Logger.log.e(message:"TxClient:: SocketDelegate reconnect error" +  error.localizedDescription)
+                }
+            }
+            return
+        }
+
+        
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketDisconnected()")
         self.socket = nil
         self.sessionId = nil
+        self.sessionId = UUID().uuidString.lowercased()
         self.delegate?.onSocketDisconnected()
+    }
+    
+    func onSocketReconnectSuggested() {
+        recconectClient()
     }
 
     func onSocketError(error: Error) {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketError()")
-        let scoketError = TxError.socketConnectionFailed(reason: .socketCancelled(nativeError: error))
+        let socketError = TxError.socketConnectionFailed(reason: .socketCancelled(nativeError: error))
         self.delegate?.onClientError(error: error)
         //reconnect socket
-        if let txConfig = self.txConfig {
-            if(txConfig.reconnectClient){
-                Logger.log.i(message: "TxClient:: SocketDelegate onSocketError() Reconnecting")
-                DispatchQueue.main.asyncAfter(deadline: .now() + TxClient.RECONNECT_BUFFER) {
-                    do {
-                        try self.connect(txConfig: txConfig,serverConfiguration: self.serverConfiguration)
-                    }catch let error {
-                        Logger.log.e(message:"TxClient:: SocketDelegate reconnect error" +  error.localizedDescription)
-                    }
-                }
-            }
-        }else {
-            Logger.log.e(message:"TxClient:: SocketDelegate reconnect error" +  error.localizedDescription)
-        }
+        Logger.log.e(message:"TxClient:: SocketDelegate reconnect error" +  error.localizedDescription)
+        recconectClient()
     }
 
     /**
@@ -704,6 +765,8 @@ extension TxClient : SocketDelegate {
     func onMessageReceived(message: String) {
         Logger.log.i(message: "TxClient:: SocketDelegate onMessageReceived() message: \(message)")
         guard let vertoMessage = Message().decode(message: message) else { return }
+        
+       // FileLogger().log(message)
 
         //Check if server is sending an error code
         if let error = vertoMessage.serverError {
@@ -711,12 +774,16 @@ extension TxClient : SocketDelegate {
                 // Call failed from remote end
               if let callId = pushMetaData?["call_id"] as? String {
                   Logger.log.i(message: "TxClient:: Attach Call ID \(String(describing: callId))")
+                  FileLogger.shared.log("Error Recieved, Remote Call Ended Line 764")
                   self.delegate?.onRemoteCallEnded(callId: UUID(uuidString: callId)!)
+                  
                 }
                 return
             }
             let message : String = error["message"] as? String ?? "Unknown"
             let code : String = String(error["code"] as? Int ?? 0)
+            let noActiveCalls = self.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
+
             let err = TxError.serverError(reason: .signalingServerError(message: message, code: code))
             self.delegate?.onClientError(error: err)
         }
@@ -727,8 +794,11 @@ extension TxClient : SocketDelegate {
             if let params = result["params"] as? [String: Any],
                let state = params["state"] as? String,
                let gatewayState = GatewayStates(rawValue: state) {
-                Logger.log.i(message: "GATEWAY_STATE RESULT: \(state)")
+                Logger.log.i(message: "GATEWAY_STATE RESULT HERE: \(state)")
+                self.voiceSdkId = vertoMessage.voiceSdkId
+                Logger.log.i(message: "VDK \(String(describing: vertoMessage.voiceSdkId))")
                 self.updateGatewayState(newState: gatewayState)
+              
             }
             
             //process disable push notification
@@ -756,6 +826,7 @@ extension TxClient : SocketDelegate {
             }
             
 
+            Logger.log.i(message: "VDK \(String(describing: vertoMessage.voiceSdkId))")
 
             //Parse incoming Verto message
             switch vertoMessage.method {
@@ -815,14 +886,89 @@ extension TxClient : SocketDelegate {
                                                 telnyxLegId: telnyxLegId,
                                                 customHeaders: customHeaders)
                         if(isCallFromPush){
-                            FileLogger.shared.log("INVITE : \(message) \n")
-                            FileLogger.shared.log("INVITE telnyxLegId: \(telnyxLegId) \n")
+                            /*FileLogger.shared.log("INVITE : \(message) \n")
+                            FileLogger.shared.log("INVITE telnyxLegId: \(telnyxLegId) \n") */
                             self.sendFileLogs = true
                         }
                         
                     }
                    
                     break;
+            case .ATTACH:
+                Logger.log.i(message: "Attach Received")
+                if let params = vertoMessage.params {
+                    guard let sdp = params["sdp"] as? String,
+                          let callId = params["callID"] as? String,
+                          let uuid = UUID(uuidString: callId) else {
+                        return
+                    }
+                    
+                    self.voiceSdkId = vertoMessage.voiceSdkId
+
+                    let callerName = params["caller_id_name"] as? String ?? ""
+                    let callerNumber = params["caller_id_number"] as? String ?? ""
+                    let telnyxSessionId = params["telnyx_session_id"] as? String ?? ""
+                    let telnyxLegId = params["telnyx_leg_id"] as? String ?? ""
+                    
+                    if telnyxSessionId.isEmpty {
+                        Logger.log.w(message: "TxClient:: Telnyx Session ID unavailable on INVITE message")
+                    }
+                    if telnyxLegId.isEmpty {
+                        Logger.log.w(message: "TxClient:: Telnyx Leg ID unavailable on INVITE message")
+                    }
+                    
+                    var customHeaders = [String:String]()
+                    if params["dialogParams"] is [String:Any] {
+                        do {
+                            let dataDecoded = try JSONDecoder().decode(CustomHeaderData.self, from: message.data(using: .utf8)!)
+                            dataDecoded.params.dialogParams.custom_headers.forEach { xHeader in
+                                customHeaders[xHeader.name] = xHeader.value
+                            }
+                            print("Data Decode : \(dataDecoded)")
+                        } catch {
+                            print("decoding error: \(error)")
+                        }
+                    }
+        
+                    
+                    
+                    Logger.log.i(message: "isAudioEnabled : \(self.isAudioDeviceEnabled)")
+                    self.createIncomingCall(callerName: callerName,
+                                            callerNumber: callerNumber,
+                                            callId: uuid,
+                                            remoteSdp: sdp,
+                                            telnyxSessionId: telnyxSessionId,
+                                            telnyxLegId: telnyxLegId,
+                                            customHeaders: customHeaders,
+                                            isAttach: true
+                    )
+                    
+                  
+
+        
+                    
+                  /*  let call = Call(callId: uuid,
+                         remoteSdp: sdp,
+                         sessionId: self.sessionId ?? "",
+                         socket: socket!,
+                         delegate: self,
+                         telnyxSessionId:  UUID(uuidString: telnyxSessionId),
+                         telnyxLegId:   UUID(uuidString: telnyxLegId),
+                         iceServers: self.serverConfiguration.webRTCIceServers)
+         
+                    
+                    call.callInfo?.callerName = callerName
+                    call.callInfo?.callerNumber = callerNumber
+                    call.callOptions = TxCallOptions(audio: true)
+                    call.inviteCustomHeaders = customHeaders
+                    call.direction = CallDirection.ATTACH
+                    
+                    self.calls[uuid] = call
+                    
+                    call.acceptReAttach(peer:currentCall.peer,customHeaders: pendingAnswerHeaders) */
+                    
+                }
+                 break;
                 //Mark: to send meassage to pong
             case .PING:
                 self.socket?.sendMessage(message: message)

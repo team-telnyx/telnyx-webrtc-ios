@@ -81,6 +81,14 @@ extension CallTests : CallProtocol {
 
 // MARK: - SocketDelegate
 extension CallTests : SocketDelegate {
+    func onSocketReconnectSuggested() {
+       //
+    }
+    
+    func onSocketDisconnected(reconnect: Bool) {
+        //
+    }
+    
     func onSocketConnected() {
         print("Socket connected")
         expectation?.fulfill()

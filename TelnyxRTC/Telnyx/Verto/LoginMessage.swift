@@ -18,7 +18,8 @@ class LoginMessage : Message {
          pushDeviceToken: String? = nil,
          pushNotificationProvider: String? = nil,
          startFromPush: Bool = false,
-         pushEnvironment:PushEnvironment? = nil
+         pushEnvironment:PushEnvironment? = nil,
+         sessionId:String
     ) {
         
         var params = [String: Any]()
@@ -26,6 +27,7 @@ class LoginMessage : Message {
         params["passwd"] = password
         params["User-Agent"] = Message.CLIENT_TYPE
         params["from_push"] = startFromPush
+        params["sessid"] = sessionId
         //Setup push variables
         var userVariables = [String: Any]()
         if let pushDeviceToken = pushDeviceToken {
@@ -64,13 +66,14 @@ class LoginMessage : Message {
          pushDeviceToken: String? = nil,
          pushNotificationProvider: String? = nil,
          startFromPush: Bool = false,
-         pushEnvironment:PushEnvironment? = nil
+         pushEnvironment:PushEnvironment? = nil,
+         sessionId:String
     ) {
         var params = [String: Any]()
         params["login_token"] = token
         params["User-Agent"] = Message.CLIENT_TYPE
         params["from_push"] = startFromPush
-        
+        params["sessid"] = sessionId
         var loginParams = [String: Any]()
         loginParams["attach_call"] = true.description
         params["loginParams"] = loginParams

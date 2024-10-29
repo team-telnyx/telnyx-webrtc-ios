@@ -64,13 +64,14 @@ class Peer : NSObject {
         fatalError("Peer:init is unavailable")
     }
 
-    required init(iceServers: [RTCIceServer]) {
+    required init(iceServers: [RTCIceServer],isAttach:Bool = false) {
         let config = RTCConfiguration()
         config.iceServers = iceServers
 
         // Unified plan is more superior than planB
         config.sdpSemantics = .unifiedPlan
         config.bundlePolicy = .maxCompat
+        
 
         // gatherContinually will let WebRTC to listen to any network changes and send any new candidates to the other client
         config.continualGatheringPolicy = .gatherContinually
@@ -81,7 +82,9 @@ class Peer : NSObject {
 
         super.init()
         self.createMediaSenders()
-        self.configureAudioSession()
+        if(!isAttach){
+            self.configureAudioSession()
+        }
         //listen RTCPeer connection events
         self.connection?.delegate = self
     }
@@ -99,7 +102,7 @@ class Peer : NSObject {
     /**
      iOS specific: we need to configure the device AudioSession.
      */
-    private func configureAudioSession() {
+    internal func configureAudioSession() {
         self.audioQueue.async { [weak self] in
             guard let self = self else {
                 return
@@ -309,6 +312,7 @@ class Peer : NSObject {
      */
     fileprivate func startNegotiation(peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
         Logger.log.i(message: "Peer:: ICE negotiation updated.")
+        
             
         //Set gathered candidates to 
         
@@ -319,7 +323,12 @@ class Peer : NSObject {
             self.negotiationTimer = Timer.scheduledTimer(withTimeInterval: self.NEGOTIATION_TIMOUT, repeats: false) { timer in
                 // Check if the negotiation process has ended to avoid duplicated calls to the delegate method.
                 if (self.negotiationEnded) {
-                    Logger.log.w(message: "ICE negotiation has ended:: ICE negotiation has ended.")
+                    // Means we have an active call for this peer object
+                    if(self.connection?.connectionState == .disconnected){
+                        // Reconnect if the peer is disconnected
+                        self.socket?.delegate?.onSocketReconnectSuggested()
+                    }
+                    Logger.log.w(message: "ICE negotiation has ended:: For Peer")
                     return
                 }
                 self.negotiationTimer?.invalidate()
@@ -413,7 +422,7 @@ extension Peer : RTCPeerConnectionDelegate {
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didRemove stream: RTCMediaStream) {
-        Logger.log.i(message: "Peer:: connection didRemove \(stream)")
+       // Logger.log.i(message: "Peer:: connection didRemove \(stream)")
     }
 
     func peerConnectionShouldNegotiate(_ peerConnection: RTCPeerConnection) {
@@ -481,8 +490,10 @@ extension Peer : RTCPeerConnectionDelegate {
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didRemove candidates: [RTCIceCandidate]) {
-        Logger.log.i(message: "Peer:: connection didRemove [RTCIceCandidate]: \(candidates)")
+     //   Logger.log.i(message: "Peer:: connection didRemove [RTCIceCandidate]: \(candidates)")
     }
+    
+
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didOpen dataChannel: RTCDataChannel) {
         Logger.log.i(message: "Peer:: connection didOpen RTCDataChannel: \(dataChannel)")
