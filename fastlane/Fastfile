@@ -36,3 +36,35 @@ changelog = lane_context[SharedValues::FL_CHANGELOG]
 File.open("changelog.txt", 'w') { |file| file.write("#{changelog}") }
 
 end
+
+
+desc "Generate documentation using Jazzy - HTML docs"
+lane :generate_docs do
+  sh <<-SHELL
+    cd .. && jazzy \
+      --clean \
+      --author "Telnyx LLC" \
+      --author_url "https://www.telnyx.com/" \
+      --xcodebuild-arguments -workspace,TelnyxRTC.xcworkspace,-scheme,TelnyxRTC,-sdk,iphoneos \
+      --output ./docs
+  SHELL
+  UI.message("📚 Documentation generated in ./docs")
+end
+
+desc "Generate documentation using SourceDocs - Markdown docs"
+lane :generate_docs_markdown do
+  sh <<-SHELL
+    cd .. && sourcedocs generate --output-folder ./docs_markdown \
+                              -- \
+                              -workspace TelnyxRTC.xcworkspace \
+                              -scheme TelnyxRTC
+  SHELL
+  UI.message("📄 Markdown documentation generated in ./markdown")
+end
+
+desc "Generate HTML and Markdown documentation"
+lane :generate_full_docs do
+  generate_docs
+  generate_docs_markdown
+  UI.success("✅ Documentation successfully generated and converted to Markdown")
+end
