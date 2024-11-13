@@ -215,10 +215,9 @@ public class TxClient {
         self.gatewayState = .NOREG
         self.txConfig = txConfig
 
-
         if(self.voiceSdkId != nil){
             Logger.log.i(message: "with_id")
-            self.serverConfiguration = TxServerConfiguration(signalingServer: nil,webRTCIceServers: serverConfiguration.webRTCIceServers,environment: serverConfiguration.environment,pushMetaData: ["voice_sdk_id":self.voiceSdkId!])
+            self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,webRTCIceServers: serverConfiguration.webRTCIceServers,environment: serverConfiguration.environment,pushMetaData: ["voice_sdk_id":self.voiceSdkId!])
         } else {
             Logger.log.i(message: "without_id")
             self.serverConfiguration = serverConfiguration

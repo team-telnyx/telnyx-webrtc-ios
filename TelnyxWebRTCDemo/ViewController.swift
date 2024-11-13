@@ -213,9 +213,11 @@ class ViewController: UIViewController {
 
             do {
                 if let serverConfig = serverConfig {
+                    print("Development Server ")
                     try telnyxClient.connect(txConfig: txConfig!, serverConfiguration: serverConfig)
                 } else {
                     try telnyxClient.connect(txConfig: txConfig!)
+                    print("Production Server ")
                 }
                 self.showLoadingView()
             } catch let error {
