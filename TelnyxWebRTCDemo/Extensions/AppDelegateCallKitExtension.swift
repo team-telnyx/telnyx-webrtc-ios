@@ -36,6 +36,7 @@ extension AppDelegate : CXProviderDelegate {
             print("StartCallAction transaction request successful")
 
             let callUpdate = CXCallUpdate()
+            
 
             callUpdate.remoteHandle = callHandle
             callUpdate.supportsDTMF = true
@@ -119,6 +120,7 @@ extension AppDelegate : CXProviderDelegate {
 
         let endCallAction = CXEndCallAction(call: endUUID)
         let transaction = CXTransaction(action: endCallAction)
+        
 
         callKitCallController.request(transaction) { error in
             if let error = error {
@@ -151,11 +153,13 @@ extension AppDelegate : CXProviderDelegate {
             }
         }
         action.fulfill()
+        //self.currentCall?.startDebugStats()
     }
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         print("AppDelegate:: ANSWER call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
         self.telnyxClient?.answerFromCallkit(answerAction: action, customHeaders:  ["X-test-answer":"ios-test"])
+        //self.currentCall?.startDebugStats()
     }
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
@@ -236,7 +240,7 @@ extension AppDelegate : CXProviderDelegate {
                                 ringBackTone: "ringback_tone.mp3",
                                 //You can choose the appropriate verbosity level of the SDK.
                                 logLevel: .all,
-                                reconnectClient: false)
+                                reconnectClient: true)
         
         do {
             try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)

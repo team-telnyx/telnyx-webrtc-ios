@@ -69,23 +69,31 @@ extension AppDelegate: TxClientDelegate {
     
     func onRemoteCallEnded(callId: UUID) {
         print("AppDelegate:: TxClientDelegate onRemoteCallEnded() callKitUUID [\(String(describing: self.callKitUUID))] callId [\(callId)]")
+        reportCallEnd(callId: callId)
         if (previousCall?.callInfo?.callId == callId) {
-            reportCallEnd(callId: callId)
             self.previousCall = nil
         }
         
         if (currentCall?.callInfo?.callId == callId) {
-            reportCallEnd(callId: callId)
             self.currentCall = nil
-            
         }
         self.voipDelegate?.onRemoteCallEnded(callId: callId)
     }
     
     func reportCallEnd(callId:UUID){
-        if let provider = self.callKitProvider {
+         if let provider = self.callKitProvider {
             provider.reportCall(with: callId, endedAt: Date(), reason: .remoteEnded)
         }
+        
+        /*let endCallAction = CXEndCallAction(call: callId)
+        let transaction = CXTransaction(action: endCallAction)
+        
+        callKitCallController.request(transaction) { error in
+            if let error = error {
+                debugPrint("executeEndCallAction transaction request failed: \(error.localizedDescription)")
+                return
+            }
+        } */
     }
     
     func isCallActive(with uuid: UUID) -> Bool {

@@ -14,6 +14,7 @@ class Socket {
     weak var delegate: SocketDelegate?
     var isConnected : Bool = false
     private var socket : WebSocket?
+    private var reconnect : Bool = false
 
     func connect(signalingServer: URL) {
         Logger.log.i(message: "Socket:: connect()")
@@ -23,11 +24,13 @@ class Socket {
         
         self.socket = WebSocket(request: request, certPinner: pinner)
         self.socket?.delegate = self
+        self.socket?.request.timeoutInterval = TimeInterval(120)
         self.socket?.connect()
     }
     
-    func disconnect() {
+    func disconnect(reconnect:Bool) {
         Logger.log.i(message: "Socket:: disconnect()")
+        self.reconnect  = reconnect
         self.socket?.disconnect()
     }
     
@@ -58,7 +61,7 @@ extension Socket : WebSocketDelegate {
         case .disconnected(let reason, let code):
             //This are server side disconnections
             isConnected = false
-            self.delegate?.onSocketDisconnected()
+            self.delegate?.onSocketDisconnected(reconnect: self.reconnect)
             Logger.log.i(message: "Socket:: websocket is disconnected: \(reason) with code: \(code)")
             break;
             
@@ -70,7 +73,8 @@ extension Socket : WebSocketDelegate {
 
         case .cancelled:
             isConnected = false
-            self.delegate?.onSocketDisconnected()
+            self.delegate?.onSocketDisconnected(reconnect: self.reconnect)
+            self.reconnect = false
             Logger.log.i(message: "Socket:: WebSocketDelegate .cancelled")
             break
             
@@ -94,6 +98,7 @@ extension Socket : WebSocketDelegate {
             Logger.log.i(message: "Socket:: WebSocketDelegate viablility Changed")
             break
         case .reconnectSuggested(_):
+            self.delegate?.onSocketReconnectSuggested()
             Logger.log.i(message: "Socket:: WebSocketDelegate reconnect Suggested")
             break
         case .peerClosed:

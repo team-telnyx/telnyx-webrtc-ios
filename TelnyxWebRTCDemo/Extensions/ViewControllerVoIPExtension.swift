@@ -20,12 +20,28 @@ extension ViewController : VoIPDelegate {
         DispatchQueue.main.async {
             self.socketStateLabel.text = "Connected"
             self.connectButton.setTitle("Disconnect", for: .normal)
+            
         }
         
     }
     
     func onSocketDisconnected() {
         print("ViewController:: TxClientDelegate onSocketDisconnected()")
+        let noActiveCalls = self.telnyxClient?.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
+        
+        if(noActiveCalls != true){
+            self.reachability.whenReachable = { reachability in
+                 if reachability.connection == .wifi {
+                     print("Reachable via WiFi")
+                     self.connectButtonTapped("")
+                 } else {
+                     print("Reachable via Cellular")
+                     self.connectButtonTapped("")
+                 }
+             } 
+            return
+        }
+
         DispatchQueue.main.async {
             self.removeLoadingView()
             self.resetCallStates()
@@ -33,17 +49,26 @@ extension ViewController : VoIPDelegate {
             self.connectButton.setTitle("Connect", for: .normal)
             self.sessionIdLabel.text = "-"
             self.settingsView.isHidden = false
-            self.callView.isHidden = true
+            self.callView.isHidden = false
             self.incomingCallView.isHidden = true
         }
+        
+      
+        
     }
     
     func onClientError(error: Error) {
         print("ViewController:: TxClientDelegate onClientError() error: \(error)")
+        let noActiveCalls = self.telnyxClient?.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
+        
+        if(noActiveCalls != true){
+            return
+        }
+        
         DispatchQueue.main.async {
             self.removeLoadingView()
             self.incomingCallView.isHidden = true
-            //self.telnyxClient?.disconnect()
+            self.appDelegate.executeEndCallAction(uuid: UUID());
             
             if(error.self is NWError){
                 print("ERROR: socket connectiontion error \(error)")
