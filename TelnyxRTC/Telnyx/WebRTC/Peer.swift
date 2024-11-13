@@ -322,9 +322,9 @@ class Peer : NSObject {
         DispatchQueue.main.async {
             self.negotiationTimer = Timer.scheduledTimer(withTimeInterval: self.NEGOTIATION_TIMOUT, repeats: false) { timer in
                 // Check if the negotiation process has ended to avoid duplicated calls to the delegate method.
-                if (self.negotiationEnded) {
+                if self.negotiationEnded {
                     // Means we have an active call for this peer object
-                    if(self.connection?.connectionState == .disconnected){
+                    if self.connection?.connectionState == .disconnected {
                         // Reconnect if the peer is disconnected
                         self.socket?.delegate?.onSocketReconnectSuggested()
                     }
@@ -451,7 +451,8 @@ extension Peer : RTCPeerConnectionDelegate {
             @unknown default:
                 state = "unknown"
         }
-        Logger.log.i(message: "Peer:: connection didChange RTCIceConnectionState [\(state.uppercased())]")    }
+        Logger.log.i(message: "Peer:: connection didChange RTCIceConnectionState [\(state.uppercased())]")
+    }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {
         var state = ""
@@ -465,29 +466,48 @@ extension Peer : RTCPeerConnectionDelegate {
             @unknown default:
                 state = "unknown"
         }
-        Logger.log.s(message: "Peer:: connection didChange RTCIceGatheringState [\(state.uppercased())]")    }
+        Logger.log.s(message: "Peer:: connection didChange RTCIceGatheringState [\(state.uppercased())]")
+    }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
-        Logger.log.i(message: "Peer:: connection didGenerate RCIceCandidate: \(candidate)")
-        //once an ICE candidate is generated, let's added into the peerConnection so the ICE Candidate
-        //information is added to the local SDP.
+        Logger.log.i(message: "Peer:: connection didGenerate RTCIceCandidate: \(candidate)")
 
-        
+        // Check if the negotiation has already ended.
+        // If true, we avoid adding new ICE candidates since it's no longer necessary.
+        if negotiationEnded {
+            Logger.log.i(message: "Peer:: negotiation marked as ENDED. Skipping candidate: [\(candidate)]")
+            return
+        }
+
+        // Check if the connection is already established (state is 'connected').
+        // If true, we skip adding new ICE candidates to prevent redundant additions.
+        if peerConnection.connectionState == .connected {
+            Logger.log.i(message: "Peer:: connection state is CONNECTED. Skipping candidate: [\(candidate)]")
+            return
+        }
+
+        // Add the generated ICE candidate to the peer connection.
+        // This helps populate the local SDP with the ICE candidate information.
         connection?.add(candidate, completionHandler: { error in
-            Logger.log.i(message: "Peer::add [RTCIceCandidate]: \(String(describing: error)) \(candidate) ")
+            if let error = error {
+                Logger.log.e(message: "Peer:: Failed to add RTCIceCandidate: \(error) for candidate: \(candidate)")
+            } else {
+                Logger.log.i(message: "Peer:: Successfully added RTCIceCandidate: \(candidate)")
+            }
         })
         
-        Logger.log.i(message: "Peer::serverUrl [RTCIceCandidate]: \(String(describing: candidate.serverUrl))")
+        // Log the server URL of the generated ICE candidate (if available).
+        Logger.log.i(message: "Peer:: serverUrl for RTCIceCandidate: \(String(describing: candidate.serverUrl))")
         gatheredICECandidates.append(candidate.serverUrl ?? "")
-        
-        if(gatheredICECandidates.contains(InternalConfig.stunServer) ||
-            gatheredICECandidates.contains(InternalConfig.turnServer)){
+
+        // Start negotiation if an ICE candidate from the configured STUN or TURN server is gathered.
+        if gatheredICECandidates.contains(InternalConfig.stunServer) ||
+            gatheredICECandidates.contains(InternalConfig.turnServer) {
             
             self.startNegotiation(peerConnection: connection!, didGenerate: candidate)
-            
         }
-        
     }
+
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didRemove candidates: [RTCIceCandidate]) {
      //   Logger.log.i(message: "Peer:: connection didRemove [RTCIceCandidate]: \(candidates)")
@@ -499,6 +519,8 @@ extension Peer : RTCPeerConnectionDelegate {
         Logger.log.i(message: "Peer:: connection didOpen RTCDataChannel: \(dataChannel)")
     }
 }
+
+// MARK: - Dictionary
 extension Dictionary {
 
     var json: String {
@@ -517,6 +539,7 @@ extension Dictionary {
 
 }
 
+// MARK: - Stats
 
 private let PROTOCOL_VERSION: String = "2.0"
 
