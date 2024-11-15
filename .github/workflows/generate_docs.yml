@@ -17,7 +17,7 @@ jobs:
     - name: Select the latest Xcode version
       uses: maxim-lobanov/setup-xcode@v1
       with:
-        xcode-version: 'latest'  # Use the latest version of Xcode available on GitHub Actions
+        xcode-version: 'latest'  # Use the latest version de Xcode disponible en GitHub Actions
 
     - name: Setup Ruby 3.3.0
       uses: ruby/setup-ruby@v1
@@ -25,11 +25,14 @@ jobs:
         ruby-version: 3.3.0
         bundler-cache: true
 
-    - name: Install Fastlane, Jazzy, and SourceDocs
+    - name: Install Fastlane and Jazzy using gem
       run: |
         gem install fastlane
         gem install jazzy
-        gem install sourcedocs
+
+    - name: Install SourceDocs using Homebrew
+      run: |
+        brew install sourcedocs
 
     - name: Install dependencies (Pods)
       run: |
