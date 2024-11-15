@@ -1,0 +1,25 @@
+current directory: /Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/vendor/bundle/ruby/3.3.0/gems/json-2.8.2/ext/json/ext/parser
+/Users/runner/hostedtoolcache/Ruby/3.3.0/arm64/bin/ruby extconf.rb
+checking for rb_enc_interned_str() in ruby.h... yes
+checking for rb_hash_new_capa() in ruby.h... yes
+checking for rb_gc_mark_locations() in ruby.h... yes
+checking for rb_hash_bulk_insert() in ruby.h... yes
+checking for rb_category_warn() in ruby.h... yes
+checking for whether -std=c99 is accepted as CFLAGS... yes
+creating Makefile
+
+current directory: /Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/vendor/bundle/ruby/3.3.0/gems/json-2.8.2/ext/json/ext/parser
+make DESTDIR\= sitearchdir\=./.gem.20241115-3626-bi9ci7 sitelibdir\=./.gem.20241115-3626-bi9ci7 clean
+
+current directory: /Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/vendor/bundle/ruby/3.3.0/gems/json-2.8.2/ext/json/ext/parser
+make DESTDIR\= sitearchdir\=./.gem.20241115-3626-bi9ci7 sitelibdir\=./.gem.20241115-3626-bi9ci7
+compiling parser.c
+linking shared-object json/ext/parser.bundle
+ld: warning: -multiply_defined is obsolete
+
+current directory: /Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/vendor/bundle/ruby/3.3.0/gems/json-2.8.2/ext/json/ext/parser
+make DESTDIR\= sitearchdir\=./.gem.20241115-3626-bi9ci7 sitelibdir\=./.gem.20241115-3626-bi9ci7 install
+/usr/bin/install -c -m 0755 parser.bundle ./.gem.20241115-3626-bi9ci7/json/ext
+
+current directory: /Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/vendor/bundle/ruby/3.3.0/gems/json-2.8.2/ext/json/ext/parser
+make DESTDIR\= sitearchdir\=./.gem.20241115-3626-bi9ci7 sitelibdir\=./.gem.20241115-3626-bi9ci7 clean
