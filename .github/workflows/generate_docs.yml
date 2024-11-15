@@ -54,6 +54,7 @@ jobs:
     - name: Create new branch for docs
       run: |
         BRANCH_NAME="docs/update-$(date +'%Y%m%d%H%M%S')"
+        echo "branch_name=$BRANCH_NAME" >> $GITHUB_ENV
         git checkout -b $BRANCH_NAME
 
     - name: Commit changes
@@ -72,8 +73,11 @@ jobs:
     - name: Create Pull Request using GitHub Actions bot
       uses: peter-evans/create-pull-request@v7
       with:
+        add-paths: |
+          docs/
+          docs_markdown/
         token: ${{ secrets.GITHUB_TOKEN }}
-        branch: $BRANCH_NAME
+        branch: ${{ env.branch_name }}
         delete-branch: true
         title: '[docs] Update generated HTML and Markdown documentation'
         base: main
