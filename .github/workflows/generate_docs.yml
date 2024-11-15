@@ -58,6 +58,8 @@ jobs:
         git commit -m "docs: Generated full documentation" || echo "No changes to commit"
 
     - name: Push changes to new branch
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         echo "Pushing to branch: $BRANCH_NAME"
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
