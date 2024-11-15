@@ -47,6 +47,10 @@ jobs:
         git config user.name TelnyxIntegrations
         git config user.email integrations@telnyx.com
 
+    - name: Configure git push.autoSetupRemote
+      run: |
+        git config push.autoSetupRemote true
+
     - name: Create new branch for docs
       run: |
         BRANCH_NAME="docs/update-$(date +'%Y%m%d%H%M%S')"
