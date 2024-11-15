@@ -60,6 +60,7 @@ jobs:
     - name: Push changes to new branch
       run: |
         echo "Pushing to branch: $BRANCH_NAME"
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
         git push --set-upstream origin $BRANCH_NAME
 
     - name: Create Pull Request using GitHub Actions bot
