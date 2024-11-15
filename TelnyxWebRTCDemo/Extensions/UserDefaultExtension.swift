@@ -8,63 +8,60 @@
 import Foundation
 import TelnyxRTC
 
-fileprivate let PUSH_DEVICE_TOKEN = ""
-
-fileprivate let SIP_USER = "SIP_USER"
-fileprivate let SIP_USER_PASSWORD = "SIP_USER_PASSWORD"
-fileprivate let CALL_DESTINATION = "CALL_DESTINATION"
-fileprivate let WEBRTC_ENVIRONMENT = "WEBRTC_ENVIRONMENT"
+enum UserDefaultsKey: String {
+    case pushDeviceToken = "PUSH_DEVICE_TOKEN"
+    case sipUser = "SIP_USER"
+    case sipUserPassword = "SIP_USER_PASSWORD"
+    case callDestination = "CALL_DESTINATION"
+    case webrtcEnvironment = "WEBRTC_ENVIRONMENT"
+}
 
 extension UserDefaults {
-
-    func savePushToken(pushToken: String) {
-        let userDefaults = UserDefaults.standard
-        userDefaults.set(pushToken, forKey: PUSH_DEVICE_TOKEN)
-        userDefaults.synchronize()
+    
+    // MARK: - Push Token
+    func savePushToken(_ pushToken: String) {
+        set(pushToken, forKey: UserDefaultsKey.pushDeviceToken.rawValue)
     }
-
+    
     func deletePushToken() {
-        let userDefaults = UserDefaults.standard
-        userDefaults.removeObject(forKey: PUSH_DEVICE_TOKEN)
-        userDefaults.synchronize()
+        removeObject(forKey: UserDefaultsKey.pushDeviceToken.rawValue)
     }
-
+    
     func getPushToken() -> String {
-        let userDefaults = UserDefaults.standard
-        return userDefaults.string(forKey: PUSH_DEVICE_TOKEN) ?? ""
+        return string(forKey: UserDefaultsKey.pushDeviceToken.rawValue) ?? ""
     }
-
+    
+    // MARK: - SIP User
     func saveUser(sipUser: String, password: String) {
-        let userDefaults = UserDefaults.standard
-        userDefaults.set(sipUser, forKey: SIP_USER)
-        userDefaults.set(password, forKey: SIP_USER_PASSWORD)
-        userDefaults.synchronize()
+        set(sipUser, forKey: UserDefaultsKey.sipUser.rawValue)
+        set(password, forKey: UserDefaultsKey.sipUserPassword.rawValue)
     }
-
-    func saveCallDestination(callDestination: String) {
-        let userDefaults = UserDefaults.standard
-        userDefaults.set(callDestination, forKey: CALL_DESTINATION)
-        userDefaults.synchronize()
-    }
-
+    
     func getSipUser() -> String {
-        let userDefaults = UserDefaults.standard
-        return userDefaults.string(forKey: SIP_USER) ?? ""
+        return string(forKey: UserDefaultsKey.sipUser.rawValue) ?? ""
     }
-
+    
     func getSipUserPassword() -> String {
-        let userDefaults = UserDefaults.standard
-        return userDefaults.string(forKey: SIP_USER_PASSWORD) ?? ""
+        return string(forKey: UserDefaultsKey.sipUserPassword.rawValue) ?? ""
     }
-
-    func saveEnvironment(environment: WebRTCEnvironment) {
-        let userDefaults = UserDefaults.standard
-        userDefaults.set((environment == .development) ? "development" : "production", forKey: WEBRTC_ENVIRONMENT)
-        userDefaults.synchronize()
+    
+    // MARK: - Call Destination
+    func saveCallDestination(_ callDestination: String) {
+        set(callDestination, forKey: UserDefaultsKey.callDestination.rawValue)
     }
-
+    
+    func getCallDestination() -> String {
+        return string(forKey: UserDefaultsKey.callDestination.rawValue) ?? ""
+    }
+    
     func getEnvironment() -> WebRTCEnvironment {
-        let userDefaults = UserDefaults.standard
-        return (userDefaults.string(forKey: WEBRTC_ENVIRONMENT) == "development") ? .development : .production
+        let value = string(forKey: UserDefaultsKey.webrtcEnvironment.rawValue) ?? ""
+        return WebRTCEnvironment.fromString(value)
+    }
+    
+    func saveEnvironment(_ environment: WebRTCEnvironment) {
+        let value = environment.toString()
+        set(value, forKey: UserDefaultsKey.webrtcEnvironment.rawValue)
     }
 }
+

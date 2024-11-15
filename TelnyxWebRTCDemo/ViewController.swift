@@ -123,13 +123,13 @@ class ViewController: UIViewController {
         let alert = UIAlertController(title: "Options", message: "", preferredStyle: .actionSheet)
         alert.addAction(UIAlertAction(title: "Development Environment", style: .default , handler:{ (UIAlertAction)in
             self.serverConfig = TxServerConfiguration(environment: .development)
-            self.userDefaults.saveEnvironment(environment: .development)
+            self.userDefaults.saveEnvironment(.development)
             self.updateEnvironment()
         }))
         
         alert.addAction(UIAlertAction(title: "Production Environment", style: .default , handler:{ (UIAlertAction)in
             self.serverConfig = nil
-            self.userDefaults.saveEnvironment(environment: .production)
+            self.userDefaults.saveEnvironment(.production)
             self.updateEnvironment()
         }))
 
