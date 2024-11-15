@@ -60,7 +60,7 @@ jobs:
     - name: Push changes to new branch
       run: |
         echo "Pushing to branch: $BRANCH_NAME"
-        git push -u origin $BRANCH_NAME
+        git push --set-upstream origin $BRANCH_NAME
 
     - name: Create Pull Request using GitHub Actions bot
       uses: peter-evans/create-pull-request@v5
