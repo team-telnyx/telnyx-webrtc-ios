@@ -21,6 +21,9 @@
 		3BC03B592CC2653700FD2B29 /* TelnyxRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B368BEC025EDDB610032AE52 /* TelnyxRTC.framework */; };
 		3BC03B5E2CC2659500FD2B29 /* Pods_TelnyxRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A11DAA0171B02D67683620E /* Pods_TelnyxRTC.framework */; };
 		3BF1D5842BEB7B8F0097453F /* TelnyxRTC.podspec in Resources */ = {isa = PBXBuildFile; fileRef = 3BF1D5832BEB7B8F0097453F /* TelnyxRTC.podspec */; };
+		995BF7132CE7E8F100454076 /* WebRTCEnvironmentExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995BF7122CE7E8EB00454076 /* WebRTCEnvironmentExtension.swift */; };
+		995BF7162CE7EB2600454076 /* SipUserCredential.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995BF7152CE7EB2200454076 /* SipUserCredential.swift */; };
+		995BF71C2CE7EC0600454076 /* SipCredentialsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995BF71A2CE7EBF800454076 /* SipCredentialsManager.swift */; };
 		B309D13D25EF119E00A2AADF /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B309D11125EF107F00A2AADF /* Starscream.framework */; };
 		B309D1D625F020B300A2AADF /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D1D525F020B300A2AADF /* Message.swift */; };
 		B309D1DB25F020D400A2AADF /* Method.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D1DA25F020D400A2AADF /* Method.swift */; };
@@ -134,6 +137,9 @@
 		65B0B19B5206EECCAE2E29CA /* Pods_TelnyxRTC_TelnyxRTCTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxRTC_TelnyxRTCTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		711958501DD45FDFBD112FC6 /* Pods-TelnyxRTC.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC/Pods-TelnyxRTC.debug.xcconfig"; sourceTree = "<group>"; };
 		8A11DAA0171B02D67683620E /* Pods_TelnyxRTC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxRTC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		995BF7122CE7E8EB00454076 /* WebRTCEnvironmentExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCEnvironmentExtension.swift; sourceTree = "<group>"; };
+		995BF7152CE7EB2200454076 /* SipUserCredential.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipUserCredential.swift; sourceTree = "<group>"; };
+		995BF71A2CE7EBF800454076 /* SipCredentialsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialsManager.swift; sourceTree = "<group>"; };
 		A7CE9BEFEDE503E7BC7BE3C8 /* Pods_TelnyxWebRTCDemo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxWebRTCDemo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B309D11125EF107F00A2AADF /* Starscream.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Starscream.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B309D1D525F020B300A2AADF /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
@@ -243,6 +249,22 @@
 				4DE56344987C90A16F102652 /* Pods-TelnyxWebRTCDemo.release.xcconfig */,
 			);
 			path = Pods;
+			sourceTree = "<group>";
+		};
+		995BF7142CE7EB0B00454076 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				995BF7152CE7EB2200454076 /* SipUserCredential.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		995BF71D2CE7EC5000454076 /* Managers */ = {
+			isa = PBXGroup;
+			children = (
+				995BF71A2CE7EBF800454076 /* SipCredentialsManager.swift */,
+			);
+			path = Managers;
 			sourceTree = "<group>";
 		};
 		B309D1D425F020A300A2AADF /* Verto */ = {
@@ -365,6 +387,8 @@
 			isa = PBXGroup;
 			children = (
 				B3B1D9A22654546E008D28C9 /* TelnyxWebRTCDemo.entitlements */,
+				995BF71D2CE7EC5000454076 /* Managers */,
+				995BF7142CE7EB0B00454076 /* Models */,
 				B3E1032F25F7F93000227DCE /* Resources */,
 				B309D1FB25F028F100A2AADF /* Views */,
 				B3AF24A825EE84410062EDA9 /* Extensions */,
@@ -440,6 +464,7 @@
 		B3AF24A825EE84410062EDA9 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				995BF7122CE7E8EB00454076 /* WebRTCEnvironmentExtension.swift */,
 				B3AF24A925EE84570062EDA9 /* UIViewControllerExtension.swift */,
 				B3B1D9A326545807008D28C9 /* UserDefaultExtension.swift */,
 				B32AE8BE26D6D69E00C7C6F4 /* ViewControllerVoIPExtension.swift */,
@@ -784,6 +809,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				995BF7132CE7E8F100454076 /* WebRTCEnvironmentExtension.swift in Sources */,
 				B3B1D9A426545807008D28C9 /* UserDefaultExtension.swift in Sources */,
 				B32AE8BB26D6952500C7C6F4 /* AppDelegateCallKitExtension.swift in Sources */,
 				B3AF24AA25EE84570062EDA9 /* UIViewControllerExtension.swift in Sources */,
@@ -791,6 +817,8 @@
 				B3B8F53726E7D4EF0007B583 /* AppDelegateTelnyxVoIPExtension.swift in Sources */,
 				B309D27B25F17C1700A2AADF /* UIIncomingCallView.swift in Sources */,
 				B368BEEF25EDDD060032AE52 /* ViewController.swift in Sources */,
+				995BF7162CE7EB2600454076 /* SipUserCredential.swift in Sources */,
+				995BF71C2CE7EC0600454076 /* SipCredentialsManager.swift in Sources */,
 				B368BEEB25EDDD060032AE52 /* AppDelegate.swift in Sources */,
 				B309D20225F0291B00A2AADF /* UISettingsView.swift in Sources */,
 				B32AE8BF26D6D69E00C7C6F4 /* ViewControllerVoIPExtension.swift in Sources */,
