@@ -17,18 +17,20 @@
     <a title="TxClient Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">TelnyxRTC 0.0.4 Docs</a> (88% documented)</p>
-        <p class="header-right">
+        <p><a href="../index.html">TelnyxRTC 0.1.37 Docs</a> (75% documented)</p>
+        <div class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
           </form>
-        </p>
+        </div>
       </div>
     </header>
     <div class="content-wrapper">
       <p id="breadcrumbs">
-        <a href="../index.html">TelnyxRTC Reference</a>
-        <img id="carat" src="../img/carat.png" />
+        <a href="../index.html">TelnyxRTC</a>
+        <img id="carat" src="../img/carat.png" alt=""/>
+        <a href="../Classes.html">Classes</a>
+        <img id="carat" src="../img/carat.png" alt=""/>
         TxClient Class Reference
       </p>
     </div>
@@ -40,6 +42,12 @@
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
                 <a href="../Classes/Call.html">Call</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FileLogger.html">FileLogger</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes.html#/s:9TelnyxRTC12StatsMessageC">StatsMessage</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Classes/TxClient.html">TxClient</a>
@@ -56,6 +64,9 @@
                 <a href="../Enums/LogLevel.html">LogLevel</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Enums/PushEnvironment.html">PushEnvironment</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Enums/TxError.html">TxError</a>
               </li>
               <li class="nav-group-task">
@@ -69,6 +80,9 @@
               </li>
               <li class="nav-group-task">
                 <a href="../Enums/TxError/ServerErrorReason.html">– ServerErrorReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/WebRTCEnvironment.html">WebRTCEnvironment</a>
               </li>
             </ul>
           </li>
@@ -91,6 +105,12 @@
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/TxPushConfig.html">TxPushConfig</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TxPushIPConfig.html">TxPushIPConfig</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TxServerConfiguration.html">TxServerConfiguration</a>
               </li>
             </ul>
           </li>
@@ -218,7 +238,7 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                 <a name="//apple_ref/swift/Section/Properties" class="dashAnchor"></a>
                 <div class="section-name-container">
                   <a class="section-name-link" href="#/Properties"></a>
-                  <h3 class="section-name"><p>Properties</p>
+                  <h3 class="section-name"><span>Properties</span>
 </h3>
                 </div>
               </div>
@@ -280,6 +300,89 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                 <li class="item">
                   <div>
                     <code>
+                    <a name="/s:9TelnyxRTC8TxClientC20isAudioDeviceEnabledSbvp"></a>
+                    <a name="//apple_ref/swift/Property/isAudioDeviceEnabled" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxClientC20isAudioDeviceEnabledSbvp">isAudioDeviceEnabled</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>When implementing CallKit framework, audio has to be manually handled.
+Set this property to TRUE when <code>provider(CXProvider, didActivate: AVAudioSession)</code> is called on your CallKit implementation
+Set this property to FALSE when <code>provider(CXProvider, didDeactivate: AVAudioSession)</code> is called on your CallKit implementation</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">isAudioDeviceEnabled</span><span class="p">:</span> <span class="kt">Bool</span> <span class="p">{</span> <span class="k">get</span> <span class="k">set</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC8TxClientC18enableAudioSession05audioG0ySo07AVAudioG0C_tF"></a>
+                    <a name="//apple_ref/swift/Method/enableAudioSession(audioSession:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxClientC18enableAudioSession05audioG0ySo07AVAudioG0C_tF">enableAudioSession(audioSession:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">enableAudioSession</span><span class="p">(</span><span class="nv">audioSession</span><span class="p">:</span> <span class="kt">AVAudioSession</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC8TxClientC19disableAudioSession05audioG0ySo07AVAudioG0C_tF"></a>
+                    <a name="//apple_ref/swift/Method/disableAudioSession(audioSession:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxClientC19disableAudioSession05audioG0ySo07AVAudioG0C_tF">disableAudioSession(audioSession:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">disableAudioSession</span><span class="p">(</span><span class="nv">audioSession</span><span class="p">:</span> <span class="kt">AVAudioSession</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
                     <a name="/s:9TelnyxRTC8TxClientC12isRegisteredSbvp"></a>
                     <a name="//apple_ref/swift/Property/isRegistered" class="dashAnchor"></a>
                     <a class="token" href="#/s:9TelnyxRTC8TxClientC12isRegisteredSbvp">isRegistered</a>
@@ -312,7 +415,7 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                 <a name="//apple_ref/swift/Section/Initializers" class="dashAnchor"></a>
                 <div class="section-name-container">
                   <a class="section-name-link" href="#/Initializers"></a>
-                  <h3 class="section-name"><p>Initializers</p>
+                  <h3 class="section-name"><span>Initializers</span>
 </h3>
                 </div>
               </div>
@@ -352,7 +455,7 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                 <a name="//apple_ref/swift/Section/Connection handling" class="dashAnchor"></a>
                 <div class="section-name-container">
                   <a class="section-name-link" href="#/Connection%20handling"></a>
-                  <h3 class="section-name"><p>Connection handling</p>
+                  <h3 class="section-name"><span>Connection handling</span>
 </h3>
                 </div>
               </div>
@@ -360,9 +463,9 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC8TxClientC7connect8txConfigyAA0cG0V_tKF"></a>
-                    <a name="//apple_ref/swift/Method/connect(txConfig:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC8TxClientC7connect8txConfigyAA0cG0V_tKF">connect(txConfig:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC8TxClientC7connect8txConfig19serverConfigurationyAA0cG0V_AA0c6ServerI0VtKF"></a>
+                    <a name="//apple_ref/swift/Method/connect(txConfig:serverConfiguration:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxClientC7connect8txConfig19serverConfigurationyAA0cG0V_AA0c6ServerI0VtKF">connect(txConfig:<wbr>serverConfiguration:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -370,7 +473,7 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Connects to the iOS client to the Telnyx signaling server using the desired login credentials.</p>
+                        <p>Connects to the iOS cloglient to the Telnyx signaling server using the desired login credentials.</p>
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     TxConfig parameters errors
@@ -382,7 +485,7 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">connect</span><span class="p">(</span><span class="nv">txConfig</span><span class="p">:</span> <span class="kt"><a href="../Structs/TxConfig.html">TxConfig</a></span><span class="p">)</span> <span class="k">throws</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">connect</span><span class="p">(</span><span class="nv">txConfig</span><span class="p">:</span> <span class="kt"><a href="../Structs/TxConfig.html">TxConfig</a></span><span class="p">,</span> <span class="nv">serverConfiguration</span><span class="p">:</span> <span class="kt"><a href="../Structs/TxServerConfiguration.html">TxServerConfiguration</a></span> <span class="o">=</span> <span class="kt"><a href="../Structs/TxServerConfiguration.html">TxServerConfiguration</a></span><span class="p">())</span> <span class="k">throws</span></code></pre>
 
                         </div>
                       </div>
@@ -399,6 +502,18 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                               <td>
                                 <div>
                                   <p>The desired login credentials. See TxConfig docummentation for more information.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>serverConfiguration</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) To define a custom <code>signaling server</code> and <code>TURN/ STUN servers</code>. As default we use the internal Telnyx Production servers.</p>
                                 </div>
                               </td>
                             </tr>
@@ -469,6 +584,118 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                 <li class="item">
                   <div>
                     <code>
+                    <a name="/s:9TelnyxRTC8TxClientC17answerFromCallkit0E6Action13customHeadersySo012CXAnswerCallH0C_SDyS2SGtF"></a>
+                    <a name="//apple_ref/swift/Method/answerFromCallkit(answerAction:customHeaders:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxClientC17answerFromCallkit0E6Action13customHeadersySo012CXAnswerCallH0C_SDyS2SGtF">answerFromCallkit(answerAction:<wbr>customHeaders:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>To answer and control callKit active flow</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">answerFromCallkit</span><span class="p">(</span><span class="nv">answerAction</span><span class="p">:</span> <span class="kt">CXAnswerCallAction</span><span class="p">,</span> <span class="nv">customHeaders</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span> <span class="p">:</span> <span class="kt">String</span><span class="p">]</span> <span class="o">=</span> <span class="p">[:])</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>answerAction</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p><code>CXAnswerCallAction</code> from callKit</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>customHeaders</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional)</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC8TxClientC18endCallFromCallkit0E6Action6callIdySo05CXEndfI0C_10Foundation4UUIDVSgtF"></a>
+                    <a name="//apple_ref/swift/Method/endCallFromCallkit(endAction:callId:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxClientC18endCallFromCallkit0E6Action6callIdySo05CXEndfI0C_10Foundation4UUIDVSgtF">endCallFromCallkit(endAction:<wbr>callId:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>To end and control callKit active and conn</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">endCallFromCallkit</span><span class="p">(</span><span class="nv">endAction</span><span class="p">:</span> <span class="kt">CXEndCallAction</span><span class="p">,</span> <span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC8TxClientC24disablePushNotificationsyyF"></a>
+                    <a name="//apple_ref/swift/Method/disablePushNotifications()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxClientC24disablePushNotificationsyyF">disablePushNotifications()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>To disable push notifications for the current user</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">disablePushNotifications</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
                     <a name="/s:9TelnyxRTC8TxClientC12getSessionIdSSyF"></a>
                     <a name="//apple_ref/swift/Method/getSessionId()" class="dashAnchor"></a>
                     <a class="token" href="#/s:9TelnyxRTC8TxClientC12getSessionIdSSyF">getSessionId()</a>
@@ -505,7 +732,7 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                 <a name="//apple_ref/swift/Section/Call handling" class="dashAnchor"></a>
                 <div class="section-name-container">
                   <a class="section-name-link" href="#/Call%20handling"></a>
-                  <h3 class="section-name"><p>Call handling</p>
+                  <h3 class="section-name"><span>Call handling</span>
 </h3>
                 </div>
               </div>
@@ -564,9 +791,9 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC8TxClientC7newCall10callerName0G6Number011destinationI06callId11clientStateAA0F0CSS_S2S10Foundation4UUIDVSSSgtKF"></a>
-                    <a name="//apple_ref/swift/Method/newCall(callerName:callerNumber:destinationNumber:callId:clientState:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC8TxClientC7newCall10callerName0G6Number011destinationI06callId11clientStateAA0F0CSS_S2S10Foundation4UUIDVSSSgtKF">newCall(callerName:<wbr>callerNumber:<wbr>destinationNumber:<wbr>callId:<wbr>clientState:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC8TxClientC7newCall10callerName0G6Number011destinationI06callId11clientState13customHeadersAA0F0CSS_S2S10Foundation4UUIDVSSSgSDyS2SGtKF"></a>
+                    <a name="//apple_ref/swift/Method/newCall(callerName:callerNumber:destinationNumber:callId:clientState:customHeaders:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxClientC7newCall10callerName0G6Number011destinationI06callId11clientState13customHeadersAA0F0CSS_S2S10Foundation4UUIDVSSSgSDyS2SGtKF">newCall(callerName:<wbr>callerNumber:<wbr>destinationNumber:<wbr>callId:<wbr>clientState:<wbr>customHeaders:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -591,10 +818,11 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                         <div class="language">
                           <p class="aside-title">Swift</p>
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">newCall</span><span class="p">(</span><span class="nv">callerName</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
-             <span class="nv">callerNumber</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
-             <span class="nv">destinationNumber</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
-             <span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">,</span>
-             <span class="nv">clientState</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/Call.html">Call</a></span></code></pre>
+                    <span class="nv">callerNumber</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
+                    <span class="nv">destinationNumber</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
+                    <span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">,</span>
+                    <span class="nv">clientState</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+                    <span class="nv">customHeaders</span><span class="p">:[</span><span class="kt">String</span><span class="p">:</span><span class="kt">String</span><span class="p">]</span> <span class="o">=</span> <span class="p">[:])</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/Call.html">Call</a></span></code></pre>
 
                         </div>
                       </div>
@@ -662,6 +890,19 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                                 </div>
                               </td>
                             </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>customHeaders</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(optional) Custom Headers to be passed over webRTC Messages, should be in the
+format <code>X-key:Value</code> <code>X</code> is required for headers to be passed.</p>
+                                </div>
+                              </td>
+                            </tr>
                           </tbody>
                         </table>
                       </div>
@@ -680,7 +921,7 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                 <a name="//apple_ref/swift/Section/Push Notifications handling" class="dashAnchor"></a>
                 <div class="section-name-container">
                   <a class="section-name-link" href="#/Push%20Notifications%20handling"></a>
-                  <h3 class="section-name"><p>Push Notifications handling</p>
+                  <h3 class="section-name"><span>Push Notifications handling</span>
 </h3>
                 </div>
               </div>
@@ -688,9 +929,9 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC8TxClientC23processVoIPNotification8txConfigyAA0cI0V_tKF"></a>
-                    <a name="//apple_ref/swift/Method/processVoIPNotification(txConfig:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC8TxClientC23processVoIPNotification8txConfigyAA0cI0V_tKF">processVoIPNotification(txConfig:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC8TxClientC23processVoIPNotification8txConfig19serverConfiguration12pushMetaDatayAA0cI0V_AA0c6ServerK0VSDySSypGtKF"></a>
+                    <a name="//apple_ref/swift/Method/processVoIPNotification(txConfig:serverConfiguration:pushMetaData:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxClientC23processVoIPNotification8txConfig19serverConfiguration12pushMetaDatayAA0cI0V_AA0c6ServerK0VSDySSypGtKF">processVoIPNotification(txConfig:<wbr>serverConfiguration:<wbr>pushMetaData:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -712,7 +953,8 @@ This function will be executed when the app was closed and the user executes an 
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">processVoIPNotification</span><span class="p">(</span><span class="nv">txConfig</span><span class="p">:</span> <span class="kt"><a href="../Structs/TxConfig.html">TxConfig</a></span><span class="p">)</span> <span class="k">throws</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">processVoIPNotification</span><span class="p">(</span><span class="nv">txConfig</span><span class="p">:</span> <span class="kt"><a href="../Structs/TxConfig.html">TxConfig</a></span><span class="p">,</span>
+                                    <span class="nv">serverConfiguration</span><span class="p">:</span> <span class="kt"><a href="../Structs/TxServerConfiguration.html">TxServerConfiguration</a></span><span class="p">,</span><span class="nv">pushMetaData</span><span class="p">:[</span><span class="kt">String</span><span class="p">:</span> <span class="kt">Any</span><span class="p">])</span> <span class="k">throws</span></code></pre>
 
                         </div>
                       </div>
@@ -732,6 +974,31 @@ This function will be executed when the app was closed and the user executes an 
                                 </div>
                               </td>
                             </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>serverConfiguration</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>required to setup from  VoIP push notification metadata.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>pushMetaData</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>meta data payload from VOIP Push notification
+           (this should be gotten from payload.dictionaryPayload[&ldquo;metadata&rdquo;] as? [String: Any])</p>
+                                </div>
+                              </td>
+                            </tr>
                           </tbody>
                         </table>
                       </div>
@@ -746,7 +1013,7 @@ This function will be executed when the app was closed and the user executes an 
                 <a name="//apple_ref/swift/Section/Audio" class="dashAnchor"></a>
                 <div class="section-name-container">
                   <a class="section-name-link" href="#/Audio"></a>
-                  <h3 class="section-name"><p>Audio</p>
+                  <h3 class="section-name"><span>Audio</span>
 </h3>
                 </div>
               </div>
@@ -810,11 +1077,10 @@ This function will be executed when the app was closed and the user executes an 
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2021 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external">Telnyx</a>. All rights reserved. (Last updated: 2021-08-13)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.6</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>&copy; 2024 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2024-11-15)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>
     </div>
   </body>
-</div>
 </html>

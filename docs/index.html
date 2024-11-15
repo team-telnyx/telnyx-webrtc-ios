@@ -16,19 +16,17 @@
     <a title="TelnyxRTC  Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="index.html">TelnyxRTC 0.0.4 Docs</a> (88% documented)</p>
-        <p class="header-right">
+        <p><a href="index.html">TelnyxRTC 0.1.37 Docs</a> (75% documented)</p>
+        <div class="header-right">
           <form role="search" action="search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
           </form>
-        </p>
+        </div>
       </div>
     </header>
     <div class="content-wrapper">
       <p id="breadcrumbs">
-        <a href="index.html">TelnyxRTC Reference</a>
-        <img id="carat" src="img/carat.png" />
-        TelnyxRTC  Reference
+        <a href="index.html">TelnyxRTC</a>
       </p>
     </div>
     <div class="content-wrapper">
@@ -39,6 +37,12 @@
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
                 <a href="Classes/Call.html">Call</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/FileLogger.html">FileLogger</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes.html#/s:9TelnyxRTC12StatsMessageC">StatsMessage</a>
               </li>
               <li class="nav-group-task">
                 <a href="Classes/TxClient.html">TxClient</a>
@@ -55,6 +59,9 @@
                 <a href="Enums/LogLevel.html">LogLevel</a>
               </li>
               <li class="nav-group-task">
+                <a href="Enums/PushEnvironment.html">PushEnvironment</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="Enums/TxError.html">TxError</a>
               </li>
               <li class="nav-group-task">
@@ -68,6 +75,9 @@
               </li>
               <li class="nav-group-task">
                 <a href="Enums/TxError/ServerErrorReason.html">– ServerErrorReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/WebRTCEnvironment.html">WebRTCEnvironment</a>
               </li>
             </ul>
           </li>
@@ -90,6 +100,12 @@
               </li>
               <li class="nav-group-task">
                 <a href="Structs/TxPushConfig.html">TxPushConfig</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/TxPushIPConfig.html">TxPushIPConfig</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/TxServerConfiguration.html">TxServerConfiguration</a>
               </li>
             </ul>
           </li>
@@ -167,6 +183,20 @@
 <hr>
 
 <p></br></p>
+<h2 id='sip-credentials' class='heading'>SIP Credentials</h2>
+
+<p>In order to start making and receiving calls using the TelnyxRTC SDK you will need to get SIP Credentials:</p>
+
+<ol>
+<li>Access to <a href="https://portal.telnyx.com/">https://portal.telnyx.com/</a></li>
+<li>Sign up for a Telnyx Account.</li>
+<li>Create a Credential Connection to configure how you connect your calls.</li>
+<li>Create an Outbound Voice Profile to configure your outbound call settings and assign it to your Credential Connection.</li>
+</ol>
+
+<p>For more information on how to generate SIP credentials check the <a href="https://developers.telnyx.com/docs/v2/webrtc/quickstart">Telnyx WebRTC quickstart guide</a>. </p>
+
+<p></br></p>
 <h2 id='adding-telnyx-sdk-to-your-ios-client-application' class='heading'>Adding Telnyx SDK to your iOS Client Application:</h2>
 
 <p>Currently the iOS SDK is supported using cocoapods. </p>
@@ -177,7 +207,7 @@
 <ol>
 <li>Open your podfile and add the TelnyxRTC. 
 <code>
-pod &#39;TelnyxRTC&#39;, &#39;~&gt; 0.0.4&#39;
+pod &#39;TelnyxRTC&#39;, &#39;~&gt; 0.1.0&#39;
 </code></li>
 <li>Install your pods. You can add the flag &ndash;repo-update to ensure your cocoapods has the specs updated.
 <code>
@@ -206,6 +236,26 @@ import TelnyxRTC
 <li><p>You are all set!
 </br></p></li>
 </ol>
+<h3 id='swift-package-manager' class='heading'>Swift Package Manager</h3>
+
+<p>Xcode has a built-in support for Swift package manager. To add a package : </p>
+
+<ol>
+<li>Select Files &gt; Add Packages</li>
+<li>On the Swift Package Manager Screen, Search for the <a href="https://github.com/team-telnyx/telnyx-webrtc-ios.git">https://github.com/team-telnyx/telnyx-webrtc-ios.git</a> package.</li>
+<li>Select the <strong>main brach</strong> and click Add Package</li>
+</ol>
+
+<p align="center">
+<img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://github.com/isaacakakpo1/telnyx-webrtc-ios-smp/assets/134492608/39be0ab7-222f-478c-bba9-cb2813bcb81d">
+</p>
+
+<p>NB: if Add Package is stuck downloading try File &gt; Packages &gt; Reset Package Caches or Run the command
+<code>rm -rf ~/Library/Caches/org.swift.swiftpm/</code>  in terminal</p>
+
+<p>Read more in <a href="https://developer.apple.com/documentation/xcode/adding_package_dependencies_to_your_app">Apple documentation</a></p>
+
+<p><strong>Hint: Use either Cocoapods or Swift Package Manager for Individual Packages to avoid Duplicate binaries</strong></p>
 <h2 id='usage' class='heading'>Usage</h2>
 <h3 id='telnyx-client-setup' class='heading'>Telnyx client setup</h3>
 <pre class="highlight plaintext"><code>// Initialize the client
@@ -219,17 +269,18 @@ telnyxClient.delegate = self
 // Set the login credentials and the ringtone/ringback configurations if required.
 // Ringtone / ringback tone files are not mandatory.
 // You can user your sipUser and password
-// This is what we are currently using on the Demo App
 let txConfigUserAndPassowrd = TxConfig(sipUser: sipUser,
                                        password: password,
+                                       pushDeviceToken: "DEVICE_APNS_TOKEN",
                                        ringtone: "incoming_call.mp3",
                                        ringBackTone: "ringback_tone.mp3",
                                        //You can choose the appropriate verbosity level of the SDK.
                                        //Logs are disabled by default
                                        logLevel: .all)
 
-// Or use a JWT Telnyx Token to authenticate (recommended)
+// Or use a JWT Telnyx Token to authenticate
 let txConfigToken = TxConfig(token: "MY_JWT_TELNYX_TOKEN",
+                             pushDeviceToken: "DEVICE_APNS_TOKEN",
                              ringtone: "incoming_call.mp3",
                              ringBackTone: "ringback_tone.mp3",
                              //You can choose the appropriate verbosity level of the SDK. Logs are disabled by default
@@ -293,9 +344,18 @@ telnyxClient.delegate = self
 
     func onIncomingCall(call: Call)  {
        // Someone is calling you.
+       // This delegate method will be called when the app is in foreground and the Telnyx Client is connected.
     }
 
-    // You can update your UI from here base on the call states.
+    func onPushCall(call: Call) {
+       // If you have configured Push Notifications and app is in background or the Telnyx Client is disconnected
+       // this delegate method will be called after the push notification is received.
+       // Update the current call with the incoming call
+       self.currentCall = call 
+    }
+
+
+    // You can update your UI from here based on the call states.
     // Check that the callId is the same as your current call.
     func onCallStateUpdated(callState: CallState, callId: UUID) {
       // handle the new call state
@@ -318,7 +378,7 @@ telnyxClient.delegate = self
 </code></pre>
 <h2 id='calls' class='heading'>Calls</h2>
 <h3 id='outboud-call' class='heading'>Outboud call</h3>
-<pre class="highlight plaintext"><code> // Create a client instance
+<pre class="highlight plaintext"><code>   // Create a client instance
    self.telnyxClient = TxClient()
 
    // Asign the delegate to get SDK events
@@ -334,6 +394,8 @@ telnyxClient.delegate = self
                                                      destinationNumber: "18004377950",
                                                      callId: UUID.init())
 </code></pre>
+
+<p>This is a general example: In order to fully support outbound calls you will need to implement CallKit to properly handle audio states. For more information check <code>Audio Session Handling WebRTC + CallKit</code> section.</p>
 <h3 id='inbound-call' class='heading'>Inbound call</h3>
 
 <p>How to answer an incoming call:</p>
@@ -352,12 +414,444 @@ func initTelnyxClient() {
 extension ViewController: TxClientDelegate {
     //....
     func onIncomingCall(call: Call) {
-        //We are automatically answering any incoming call as an example, but
-        //maybe you want to store a reference of the call, and answer the call after a button press.
+        // We are automatically answering any incoming call as an example, but
+        // maybe you want to store a reference of the call, and answer the call after a button press.
         self.myCall = call.answer()
     }
 }
 </code></pre>
+
+<p>This is a general example: In order to fully support inbound calls you will need to implement PushKit + CallKit. For more information check <code>Setting up VoIP push notifications</code> section.</p>
+
+<hr>
+
+<p></br></p>
+<h2 id='setting-up-voip-push-notifications' class='heading'>Setting up VoIP push notifications:</h2>
+
+<p>In order to receive incoming calls while the app is running in background or closed, you will need to perform a set of configurations over your Mission Control Portal Account and your application. </p>
+
+<p></br></p>
+<h3 id='voip-push-portal-setup' class='heading'>VoIP Push - Portal setup</h3>
+
+<p>During this process you will learn how to create a VoIP push credential and assign the credential to a SIP Connection. </p>
+
+<p>This process requires:</p>
+
+<ul>
+<li>A Mission Control Portal Account.</li>
+<li>A SIP Connection.</li>
+<li>Your Apple VoIP push certificate.</li>
+</ul>
+
+<p>For complete instructions on how to setup Push Notifications got to this <a href="https://developers.telnyx.com/docs/v2/webrtc/push-notifications">link</a>.</p>
+
+<p></br></p>
+<h3 id='voip-push-app-setup' class='heading'>VoIP Push - App Setup</h3>
+
+<p>The following setup is required in your application to receive Telnyx VoIP push notifications:</p>
+<h4 id='a-add-push-notifications-capability-to-your-xcode-project' class='heading'>a. Add Push Notifications capability to your Xcode project</h4>
+
+<ol>
+<li>Open the xcode workspace associated with your app.</li>
+<li>In the Project Navigator (the left-hand menu), select the project icon that represents your mobile app.</li>
+<li>In the top-left corner of the right-hand pane in Xcode, select your app&rsquo;s target.</li>
+<li><p>Press the  +Capabilities button.</p>
+
+<p align="center">
+  <img width="294" alt="Screen Shot 2021-11-26 at 13 34 12" src="https://user-images.githubusercontent.com/75636882/143610180-04e2a98c-bb08-4f06-b81a-9a3a4231d389.png">
+</p></li>
+<li><p>Enable Push Notifications</p>
+
+<p align="center">
+  <img width="269" alt="Screen Shot 2021-11-26 at 13 35 51" src="https://user-images.githubusercontent.com/75636882/143610372-abab46cc-dd2a-4712-9020-240f9dbaaaf7.png">
+</p></li>
+</ol>
+<h4 id='b-configure-pushkit-into-your-app' class='heading'>b. Configure PushKit into your app:</h4>
+
+<ol>
+<li>Import pushkit
+<code>Swift
+import PushKit
+</code></li>
+<li>Initialize PushKit: 
+&ldquo;`Swift
+private var pushRegistry = PKPushRegistry.init(queue: DispatchQueue.main)
+&hellip;</li>
+</ol>
+
+<p>func initPushKit() {
+  pushRegistry.delegate = self
+  pushRegistry.desiredPushTypes = Set([.voIP])
+}</p>
+<pre class="highlight plaintext"><code>3. Implement PKPushRegistryDelegate 
+```Swift
+extension AppDelegate: PKPushRegistryDelegate {
+
+    // New push notification token assigned by APNS.
+    func pushRegistry(_ registry: PKPushRegistry, didUpdate credentials: PKPushCredentials, for type: PKPushType) {
+        if (type == .voIP) {
+            // This push notification token has to be sent to Telnyx when connecting the Client.
+            let deviceToken = credentials.token.reduce("", {$0 + String(format: "%02X", $1) })
+            UserDefaults.standard.savePushToken(pushToken: deviceToken)
+        }
+    }
+
+    func pushRegistry(_ registry: PKPushRegistry, didInvalidatePushTokenFor type: PKPushType) {
+        if (type == .voIP) {
+            // Delete incoming token in user defaults
+            let userDefaults = UserDefaults.init()
+            userDefaults.deletePushToken()
+        }
+    }
+
+    /**
+     This delegate method is available on iOS 11 and above. 
+     */
+    func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -&gt; Void) {
+        if (payload.type == .voIP) {
+            self.handleVoIPPushNotification(payload: payload)
+        }
+
+        if let version = Float(UIDevice.current.systemVersion), version &gt;= 13.0 {
+            completion()
+        }
+    }
+
+    func handleVoIPPushNotification(payload: PKPushPayload) {
+        if let metadata = payload.dictionaryPayload["metadata"] as? [String: Any] {
+
+            let callId = metadata["call_id"] as? String
+            let callerName = (metadata["caller_name"] as? String) ?? ""
+            let callerNumber = (metadata["caller_number"] as? String) ?? ""
+            let caller = callerName.isEmpty ? (callerNumber.isEmpty ? "Unknown" : callerNumber) : callerName
+
+
+            let uuid = UUID(uuidString: callId)
+
+            // Re-connect the client and process the push notification when is received.
+            // You will need to use the credentials of the same user that is receiving the call. 
+            let txConfig = TxConfig(sipUser: sipUser,
+                                password: password,
+                                pushDeviceToken: "APNS_PUSH_TOKEN")
+
+
+            //Call processVoIPNotification method 
+
+            try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: metadata)
+
+
+
+            // Report the incoming call to CallKit framework.
+            let callHandle = CXHandle(type: .generic, value: from)
+            let callUpdate = CXCallUpdate()
+            callUpdate.remoteHandle = callHandle
+            callUpdate.hasVideo = false
+
+            provider.reportNewIncomingCall(with: uuid, update: callUpdate) { error in
+                  if let error = error {
+                      print("AppDelegate:: Failed to report incoming call: \(error.localizedDescription).")
+                  } else {
+                      print("AppDelegate:: Incoming call successfully reported.")
+                  }
+            }
+    }
+}
+</code></pre>
+
+<ol>
+<li>If everything is correctly set-up when the app runs APNS should assign a Push Token.</li>
+<li>In order to receive VoIP push notifications. You will need to send your push token when connecting to the Telnyx Client.</li>
+</ol>
+<pre class="highlight plaintext"><code>
+ let txConfig = TxConfig(sipUser: sipUser,
+                         password: password,
+                         pushDeviceToken: "DEVICE_APNS_TOKEN",
+                         //You can choose the appropriate verbosity level of the SDK. 
+                         logLevel: .all)
+
+ // Or use a JWT Telnyx Token to authenticate
+ let txConfigToken = TxConfig(token: "MY_JWT_TELNYX_TOKEN",
+                             pushDeviceToken: "DEVICE_APNS_TOKEN",
+                             //You can choose the appropriate verbosity level of the SDK. Logs are disabled by default
+                             logLevel: .all)
+</code></pre>
+
+<p>For more information about Pushkit you can check the official <a href="https://developer.apple.com/documentation/pushkit%5D">Apple docs</a>. </p>
+
+<p><strong><em>Important</em></strong>:</p>
+
+<ul>
+<li>You will need to login at least once to send your device token to Telnyx before start getting Push notifications.</li>
+<li>You will need to provide <code>pushMetaData</code> to <code>processVoIPNotification()</code> to get Push calls to work.</li>
+<li>You will need to implement &lsquo;CallKit&rsquo; to report an incoming call when there’s a VoIP push notification. On iOS 13.0 and later, if you fail to report a call to CallKit, the system will terminate your app. More information on <a href="https://developer.apple.com/documentation/pushkit/pkpushregistrydelegate/2875784-pushregistry">Apple docs</a></li>
+</ul>
+<h4 id='c-configure-callkit-into-your-app' class='heading'>c. Configure CallKit into your App:</h4>
+
+<p><code>PushKit</code> requires you to use <code>CallKit</code> when handling VoIP calls. <code>CallKit</code> ensures that apps providing call-related services on a user’s device work seamlessly together on the user&rsquo;s device, and respect features like Do Not Disturb. <code>CallKit</code> also operates the system&rsquo;s call-related UIs, including the incoming or outgoing call screens. Use <code>CallKit</code> to present these interfaces and manage interactions with them.</p>
+
+<p>For more information about <code>CallKit</code> you can check the official <a href="https://developer.apple.com/documentation/callkit%5D">Apple docs</a>. </p>
+
+<p><strong><em>General Setup:</em></strong></p>
+
+<ol>
+<li>Import CallKit:
+<code>Swift
+import CallKit
+</code></li>
+<li><p>Initialize CallKit</p>
+<pre class="highlight plaintext"><code>func initCallKit() {
+let configuration = CXProviderConfiguration(localizedName: "TelnyxRTC")
+configuration.maximumCallGroups = 1
+configuration.maximumCallsPerCallGroup = 1
+callKitProvider = CXProvider(configuration: configuration)
+if let provider = callKitProvider {
+  provider.setDelegate(self, queue: nil)
+}
+}
+</code></pre></li>
+<li><p>Implement <code>CXProviderDelegate</code> methods.</p></li>
+</ol>
+
+<p><strong><em>Audio Session Handling WebRTC + CallKit</em></strong>  </p>
+
+<p>To get <code>CallKit</code> properly working with the <code>TelnyxRTC SDK</code> you need to set the audio device state based on the <code>CallKit</code> AudioSession state like follows:</p>
+<pre class="highlight plaintext"><code>extension AppDelegate : CXProviderDelegate {
+
+    ...
+
+    func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
+        self.telnyxClient?.enableAudioSession(audioSession: audioSession)
+    }
+
+    func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
+        self.telnyxClient?.disableAudioSession(audioSession: audioSession)
+    }
+}
+</code></pre>
+
+<p></br></p>
+
+<p><strong><em>Reporting calls with CallKit</em></strong></p>
+
+<p>To properly report calls to callKit with right statuses, you need to invoke the following callKit methods at the right instances: </p>
+
+<ol>
+<li>Starting A New Call : When ever you start a call, report to callkit using the <code>provider.reportCall()</code> method.</li>
+</ol>
+<pre class="highlight plaintext"><code>        let callUpdate = CXCallUpdate()
+
+        callUpdate.remoteHandle = callHandle
+        callUpdate.supportsDTMF = true
+        callUpdate.supportsHolding = true
+        callUpdate.supportsGrouping = false
+        callUpdate.supportsUngrouping = false
+        callUpdate.hasVideo = false
+        provider.reportCall(with: uuid, updated: callUpdate)
+</code></pre>
+
+<ol>
+<li>When user receives a Call : Use <code>provider.reportNewIncomingCall(with: uuid, update: callUpdate)</code> to report an incoming call. This sends a request to callKit the to provide the native call interface to the user.</li>
+</ol>
+<pre class="highlight plaintext"><code>        guard let provider = callKitProvider else {
+            print("AppDelegate:: CallKit provider not available")
+            return
+        }
+
+        let callHandle = CXHandle(type: .generic, value: from)
+        let callUpdate = CXCallUpdate()
+        callUpdate.remoteHandle = callHandle
+
+        provider.reportNewIncomingCall(with: uuid, update: callUpdate) { error in
+            // handle error
+        }
+</code></pre>
+
+<ol>
+<li>When callee answers an outgoing call : Use <code>provider.reportOutgoingCall(with: callKitUUID, connectedAt:nil)</code> to report a connected outgoing call. This provides the time when the outgoing call goes to active to callKit.
+<code>Swift
+    if let provider = self.callKitProvider,
+        let callKitUUID = self.callKitUUID {
+        let date = Date()
+        provider.reportOutgoingCall(with: callKitUUID, connectedAt:date)
+    }
+</code>
+NB : This should be used only when the call is outgoing.</li>
+</ol>
+<h3 id='best-practices-when-using-pushnotifications-with-callkit' class='heading'>Best Practices when Using PushNotifications with Callkit.</h3>
+
+<ol>
+<li>When receiving calls from push notifications, it is always required to wait for the connection to the WebSocket before fulfilling the call answer action. This can be achieved by implementing the CXProviderDelegate in the following way (SDK version &gt;=0.1.11):
+<code>Swift
+func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
+    self.telnyxClient?.answerFromCallkit(answerAction: action)
+}
+</code></li>
+</ol>
+
+<p>When the <code>answerFromPush(answerAction: action)</code> is called, Callkit sets the call state to <code>connecting</code> to alert the user that the call is being connected. 
+Once the call is active, the timer starts.</p>
+
+<table align="center">
+        <tr>
+           <td>Connecting State</td>
+           <td>Active call</td>
+        </tr>
+        <tr>
+          <td><img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/13e9efd0-07e2-4a7e-9e7a-b2484b96be47" width=270></td>
+          <td><img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/89d506a5-bf97-42f2-bd64-5aa54b202db8" width=270></td>
+        </tr>
+</table>
+   
+
+<p>The previous SDK versions requires handling the websocket connection state on the client side. It can be done in the following way:</p>
+<pre class="highlight plaintext"><code>var callAnswerPendingFromPush:Bool = false
+
+func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
+        print("AppDelegate:: ANSWER call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
+        if(currentCall != nil){
+            self.currentCall?.answer()
+        }else {
+            self.callAnswerPendingFromPush = true
+        }
+        action.fulfill()
+}
+
+func onPushCall(call: Call) {
+        print("AppDelegate:: TxClientDelegate onPushCall() \(call)")
+        self.currentCall = call //Update the current call with the incoming call
+
+        //Answer Call if call was answered from callkit
+        //This happens when there's a race condition between login and receiving PN
+        // when User answer's the call from PN and there's no Call or INVITE message yet. Set callAnswerPendingFromPush = true
+        // Whilst we wait fot onPushCall Method to be called
+         if(self.callAnswerPendingFromPush){
+            self.currentCall?.answer()
+            self.callAnswerPendingFromPush = false
+        }
+
+}
+</code></pre>
+
+<p>Likewise for ending calls, the  <code>endCallFromCallkit(endAction:action)</code> method should be called from :</p>
+<pre class="highlight plaintext"><code>func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
+
+        self.telnyxClient?.endCallFromCallkit(endAction:action)
+
+}
+</code></pre>
+
+<p>Calling this method solves the race condition, where call is ended before the client connects to the webserver. This way the call is
+   ended on the callee side once a connection is established.</p>
+
+<ol>
+<li>Logs on the receiver&rsquo;s end are essential for thorough debugging of issues related to push notifications. However, the debugger is not attached when the app is completely killed. To address this, you can simply put the app in the background. VOIP push notifications should then come through, and the debugger should capture all logs.</li>
+</ol>
+
+<p><strong><em>Handling Multiple Calls</em></strong></p>
+
+<p>To handle multiples, we can rely on the <code>CXProviderDelegate</code> delegate which invokes functions corresponding to 
+what action was performed on the callkit user interface. </p>
+
+<ol>
+<li>End and Accept or Decline : The <strong>end and accept</strong> button on the callkit user interface accepts the new call and ends the previous call.
+Callkit then invokes the <code>CXAnswerCallAction</code> and <code>CXEndCallAction</code> when the <strong>end and accept</strong> button is pressed.
+You can handle this scenario by</li>
+</ol>
+<pre class="highlight plaintext"><code> var currentCall: Call?
+ var previousCall: Call?
+
+ //current calkit uuid
+ var callKitUUID: UUID?
+
+     func onIncomingCall(call: Call) {
+        guard let callId = call.callInfo?.callId else {
+            print("AppDelegate:: TxClientDelegate onIncomingCall() Error unknown call UUID")
+            return
+        }
+        print("AppDelegate:: TxClientDelegate onIncomingCall() callKitUUID [\(String(describing: self.callKitUUID))] callId [\(callId)]")
+
+        self.callKitUUID = call.callInfo?.callId
+
+        //Update the previous call with the current call
+        self.previousCall = self.currentCall
+
+        //Update the current call with the incoming call
+        self.currentCall = call 
+        ..
+  }
+
+</code></pre>
+
+<p>Subsequently, when the user clicks on the End and Accept or Decline Button, you will need to determine which of these buttons was clicked.
+You can do that as follows:</p>
+<pre class="highlight plaintext"><code>    //Callkit invokes CXEndCallAction and  CXAnswerCallAction delegate function for accept and answer
+    func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
+        print("AppDelegate:: END call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
+
+        // if the callKitUUID is the same as the one provided by the action
+        // callkit expects you to end the current call
+        if(self.callKitUUID == action.callUUID){
+            if let onGoingCall = self.previousCall {
+                self.currentCall = onGoingCall
+                self.callKitUUID = onGoingCall.callInfo?.callId
+            }
+        }else {
+            // callkit expects you to end the previous call
+            self.callKitUUID = self.currentCall?.callInfo?.callId
+        }
+        self.telnyxClient?.endCallFromCallkit(endAction:action)
+    }
+</code></pre>
+
+<p><strong>Note</strong> </p>
+
+<p>While handling multiple calls, you should report the <strong>call end</strong> to callkit properly with the right callUUID. This will keep your  active calls with the callkit
+user interface until there are no more active sessions.</p>
+
+<ol>
+<li>Hold and Accept or Decline: The <strong>hold and accept</strong> button on the callkit user interface accepts the new call and holds the previous call.
+Callkit then invokes the <code>CXSetHeldCallAction</code> when the <strong>hold and accept</strong> button is pressed.</li>
+</ol>
+<pre class="highlight plaintext"><code> func provider(_ provider: CXProvider, perform action: CXSetHeldCallAction) {
+        print("provider:performSetHeldAction:")
+        //request to hold previous call, since we have both the current and previous calls
+        previousCall?.hold()
+        action.fulfill()
+ }
+</code></pre>
+
+<p>Also, you will need to un-hold the previous call when the current call gets ended on <code>CXEndCallAction</code>.</p>
+<pre class="highlight plaintext"><code>
+   func provider(_ provider: CXProvider, perform action: CXEndCallAction) {        
+        if(previousCall?.callState == .HELD){
+            print("AppDelegate:: call held.. unholding call")
+            previousCall?.unhold()
+        }
+        ...
+   }
+</code></pre>
+
+<p><strong>Note</strong></p>
+
+<p>While handling multiple calls, you should report the <strong>call end</strong> to callkit properly with the right callUUID. This will keep your  active calls with the callkit
+user interface until there are no more active sessions.</p>
+<h3 id='disable-push-notification' class='heading'>Disable Push Notification</h3>
+
+<p>Push notifications can be disabled for the current user by calling : </p>
+<pre class="highlight plaintext"><code>telnyxClient.disablePushNotifications()
+</code></pre>
+
+<p>Note : Signing back in, using same credentials will re-enable push notifications.</p>
+<h3 id='privacy-manifest' class='heading'>Privacy Manifest</h3>
+
+<p>Support for privacy manifest is added from version 0.1.26</p>
+<h3 id='sending-debug-stats' class='heading'>Sending Debug Stats</h3>
+
+<p>In case of any need to investigate any issue by Telnyx, please enable the debug stats that will be sent to Telnyx for analysis.</p>
+<pre class="highlight plaintext"><code>currentCall?.startDebugStats()
+</code></pre>
+
+<p>Please store the <strong>debug_stats_id</strong> that would be used for investigation</p>
 <h3 id='documentation' class='heading'>Documentation:</h3>
 
 <p>For more information you can:</p>
@@ -377,11 +871,10 @@ extension ViewController: TxClientDelegate {
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2021 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external">Telnyx</a>. All rights reserved. (Last updated: 2021-08-13)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.6</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>&copy; 2024 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2024-11-15)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>
     </div>
   </body>
-</div>
 </html>
