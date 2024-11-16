@@ -8,7 +8,7 @@
 
 import UIKit
 
-protocol UISettingsViewProtocol {
+protocol UISettingsViewDelegate: AnyObject {
     func onOpenSipSelector()
 }
 
@@ -17,7 +17,7 @@ class UISettingsView: UIView {
     
     let kCONTENT_XIB_NAME = "UISettingsView"
     
-    public var delegate: UISettingsViewProtocol?
+    public weak var delegate: UISettingsViewDelegate?
     private var textFields = [UITextField]()
     private var activeField: UITextField?
 

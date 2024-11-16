@@ -1,11 +1,17 @@
 import UIKit
 
+protocol SipCredentialsViewControllerDelegate: AnyObject {
+    func onSipCredentialSelected(credential: SipCredential)
+}
+
 class SipCredentialsViewController: UIViewController {
     
     @IBOutlet weak var tableView: UITableView!
     
     private var credentialsList: [SipCredential] = []
     private var selectedCredential: SipCredential?
+    weak var delegate: SipCredentialsViewControllerDelegate?
+
     
     init() {
         super.init(nibName: "SipCredentialsViewController", bundle: nil)
@@ -98,8 +104,16 @@ extension SipCredentialsViewController: UITableViewDataSource {
 // MARK: - UITableViewDelegate
 extension SipCredentialsViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        guard indexPath.row < credentialsList.count else {
+            print("Invalid index")
+            return
+        }
         let selectedCredential = credentialsList[indexPath.row]
         print("Selected User: \(selectedCredential.username)")
+        SipCredentialsManager.shared.saveSelectedCredential(selectedCredential)
+        self.delegate?.onSipCredentialSelected(credential: selectedCredential)
+        self.dismiss(animated: true, completion: nil)
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {

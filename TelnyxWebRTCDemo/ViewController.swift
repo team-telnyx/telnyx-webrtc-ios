@@ -93,10 +93,6 @@ class ViewController: UIViewController {
         self.settingsView.isHidden = false
         self.settingsView.delegate = self
         
-        let selectedCredentials = SipCredentialsManager.shared.getSelectedCredential()
-        self.settingsView.sipUsernameLabel.text = selectedCredentials?.username ?? ""
-        self.settingsView.passwordUserNameLabel.text = selectedCredentials?.password ?? ""
-
         // Environment Selector
         let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.handleLongPress))
         self.logo.addGestureRecognizer(longPressRecognizer)
@@ -113,6 +109,14 @@ class ViewController: UIViewController {
                  print("Reachable via Cellular")
              }
          }
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        let selectedCredentials = SipCredentialsManager.shared.getSelectedCredential()
+        self.settingsView.sipUsernameLabel.text = selectedCredentials?.username ?? ""
+        self.settingsView.passwordUserNameLabel.text = selectedCredentials?.password ?? ""
     }
     
     @objc func handleLongPress(gesture: UILongPressGestureRecognizer) {
@@ -311,9 +315,19 @@ extension ViewController : UICallScreenDelegate {
 }
 
 // MARK: - UISettingsViewProtocol
-extension ViewController: UISettingsViewProtocol {
+extension ViewController: UISettingsViewDelegate {
     func onOpenSipSelector() {
         let sipCredentialsVC = SipCredentialsViewController()
+        sipCredentialsVC.delegate = self
         self.present(sipCredentialsVC, animated: true, completion: nil)
+    }
+}
+
+// MARK: - SipCredentialsViewControllerDelegate
+extension ViewController: SipCredentialsViewControllerDelegate {
+
+    func onSipCredentialSelected(credential: SipCredential) {
+        self.settingsView.sipUsernameLabel.text = credential.username
+        self.settingsView.passwordUserNameLabel.text = credential.password
     }
 }
