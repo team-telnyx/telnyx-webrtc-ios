@@ -86,7 +86,7 @@ extension SipCredentialsViewController: UITableViewDataSource {
         let headerView = tableView.dequeueReusableHeaderFooterView(withIdentifier: "UISipCredentialHeaderView") as! UISipCredentialHeaderView
         let environment = UserDefaults.standard.getEnvironment().toString()
         headerView.configure(title: "SIP Credentials", subtitle: "\(environment)")
-
+        
         return headerView
     }
     
@@ -134,18 +134,32 @@ extension SipCredentialsViewController: UITableViewDelegate {
 
 // MARK: - Extension for UITableView Empty Message
 extension UITableView {
+
     func setEmptyMessage(_ message: String) {
         let messageLabel = UILabel()
         messageLabel.text = message
-        messageLabel.textAlignment = .center
-        messageLabel.font = UIFont.systemFont(ofSize: 17, weight: .medium)
-        messageLabel.textColor = .lightGray
+        messageLabel.textColor = .gray
         messageLabel.numberOfLines = 0
+        messageLabel.textAlignment = .center
+        messageLabel.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        
+        let containerView = UIView()
+        containerView.addSubview(messageLabel)
+        
         messageLabel.translatesAutoresizingMaskIntoConstraints = false
-        backgroundView = messageLabel
+        NSLayoutConstraint.activate([
+            messageLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 30),
+            messageLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -30),
+            messageLabel.topAnchor.constraint(equalTo: containerView.topAnchor),
+            messageLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
+        ])
+        
+        self.backgroundView = containerView
+        self.layoutIfNeeded()
+
     }
     
     func restore() {
-        backgroundView = nil
+        self.backgroundView = nil
     }
 }
