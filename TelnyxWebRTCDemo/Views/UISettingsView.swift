@@ -37,7 +37,8 @@ class UISettingsView: UIView {
     @IBOutlet weak var passwordUserNameLabel: UITextField!
     @IBOutlet weak var tokenLabel: UITextField!
     @IBOutlet weak var loginSelector: UISwitch!
-
+    @IBOutlet weak var selectCredentialButton: UIButton!
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         commonInit()

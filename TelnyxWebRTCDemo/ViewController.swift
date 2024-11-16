@@ -117,6 +117,12 @@ class ViewController: UIViewController {
         let selectedCredentials = SipCredentialsManager.shared.getSelectedCredential()
         self.settingsView.sipUsernameLabel.text = selectedCredentials?.username ?? ""
         self.settingsView.passwordUserNameLabel.text = selectedCredentials?.password ?? ""
+        
+        if SipCredentialsManager.shared.getCredentials().isEmpty {
+            self.settingsView.selectCredentialButton.isHidden = true
+        } else {
+            self.settingsView.selectCredentialButton.isHidden = false
+        }
     }
     
     @objc func handleLongPress(gesture: UILongPressGestureRecognizer) {
@@ -218,6 +224,7 @@ class ViewController: UIViewController {
                 let selectedCredential = SipCredential(username: sipUser, password: password)
                 SipCredentialsManager.shared.addCredential(selectedCredential)
                 SipCredentialsManager.shared.saveSelectedCredential(selectedCredential)
+                self.settingsView.selectCredentialButton.isHidden = false
             }
 
             do {
@@ -329,5 +336,12 @@ extension ViewController: SipCredentialsViewControllerDelegate {
     func onSipCredentialSelected(credential: SipCredential?) {
         self.settingsView.sipUsernameLabel.text = credential?.username ?? ""
         self.settingsView.passwordUserNameLabel.text = credential?.password ?? ""
+        
+        
+        if SipCredentialsManager.shared.getCredentials().isEmpty {
+            self.settingsView.selectCredentialButton.isHidden = true
+        } else {
+            self.settingsView.selectCredentialButton.isHidden = false
+        }
     }
 }
