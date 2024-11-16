@@ -26,6 +26,7 @@
 		995BF71C2CE7EC0600454076 /* SipCredentialsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995BF71A2CE7EBF800454076 /* SipCredentialsManager.swift */; };
 		995BF7202CE8175B00454076 /* SipCredentialsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995BF71F2CE8175200454076 /* SipCredentialsViewController.swift */; };
 		995BF7222CE818A400454076 /* SipCredentialsViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 995BF7212CE818A400454076 /* SipCredentialsViewController.xib */; };
+		995BF7242CE8474A00454076 /* UISipCredentialHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995BF7232CE8471B00454076 /* UISipCredentialHeaderView.swift */; };
 		B309D13D25EF119E00A2AADF /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B309D11125EF107F00A2AADF /* Starscream.framework */; };
 		B309D1D625F020B300A2AADF /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D1D525F020B300A2AADF /* Message.swift */; };
 		B309D1DB25F020D400A2AADF /* Method.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D1DA25F020D400A2AADF /* Method.swift */; };
@@ -144,6 +145,7 @@
 		995BF71A2CE7EBF800454076 /* SipCredentialsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialsManager.swift; sourceTree = "<group>"; };
 		995BF71F2CE8175200454076 /* SipCredentialsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialsViewController.swift; sourceTree = "<group>"; };
 		995BF7212CE818A400454076 /* SipCredentialsViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SipCredentialsViewController.xib; sourceTree = "<group>"; };
+		995BF7232CE8471B00454076 /* UISipCredentialHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UISipCredentialHeaderView.swift; sourceTree = "<group>"; };
 		A7CE9BEFEDE503E7BC7BE3C8 /* Pods_TelnyxWebRTCDemo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxWebRTCDemo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B309D11125EF107F00A2AADF /* Starscream.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Starscream.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B309D1D525F020B300A2AADF /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
@@ -317,6 +319,7 @@
 		B309D1FB25F028F100A2AADF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				995BF7232CE8471B00454076 /* UISipCredentialHeaderView.swift */,
 				B309D27A25F17C1700A2AADF /* UIIncomingCallView.xib */,
 				B309D27925F17C1700A2AADF /* UIIncomingCallView.swift */,
 				B309D1FC25F0291100A2AADF /* UISettingsView.xib */,
@@ -827,6 +830,7 @@
 				995BF7132CE7E8F100454076 /* WebRTCEnvironmentExtension.swift in Sources */,
 				B3B1D9A426545807008D28C9 /* UserDefaultExtension.swift in Sources */,
 				B32AE8BB26D6952500C7C6F4 /* AppDelegateCallKitExtension.swift in Sources */,
+				995BF7242CE8474A00454076 /* UISipCredentialHeaderView.swift in Sources */,
 				B3AF24AA25EE84570062EDA9 /* UIViewControllerExtension.swift in Sources */,
 				995BF7202CE8175B00454076 /* SipCredentialsViewController.swift in Sources */,
 				B309D25325F071DD00A2AADF /* UICallScreen.swift in Sources */,
