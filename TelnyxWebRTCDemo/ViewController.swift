@@ -91,6 +91,7 @@ class ViewController: UIViewController {
 
         // Restore last user credentials
         self.settingsView.isHidden = false
+        self.settingsView.delegate = self
         self.settingsView.sipUsernameLabel.text = userDefaults.getSipUser()
         self.settingsView.passwordUserNameLabel.text = userDefaults.getSipUserPassword()
 
@@ -302,5 +303,13 @@ extension ViewController : UICallScreenDelegate {
         } else {
             self.telnyxClient?.setEarpiece()
         }
+    }
+}
+
+// MARK: - UISettingsViewProtocol
+extension ViewController: UISettingsViewProtocol {
+    func onOpenSipSelector() {
+        let sipCredentialsVC = SipCredentialsViewController()
+        self.present(sipCredentialsVC, animated: true, completion: nil)
     }
 }

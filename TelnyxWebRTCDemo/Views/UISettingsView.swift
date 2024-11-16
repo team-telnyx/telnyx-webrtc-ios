@@ -8,12 +8,17 @@
 
 import UIKit
 
+protocol UISettingsViewProtocol {
+    func onOpenSipSelector()
+}
+
 @IBDesignable
 class UISettingsView: UIView {
     
     let kCONTENT_XIB_NAME = "UISettingsView"
     
-    private var textFields:[UITextField] = [UITextField]()
+    public var delegate: UISettingsViewProtocol?
+    private var textFields = [UITextField]()
     private var activeField: UITextField?
 
     public var isTokenSelected: Bool {
@@ -100,6 +105,10 @@ class UISettingsView: UIView {
             self.credentialsLoginViewHeightConstraint.constant = 85
             self.tokenLoginView.isHidden = true
         }
+    }
+
+    @IBAction func onOpenSipSelector(_ sender: Any) {
+        delegate?.onOpenSipSelector()
     }
 }
 
