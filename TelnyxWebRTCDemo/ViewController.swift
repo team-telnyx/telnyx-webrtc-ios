@@ -92,8 +92,10 @@ class ViewController: UIViewController {
         // Restore last user credentials
         self.settingsView.isHidden = false
         self.settingsView.delegate = self
-        self.settingsView.sipUsernameLabel.text = userDefaults.getSipUser()
-        self.settingsView.passwordUserNameLabel.text = userDefaults.getSipUserPassword()
+        
+        let selectedCredentials = SipCredentialsManager.shared.getSelectedCredential()
+        self.settingsView.sipUsernameLabel.text = selectedCredentials?.username ?? ""
+        self.settingsView.passwordUserNameLabel.text = selectedCredentials?.password ?? ""
 
         // Environment Selector
         let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.handleLongPress))
@@ -209,7 +211,9 @@ class ViewController: UIViewController {
                 )
 
                 //store user / password in user defaults
-                userDefaults.saveUser(sipUser: sipUser, password: password)
+                let selectedCredential = SipCredential(username: sipUser, password: password)
+                SipCredentialsManager.shared.addCredential(selectedCredential)
+                SipCredentialsManager.shared.saveSelectedCredential(selectedCredential)
             }
 
             do {

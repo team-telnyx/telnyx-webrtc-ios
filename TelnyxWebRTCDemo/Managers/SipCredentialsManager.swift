@@ -3,6 +3,10 @@ import TelnyxRTC
 
 class SipCredentialsManager {
     
+    public static let shared = SipCredentialsManager()
+    
+    private init() {}
+    
     // Get the current environment
     private static func currentEnvironment() -> WebRTCEnvironment {
         return UserDefaults.standard.getEnvironment()
@@ -10,13 +14,13 @@ class SipCredentialsManager {
     
     // Generate the key for credentials based on the environment
     private static func credentialsKey(for environment: WebRTCEnvironment) -> String {
-        return "\(UserDefaultsKey.sipUser.rawValue)_\(environment.toString())"
+        return "\(UserDefaultsKey.sipCredentials.rawValue)_\(environment.toString())"
     }
     
     // Get credentials for the current environment
-    static func getCredentials() -> [SipCredential] {
-        let environment = currentEnvironment()
-        let key = credentialsKey(for: environment)
+    func getCredentials() -> [SipCredential] {
+        let environment = SipCredentialsManager.currentEnvironment()
+        let key = SipCredentialsManager.credentialsKey(for: environment)
         guard let data = UserDefaults.standard.data(forKey: key),
               let credentials = try? JSONDecoder().decode([SipCredential].self, from: data) else {
             return []
@@ -25,16 +29,16 @@ class SipCredentialsManager {
     }
     
     // Save credentials for the current environment
-    static func saveCredentials(_ credentials: [SipCredential]) {
-        let environment = currentEnvironment()
-        let key = credentialsKey(for: environment)
+    func saveCredentials(_ credentials: [SipCredential]) {
+        let environment = SipCredentialsManager.currentEnvironment()
+        let key = SipCredentialsManager.credentialsKey(for: environment)
         if let encoded = try? JSONEncoder().encode(credentials) {
             UserDefaults.standard.set(encoded, forKey: key)
         }
     }
     
     // Add a new credential
-    static func addCredential(_ credential: SipCredential) {
+    func addCredential(_ credential: SipCredential) {
         var credentials = getCredentials()
         
         // Check if the username already exists
@@ -48,7 +52,7 @@ class SipCredentialsManager {
     }
     
     // Update an existing credential
-    static func updateCredential(_ credential: SipCredential) {
+    func updateCredential(_ credential: SipCredential) {
         var credentials = getCredentials()
         
         // Find the index of the existing credential by username
@@ -61,11 +65,50 @@ class SipCredentialsManager {
     }
     
     // Remove a credential by username
-    static func removeCredential(username: String) {
+    func removeCredential(username: String) {
         var credentials = getCredentials()
         
         // Remove the credential with the matching username
         credentials.removeAll { $0.username == username }
         saveCredentials(credentials)
+    }
+    
+}
+
+// MARK: - Selected Credential
+extension SipCredentialsManager {
+
+    private static func selectedCredentialKey(for environment: WebRTCEnvironment) -> String {
+        return "\(UserDefaultsKey.selectedSipCredential.rawValue)_\(environment.toString())"
+    }
+
+    func getSelectedCredential() -> SipCredential? {
+        return getSelectedCredential(for: SipCredentialsManager.currentEnvironment())
+    }
+    
+    private func getSelectedCredential(for environment: WebRTCEnvironment) -> SipCredential? {
+        let key = SipCredentialsManager.selectedCredentialKey(for: environment)
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let credential = try? JSONDecoder().decode(SipCredential.self, from: data) else {
+            return nil
+        }
+        return credential
+    }
+    
+    func saveSelectedCredential(_ credential: SipCredential) {
+        let environment = SipCredentialsManager.currentEnvironment()
+        let key = SipCredentialsManager.selectedCredentialKey(for: environment)
+        
+        // Save the selected credential to UserDefaults
+        if let encoded = try? JSONEncoder().encode(credential) {
+            UserDefaults.standard.set(encoded, forKey: key)
+        }
+        
+        // Ensure the selected credential is also stored in the list of credentials
+        var credentials = getCredentials()
+        if !credentials.contains(where: { $0.username == credential.username }) {
+            credentials.append(credential)
+            saveCredentials(credentials)
+        }
     }
 }

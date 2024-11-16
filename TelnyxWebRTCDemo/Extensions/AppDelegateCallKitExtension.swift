@@ -228,8 +228,9 @@ extension AppDelegate : CXProviderDelegate {
             serverConfig = TxServerConfiguration(environment: .production)
         }
         
-        let sipUser = userDefaults.getSipUser()
-        let password = userDefaults.getSipUserPassword()
+        let selectedCredentials = SipCredentialsManager.shared.getSelectedCredential()
+        let sipUser = selectedCredentials?.username ?? ""
+        let password = selectedCredentials?.password ?? ""
         let deviceToken = userDefaults.getPushToken()
         //Sets the login credentials and the ringtone/ringback configurations if required.
         //Ringtone / ringback tone files are not mandatory.
