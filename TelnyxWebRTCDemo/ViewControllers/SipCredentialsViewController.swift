@@ -1,7 +1,7 @@
 import UIKit
 
 protocol SipCredentialsViewControllerDelegate: AnyObject {
-    func onSipCredentialSelected(credential: SipCredential)
+    func onSipCredentialSelected(credential: SipCredential?)
 }
 
 class SipCredentialsViewController: UIViewController {
@@ -10,6 +10,8 @@ class SipCredentialsViewController: UIViewController {
     
     private var credentialsList: [SipCredential] = []
     private var selectedCredential: SipCredential?
+    private var isSelectedCredentialChanged = false
+
     weak var delegate: SipCredentialsViewControllerDelegate?
 
     
@@ -25,6 +27,14 @@ class SipCredentialsViewController: UIViewController {
         super.viewDidLoad()
         setupTableView()
         loadCredentials()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        if isSelectedCredentialChanged {
+            selectedCredential = SipCredentialsManager.shared.getSelectedCredential()
+            delegate?.onSipCredentialSelected(credential: selectedCredential)
+        }
     }
     
     private func setupTableView() {
@@ -112,8 +122,8 @@ extension SipCredentialsViewController: UITableViewDelegate {
         let selectedCredential = credentialsList[indexPath.row]
         print("Selected User: \(selectedCredential.username)")
         SipCredentialsManager.shared.saveSelectedCredential(selectedCredential)
-        self.delegate?.onSipCredentialSelected(credential: selectedCredential)
-        self.dismiss(animated: true, completion: nil)
+        isSelectedCredentialChanged = true
+        self.dismiss(animated: true)
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
@@ -130,6 +140,9 @@ extension SipCredentialsViewController: UITableViewDelegate {
             // Update UserDefaults using the manager
             SipCredentialsManager.shared.removeCredential(username: deletedCredential.username)
             
+            if self.selectedCredential?.username == deletedCredential.username {
+                isSelectedCredentialChanged = true
+            }
             // Delete the row with animation
             tableView.deleteRows(at: [indexPath], with: .automatic)
             

@@ -326,8 +326,8 @@ extension ViewController: UISettingsViewDelegate {
 // MARK: - SipCredentialsViewControllerDelegate
 extension ViewController: SipCredentialsViewControllerDelegate {
 
-    func onSipCredentialSelected(credential: SipCredential) {
-        self.settingsView.sipUsernameLabel.text = credential.username
-        self.settingsView.passwordUserNameLabel.text = credential.password
+    func onSipCredentialSelected(credential: SipCredential?) {
+        self.settingsView.sipUsernameLabel.text = credential?.username ?? ""
+        self.settingsView.passwordUserNameLabel.text = credential?.password ?? ""
     }
 }

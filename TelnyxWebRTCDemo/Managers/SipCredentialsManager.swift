@@ -70,6 +70,12 @@ class SipCredentialsManager {
         
         // Remove the credential with the matching username
         credentials.removeAll { $0.username == username }
+        
+        if let selectedCredential = getSelectedCredential(),
+           selectedCredential.username == username {
+            // If it matches, remove the selected credential
+            removeSelectedCredential()
+        }
         saveCredentials(credentials)
     }
     
@@ -110,5 +116,9 @@ extension SipCredentialsManager {
             credentials.append(credential)
             saveCredentials(credentials)
         }
+    }
+    
+    func removeSelectedCredential() {
+        UserDefaults.standard.removeObject(forKey: SipCredentialsManager.selectedCredentialKey(for: SipCredentialsManager.currentEnvironment()))
     }
 }
