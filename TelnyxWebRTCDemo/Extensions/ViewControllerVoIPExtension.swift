@@ -61,7 +61,7 @@ extension ViewController : VoIPDelegate {
         print("ViewController:: TxClientDelegate onClientError() error: \(error)")
         let noActiveCalls = self.telnyxClient?.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
         
-        if(noActiveCalls != true){
+        if noActiveCalls != true {
             return
         }
         
@@ -70,13 +70,14 @@ extension ViewController : VoIPDelegate {
             self.incomingCallView.isHidden = true
             self.appDelegate.executeEndCallAction(uuid: UUID());
             
-            if(error.self is NWError){
+            if error.self is NWError {
                 print("ERROR: socket connectiontion error \(error)")
             } else {
                 print("ERROR: client error \(error)")
             }
-           
         }
+        
+        self.telnyxClient?.disconnect()
     }
     
     func onClientReady() {
@@ -86,7 +87,7 @@ extension ViewController : VoIPDelegate {
             self.socketStateLabel.text = "Client ready"
             self.settingsView.isHidden = true
             self.callView.isHidden = false
-            if(!self.incomingCall){
+            if !self.incomingCall {
                 self.incomingCallView.isHidden = true
             }
         }
