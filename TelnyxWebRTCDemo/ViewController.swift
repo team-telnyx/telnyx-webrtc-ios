@@ -159,10 +159,15 @@ class ViewController: UIViewController {
 
     func updateEnvironment() {
         DispatchQueue.main.async {
-            let plistInfo = Bundle(for: TxClient.self).infoDictionary?["CFBundleShortVersionString"] as? String
-            
-            self.environment.text = (self.serverConfig?.environment == .development) ? "Development" : "Production " +
-            (plistInfo ?? "")
+            // Update selected credentials in UI after switching environment
+            let credentials = SipCredentialsManager.shared.getSelectedCredential()
+            self.onSipCredentialSelected(credential: credentials)
+
+            let sdkVersion = Bundle(for: TxClient.self).infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+            let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+
+            let env = self.serverConfig?.environment == .development ? "Development" : "Production "
+            self.environment.text = "\(env) TelnyxSDK [v\(sdkVersion)] - App [v\(appVersion)]"
         }
     }
 
