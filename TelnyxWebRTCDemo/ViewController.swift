@@ -222,7 +222,7 @@ class ViewController: UIViewController {
 
                 //store user / password in user defaults
                 let selectedCredential = SipCredential(username: sipUser, password: password)
-                SipCredentialsManager.shared.addCredential(selectedCredential)
+                SipCredentialsManager.shared.addOrUpdateCredential(selectedCredential)
                 SipCredentialsManager.shared.saveSelectedCredential(selectedCredential)
                 self.settingsView.selectCredentialButton.isHidden = false
             }

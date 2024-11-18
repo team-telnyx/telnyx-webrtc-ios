@@ -37,31 +37,22 @@ class SipCredentialsManager {
         }
     }
     
-    // Add a new credential
-    func addCredential(_ credential: SipCredential) {
+    func addOrUpdateCredential(_ credential: SipCredential) {
         var credentials = getCredentials()
         
-        // Check if the username already exists
-        if credentials.contains(where: { $0.username == credential.username }) {
-            print("User already exists. Cannot add.")
-            return
-        }
-        
-        credentials.append(credential)
-        saveCredentials(credentials)
-    }
-    
-    // Update an existing credential
-    func updateCredential(_ credential: SipCredential) {
-        var credentials = getCredentials()
-        
-        // Find the index of the existing credential by username
+        // Verificar si ya existe una credencial con el mismo username
         if let index = credentials.firstIndex(where: { $0.username == credential.username }) {
+            // Actualizar la credencial existente con el nuevo password
             credentials[index] = credential
-            saveCredentials(credentials)
+            print("User already exists. Updating the password.")
         } else {
-            print("User not found. Cannot update.")
+            // Agregar la nueva credencial si no existe
+            credentials.append(credential)
+            print("Adding new user credential.")
         }
+        
+        // Guardar las credenciales actualizadas
+        saveCredentials(credentials)
     }
     
     // Remove a credential by username
