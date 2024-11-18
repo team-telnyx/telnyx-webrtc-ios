@@ -17,18 +17,20 @@
     <a title="TxConfig Structure Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">TelnyxRTC 0.0.4 Docs</a> (88% documented)</p>
-        <p class="header-right">
+        <p><a href="../index.html">TelnyxRTC 0.1.37 Docs</a> (75% documented)</p>
+        <div class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
           </form>
-        </p>
+        </div>
       </div>
     </header>
     <div class="content-wrapper">
       <p id="breadcrumbs">
-        <a href="../index.html">TelnyxRTC Reference</a>
-        <img id="carat" src="../img/carat.png" />
+        <a href="../index.html">TelnyxRTC</a>
+        <img id="carat" src="../img/carat.png" alt=""/>
+        <a href="../Structs.html">Structures</a>
+        <img id="carat" src="../img/carat.png" alt=""/>
         TxConfig Structure Reference
       </p>
     </div>
@@ -40,6 +42,12 @@
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
                 <a href="../Classes/Call.html">Call</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FileLogger.html">FileLogger</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes.html#/s:9TelnyxRTC12StatsMessageC">StatsMessage</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Classes/TxClient.html">TxClient</a>
@@ -56,6 +64,9 @@
                 <a href="../Enums/LogLevel.html">LogLevel</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Enums/PushEnvironment.html">PushEnvironment</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Enums/TxError.html">TxError</a>
               </li>
               <li class="nav-group-task">
@@ -69,6 +80,9 @@
               </li>
               <li class="nav-group-task">
                 <a href="../Enums/TxError/ServerErrorReason.html">– ServerErrorReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/WebRTCEnvironment.html">WebRTCEnvironment</a>
               </li>
             </ul>
           </li>
@@ -91,6 +105,12 @@
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/TxPushConfig.html">TxPushConfig</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TxPushIPConfig.html">TxPushIPConfig</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TxServerConfiguration.html">TxServerConfiguration</a>
               </li>
             </ul>
           </li>
@@ -117,7 +137,7 @@
                 <a name="//apple_ref/swift/Section/Properties" class="dashAnchor"></a>
                 <div class="section-name-container">
                   <a class="section-name-link" href="#/Properties"></a>
-                  <h3 class="section-name"><p>Properties</p>
+                  <h3 class="section-name"><span>Properties</span>
 </h3>
                 </div>
               </div>
@@ -284,6 +304,60 @@
                     </section>
                   </div>
                 </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC8TxConfigV15reconnectClientSbvp"></a>
+                    <a name="//apple_ref/swift/Property/reconnectClient" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV15reconnectClientSbvp">reconnectClient</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">internal(set)</span> <span class="k">var</span> <span class="nv">reconnectClient</span><span class="p">:</span> <span class="kt">Bool</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC8TxConfigV15pushEnvironmentAA04PushF0OSgvp"></a>
+                    <a name="//apple_ref/swift/Property/pushEnvironment" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV15pushEnvironmentAA04PushF0OSgvp">pushEnvironment</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">internal(set)</span> <span class="k">var</span> <span class="nv">pushEnvironment</span><span class="p">:</span> <span class="kt"><a href="../Enums/PushEnvironment.html">PushEnvironment</a></span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
               </ul>
             </div>
             <div class="task-group">
@@ -292,7 +366,7 @@
                 <a name="//apple_ref/swift/Section/Initializers" class="dashAnchor"></a>
                 <div class="section-name-container">
                   <a class="section-name-link" href="#/Initializers"></a>
-                  <h3 class="section-name"><p>Initializers</p>
+                  <h3 class="section-name"><span>Initializers</span>
 </h3>
                 </div>
               </div>
@@ -300,9 +374,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone8logLevelACSS_S2SSgA2jA03LogP0Otcfc"></a>
-                    <a name="//apple_ref/swift/Method/init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:logLevel:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone8logLevelACSS_S2SSgA2jA03LogP0Otcfc">init(sipUser:<wbr>password:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>logLevel:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone0H11Environment8logLevel15reconnectClientACSS_S2SSgA2lA04PushO0OSgAA03LogQ0OSbtcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:reconnectClient:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone0H11Environment8logLevel15reconnectClientACSS_S2SSgA2lA04PushO0OSgAA03LogQ0OSbtcfc">init(sipUser:<wbr>password:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>pushEnvironment:<wbr>logLevel:<wbr>reconnectClient:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -321,7 +395,10 @@
             <span class="nv">pushDeviceToken</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
             <span class="nv">ringtone</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
             <span class="nv">ringBackTone</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
-            <span class="nv">logLevel</span><span class="p">:</span> <span class="kt"><a href="../Enums/LogLevel.html">LogLevel</a></span> <span class="o">=</span> <span class="o">.</span><span class="k">none</span><span class="p">)</span></code></pre>
+            <span class="nv">pushEnvironment</span><span class="p">:</span> <span class="kt"><a href="../Enums/PushEnvironment.html">PushEnvironment</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+            <span class="nv">logLevel</span><span class="p">:</span> <span class="kt"><a href="../Enums/LogLevel.html">LogLevel</a></span> <span class="o">=</span> <span class="o">.</span><span class="k">none</span><span class="p">,</span>
+            <span class="nv">reconnectClient</span><span class="p">:</span><span class="kt">Bool</span> <span class="o">=</span> <span class="kc">true</span>
+<span class="p">)</span></code></pre>
 
                         </div>
                       </div>
@@ -410,9 +487,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone8logLevelACSS_SSSgA2iA03LogN0Otcfc"></a>
-                    <a name="//apple_ref/swift/Method/init(token:pushDeviceToken:ringtone:ringBackTone:logLevel:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone8logLevelACSS_SSSgA2iA03LogN0Otcfc">init(token:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>logLevel:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone0F11Environment8logLevelACSS_SSSgA2jA04PushM0OSgAA03LogO0Otcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone0F11Environment8logLevelACSS_SSSgA2jA04PushM0OSgAA03LogO0Otcfc">init(token:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>pushEnvironment:<wbr>logLevel:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -431,6 +508,7 @@
             <span class="nv">pushDeviceToken</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
             <span class="nv">ringtone</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
             <span class="nv">ringBackTone</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+            <span class="nv">pushEnvironment</span><span class="p">:</span> <span class="kt"><a href="../Enums/PushEnvironment.html">PushEnvironment</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
             <span class="nv">logLevel</span><span class="p">:</span> <span class="kt"><a href="../Enums/LogLevel.html">LogLevel</a></span> <span class="o">=</span> <span class="o">.</span><span class="k">none</span><span class="p">)</span></code></pre>
 
                         </div>
@@ -499,6 +577,18 @@
                                 </div>
                               </td>
                             </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>serverConfiguration</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) To define a custom <code>signaling server</code> and <code>TURN/ STUN servers</code>. As default we use the internal Telnyx Production servers.</p>
+                                </div>
+                              </td>
+                            </tr>
                           </tbody>
                         </table>
                       </div>
@@ -513,7 +603,7 @@
                 <a name="//apple_ref/swift/Section/Methods" class="dashAnchor"></a>
                 <div class="section-name-container">
                   <a class="section-name-link" href="#/Methods"></a>
-                  <h3 class="section-name"><p>Methods</p>
+                  <h3 class="section-name"><span>Methods</span>
 </h3>
                 </div>
               </div>
@@ -555,11 +645,10 @@
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2021 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external">Telnyx</a>. All rights reserved. (Last updated: 2021-08-13)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.6</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>&copy; 2024 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2024-11-15)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>
     </div>
   </body>
-</div>
 </html>
