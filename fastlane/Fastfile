@@ -54,7 +54,7 @@ end
 desc "Generate documentation using SourceDocs - Markdown docs"
 lane :generate_docs_markdown do
   sh <<-SHELL
-    cd .. && sourcedocs generate --output-folder ./docs_markdown \
+    cd .. && sourcedocs generate --output-folder ./docs-markdown \
                               -- \
                               -workspace TelnyxRTC.xcworkspace \
                               -scheme TelnyxRTC

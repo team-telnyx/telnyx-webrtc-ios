@@ -61,7 +61,7 @@ jobs:
       with:
         add-paths: |
           docs/
-          docs_markdown/
+          docs-markdown/
         token: ${{ secrets.GITHUB_TOKEN }}
         committer: TelnyxIntegrations <integrations@telnyx.com>
         base: main
