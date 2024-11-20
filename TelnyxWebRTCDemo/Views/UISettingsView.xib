@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="18122" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23094" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="18093"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23084"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -18,6 +18,7 @@
                 <outlet property="credentialsLoginViewHeightConstraint" destination="dTg-cC-rBC" id="aDR-oz-8Ch"/>
                 <outlet property="loginSelector" destination="qgF-Gg-7So" id="LaQ-jf-Oij"/>
                 <outlet property="passwordUserNameLabel" destination="XgO-ys-zI4" id="E26-JL-OKP"/>
+                <outlet property="selectCredentialButton" destination="8jg-WG-JqZ" id="QDt-gD-oHw"/>
                 <outlet property="sipUsernameLabel" destination="gPv-K3-sHg" id="VAN-KN-U8x"/>
                 <outlet property="tokenLabel" destination="HNl-BA-gMe" id="ilR-u0-qud"/>
                 <outlet property="tokenLoginView" destination="BZx-gd-B7S" id="BhD-61-ENv"/>
@@ -127,17 +128,40 @@
                         <constraint firstAttribute="bottom" secondItem="It9-Aq-D11" secondAttribute="bottom" id="nvK-2i-h2W"/>
                     </constraints>
                 </view>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="8jg-WG-JqZ">
+                    <rect key="frame" x="25" y="254" width="364" height="30"/>
+                    <color key="backgroundColor" red="0.0" green="0.75294117650000003" blue="0.5450980392" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="30" id="ETV-7j-v4D"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
+                    <state key="normal" title="Select SIP Credential">
+                        <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    </state>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                            <integer key="value" value="5"/>
+                        </userDefinedRuntimeAttribute>
+                        <userDefinedRuntimeAttribute type="boolean" keyPath="layer.masksToBounds" value="YES"/>
+                    </userDefinedRuntimeAttributes>
+                    <connections>
+                        <action selector="onOpenSipSelector:" destination="-1" eventType="touchUpInside" id="jOr-KY-nJf"/>
+                    </connections>
+                </button>
             </subviews>
             <viewLayoutGuide key="safeArea" id="vUN-kp-3ea"/>
             <color key="backgroundColor" systemColor="systemBackgroundColor"/>
             <constraints>
                 <constraint firstItem="Yvd-Fr-v9A" firstAttribute="top" secondItem="v42-cu-6zj" secondAttribute="bottom" constant="5" id="32h-0S-WlT"/>
+                <constraint firstItem="8jg-WG-JqZ" firstAttribute="top" secondItem="6jO-g3-ZzP" secondAttribute="bottom" constant="29" id="3pb-w5-H9q"/>
                 <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="uN3-ie-ge1" secondAttribute="trailing" constant="20" id="CuC-XP-hN0"/>
                 <constraint firstItem="v42-cu-6zj" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" constant="5" id="EY9-zS-Lb0"/>
                 <constraint firstItem="uN3-ie-ge1" firstAttribute="top" secondItem="Yvd-Fr-v9A" secondAttribute="bottom" constant="5" id="EbR-iY-bb7"/>
                 <constraint firstItem="uN3-ie-ge1" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="20" id="HKN-ln-1Oi"/>
+                <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="8jg-WG-JqZ" secondAttribute="trailing" constant="25" id="JZu-jM-Ahb"/>
                 <constraint firstItem="Yvd-Fr-v9A" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" id="KC9-j9-O8Y"/>
                 <constraint firstItem="BZx-gd-B7S" firstAttribute="trailing" secondItem="vUN-kp-3ea" secondAttribute="trailing" id="PZi-Cv-Kw1"/>
+                <constraint firstItem="8jg-WG-JqZ" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="25" id="WSr-aM-0bJ"/>
                 <constraint firstItem="BZx-gd-B7S" firstAttribute="top" secondItem="v42-cu-6zj" secondAttribute="bottom" id="Wxt-97-RtV"/>
                 <constraint firstItem="Yvd-Fr-v9A" firstAttribute="trailing" secondItem="vUN-kp-3ea" secondAttribute="trailing" id="bz3-Q2-ZJj"/>
                 <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="6jO-g3-ZzP" secondAttribute="trailing" constant="20" id="dFE-ZC-km9"/>

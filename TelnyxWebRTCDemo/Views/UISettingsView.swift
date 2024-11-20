@@ -8,12 +8,17 @@
 
 import UIKit
 
+protocol UISettingsViewDelegate: AnyObject {
+    func onOpenSipSelector()
+}
+
 @IBDesignable
 class UISettingsView: UIView {
     
     let kCONTENT_XIB_NAME = "UISettingsView"
     
-    private var textFields:[UITextField] = [UITextField]()
+    public weak var delegate: UISettingsViewDelegate?
+    private var textFields = [UITextField]()
     private var activeField: UITextField?
 
     public var isTokenSelected: Bool {
@@ -32,7 +37,8 @@ class UISettingsView: UIView {
     @IBOutlet weak var passwordUserNameLabel: UITextField!
     @IBOutlet weak var tokenLabel: UITextField!
     @IBOutlet weak var loginSelector: UISwitch!
-
+    @IBOutlet weak var selectCredentialButton: UIButton!
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         commonInit()
@@ -100,6 +106,10 @@ class UISettingsView: UIView {
             self.credentialsLoginViewHeightConstraint.constant = 85
             self.tokenLoginView.isHidden = true
         }
+    }
+
+    @IBAction func onOpenSipSelector(_ sender: Any) {
+        delegate?.onOpenSipSelector()
     }
 }
 

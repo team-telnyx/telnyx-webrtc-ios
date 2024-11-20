@@ -106,7 +106,7 @@ extension AppDelegate: PKPushRegistryDelegate {
             // Store incoming token in user defaults
             let userDefaults = UserDefaults.standard
             let deviceToken = credentials.token.reduce("", {$0 + String(format: "%02X", $1) })
-            userDefaults.savePushToken(pushToken: deviceToken)
+            userDefaults.savePushToken(deviceToken)
             print("Device push token: \(deviceToken)")
         }
     }

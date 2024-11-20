@@ -91,9 +91,8 @@ class ViewController: UIViewController {
 
         // Restore last user credentials
         self.settingsView.isHidden = false
-        self.settingsView.sipUsernameLabel.text = userDefaults.getSipUser()
-        self.settingsView.passwordUserNameLabel.text = userDefaults.getSipUserPassword()
-
+        self.settingsView.delegate = self
+        
         // Environment Selector
         let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.handleLongPress))
         self.logo.addGestureRecognizer(longPressRecognizer)
@@ -112,6 +111,20 @@ class ViewController: UIViewController {
          }
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        let selectedCredentials = SipCredentialsManager.shared.getSelectedCredential()
+        self.settingsView.sipUsernameLabel.text = selectedCredentials?.username ?? ""
+        self.settingsView.passwordUserNameLabel.text = selectedCredentials?.password ?? ""
+        
+        if SipCredentialsManager.shared.getCredentials().isEmpty {
+            self.settingsView.selectCredentialButton.isHidden = true
+        } else {
+            self.settingsView.selectCredentialButton.isHidden = false
+        }
+    }
+    
     @objc func handleLongPress(gesture: UILongPressGestureRecognizer) {
         if gesture.state == UIGestureRecognizer.State.began {
             // Internal use only
@@ -123,13 +136,13 @@ class ViewController: UIViewController {
         let alert = UIAlertController(title: "Options", message: "", preferredStyle: .actionSheet)
         alert.addAction(UIAlertAction(title: "Development Environment", style: .default , handler:{ (UIAlertAction)in
             self.serverConfig = TxServerConfiguration(environment: .development)
-            self.userDefaults.saveEnvironment(environment: .development)
+            self.userDefaults.saveEnvironment(.development)
             self.updateEnvironment()
         }))
         
         alert.addAction(UIAlertAction(title: "Production Environment", style: .default , handler:{ (UIAlertAction)in
             self.serverConfig = nil
-            self.userDefaults.saveEnvironment(environment: .production)
+            self.userDefaults.saveEnvironment(.production)
             self.updateEnvironment()
         }))
 
@@ -146,10 +159,15 @@ class ViewController: UIViewController {
 
     func updateEnvironment() {
         DispatchQueue.main.async {
-            let plistInfo = Bundle(for: TxClient.self).infoDictionary?["CFBundleShortVersionString"] as? String
-            
-            self.environment.text = (self.serverConfig?.environment == .development) ? "Development" : "Production " +
-            (plistInfo ?? "")
+            // Update selected credentials in UI after switching environment
+            let credentials = SipCredentialsManager.shared.getSelectedCredential()
+            self.onSipCredentialSelected(credential: credentials)
+
+            let sdkVersion = Bundle(for: TxClient.self).infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+            let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+
+            let env = self.serverConfig?.environment == .development ? "Development" : "Production "
+            self.environment.text = "\(env) TelnyxSDK [v\(sdkVersion)] - App [v\(appVersion)]"
         }
     }
 
@@ -208,7 +226,10 @@ class ViewController: UIViewController {
                 )
 
                 //store user / password in user defaults
-                userDefaults.saveUser(sipUser: sipUser, password: password)
+                let selectedCredential = SipCredential(username: sipUser, password: password)
+                SipCredentialsManager.shared.addOrUpdateCredential(selectedCredential)
+                SipCredentialsManager.shared.saveSelectedCredential(selectedCredential)
+                self.settingsView.selectCredentialButton.isHidden = false
             }
 
             do {
@@ -301,6 +322,31 @@ extension ViewController : UICallScreenDelegate {
             self.telnyxClient?.setSpeaker()
         } else {
             self.telnyxClient?.setEarpiece()
+        }
+    }
+}
+
+// MARK: - UISettingsViewProtocol
+extension ViewController: UISettingsViewDelegate {
+    func onOpenSipSelector() {
+        let sipCredentialsVC = SipCredentialsViewController()
+        sipCredentialsVC.delegate = self
+        self.present(sipCredentialsVC, animated: true, completion: nil)
+    }
+}
+
+// MARK: - SipCredentialsViewControllerDelegate
+extension ViewController: SipCredentialsViewControllerDelegate {
+
+    func onSipCredentialSelected(credential: SipCredential?) {
+        self.settingsView.sipUsernameLabel.text = credential?.username ?? ""
+        self.settingsView.passwordUserNameLabel.text = credential?.password ?? ""
+        
+        
+        if SipCredentialsManager.shared.getCredentials().isEmpty {
+            self.settingsView.selectCredentialButton.isHidden = true
+        } else {
+            self.settingsView.selectCredentialButton.isHidden = false
         }
     }
 }
