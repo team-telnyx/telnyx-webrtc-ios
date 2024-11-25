@@ -223,11 +223,11 @@ public class Call {
     }
     
     public func startDebugStats() {
-        self.peer?.startTimer()
+//        self.peer?.startTimer()
     }
     
     private func stopDebugStats() {
-        self.peer?.stopTimer()
+//        self.peer?.stopTimer()
     }
 
     // MARK: - Private functions
