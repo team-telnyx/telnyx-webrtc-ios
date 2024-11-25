@@ -221,14 +221,6 @@ public class Call {
 
         self.updateCallState(callState: .RINGING)
     }
-    
-    public func startDebugStats() {
-//        self.peer?.startTimer()
-    }
-    
-    private func stopDebugStats() {
-//        self.peer?.stopTimer()
-    }
 
     // MARK: - Private functions
     /**
@@ -727,5 +719,14 @@ private func playRingbackTone() {
         return nil
     }
 }
+// MARK: - Debug Stats
+extension Call {
 
+    public func startDebugStats() {
+        self.peer?.startTimer()
+    }
 
+    private func stopDebugStats() {
+        self.peer?.stopTimer()
+    }
+}
