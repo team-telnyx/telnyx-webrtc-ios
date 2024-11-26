@@ -79,7 +79,7 @@ class Peer : NSObject {
         fatalError("Peer:init is unavailable")
     }
 
-    required init(iceServers: [RTCIceServer],isAttach:Bool = false) {
+    required init(iceServers: [RTCIceServer], isAttach: Bool = false) {
         let config = RTCConfiguration()
         config.iceServers = iceServers
 
@@ -190,7 +190,7 @@ class Peer : NSObject {
 
 
     // MARK: Signaling ANSWER
-    func answer(callLegId:String,completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
+    func answer(callLegId: String, completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
         self.negotiationEnded = false
         let constrains = RTCMediaConstraints(mandatoryConstraints: self.mediaConstrains,
                                              optionalConstraints: nil)
@@ -260,7 +260,6 @@ class Peer : NSObject {
         if isDebugStats {
             self.stopTimer()
         }
-        
         //This should release all the connection resources
         //including audio / video streams
         self.connection?.close()
