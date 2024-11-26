@@ -23,19 +23,19 @@ extension Peer {
     }
 
     fileprivate func sendDebugReportStartMessage(id: UUID) {
-        Logger.log.stats(message: "TxClient:: sendDebugReportStartMessage [\(id.uuidString.lowercased())]")
+        Logger.log.stats(message: "Peer+Stats:: sendDebugReportStartMessage [\(id.uuidString.lowercased())]")
         let statsMessage = DebugReportStartMessage(reportID: id.uuidString.lowercased())
         self.socket?.sendMessage(message: statsMessage.encode())
     }
     
     fileprivate func sendDebugReportStopMessage(id: UUID) {
-        Logger.log.stats(message: "TxClient:: sendDebugReportStopMessage [\(id.uuidString.lowercased())]")
+        Logger.log.stats(message: "Peer+Stats:: sendDebugReportStopMessage [\(id.uuidString.lowercased())]")
         let statsMessage = DebugReportStopMessage(reportID: id.uuidString.lowercased())
         self.socket?.sendMessage(message: statsMessage.encode())
     }
     
     fileprivate func sendDebugReportDataMessage(id: UUID, data: [String: Any]) {
-        Logger.log.stats(message: "TxClient:: sendDebugReportDataMessage \(id.uuidString.lowercased())")
+        Logger.log.stats(message: "Peer+Stats:: sendDebugReportDataMessage \(id.uuidString.lowercased())")
         let statsMessage = DebugReportDataMessage(reportID: id.uuidString.lowercased(),
                                                   reportData: data)
         self.socket?.sendMessage(message: statsMessage.encode())
