@@ -23,36 +23,49 @@ extension Peer {
     }
 
     fileprivate func sendDebugReportStartMessage(id: UUID) {
-        Logger.log.stats(message: "Peer+Stats:: sendDebugReportStartMessage [\(id.uuidString.lowercased())]")
         let statsMessage = DebugReportStartMessage(reportID: id.uuidString.lowercased())
-        self.socket?.sendMessage(message: statsMessage.encode())
+        if let message = statsMessage.encode(),
+           let socket = self.socket {
+            socket.sendMessage(message: message)
+            Logger.log.stats(message: "Peer+Stats:: sendDebugReportStartMessage [\(id.uuidString.lowercased())] message [\(String(describing: message))]")
+        } else {
+            Logger.log.e(message: "Peer+Stats:: sendDebugReportStartMessage error")
+        }
     }
     
     fileprivate func sendDebugReportStopMessage(id: UUID) {
-        Logger.log.stats(message: "Peer+Stats:: sendDebugReportStopMessage [\(id.uuidString.lowercased())]")
         let statsMessage = DebugReportStopMessage(reportID: id.uuidString.lowercased())
-        self.socket?.sendMessage(message: statsMessage.encode())
+        if let message = statsMessage.encode(),
+           let socket = self.socket {
+            socket.sendMessage(message: message)
+            Logger.log.stats(message: "Peer+Stats:: sendDebugReportStopMessage [\(id.uuidString.lowercased())] message [\(message)]")
+        } else {
+            Logger.log.e(message: "Peer+Stats:: sendDebugReportStartMessage error")
+        }
     }
     
     fileprivate func sendDebugReportDataMessage(id: UUID, data: [String: Any]) {
-        Logger.log.stats(message: "Peer+Stats:: sendDebugReportDataMessage \(id.uuidString.lowercased())")
         let statsMessage = DebugReportDataMessage(reportID: id.uuidString.lowercased(),
                                                   reportData: data)
-        self.socket?.sendMessage(message: statsMessage.encode())
+        if let message = statsMessage.encode(),
+           let socket = self.socket {
+            socket.sendMessage(message: message)
+            Logger.log.stats(message: "Peer+Stats:: sendDebugReportDataMessage [\(id.uuidString.lowercased())] message [\(String(describing: message))]")
+        } else {
+            Logger.log.e(message: "Peer+Stats:: sendDebugReportStartMessage error")
+        }
     }
 
     private func executeTask() {
-        print("Task executed at \(Date())")
-        
+        Logger.log.i(message: "Peer+Stats:: Task executed at \(Date())")
         if !debugReportStarted {
             debugStatsId = UUID.init()
             sendDebugReportStartMessage(id: debugStatsId)
             debugReportStarted = true
         }
-        
         statsEvent["event"] = "stats"
         statsEvent["tag"] = "stats"
-        statsEvent["peerId"] = "stats"
+        statsEvent["peerId"] = connection.
         statsEvent["connectionId"] = self.callLegID ?? ""
         statsEvent["timeTaken"] = 1
         

@@ -22,7 +22,7 @@ class StatsMessage: Message  {
         super.init()
         self.jsonMessage["debug_report_version"] = DEBUG_REPORT_VERSION
         self.jsonMessage["debug_report_data"] = reportData
-        self.jsonMessage["type"] = "debug_report_data"
+        self.jsonMessage["type"] = type.rawValue
         self.jsonMessage["debug_report_id"] = reportID
     }
 }
