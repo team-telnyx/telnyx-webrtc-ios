@@ -29,6 +29,8 @@ public enum LogLevel: Int {
     case info
     /// Print `verto` messages. Incoming and outgoing verto messages are printed.
     case verto
+    /// Print `Debug Report` messages. Statistics of the RTCP connection
+    case stats
     /// All the SDK logs are printed.
     case all
 }
@@ -61,6 +63,8 @@ class Logger {
 
     /// represents the current log level: `all` is set as default
     internal var verboseLevel: LogLevel = .all
+
+    private var statsGlyph: String = "\u{1F4CA}"     // Glyph for messages of level .Stats
 
     private var rightArrowGlyph: String = "\u{25B6}"
     private var leftArrowGlyph: String = "\u{25C0}"
@@ -115,6 +119,12 @@ class Logger {
             print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .verto, message: message, direction: direction))
         }
     }
+    
+    public func stats(message: String) {
+        if verboseLevel == .all || verboseLevel == .stats {
+            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .stats, message: message))
+        }
+    }
 
     private func getLogGlyph(level: LogLevel, direction: VertoDirection = .none) -> String {
         switch(level) {
@@ -125,6 +135,7 @@ class Logger {
         case .info: return infoGlyph
         case .success: return successGlyph
         case .warning: return warningGlyph
+        case .stats: return statsGlyph
         }
     }
 

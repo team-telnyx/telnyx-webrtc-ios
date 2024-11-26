@@ -21,7 +21,7 @@ class Message {
         }
     }
 
-    private var jsonMessage: [String: Any] = [String: Any]()
+    internal var jsonMessage: [String: Any] = [String: Any]()
 
     let jsonrpc = PROTOCOL_VERSION
     var id: String = UUID.init().uuidString.lowercased()
@@ -31,12 +31,13 @@ class Message {
     var result: [String: Any]?
     var serverError: [String: Any]?
 
-    init() {}
+    init() {
+        self.jsonMessage["jsonrpc"] = self.jsonrpc
+        self.jsonMessage["id"] = self.id
+    }
     
     init(_ params: [String: Any], method: Method) {
         self.method = method
-
-        self.jsonMessage = [String: Any]()
         self.jsonMessage["jsonrpc"] = self.jsonrpc
         self.jsonMessage["id"] = self.id
         self.jsonMessage["method"] = self.method?.rawValue
