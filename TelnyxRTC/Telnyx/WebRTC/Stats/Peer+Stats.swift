@@ -46,7 +46,7 @@ extension Peer {
         }
     }
     
-    fileprivate func sendDebugReportDataMessage(id: UUID, data: [String: Any]) {
+    func sendDebugReportDataMessage(id: UUID, data: [String: Any]) {
         let statsMessage = DebugReportDataMessage(reportID: id.uuidString.lowercased(),
                                                   reportData: data)
         if let message = statsMessage.encode(),
@@ -67,9 +67,8 @@ extension Peer {
         }
         statsEvent["event"] = "stats"
         statsEvent["tag"] = "stats"
-        statsEvent["peerId"] = peerId
-        statsEvent["connectionId"] = callLegID
-        statsEvent["timeTaken"] = 1
+        statsEvent["peerId"] = peerId.uuidString
+        statsEvent["connectionId"] = callLegID ?? ""
         
         self.connection?.statistics(completionHandler: { reports in
             reports.statistics.forEach { report in
@@ -91,7 +90,6 @@ extension Peer {
         audio["inbound"] = inboundStats
         statsData["audio"] = audio
         statsEvent["data"] = statsData
-        statsEvent["timestamp"] = timeStamp.getTimestamp()
         
         if(inboundStats.count > 0 && outBoundStats.count > 0 && candidatePairs.count > 0) {
             inboundStats.removeAll()

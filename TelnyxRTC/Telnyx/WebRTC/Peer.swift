@@ -26,7 +26,8 @@ class Peer : NSObject {
     var socket: Socket?
 
 
-    private let mediaConstrains = [kRTCMediaConstraintsOfferToReceiveAudio: kRTCMediaConstraintsValueTrue, kRTCMediaConstraintsOfferToReceiveVideo: kRTCMediaConstraintsValueFalse]
+    private let mediaConstrains = [kRTCMediaConstraintsOfferToReceiveAudio: kRTCMediaConstraintsValueTrue,
+                                   kRTCMediaConstraintsOfferToReceiveVideo: kRTCMediaConstraintsValueFalse]
 
     weak var delegate: PeerDelegate?
     var connection : RTCPeerConnection?
@@ -98,7 +99,7 @@ class Peer : NSObject {
 
         super.init()
         self.createMediaSenders()
-        if(!isAttach){
+        if (!isAttach) {
             self.configureAudioSession()
         }
         //listen RTCPeer connection events
@@ -165,6 +166,18 @@ class Peer : NSObject {
     // MARK: Signaling OFFER
     func offer(completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
 
+        if isDebugStats {
+            var data = [String : Any]()
+            data["event"] = WebRTCStatsEvent.getUserMedia.rawValue
+            data["tag"] = WebRTCStatsTag.getUserMedia.rawValue
+            data["connectionId"] = callLegID?.lowercased() ?? UUID.init().uuidString.lowercased()
+            data["peerId"] = peerId.uuidString.lowercased()
+            data["constraints"] = [
+                "audio": self.mediaConstrains[kRTCMediaConstraintsOfferToReceiveAudio],
+                "video":self.mediaConstrains[kRTCMediaConstraintsOfferToReceiveVideo]
+            ]
+            self.sendDebugReportDataMessage(id: debugStatsId, data: data)
+        }
         let constrains = RTCMediaConstraints(mandatoryConstraints: self.mediaConstrains,
                                              optionalConstraints: nil)
         self.negotiationEnded = false
@@ -196,6 +209,18 @@ class Peer : NSObject {
         let constrains = RTCMediaConstraints(mandatoryConstraints: self.mediaConstrains,
                                              optionalConstraints: nil)
         self.callLegID = callLegId
+        
+        
+//        var data = [String : Any]()
+//        data["event"] = WebRTCStatsEvent.getUserMedia.rawValue
+//        data["tag"] = WebRTCStatsTag.getUserMedia.rawValue
+//        data["connectionId"] = callLegID?.lowercased() ?? UUID.init().uuidString.lowercased()
+//        data["peerId"] = peerId.uuidString.lowercased()
+//        data["constraints"] = [
+//            "audio": self.mediaConstrains[kRTCMediaConstraintsOfferToReceiveAudio],
+//            "video":self.mediaConstrains[kRTCMediaConstraintsOfferToReceiveVideo]
+//        ]
+//        self.sendDebugReportDataMessage(id: debugStatsId, data: data)
         self.connection?.answer(for: constrains) { (sdp, error) in
             
             if let error = error {
@@ -397,6 +422,24 @@ extension Peer : RTCPeerConnectionDelegate {
         if peerConnection.connectionState == .connected {
             Logger.log.i(message: "Peer:: connection state is CONNECTED. Skipping candidate: [\(candidate)]")
             return
+        }
+        
+        // ICE STATS
+        if isDebugStats {
+            var data = [String : Any]()
+            data["event"] = WebRTCStatsEvent.onIceCandidate.rawValue
+            data["tag"] = WebRTCStatsTag.connection.rawValue
+            data["connectionId"] = callLegID?.lowercased() ?? UUID.init().uuidString.lowercased()
+            data["peerId"] = peerId.uuidString.lowercased()
+            
+            var debugCandidate = [String: Any]()
+            debugCandidate["candidate"] = candidate.sdp
+            debugCandidate["sdpMLineIndex"] = candidate.sdpMLineIndex
+            debugCandidate["sdpMid"] = candidate.sdpMid
+            debugCandidate["usernameFragment"] = "dmGf"
+
+            data["data"] = debugCandidate
+            self.sendDebugReportDataMessage(id: debugStatsId, data: data)
         }
 
         // Add the generated ICE candidate to the peer connection.
