@@ -62,6 +62,7 @@ class Peer : NSObject {
     internal var debugStatsId = UUID.init()
     internal var debugReportStarted = false
     internal var isDebugStats = false
+    internal var peerId = UUID.init()
     
 
     // The `RTCPeerConnectionFactory` is in charge of creating new RTCPeerConnection instances.
@@ -258,7 +259,7 @@ class Peer : NSObject {
     func dispose() {
         Logger.log.i(message: "Peer:: dispose()")
         if isDebugStats {
-            self.stopTimer()
+            self.stopDebugReportTimer()
         }
         //This should release all the connection resources
         //including audio / video streams

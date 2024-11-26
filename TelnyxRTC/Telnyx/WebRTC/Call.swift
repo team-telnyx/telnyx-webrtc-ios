@@ -723,10 +723,12 @@ private func playRingbackTone() {
 extension Call {
 
     public func startDebugStats() {
-        self.peer?.startTimer()
+        if let callId = self.callInfo?.callId {
+            self.peer?.startDebugReportTimer(peerId: callId)
+        }
     }
 
     private func stopDebugStats() {
-        self.peer?.stopTimer()
+        self.peer?.stopDebugReportTimer()
     }
 }

@@ -1,7 +1,9 @@
+// MARK: - Peer + Stats
 extension Peer {
 
-    public func startTimer() {
-        isDebugStats = true
+    func startDebugReportTimer(peerId: UUID) {
+        self.peerId = peerId
+        self.isDebugStats = true
         let queue = DispatchQueue.main
         timer = DispatchSource.makeTimerSource(queue: queue)
         timer?.schedule(deadline: .now(), repeating: 2.0)
@@ -11,7 +13,7 @@ extension Peer {
         timer?.resume()
     }
     
-    internal func stopTimer() {
+    func stopDebugReportTimer() {
         statsData["audio"] = audio
         statsEvent["data"] = statsData
         statsEvent.printJson()
@@ -40,7 +42,7 @@ extension Peer {
             socket.sendMessage(message: message)
             Logger.log.stats(message: "Peer+Stats:: sendDebugReportStopMessage [\(id.uuidString.lowercased())] message [\(message)]")
         } else {
-            Logger.log.e(message: "Peer+Stats:: sendDebugReportStartMessage error")
+            Logger.log.e(message: "Peer+Stats:: sendDebugReportStopMessage error")
         }
     }
     
@@ -52,7 +54,7 @@ extension Peer {
             socket.sendMessage(message: message)
             Logger.log.stats(message: "Peer+Stats:: sendDebugReportDataMessage [\(id.uuidString.lowercased())] message [\(String(describing: message))]")
         } else {
-            Logger.log.e(message: "Peer+Stats:: sendDebugReportStartMessage error")
+            Logger.log.e(message: "Peer+Stats:: sendDebugReportDataMessage error")
         }
     }
 
@@ -65,8 +67,8 @@ extension Peer {
         }
         statsEvent["event"] = "stats"
         statsEvent["tag"] = "stats"
-        statsEvent["peerId"] = connection.
-        statsEvent["connectionId"] = self.callLegID ?? ""
+        statsEvent["peerId"] = peerId
+        statsEvent["connectionId"] = callLegID
         statsEvent["timeTaken"] = 1
         
         self.connection?.statistics(completionHandler: { reports in
