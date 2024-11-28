@@ -13,7 +13,7 @@ protocol PeerDelegate: AnyObject {
     func onNegotiationEnded(sdp: RTCSessionDescription?)
 }
 
-class Peer : NSObject {
+class Peer : NSObject, WebRTCEventHandler {
 
     private let audioQueue = DispatchQueue(label: "audio")
     private let NEGOTIATION_TIMOUT = 0.3 //time in milliseconds
@@ -50,13 +50,15 @@ class Peer : NSObject {
     private var negotiationEnded: Bool = false
 
     // WEBRTC STATS
-    internal var timer: DispatchSourceTimer?
-    internal let CANDIDATE_PAIR_LIMIT = 5
-    internal var debugStatsId = UUID.init()
-    internal var debugReportStarted = false
-    internal var isDebugStats = false
-    internal var peerId = UUID.init()
-    
+    var onSignalingStateChange: ((RTCSignalingState) -> Void)?
+    var onAddStream: ((RTCMediaStream) -> Void)?
+    var onRemoveStream: ((RTCMediaStream) -> Void)?
+    var onNegotiationNeeded: (() -> Void)?
+    var onIceConnectionChange: ((RTCIceConnectionState) -> Void)?
+    var onIceGatheringChange: ((RTCIceGatheringState) -> Void)?
+    var onIceCandidate: ((RTCIceCandidate) -> Void)?
+    var onRemoveIceCandidates: (([RTCIceCandidate]) -> Void)?
+    var onDataChannel: ((RTCDataChannel) -> Void)?
 
     // The `RTCPeerConnectionFactory` is in charge of creating new RTCPeerConnection instances.
     // A new RTCPeerConnection should be created every new call, but the factory is shared.
@@ -263,18 +265,28 @@ class Peer : NSObject {
     /// Close connection and release resources
     func dispose() {
         Logger.log.i(message: "Peer:: dispose()")
-        //This should release all the connection resources
-        //including audio / video streams
+        
         self.connection?.close()
         self.delegate = nil
-
+        
         self.localAudioTrack = nil
         self.localVideoTrack = nil
         self.localDataChannel = nil
-
+        
         self.remoteVideoTrack = nil
         self.remoteDataChannel = nil
+        
+        self.onSignalingStateChange = nil
+        self.onAddStream = nil
+        self.onRemoveStream = nil
+        self.onNegotiationNeeded = nil
+        self.onIceConnectionChange = nil
+        self.onIceGatheringChange = nil
+        self.onIceCandidate = nil
+        self.onRemoveIceCandidates = nil
+        self.onDataChannel = nil
     }
+
 
 }
 // MARK: - Tracks handling
@@ -309,27 +321,12 @@ extension Peer {
  */
 extension Peer : RTCPeerConnectionDelegate {
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange stateChanged: RTCSignalingState) {
-        var state = ""
-        switch(stateChanged) {
-            case .stable:
-                state = "stable"
-            case .haveLocalOffer:
-                state = "haveLocalOffer"
-            case .haveLocalPrAnswer:
-                state = "haveLocalPrAnswer"
-            case .haveRemoteOffer:
-                state = "haveRemoteOffer"
-            case .haveRemotePrAnswer:
-                state = "haveRemotePrAnswer"
-            case .closed:
-                state = "closed"
-            @unknown default:
-                state = "unknown"
-        }
-        Logger.log.i(message: "Peer:: connection didChange state: [\(state.uppercased())]")
+        onSignalingStateChange?(stateChanged)
+        Logger.log.i(message: "Peer:: connection didChange state: [\(mapSignalingState(stateChanged).uppercased())]")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didAdd stream: RTCMediaStream) {
+        onAddStream?(stream)
         Logger.log.i(message: "Peer:: connection didAdd: \(stream)")
         if stream.videoTracks.count > 0 {
             self.remoteVideoTrack = stream.videoTracks[0]
@@ -337,54 +334,27 @@ extension Peer : RTCPeerConnectionDelegate {
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didRemove stream: RTCMediaStream) {
-       // Logger.log.i(message: "Peer:: connection didRemove \(stream)")
+        onRemoveStream?(stream)
+        Logger.log.i(message: "Peer:: connection didRemove \(stream)")
     }
 
     func peerConnectionShouldNegotiate(_ peerConnection: RTCPeerConnection) {
+        onNegotiationNeeded?()
         Logger.log.i(message: "Peer:: connection should negotiate")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceConnectionState) {
-        var state = ""
-        switch(newState) {
-            case .checking:
-                state = "checking"
-            case .new:
-                state = "new"
-            case .connected:
-                state = "connected"
-            case .completed:
-                state = "completed"
-            case .failed:
-                state = "failed"
-            case .disconnected:
-                state = "disconnected"
-            case .closed:
-                state = "closed"
-            case .count:
-                state = "count"
-            @unknown default:
-                state = "unknown"
-        }
-        Logger.log.i(message: "Peer:: connection didChange RTCIceConnectionState [\(state.uppercased())]")
+        onIceConnectionChange?(newState)
+        Logger.log.i(message: "Peer:: connection didChange ICE connection state: [\(mapIceConnectionState(newState).uppercased())]")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {
-        var state = ""
-        switch(newState) {
-            case .new:
-                state = "new"
-            case .gathering:
-                state = "gathering"
-            case .complete:
-                state = "complete"
-            @unknown default:
-                state = "unknown"
-        }
-        Logger.log.s(message: "Peer:: connection didChange RTCIceGatheringState [\(state.uppercased())]")
+        onIceGatheringChange?(newState)
+        Logger.log.s(message: "Peer:: connection didChange ICE gathering state: [\(mapIceGatheringState(newState).uppercased())]")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
+        onIceCandidate?(candidate)
         Logger.log.i(message: "Peer:: connection didGenerate RTCIceCandidate: \(candidate)")
 
         // Check if the negotiation has already ended.
@@ -425,12 +395,52 @@ extension Peer : RTCPeerConnectionDelegate {
 
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didRemove candidates: [RTCIceCandidate]) {
-     //   Logger.log.i(message: "Peer:: connection didRemove [RTCIceCandidate]: \(candidates)")
+        onRemoveIceCandidates?(candidates)
+        Logger.log.i(message: "Peer:: connection didRemove [RTCIceCandidate]: \(candidates)")
     }
     
 
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didOpen dataChannel: RTCDataChannel) {
+        onDataChannel?(dataChannel)
         Logger.log.i(message: "Peer:: connection didOpen RTCDataChannel: \(dataChannel)")
+    }
+}
+
+// MARK: - Private Helpers
+extension Peer {
+    private func mapSignalingState(_ state: RTCSignalingState) -> String {
+        switch state {
+            case .stable: return "stable"
+            case .haveLocalOffer: return "haveLocalOffer"
+            case .haveLocalPrAnswer: return "haveLocalPrAnswer"
+            case .haveRemoteOffer: return "haveRemoteOffer"
+            case .haveRemotePrAnswer: return "haveRemotePrAnswer"
+            case .closed: return "closed"
+            @unknown default: return "unknown"
+        }
+    }
+    
+    private func mapIceConnectionState(_ state: RTCIceConnectionState) -> String {
+        switch state {
+            case .new: return "new"
+            case .checking: return "checking"
+            case .connected: return "connected"
+            case .completed: return "completed"
+            case .failed: return "failed"
+            case .disconnected: return "disconnected"
+            case .closed: return "closed"
+            case .count: return "count"
+            @unknown default: return "unknown"
+        }
+    }
+    
+    private func mapIceGatheringState(_ state: RTCIceGatheringState) -> String {
+        switch state {
+            case .new: return "new"
+            case .gathering: return "gathering"
+            case .complete: return "complete"
+            @unknown default: return "unknown"
+        }
     }
 }

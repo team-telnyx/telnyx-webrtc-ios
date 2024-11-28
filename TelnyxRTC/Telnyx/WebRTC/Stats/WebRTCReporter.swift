@@ -1,3 +1,5 @@
+import WebRTC
+
 class WebRTCStatsReporter {
     // MARK: - Properties
     private let CANDIDATE_PAIR_LIMIT = 5
@@ -13,6 +15,7 @@ class WebRTCStatsReporter {
     init(peer: Peer, socket: Socket) {
         self.peer = peer
         self.socket = socket
+        self.setupEventHandler()
     }
     
     // MARK: - Start/Stop Reporting
@@ -125,17 +128,15 @@ class WebRTCStatsReporter {
     }
 }
 
+// MARK: - Dispose
 extension WebRTCStatsReporter {
     public func dispose() {
-        // Detener el temporizador si está activo
         timer?.cancel()
         timer = nil
-        
-        // Resetear el estado de depuración
+
         debug = false
         debugReportStarted = false
         
-        // Limpiar referencias
         peerId = nil
         peer = nil
         socket = nil
@@ -143,3 +144,45 @@ extension WebRTCStatsReporter {
         Logger.log.i(message: "WebRTCStatsReporter:: Disposed and resources cleared")
     }
 }
+
+// MARK: - Peer Event Handling
+extension WebRTCStatsReporter {
+    public func setupEventHandler() {
+        self.peer?.onSignalingStateChange = { [weak self] state in
+            print("Signaling state changed: \(state)")
+        }
+        
+        self.peer?.onAddStream = { [weak self] stream in
+            print("Stream added: \(stream)")
+        }
+        
+        self.peer?.onRemoveStream = { [weak self] stream in
+            print("Stream removed: \(stream)")
+        }
+        
+        self.peer?.onNegotiationNeeded = { [weak self] in
+            print("Negotiation needed.")
+        }
+        
+        self.peer?.onIceConnectionChange = { [weak self] state in
+            print("ICE connection state changed: \(state)")
+        }
+        
+        self.peer?.onIceGatheringChange = { [weak self] state in
+            print("ICE gathering state changed: \(state)")
+        }
+        
+        self.peer?.onIceCandidate = { [weak self] candidate in
+            print("New ICE candidate: \(candidate)")
+        }
+        
+        self.peer?.onRemoveIceCandidates = { [weak self] candidates in
+            print("ICE candidates removed: \(candidates)")
+        }
+        
+        self.peer?.onDataChannel = { [weak self] channel in
+            print("Data channel opened: \(channel)")
+        }
+    }
+}
+

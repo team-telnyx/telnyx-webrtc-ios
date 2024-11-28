@@ -117,7 +117,7 @@ public class Call {
     /// Telnyx call leg ID
     public internal(set) var telnyxLegId: UUID?
     /// To enable call stats
-    public var debug: Bool = false
+    public internal(set) var debug: Bool = false
 
 
     // MARK: - Properties
@@ -141,9 +141,10 @@ public class Call {
          ringtone: String? = nil,
          ringbackTone: String? = nil,
          iceServers: [RTCIceServer],
-         isAttach:Bool = false
+         isAttach: Bool = false,
+         debug: Bool = false
     ) {
-        if(isAttach){
+        if isAttach {
             self.direction = CallDirection.ATTACH
         } else {
             self.direction = CallDirection.INBOUND
@@ -163,7 +164,7 @@ public class Call {
         // Configure iceServers
         self.iceServers = iceServers
 
-        if(!isAttach){
+        if !isAttach {
             //Ringtone and ringbacktone
             self.ringTonePlayer = self.buildAudioPlayer(fileName: ringtone,fileType: .RINGTONE)
             self.ringbackPlayer = self.buildAudioPlayer(fileName: ringbackTone,fileType: .RINGBACK)
@@ -171,9 +172,11 @@ public class Call {
             self.playRingtone()
         }
       
-        if(!isAttach){
+        if !isAttach {
             updateCallState(callState: .NEW)
         }
+        
+        self.debug = debug
     }
     
     //Contructor for attachCalls
@@ -184,7 +187,8 @@ public class Call {
          delegate: CallProtocol,
          telnyxSessionId: UUID? = nil,
          telnyxLegId: UUID? = nil,
-         iceServers: [RTCIceServer]) {
+         iceServers: [RTCIceServer],
+         debug: Bool = false) {
         self.direction = CallDirection.ATTACH
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
@@ -200,6 +204,8 @@ public class Call {
 
         // Configure iceServers
         self.iceServers = iceServers
+        
+        self.debug = debug
     }
 
     /// Constructor for outgoing calls
@@ -209,7 +215,8 @@ public class Call {
          delegate: CallProtocol,
          ringtone: String? = nil,
          ringbackTone: String? = nil,
-         iceServers: [RTCIceServer]) {
+         iceServers: [RTCIceServer],
+         debug: Bool = false) {
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
         //this is the signaling server socket
@@ -225,6 +232,7 @@ public class Call {
         self.ringbackPlayer = self.buildAudioPlayer(fileName: ringbackTone,fileType: .RINGBACK)
 
         self.updateCallState(callState: .RINGING)
+        self.debug = debug
     }
 
     // MARK: - Private functions
@@ -241,9 +249,9 @@ public class Call {
                                          clientState: clientState)
 
         self.peer = Peer(iceServers: self.iceServers)
-        self.configureStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
+        self.configureStatsReporter()
         self.peer?.offer(completion: { (sdp, error)  in
             
             if let error = error {
@@ -329,8 +337,8 @@ extension Call {
 
     /// Creates a new oubound call
     internal func newCall(callerName: String,
-                 callerNumber: String,
-                 destinationNumber: String,
+                          callerNumber: String,
+                          destinationNumber: String,
                           clientState: String? = nil,
                           customHeaders:[String:String] = [:]) {
         if (destinationNumber.isEmpty) {
@@ -369,6 +377,8 @@ extension Call {
         self.peer = Peer(iceServers: self.iceServers)
         self.peer?.delegate = self
         self.peer?.socket = self.socket
+        self.configureStatsReporter()
+
         self.incomingOffer(sdp: remoteSdp)
         self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "",completion: { (sdp, error)  in
 
@@ -400,7 +410,6 @@ extension Call {
         peer?.dispose()
         self.answerCustomHeaders = customHeaders
         self.peer = Peer(iceServers: self.iceServers, isAttach: true)
-        self.configureStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
         self.configureStatsReporter()
