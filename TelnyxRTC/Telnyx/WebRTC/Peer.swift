@@ -51,13 +51,6 @@ class Peer : NSObject {
 
     // WEBRTC STATS
     internal var timer: DispatchSourceTimer?
-    internal let timeStamp = Timestamp()
-    internal var statsEvent = [String: Any]()
-    internal var inboundStats = [Any]()
-    internal var outBoundStats = [Any]()
-    internal var statsData = [String: Any]()
-    internal var audio = [String: [Any]]()
-    internal var candidatePairs =  [Any]()
     internal let CANDIDATE_PAIR_LIMIT = 5
     internal var debugStatsId = UUID.init()
     internal var debugReportStarted = false

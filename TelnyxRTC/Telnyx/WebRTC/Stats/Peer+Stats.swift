@@ -14,9 +14,6 @@ extension Peer {
     }
     
     func stopDebugReportTimer() {
-        statsData["audio"] = audio
-        statsEvent["data"] = statsData
-        statsEvent.printJson()
         timer?.cancel()
         timer = nil
         sendDebugReportStopMessage(id: debugStatsId)
@@ -65,6 +62,14 @@ extension Peer {
             sendDebugReportStartMessage(id: debugStatsId)
             debugReportStarted = true
         }
+        
+        var statsEvent = [String: Any]()
+        var inboundStats = [Any]()
+        var outBoundStats = [Any]()
+        var statsData = [String: Any]()
+        var audio = [String: [Any]]()
+        var candidatePairs =  [Any]()
+
         statsEvent["event"] = "stats"
         statsEvent["tag"] = "stats"
         statsEvent["peerId"] = peerId.uuidString
@@ -74,15 +79,15 @@ extension Peer {
             reports.statistics.forEach { report in
                 if(report.value.type == "inbound-rtp") {
                     //Logger.log.i(message: "Peer:: ICE negotiation updated. Report New: \(report.values)")
-                    self.inboundStats.append(report.value.values)
+                    inboundStats.append(report.value.values)
                 }
                 if(report.value.type == "outbound-rtp") {
                     //Logger.log.i(message: "Peer:: ICE negotiation updated. Report New: \(report.values)")
-                    self.outBoundStats.append(report.value.values)
+                    outBoundStats.append(report.value.values)
                 }
-                if(report.value.type == "candidate-pair" && self.candidatePairs.count < self.CANDIDATE_PAIR_LIMIT) {
+                if(report.value.type == "candidate-pair" && candidatePairs.count < self.CANDIDATE_PAIR_LIMIT) {
                     //Logger.log.i(message: "Peer:: ICE negotiation updated. Report New: \(report.values)")
-                    self.candidatePairs.append(report.value.values)
+                    candidatePairs.append(report.value.values)
                 }
             }
         })
