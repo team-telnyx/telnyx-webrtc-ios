@@ -10,8 +10,7 @@ import Foundation
 import WebRTC
 
 protocol PeerDelegate: AnyObject {
-    //TODO: Rename this to "negotiationDidEnded"
-    func onICECandidate(sdp: RTCSessionDescription?, iceCandidate: RTCIceCandidate)
+    func onNegotiationEnded(sdp: RTCSessionDescription?)
 }
 
 class Peer : NSObject {
@@ -274,7 +273,7 @@ class Peer : NSObject {
                 self.negotiationEnded = true
                 // At this moment we should have at least one ICE candidate.
                 // Lets stop the ICE negotiation process and call the apropiate delegate
-                self.delegate?.onICECandidate(sdp: peerConnection.localDescription, iceCandidate: candidate)
+                self.delegate?.onNegotiationEnded(sdp: peerConnection.localDescription)
                 Logger.log.i(message: "Peer:: ICE negotiation ended.")
             }
         }

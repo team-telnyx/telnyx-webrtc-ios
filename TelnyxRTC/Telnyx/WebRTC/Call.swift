@@ -519,14 +519,14 @@ extension Call {
 extension Call : PeerDelegate {
     
     //If we received at least one ICE Candidate, then we can send the telnyx_rtc.invite message to start a call
-    func onICECandidate(sdp: RTCSessionDescription?, iceCandidate: RTCIceCandidate) {
+    func onNegotiationEnded(sdp: RTCSessionDescription?) {
         
         guard let sdp = sdp,
               let sessionId = self.sessionId,
               let callInfo = self.callInfo,
               let callOptions = self.callOptions,
               let _ = self.callInfo?.callId else {
-            Logger.log.e(message: "Call:: onICECandidate missing arguments")
+            Logger.log.e(message: "Call:: onNegotiationEnded missing arguments")
             return
         }
         
@@ -546,10 +546,9 @@ extension Call : PeerDelegate {
             let message = inviteMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
             self.updateCallState(callState: .CONNECTING)
-            Logger.log.s(message: "Call:: Send invite >> \(message)")
+            Logger.log.s(message: "Send invite >> \(message)")
         }
-        else if (self.direction == .ATTACH){
-            
+        else if (self.direction == .ATTACH) {
             let attachCallOption = TxCallOptions(destinationNumber: callOptions.destinationNumber,attach: true,userVariables: callOptions.userVariables)
 
             
