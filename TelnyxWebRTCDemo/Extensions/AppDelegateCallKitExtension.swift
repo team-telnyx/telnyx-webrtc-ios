@@ -153,13 +153,13 @@ extension AppDelegate : CXProviderDelegate {
             }
         }
         action.fulfill()
-        self.currentCall?.startDebugStats()
+        self.currentCall?.debug = true
     }
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         print("AppDelegate:: ANSWER call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
         self.telnyxClient?.answerFromCallkit(answerAction: action, customHeaders:  ["X-test-answer":"ios-test"])
-        self.currentCall?.startDebugStats()
+        self.currentCall?.debug = true
     }
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {

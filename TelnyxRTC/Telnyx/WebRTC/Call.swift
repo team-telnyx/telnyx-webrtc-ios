@@ -101,6 +101,8 @@ public class Call {
 
     var remoteSdp: String?
     var callOptions: TxCallOptions?
+    
+    var statsReporter: WebRTCStatsReporter?
 
     /// Custum headers pased /from webrtc telnyx_rtc.INVITE Messages
     public internal(set) var inviteCustomHeaders: [String:String]?
@@ -114,6 +116,9 @@ public class Call {
     public internal(set) var telnyxSessionId: UUID?
     /// Telnyx call leg ID
     public internal(set) var telnyxLegId: UUID?
+    /// To enable call stats
+    public var debug: Bool = false
+
 
     // MARK: - Properties
     /// `TxCallInfo` Contains the required information of the current Call.
@@ -236,6 +241,7 @@ public class Call {
                                          clientState: clientState)
 
         self.peer = Peer(iceServers: self.iceServers)
+        self.configureStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
         self.peer?.offer(completion: { (sdp, error)  in
@@ -386,16 +392,18 @@ extension Call {
     ///  - Parameters:
     ///         - customHeaders: (optional) Custom Headers to be passed over webRTC Messages, should be in the
     ///     format `X-key:Value` `X` is required for headers to be passed.
-    internal func acceptReAttach(peer:Peer?,customHeaders:[String:String] = [:]) {
+    internal func acceptReAttach(peer: Peer?, customHeaders:[String:String] = [:]) {
         //TODO: Create an error if there's no remote SDP
         guard let remoteSdp = self.remoteSdp else {
             return
         }
         peer?.dispose()
         self.answerCustomHeaders = customHeaders
-        self.peer = Peer(iceServers: self.iceServers,isAttach: true)
+        self.peer = Peer(iceServers: self.iceServers, isAttach: true)
+        self.configureStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
+        self.configureStatsReporter()
         self.incomingOffer(sdp: remoteSdp)
         self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "",completion: { (sdp, error)  in
 
@@ -411,6 +419,15 @@ extension Call {
             //self.peer?.startTimer()
             //self.updateCallState(callState: .ACTIVE)
         })
+    }
+    
+    private func configureStatsReporter() {
+        if debug,
+           let peer = self.peer,
+           let socket = self.socket {
+            self.statsReporter?.dispose()
+            self.statsReporter = WebRTCStatsReporter(peer: peer, socket: socket)
+        }
     }
 }
 
@@ -686,7 +703,7 @@ extension Call {
         self.ringTonePlayer?.stop()
     }
 
-private func playRingbackTone() {
+    private func playRingbackTone() {
         Logger.log.i(message: "Call:: playRingbackTone()")
         guard let ringbackPlayer = self.ringbackPlayer else { return  }
 
@@ -716,18 +733,5 @@ private func playRingbackTone() {
             Logger.log.e(message: "Call:: buildAudioPlayer() \(fileType.rawValue) error: \(error)")
         }
         return nil
-    }
-}
-// MARK: - Debug Stats
-extension Call {
-
-    public func startDebugStats() {
-        if let callId = self.callInfo?.callId {
-            self.peer?.startDebugReportTimer(peerId: callId)
-        }
-    }
-
-    private func stopDebugStats() {
-        self.peer?.stopDebugReportTimer()
     }
 }
