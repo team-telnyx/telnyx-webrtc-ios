@@ -3,27 +3,24 @@ import WebRTC
 class WebRTCStatsReporter {
     // MARK: - Properties
     private let CANDIDATE_PAIR_LIMIT = 5
-    public var debug: Bool = false
     private var timer: DispatchSourceTimer?
-    private var debugStatsId: UUID = UUID()
-    private var debugReportStarted: Bool = false
     private var peerId: UUID?
+    private var reportId: UUID = UUID.init()
     private weak var peer: Peer?
     weak var socket: Socket?
     
     // MARK: - Initializer
-    init(peer: Peer, socket: Socket) {
+    init(peerId: UUID, peer: Peer, socket: Socket) {
+        self.peerId = peerId
         self.peer = peer
         self.socket = socket
         self.setupEventHandler()
+        self.sendDebugReportStartMessage(id: reportId)
+        self.startDebugReport()
     }
     
     // MARK: - Start/Stop Reporting
-    public func startDebugReport(peer: Peer, peerId: UUID) {
-        guard !debug else { return }
-        self.peer = peer
-        self.peerId = peerId
-        self.debug = true
+    public func startDebugReport() {
         let queue = DispatchQueue.main
         timer = DispatchSource.makeTimerSource(queue: queue)
         timer?.schedule(deadline: .now(), repeating: 2.0)
@@ -34,14 +31,9 @@ class WebRTCStatsReporter {
     }
     
     public func stopDebugReport() {
-        guard debug else { return }
-        debug = false
         timer?.cancel()
         timer = nil
-        if debugReportStarted {
-            sendDebugReportStopMessage(id: debugStatsId)
-        }
-        debugReportStarted = false
+        sendDebugReportStopMessage(id: reportId)
     }
     
     // MARK: - Private Helper Methods
@@ -79,26 +71,15 @@ class WebRTCStatsReporter {
     private func executeTask() {
         guard let peer = peer else { return }
         Logger.log.i(message: "WebRTCStatsReporter:: Task executed at \(Date())")
-        
-        if !debugReportStarted {
-            debugStatsId = UUID()
-            sendDebugReportStartMessage(id: debugStatsId)
-            debugReportStarted = true
-        }
-        
-        var statsEvent = [String: Any]()
-        var inboundStats = [Any]()
-        var outBoundStats = [Any]()
-        var statsData = [String: Any]()
-        var audio = [String: [Any]]()
-        var candidatePairs = [Any]()
-        
-        statsEvent["event"] = "stats"
-        statsEvent["tag"] = "stats"
-        statsEvent["peerId"] = peerId?.uuidString
-        statsEvent["connectionId"] = peer.callLegID ?? ""
-        
-        peer.connection?.statistics(completionHandler: { reports in
+        peer.connection?.statistics(completionHandler: { [weak self] reports in
+            guard let self = self else { return }
+            var statsEvent = [String: Any]()
+            var inboundStats = [Any]()
+            var outBoundStats = [Any]()
+            var statsData = [String: Any]()
+            var audio = [String: [Any]]()
+            var candidatePairs = [Any]()
+            
             reports.statistics.forEach { report in
                 if report.value.type == "inbound-rtp" {
                     inboundStats.append(report.value.values)
@@ -110,37 +91,40 @@ class WebRTCStatsReporter {
                     candidatePairs.append(report.value.values)
                 }
             }
+        
+            
+            statsEvent["event"] = WebRTCStatsEvent.stats.rawValue
+            statsEvent["tag"] = WebRTCStatsTag.stats.rawValue
+            statsEvent["peerId"] = self.peerId?.uuidString
+            statsEvent["connectionId"] = peer.callLegID ?? ""
+            audio["outbound"] = outBoundStats
+            audio["inbound"] = inboundStats
+            statsData["audio"] = audio
+            statsEvent["data"] = statsData
+            self.sendDebugReportDataMessage(id: self.reportId, data: statsEvent)
+
+            if !inboundStats.isEmpty && !outBoundStats.isEmpty && !candidatePairs.isEmpty {
+                inboundStats.removeAll()
+                outBoundStats.removeAll()
+                candidatePairs.removeAll()
+                statsData.removeAll()
+                audio.removeAll()
+            }
         })
-        
-        audio["outbound"] = outBoundStats
-        audio["inbound"] = inboundStats
-        statsData["audio"] = audio
-        statsEvent["data"] = statsData
-        
-        if !inboundStats.isEmpty && !outBoundStats.isEmpty && !candidatePairs.isEmpty {
-            inboundStats.removeAll()
-            outBoundStats.removeAll()
-            candidatePairs.removeAll()
-            statsData.removeAll()
-            audio.removeAll()
-            sendDebugReportDataMessage(id: debugStatsId, data: statsEvent)
-        }
+    
     }
 }
 
 // MARK: - Dispose
 extension WebRTCStatsReporter {
     public func dispose() {
+        self.stopDebugReport()
         timer?.cancel()
         timer = nil
-
-        debug = false
-        debugReportStarted = false
         
         peerId = nil
         peer = nil
         socket = nil
-        
         Logger.log.i(message: "WebRTCStatsReporter:: Disposed and resources cleared")
     }
 }
@@ -149,7 +133,7 @@ extension WebRTCStatsReporter {
 extension WebRTCStatsReporter {
     public func setupEventHandler() {
         self.peer?.onSignalingStateChange = { [weak self] state in
-            print("Signaling state changed: \(state)")
+            guard let self = self else { return }
         }
         
         self.peer?.onAddStream = { [weak self] stream in
@@ -173,7 +157,24 @@ extension WebRTCStatsReporter {
         }
         
         self.peer?.onIceCandidate = { [weak self] candidate in
-            print("New ICE candidate: \(candidate)")
+            guard let self = self else { return }
+            
+            var data = [String : Any]()
+            data["event"] = WebRTCStatsEvent.onIceCandidate.rawValue
+            data["tag"] = WebRTCStatsTag.connection.rawValue
+            
+            // TODO: CHECK CONNECTION ID
+            data["connectionId"] = self.peer?.callLegID ??  UUID.init().uuidString.lowercased()
+            data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
+            
+            var debugCandidate = [String: Any]()
+            debugCandidate["candidate"] = candidate.sdp
+            debugCandidate["sdpMLineIndex"] = candidate.sdpMLineIndex
+            debugCandidate["sdpMid"] = candidate.sdpMid
+            debugCandidate["usernameFragment"] = StatsUtils.extractUfrag(from: candidate.sdp) ?? ""
+            
+            data["data"] = debugCandidate
+            self.sendDebugReportDataMessage(id: reportId, data: data)
         }
         
         self.peer?.onRemoveIceCandidates = { [weak self] candidates in

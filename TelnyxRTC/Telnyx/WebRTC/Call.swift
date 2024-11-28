@@ -316,11 +316,13 @@ public class Call {
     private func endCall() {
         self.stopRingtone()
         self.stopRingbackTone()
+        self.statsReporter?.dispose()
         self.peer?.dispose()
         self.updateCallState(callState: .DONE)
     }
     
     internal func endForAttachCall() {
+        self.statsReporter?.dispose()
         self.peer?.dispose()
        // self.updateCallState(callState: .DONE)
     }
@@ -408,6 +410,7 @@ extension Call {
             return
         }
         peer?.dispose()
+        self.statsReporter?.dispose()
         self.answerCustomHeaders = customHeaders
         self.peer = Peer(iceServers: self.iceServers, isAttach: true)
         self.peer?.delegate = self
@@ -432,10 +435,13 @@ extension Call {
     
     private func configureStatsReporter() {
         if debug,
+           let callId = self.callInfo?.callId,
            let peer = self.peer,
            let socket = self.socket {
             self.statsReporter?.dispose()
-            self.statsReporter = WebRTCStatsReporter(peer: peer, socket: socket)
+            self.statsReporter = WebRTCStatsReporter(peerId: callId,
+                                                     peer: peer,
+                                                     socket: socket)
         }
     }
 }
