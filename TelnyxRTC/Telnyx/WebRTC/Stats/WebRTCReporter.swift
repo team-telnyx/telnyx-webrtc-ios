@@ -207,25 +207,40 @@ extension WebRTCStatsReporter {
             data["data"] = StatsUtils.mapIceConnectionState(state)
             self.sendDebugReportDataMessage(id: reportId, data: data)
         }
+        
+        self.peer?.onIceGatheringChange = { [weak self] state in
+            guard let self = self else { return }
+            
+            var data = [String : Any]()
+            data["event"] = WebRTCStatsEvent.onIceGatheringStateChange.rawValue
+            data["tag"] = WebRTCStatsTag.connection.rawValue
+            
+            // TODO: CHECK CONNECTION ID
+            data["connectionId"] = self.peer?.callLegID ??  UUID.init().uuidString.lowercased()
+            data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
+            data["data"] = StatsUtils.mapIceGatheringState(state)
+            self.sendDebugReportDataMessage(id: reportId, data: data)
+        }
+        
+        self.peer?.onNegotiationNeeded = { [weak self] in
+            guard let self = self else { return }
+            
+            var data = [String : Any]()
+            data["event"] = WebRTCStatsEvent.onNegotiationNeeded.rawValue
+            data["tag"] = WebRTCStatsTag.connection.rawValue
+            
+            // TODO: CHECK CONNECTION ID
+            data["connectionId"] = self.peer?.callLegID ??  UUID.init().uuidString.lowercased()
+            data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
+            self.sendDebugReportDataMessage(id: reportId, data: data)
+        }
 
         self.peer?.onRemoveStream = { [weak self] stream in
             print("Stream removed: \(stream)")
         }
         
-        self.peer?.onNegotiationNeeded = { [weak self] in
-            print("Negotiation needed.")
-        }
-        
-        self.peer?.onIceGatheringChange = { [weak self] state in
-            print("ICE gathering state changed: \(state)")
-        }
-        
         self.peer?.onRemoveIceCandidates = { [weak self] candidates in
             print("ICE candidates removed: \(candidates)")
-        }
-        
-        self.peer?.onDataChannel = { [weak self] channel in
-            print("Data channel opened: \(channel)")
         }
     }
 }
