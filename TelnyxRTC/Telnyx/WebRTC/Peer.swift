@@ -191,18 +191,6 @@ class Peer : NSObject, WebRTCEventHandler {
         let constrains = RTCMediaConstraints(mandatoryConstraints: self.mediaConstrains,
                                              optionalConstraints: nil)
         self.callLegID = callLegId
-        
-        
-//        var data = [String : Any]()
-//        data["event"] = WebRTCStatsEvent.getUserMedia.rawValue
-//        data["tag"] = WebRTCStatsTag.getUserMedia.rawValue
-//        data["connectionId"] = callLegID?.lowercased() ?? UUID.init().uuidString.lowercased()
-//        data["peerId"] = peerId.uuidString.lowercased()
-//        data["constraints"] = [
-//            "audio": self.mediaConstrains[kRTCMediaConstraintsOfferToReceiveAudio],
-//            "video":self.mediaConstrains[kRTCMediaConstraintsOfferToReceiveVideo]
-//        ]
-//        self.sendDebugReportDataMessage(id: debugStatsId, data: data)
         self.connection?.answer(for: constrains) { (sdp, error) in
             
             if let error = error {
@@ -393,14 +381,11 @@ extension Peer : RTCPeerConnectionDelegate {
         }
     }
 
-
     func peerConnection(_ peerConnection: RTCPeerConnection, didRemove candidates: [RTCIceCandidate]) {
         onRemoveIceCandidates?(candidates)
         Logger.log.i(message: "Peer:: connection didRemove [RTCIceCandidate]: \(candidates)")
     }
     
-
-
     func peerConnection(_ peerConnection: RTCPeerConnection, didOpen dataChannel: RTCDataChannel) {
         onDataChannel?(dataChannel)
         Logger.log.i(message: "Peer:: connection didOpen RTCDataChannel: \(dataChannel)")

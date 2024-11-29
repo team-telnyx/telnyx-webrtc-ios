@@ -132,28 +132,26 @@ extension WebRTCStatsReporter {
 // MARK: - Peer Event Handling
 extension WebRTCStatsReporter {
     public func setupEventHandler() {
-        self.peer?.onSignalingStateChange = { [weak self] state in
-            guard let self = self else { return }
-        }
         
         self.peer?.onAddStream = { [weak self] stream in
             print("Stream added: \(stream)")
-        }
-        
-        self.peer?.onRemoveStream = { [weak self] stream in
-            print("Stream removed: \(stream)")
-        }
-        
-        self.peer?.onNegotiationNeeded = { [weak self] in
-            print("Negotiation needed.")
-        }
-        
-        self.peer?.onIceConnectionChange = { [weak self] state in
-            print("ICE connection state changed: \(state)")
-        }
-        
-        self.peer?.onIceGatheringChange = { [weak self] state in
-            print("ICE gathering state changed: \(state)")
+            guard let self = self else { return }
+            var data = [String : Any]()
+            data["event"] = WebRTCStatsEvent.onTrack.rawValue
+            data["tag"] = WebRTCStatsTag.track.rawValue
+            
+            // TODO: CHECK CONNECTION ID
+            data["connectionId"] = self.peer?.callLegID ??  UUID.init().uuidString.lowercased()
+            data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
+            
+            var debugData = [String: Any]()
+            debugData["stream"] = getStreamDetails(stream: stream)
+            if let track = stream.audioTracks.first {
+                debugData["track"] = getAudioTrackDetails(track: track)
+                debugData["title"] = track.kind + ":" + track.trackId + " stream:" + stream.streamId
+            }
+            data["data"] = debugData
+            self.sendDebugReportDataMessage(id: reportId, data: data)
         }
         
         self.peer?.onIceCandidate = { [weak self] candidate in
@@ -177,6 +175,26 @@ extension WebRTCStatsReporter {
             self.sendDebugReportDataMessage(id: reportId, data: data)
         }
         
+        self.peer?.onSignalingStateChange = { [weak self] state in
+            guard let self = self else { return }
+        }
+
+        self.peer?.onRemoveStream = { [weak self] stream in
+            print("Stream removed: \(stream)")
+        }
+        
+        self.peer?.onNegotiationNeeded = { [weak self] in
+            print("Negotiation needed.")
+        }
+        
+        self.peer?.onIceConnectionChange = { [weak self] state in
+            print("ICE connection state changed: \(state)")
+        }
+        
+        self.peer?.onIceGatheringChange = { [weak self] state in
+            print("ICE gathering state changed: \(state)")
+        }
+        
         self.peer?.onRemoveIceCandidates = { [weak self] candidates in
             print("ICE candidates removed: \(candidates)")
         }
@@ -187,3 +205,22 @@ extension WebRTCStatsReporter {
     }
 }
 
+
+
+extension WebRTCStatsReporter {
+    
+    func getStreamDetails(stream: RTCMediaStream) -> [String: Any] {
+        var data = [String : Any]()
+        data["id"] = stream.streamId
+        return data
+    }
+    
+    func getAudioTrackDetails(track: RTCMediaStreamTrack) -> [String: Any] {
+        var data = [String : Any]()
+        data["enabled"] = track.isEnabled
+        data["id"] = track.trackId
+        data["kind"] = track.kind
+        data["readyState"] = track.readyState
+        return data
+    }
+}
