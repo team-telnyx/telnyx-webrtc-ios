@@ -134,7 +134,6 @@ extension WebRTCStatsReporter {
     public func setupEventHandler() {
         
         self.peer?.onAddStream = { [weak self] stream in
-            print("Stream added: \(stream)")
             guard let self = self else { return }
             var data = [String : Any]()
             data["event"] = WebRTCStatsEvent.onTrack.rawValue
@@ -175,8 +174,24 @@ extension WebRTCStatsReporter {
             self.sendDebugReportDataMessage(id: reportId, data: data)
         }
         
-        self.peer?.onSignalingStateChange = { [weak self] state in
+        self.peer?.onSignalingStateChange = { [weak self] state, connection in
             guard let self = self else { return }
+            
+            var data = [String : Any]()
+            data["event"] = WebRTCStatsEvent.onSignalingStateChange.rawValue
+            data["tag"] = WebRTCStatsTag.connection.rawValue
+            
+            // TODO: CHECK CONNECTION ID
+            data["connectionId"] = self.peer?.callLegID ??  UUID.init().uuidString.lowercased()
+            data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
+            
+            var debugData = [String: Any]()
+            debugData["signalingState"] = state
+            debugData["localDescription"] = connection.localDescription?.sdp ?? ""
+            debugData["remoteDescription"] = connection.remoteDescription?.sdp ?? ""
+            
+            data["data"] = debugData
+            self.sendDebugReportDataMessage(id: reportId, data: data)
         }
 
         self.peer?.onRemoveStream = { [weak self] stream in
@@ -220,7 +235,7 @@ extension WebRTCStatsReporter {
         data["enabled"] = track.isEnabled
         data["id"] = track.trackId
         data["kind"] = track.kind
-        data["readyState"] = track.readyState
+        data["readyState"] = track.readyState.rawValue
         return data
     }
 }

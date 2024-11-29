@@ -1,7 +1,7 @@
 import WebRTC
 
 protocol WebRTCEventHandler {
-    var onSignalingStateChange: ((RTCSignalingState) -> Void)? { get set }
+    var onSignalingStateChange: ((String, RTCPeerConnection) -> Void)? { get set }
     var onAddStream: ((RTCMediaStream) -> Void)? { get set }
     var onRemoveStream: ((RTCMediaStream) -> Void)? { get set }
     var onNegotiationNeeded: (() -> Void)? { get set }

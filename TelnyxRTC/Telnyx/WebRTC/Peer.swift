@@ -50,7 +50,7 @@ class Peer : NSObject, WebRTCEventHandler {
     private var negotiationEnded: Bool = false
 
     // WEBRTC STATS
-    var onSignalingStateChange: ((RTCSignalingState) -> Void)?
+    var onSignalingStateChange: ((String, RTCPeerConnection) -> Void)?
     var onAddStream: ((RTCMediaStream) -> Void)?
     var onRemoveStream: ((RTCMediaStream) -> Void)?
     var onNegotiationNeeded: (() -> Void)?
@@ -309,7 +309,8 @@ extension Peer {
  */
 extension Peer : RTCPeerConnectionDelegate {
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange stateChanged: RTCSignalingState) {
-        onSignalingStateChange?(stateChanged)
+        let state = mapSignalingState(stateChanged)
+        onSignalingStateChange?(mapSignalingState(stateChanged), peerConnection)
         Logger.log.i(message: "Peer:: connection didChange state: [\(mapSignalingState(stateChanged).uppercased())]")
     }
 
@@ -397,10 +398,10 @@ extension Peer {
     private func mapSignalingState(_ state: RTCSignalingState) -> String {
         switch state {
             case .stable: return "stable"
-            case .haveLocalOffer: return "haveLocalOffer"
-            case .haveLocalPrAnswer: return "haveLocalPrAnswer"
-            case .haveRemoteOffer: return "haveRemoteOffer"
-            case .haveRemotePrAnswer: return "haveRemotePrAnswer"
+            case .haveLocalOffer: return "have-local-offer"
+            case .haveLocalPrAnswer: return "have-ocal-pr-answer"
+            case .haveRemoteOffer: return "have-remote-offer"
+            case .haveRemotePrAnswer: return "have-remote-pr-answer"
             case .closed: return "closed"
             @unknown default: return "unknown"
         }
