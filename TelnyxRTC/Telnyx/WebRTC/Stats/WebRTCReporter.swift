@@ -8,15 +8,15 @@ class WebRTCStatsReporter {
     private var reportId: UUID = UUID.init()
     private weak var peer: Peer?
     weak var socket: Socket?
-    
+    private let messageQueue = DispatchQueue(label: "WebRTCStatsReporter.MessageQueue") // Serial queue
+
     // MARK: - Initializer
     init(peerId: UUID, peer: Peer, socket: Socket) {
         self.peerId = peerId
         self.peer = peer
         self.socket = socket
-        self.setupEventHandler()
         self.sendDebugReportStartMessage(id: reportId)
-        self.sendAddConnectionMessage()
+        self.setupEventHandler()
         self.startDebugReport()
     }
     
@@ -26,6 +26,7 @@ class WebRTCStatsReporter {
         timer = DispatchSource.makeTimerSource(queue: queue)
         timer?.schedule(deadline: .now(), repeating: 2.0)
         timer?.setEventHandler { [weak self] in
+            self?.sendAddConnectionMessage()
             self?.executeTask()
         }
         timer?.resume()
@@ -40,8 +41,8 @@ class WebRTCStatsReporter {
     // MARK: - Private Helper Methods
     private func sendDebugReportStartMessage(id: UUID) {
         let statsMessage = DebugReportStartMessage(reportID: id.uuidString.lowercased())
-        if let message = statsMessage.encode(), let socket = self.socket {
-            socket.sendMessage(message: message)
+        if let message = statsMessage.encode() {
+            enqueueMessage(message)
             Logger.log.stats(message: "WebRTCStatsReporter:: sendDebugReportStartMessage [\(id.uuidString.lowercased())] message [\(String(describing: message))]")
         } else {
             Logger.log.e(message: "WebRTCStatsReporter:: sendDebugReportStartMessage error")
@@ -50,8 +51,8 @@ class WebRTCStatsReporter {
     
     private func sendDebugReportStopMessage(id: UUID) {
         let statsMessage = DebugReportStopMessage(reportID: id.uuidString.lowercased())
-        if let message = statsMessage.encode(), let socket = self.socket {
-            socket.sendMessage(message: message)
+        if let message = statsMessage.encode() {
+            enqueueMessage(message)
             Logger.log.stats(message: "WebRTCStatsReporter:: sendDebugReportStopMessage [\(id.uuidString.lowercased())] message [\(message)]")
         } else {
             Logger.log.e(message: "WebRTCStatsReporter:: sendDebugReportStopMessage error")
@@ -60,8 +61,8 @@ class WebRTCStatsReporter {
     
     private func sendDebugReportDataMessage(id: UUID, data: [String: Any]) {
         let statsMessage = DebugReportDataMessage(reportID: id.uuidString.lowercased(), reportData: data)
-        if let message = statsMessage.encode(), let socket = self.socket {
-            socket.sendMessage(message: message)
+        if let message = statsMessage.encode() {
+            enqueueMessage(message)
             Logger.log.stats(message: "WebRTCStatsReporter:: sendDebugReportDataMessage [\(id.uuidString.lowercased())] message [\(String(describing: message))]")
         } else {
             Logger.log.e(message: "WebRTCStatsReporter:: sendDebugReportDataMessage error")
@@ -75,36 +76,49 @@ class WebRTCStatsReporter {
         peer.connection?.statistics(completionHandler: { [weak self] reports in
             guard let self = self else { return }
             var statsEvent = [String: Any]()
-            var inboundStats = [Any]()
-            var outBoundStats = [Any]()
+            var audioInboundStats = [Any]()
+            var audioOutboundStats = [Any]()
+            var connection = [Any]()
             var statsData = [String: Any]()
-            var audio = [String: [Any]]()
-            var candidatePairs = [Any]()
+            var statsObject = [String: Any]()
             
             reports.statistics.forEach { report in
-                if report.value.type == "inbound-rtp" {
-                    inboundStats.append(report.value.values)
-                }
-                if report.value.type == "outbound-rtp" {
-                    outBoundStats.append(report.value.values)
-                }
-                if report.value.type == "candidate-pair" && candidatePairs.count < self.CANDIDATE_PAIR_LIMIT {
-                    candidatePairs.append(report.value.values)
+                let values = report.value.values
+                switch report.value.type {
+                    case "inbound-rtp":
+                        audioInboundStats.append(values)
+                        
+                    case "outbound-rtp":
+                        audioOutboundStats.append(values)
+                        
+                    case "candidate-pair":
+                        connection.append(values)
+                    default:
+                        statsObject[report.key] = values
                 }
             }
-            
             
             statsEvent["event"] = WebRTCStatsEvent.stats.rawValue
             statsEvent["tag"] = WebRTCStatsTag.stats.rawValue
             statsEvent["peerId"] = self.peerId?.uuidString
             statsEvent["connectionId"] = peer.callLegID ?? ""
-            audio["outbound"] = outBoundStats
-            audio["inbound"] = inboundStats
-            statsData["audio"] = audio
+            
+            statsData["audio"] = [
+                "inbound": audioInboundStats,
+                "outbound": audioOutboundStats
+            ]
+            statsData["connection"] = connection
             statsEvent["data"] = statsData
+            statsEvent["statsObject"] = statsObject
             self.sendDebugReportDataMessage(id: self.reportId, data: statsEvent)
         })
-        
+    }
+    
+    // MARK: - Message Queue
+    private func enqueueMessage(_ message: String) {
+        messageQueue.async { [weak self] in
+            self?.socket?.sendMessage(message: message)
+        }
     }
 }
 
