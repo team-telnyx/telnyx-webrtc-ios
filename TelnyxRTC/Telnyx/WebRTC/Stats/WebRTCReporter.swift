@@ -16,6 +16,7 @@ class WebRTCStatsReporter {
         self.socket = socket
         self.setupEventHandler()
         self.sendDebugReportStartMessage(id: reportId)
+        self.sendAddConnectionMessage()
         self.startDebugReport()
     }
     
@@ -91,7 +92,7 @@ class WebRTCStatsReporter {
                     candidatePairs.append(report.value.values)
                 }
             }
-        
+            
             
             statsEvent["event"] = WebRTCStatsEvent.stats.rawValue
             statsEvent["tag"] = WebRTCStatsTag.stats.rawValue
@@ -102,16 +103,8 @@ class WebRTCStatsReporter {
             statsData["audio"] = audio
             statsEvent["data"] = statsData
             self.sendDebugReportDataMessage(id: self.reportId, data: statsEvent)
-
-            if !inboundStats.isEmpty && !outBoundStats.isEmpty && !candidatePairs.isEmpty {
-                inboundStats.removeAll()
-                outBoundStats.removeAll()
-                candidatePairs.removeAll()
-                statsData.removeAll()
-                audio.removeAll()
-            }
         })
-    
+        
     }
 }
 
@@ -132,7 +125,6 @@ extension WebRTCStatsReporter {
 // MARK: - Peer Event Handling
 extension WebRTCStatsReporter {
     public func setupEventHandler() {
-        
         self.peer?.onAddStream = { [weak self] stream in
             guard let self = self else { return }
             var data = [String : Any]()
@@ -144,9 +136,9 @@ extension WebRTCStatsReporter {
             data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
             
             var debugData = [String: Any]()
-            debugData["stream"] = getStreamDetails(stream: stream)
+            debugData["stream"] = StatsUtils.getStreamDetails(stream: stream)
             if let track = stream.audioTracks.first {
-                debugData["track"] = getAudioTrackDetails(track: track)
+                debugData["track"] = StatsUtils.getAudioTrackDetails(track: track)
                 debugData["title"] = track.kind + ":" + track.trackId + " stream:" + stream.streamId
             }
             data["data"] = debugData
@@ -234,33 +226,41 @@ extension WebRTCStatsReporter {
             data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
             self.sendDebugReportDataMessage(id: reportId, data: data)
         }
-
-        self.peer?.onRemoveStream = { [weak self] stream in
-            print("Stream removed: \(stream)")
+    }
+    
+    
+    private func sendAddConnectionMessage() {
+        var data = [String : Any]()
+        data["event"] = WebRTCStatsEvent.addConnection.rawValue
+        data["tag"] = WebRTCStatsTag.peer.rawValue
+        
+        // TODO: CHECK CONNECTION ID
+        data["connectionId"] = self.peer?.callLegID ??  UUID.init().uuidString.lowercased()
+        data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
+        
+        var debugData = [String: Any]()
+        var options = [String: Any]()
+        options["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
+        
+        
+        if let connection = peer?.connection {
+            var peerConfiguration = [String: Any]()
+            peerConfiguration["bundlePolicy"] = StatsUtils.mapBundlePolicy(connection.configuration.bundlePolicy)
+            peerConfiguration["iceTransportPolicy"] = StatsUtils.mapTransportPolicy(connection.configuration.iceTransportPolicy)
+            peerConfiguration["rtcpMuxPolicy"] = StatsUtils.mapRtcpMuxPolicy(connection.configuration.rtcpMuxPolicy)
+            peerConfiguration["continualGatheringPolicy"] = StatsUtils.mapContinualGatheringPolicy(connection.configuration.continualGatheringPolicy)
+            peerConfiguration["sdpSemantics"] = StatsUtils.mapSdpSemantics(connection.configuration.sdpSemantics)
+            peerConfiguration["iceCandidatePoolSize"] = connection.configuration.iceCandidatePoolSize
+            peerConfiguration["iceServers"] = StatsUtils.mapIceServers(connection.configuration.iceServers)
+            peerConfiguration["rtcpAudioReportIntervalMs"] = connection.configuration.rtcpAudioReportIntervalMs
+            peerConfiguration["rtcpVideoReportIntervalMs"] = connection.configuration.rtcpVideoReportIntervalMs
+            
+            debugData["peerConfiguration"] = peerConfiguration
         }
         
-        self.peer?.onRemoveIceCandidates = { [weak self] candidates in
-            print("ICE candidates removed: \(candidates)")
-        }
+        debugData["options"] = options
+        data["data"] = debugData
+        self.sendDebugReportDataMessage(id: reportId, data: data)
     }
 }
 
-
-
-extension WebRTCStatsReporter {
-    
-    func getStreamDetails(stream: RTCMediaStream) -> [String: Any] {
-        var data = [String : Any]()
-        data["id"] = stream.streamId
-        return data
-    }
-    
-    func getAudioTrackDetails(track: RTCMediaStreamTrack) -> [String: Any] {
-        var data = [String : Any]()
-        data["enabled"] = track.isEnabled
-        data["id"] = track.trackId
-        data["kind"] = track.kind
-        data["readyState"] = track.readyState.rawValue
-        return data
-    }
-}
