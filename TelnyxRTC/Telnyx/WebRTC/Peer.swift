@@ -50,7 +50,7 @@ class Peer : NSObject, WebRTCEventHandler {
     private var negotiationEnded: Bool = false
 
     // WEBRTC STATS
-    var onSignalingStateChange: ((String, RTCPeerConnection) -> Void)?
+    var onSignalingStateChange: ((RTCSignalingState, RTCPeerConnection) -> Void)?
     var onAddStream: ((RTCMediaStream) -> Void)?
     var onRemoveStream: ((RTCMediaStream) -> Void)?
     var onNegotiationNeeded: (() -> Void)?
@@ -309,9 +309,9 @@ extension Peer {
  */
 extension Peer : RTCPeerConnectionDelegate {
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange stateChanged: RTCSignalingState) {
-        let state = mapSignalingState(stateChanged)
-        onSignalingStateChange?(mapSignalingState(stateChanged), peerConnection)
-        Logger.log.i(message: "Peer:: connection didChange state: [\(mapSignalingState(stateChanged).uppercased())]")
+        let state = StatsUtils.mapSignalingState(stateChanged)
+        onSignalingStateChange?(stateChanged, peerConnection)
+        Logger.log.i(message: "Peer:: connection didChange state: [\(state)]")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didAdd stream: RTCMediaStream) {
@@ -334,12 +334,12 @@ extension Peer : RTCPeerConnectionDelegate {
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceConnectionState) {
         onIceConnectionChange?(newState)
-        Logger.log.i(message: "Peer:: connection didChange ICE connection state: [\(mapIceConnectionState(newState).uppercased())]")
+        Logger.log.i(message: "Peer:: connection didChange ICE connection state: [\(StatsUtils.mapIceConnectionState(newState).uppercased())]")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {
         onIceGatheringChange?(newState)
-        Logger.log.s(message: "Peer:: connection didChange ICE gathering state: [\(mapIceGatheringState(newState).uppercased())]")
+        Logger.log.s(message: "Peer:: connection didChange ICE gathering state: [\(StatsUtils.mapIceGatheringState(newState).uppercased())]")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
@@ -390,43 +390,5 @@ extension Peer : RTCPeerConnectionDelegate {
     func peerConnection(_ peerConnection: RTCPeerConnection, didOpen dataChannel: RTCDataChannel) {
         onDataChannel?(dataChannel)
         Logger.log.i(message: "Peer:: connection didOpen RTCDataChannel: \(dataChannel)")
-    }
-}
-
-// MARK: - Private Helpers
-extension Peer {
-    private func mapSignalingState(_ state: RTCSignalingState) -> String {
-        switch state {
-            case .stable: return "stable"
-            case .haveLocalOffer: return "have-local-offer"
-            case .haveLocalPrAnswer: return "have-ocal-pr-answer"
-            case .haveRemoteOffer: return "have-remote-offer"
-            case .haveRemotePrAnswer: return "have-remote-pr-answer"
-            case .closed: return "closed"
-            @unknown default: return "unknown"
-        }
-    }
-    
-    private func mapIceConnectionState(_ state: RTCIceConnectionState) -> String {
-        switch state {
-            case .new: return "new"
-            case .checking: return "checking"
-            case .connected: return "connected"
-            case .completed: return "completed"
-            case .failed: return "failed"
-            case .disconnected: return "disconnected"
-            case .closed: return "closed"
-            case .count: return "count"
-            @unknown default: return "unknown"
-        }
-    }
-    
-    private func mapIceGatheringState(_ state: RTCIceGatheringState) -> String {
-        switch state {
-            case .new: return "new"
-            case .gathering: return "gathering"
-            case .complete: return "complete"
-            @unknown default: return "unknown"
-        }
     }
 }

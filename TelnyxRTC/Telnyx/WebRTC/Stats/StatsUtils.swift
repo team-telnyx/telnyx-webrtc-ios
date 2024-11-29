@@ -1,3 +1,5 @@
+import WebRTC
+
 class StatsUtils {
     
     static func extractUfrag(from input: String) -> String? {
@@ -20,6 +22,41 @@ class StatsUtils {
         }
         
         return nil
+    }
+    
+    static func mapSignalingState(_ state: RTCSignalingState) -> String {
+        switch state {
+            case .stable: return "stable"
+            case .haveLocalOffer: return "have-local-offer"
+            case .haveLocalPrAnswer: return "have-ocal-pr-answer"
+            case .haveRemoteOffer: return "have-remote-offer"
+            case .haveRemotePrAnswer: return "have-remote-pr-answer"
+            case .closed: return "closed"
+            @unknown default: return "unknown"
+        }
+    }
+    
+    static func mapIceConnectionState(_ state: RTCIceConnectionState) -> String {
+        switch state {
+            case .new: return "new"
+            case .checking: return "checking"
+            case .connected: return "connected"
+            case .completed: return "completed"
+            case .failed: return "failed"
+            case .disconnected: return "disconnected"
+            case .closed: return "closed"
+            case .count: return "count"
+            @unknown default: return "unknown"
+        }
+    }
+    
+    static func mapIceGatheringState(_ state: RTCIceGatheringState) -> String {
+        switch state {
+            case .new: return "new"
+            case .gathering: return "gathering"
+            case .complete: return "complete"
+            @unknown default: return "unknown"
+        }
     }
     
 }

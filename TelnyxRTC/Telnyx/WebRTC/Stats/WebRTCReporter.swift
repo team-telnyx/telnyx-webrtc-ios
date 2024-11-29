@@ -186,11 +186,25 @@ extension WebRTCStatsReporter {
             data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
             
             var debugData = [String: Any]()
-            debugData["signalingState"] = state
+            debugData["signalingState"] = StatsUtils.mapSignalingState(state)
             debugData["localDescription"] = connection.localDescription?.sdp ?? ""
             debugData["remoteDescription"] = connection.remoteDescription?.sdp ?? ""
             
             data["data"] = debugData
+            self.sendDebugReportDataMessage(id: reportId, data: data)
+        }
+        
+        self.peer?.onIceConnectionChange = { [weak self] state in
+            guard let self = self else { return }
+            
+            var data = [String : Any]()
+            data["event"] = WebRTCStatsEvent.onIceConnectionStateChange.rawValue
+            data["tag"] = WebRTCStatsTag.connection.rawValue
+            
+            // TODO: CHECK CONNECTION ID
+            data["connectionId"] = self.peer?.callLegID ??  UUID.init().uuidString.lowercased()
+            data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
+            data["data"] = StatsUtils.mapIceConnectionState(state)
             self.sendDebugReportDataMessage(id: reportId, data: data)
         }
 
@@ -200,10 +214,6 @@ extension WebRTCStatsReporter {
         
         self.peer?.onNegotiationNeeded = { [weak self] in
             print("Negotiation needed.")
-        }
-        
-        self.peer?.onIceConnectionChange = { [weak self] state in
-            print("ICE connection state changed: \(state)")
         }
         
         self.peer?.onIceGatheringChange = { [weak self] state in
