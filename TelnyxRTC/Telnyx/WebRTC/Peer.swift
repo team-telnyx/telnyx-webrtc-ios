@@ -343,7 +343,6 @@ extension Peer : RTCPeerConnectionDelegate {
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
-        onIceCandidate?(candidate)
         Logger.log.i(message: "Peer:: connection didGenerate RTCIceCandidate: \(candidate)")
 
         // Check if the negotiation has already ended.
@@ -360,6 +359,8 @@ extension Peer : RTCPeerConnectionDelegate {
             return
         }
 
+        // We call the callback when the iceCandidate is added
+        onIceCandidate?(candidate)
         // Add the generated ICE candidate to the peer connection.
         // This helps populate the local SDP with the ICE candidate information.
         connection?.add(candidate, completionHandler: { error in
