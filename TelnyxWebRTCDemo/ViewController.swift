@@ -206,7 +206,9 @@ class ViewController: UIViewController {
                                     ringBackTone: "ringback_tone.mp3",
                                     pushEnvironment: .production,
                                     //You can choose the appropriate verbosity level of the SDK.
-                                    logLevel: .all)
+                                    logLevel: .all,
+                                    // Enable webrtc stats debug
+                                    debug: true)
             } else {
                 // To obtain SIP credentials, please go to https://portal.telnyx.com
                 guard let sipUser = self.settingsView.sipUsernameLabel.text, !sipUser.isEmpty,
@@ -216,14 +218,15 @@ class ViewController: UIViewController {
                 }
 
                 txConfig = TxConfig(sipUser: sipUser,
-                         password: password,
-                         pushDeviceToken: deviceToken,
-                         ringtone: "incoming_call.mp3",
-                         ringBackTone: "ringback_tone.mp3",
-                         //You can choose the appropriate verbosity level of the SDK.
-                         logLevel: .all,
-                                    reconnectClient: true
-                )
+                                    password: password,
+                                    pushDeviceToken: deviceToken,
+                                    ringtone: "incoming_call.mp3",
+                                    ringBackTone: "ringback_tone.mp3",
+                                    //You can choose the appropriate verbosity level of the SDK.
+                                    logLevel: .all,
+                                    reconnectClient: true,
+                                    // Enable webrtc stats debug
+                                    debug: true)
 
                 //store user / password in user defaults
                 let selectedCredential = SipCredential(username: sipUser, password: password)

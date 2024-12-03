@@ -101,6 +101,8 @@ public class Call {
 
     var remoteSdp: String?
     var callOptions: TxCallOptions?
+    
+    var statsReporter: WebRTCStatsReporter?
 
     /// Custum headers pased /from webrtc telnyx_rtc.INVITE Messages
     public internal(set) var inviteCustomHeaders: [String:String]?
@@ -114,6 +116,9 @@ public class Call {
     public internal(set) var telnyxSessionId: UUID?
     /// Telnyx call leg ID
     public internal(set) var telnyxLegId: UUID?
+    /// To enable call stats
+    public internal(set) var debug: Bool = false
+
 
     // MARK: - Properties
     /// `TxCallInfo` Contains the required information of the current Call.
@@ -136,9 +141,10 @@ public class Call {
          ringtone: String? = nil,
          ringbackTone: String? = nil,
          iceServers: [RTCIceServer],
-         isAttach:Bool = false
+         isAttach: Bool = false,
+         debug: Bool = false
     ) {
-        if(isAttach){
+        if isAttach {
             self.direction = CallDirection.ATTACH
         } else {
             self.direction = CallDirection.INBOUND
@@ -158,7 +164,7 @@ public class Call {
         // Configure iceServers
         self.iceServers = iceServers
 
-        if(!isAttach){
+        if !isAttach {
             //Ringtone and ringbacktone
             self.ringTonePlayer = self.buildAudioPlayer(fileName: ringtone,fileType: .RINGTONE)
             self.ringbackPlayer = self.buildAudioPlayer(fileName: ringbackTone,fileType: .RINGBACK)
@@ -166,9 +172,11 @@ public class Call {
             self.playRingtone()
         }
       
-        if(!isAttach){
+        if !isAttach {
             updateCallState(callState: .NEW)
         }
+        
+        self.debug = debug
     }
     
     //Contructor for attachCalls
@@ -179,7 +187,8 @@ public class Call {
          delegate: CallProtocol,
          telnyxSessionId: UUID? = nil,
          telnyxLegId: UUID? = nil,
-         iceServers: [RTCIceServer]) {
+         iceServers: [RTCIceServer],
+         debug: Bool = false) {
         self.direction = CallDirection.ATTACH
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
@@ -195,6 +204,8 @@ public class Call {
 
         // Configure iceServers
         self.iceServers = iceServers
+        
+        self.debug = debug
     }
 
     /// Constructor for outgoing calls
@@ -204,7 +215,8 @@ public class Call {
          delegate: CallProtocol,
          ringtone: String? = nil,
          ringbackTone: String? = nil,
-         iceServers: [RTCIceServer]) {
+         iceServers: [RTCIceServer],
+         debug: Bool = false) {
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
         //this is the signaling server socket
@@ -220,14 +232,7 @@ public class Call {
         self.ringbackPlayer = self.buildAudioPlayer(fileName: ringbackTone,fileType: .RINGBACK)
 
         self.updateCallState(callState: .RINGING)
-    }
-    
-    public func startDebugStats() {
-        self.peer?.startTimer()
-    }
-    
-    private func stopDebugStats() {
-        self.peer?.stopTimer()
+        self.debug = debug
     }
 
     // MARK: - Private functions
@@ -243,7 +248,12 @@ public class Call {
         self.callOptions = TxCallOptions(destinationNumber: destinationNumber,
                                          clientState: clientState)
 
+        // We need to:
+        // - Create the reporter to send the startReporting message before creating the peer connection
+        // - Start the reporter once the peer connection is created
+        self.configureStatsReporter()
         self.peer = Peer(iceServers: self.iceServers)
+        self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
         self.peer?.offer(completion: { (sdp, error)  in
@@ -310,11 +320,13 @@ public class Call {
     private func endCall() {
         self.stopRingtone()
         self.stopRingbackTone()
+        self.statsReporter?.dispose()
         self.peer?.dispose()
         self.updateCallState(callState: .DONE)
     }
     
     internal func endForAttachCall() {
+        self.statsReporter?.dispose()
         self.peer?.dispose()
        // self.updateCallState(callState: .DONE)
     }
@@ -331,8 +343,8 @@ extension Call {
 
     /// Creates a new oubound call
     internal func newCall(callerName: String,
-                 callerNumber: String,
-                 destinationNumber: String,
+                          callerNumber: String,
+                          destinationNumber: String,
                           clientState: String? = nil,
                           customHeaders:[String:String] = [:]) {
         if (destinationNumber.isEmpty) {
@@ -368,7 +380,9 @@ extension Call {
             return
         }
         self.answerCustomHeaders = customHeaders
+        self.configureStatsReporter()
         self.peer = Peer(iceServers: self.iceServers)
+        self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
         self.incomingOffer(sdp: remoteSdp)
@@ -394,14 +408,17 @@ extension Call {
     ///  - Parameters:
     ///         - customHeaders: (optional) Custom Headers to be passed over webRTC Messages, should be in the
     ///     format `X-key:Value` `X` is required for headers to be passed.
-    internal func acceptReAttach(peer:Peer?,customHeaders:[String:String] = [:]) {
+    internal func acceptReAttach(peer: Peer?, customHeaders:[String:String] = [:]) {
         //TODO: Create an error if there's no remote SDP
         guard let remoteSdp = self.remoteSdp else {
             return
         }
         peer?.dispose()
+        self.statsReporter?.dispose()
         self.answerCustomHeaders = customHeaders
-        self.peer = Peer(iceServers: self.iceServers,isAttach: true)
+        self.configureStatsReporter()
+        self.peer = Peer(iceServers: self.iceServers, isAttach: true)
+        self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
         self.incomingOffer(sdp: remoteSdp)
@@ -419,6 +436,22 @@ extension Call {
             //self.peer?.startTimer()
             //self.updateCallState(callState: .ACTIVE)
         })
+    }
+    
+    private func configureStatsReporter() {
+        if debug,
+           let socket = self.socket {
+            self.statsReporter?.dispose()
+            self.statsReporter = WebRTCStatsReporter(socket: socket)
+        }
+    }
+
+    private func startStatsReporter() {
+        if debug,
+           let callId = self.callInfo?.callId,
+           let peer = self.peer {
+            self.statsReporter?.startDebugReport(peerId: callId, peer: peer)
+        }
     }
 }
 
@@ -527,14 +560,14 @@ extension Call {
 extension Call : PeerDelegate {
     
     //If we received at least one ICE Candidate, then we can send the telnyx_rtc.invite message to start a call
-    func onICECandidate(sdp: RTCSessionDescription?, iceCandidate: RTCIceCandidate) {
+    func onNegotiationEnded(sdp: RTCSessionDescription?) {
         
         guard let sdp = sdp,
               let sessionId = self.sessionId,
               let callInfo = self.callInfo,
               let callOptions = self.callOptions,
               let _ = self.callInfo?.callId else {
-            Logger.log.e(message: "Call:: onICECandidate missing arguments")
+            Logger.log.e(message: "Call:: onNegotiationEnded missing arguments")
             return
         }
         
@@ -554,10 +587,9 @@ extension Call : PeerDelegate {
             let message = inviteMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
             self.updateCallState(callState: .CONNECTING)
-            Logger.log.s(message: "Call:: Send invite >> \(message)")
+            Logger.log.s(message: "Send invite >> \(message)")
         }
-        else if (self.direction == .ATTACH){
-            
+        else if (self.direction == .ATTACH) {
             let attachCallOption = TxCallOptions(destinationNumber: callOptions.destinationNumber,attach: true,userVariables: callOptions.userVariables)
 
             
@@ -695,7 +727,7 @@ extension Call {
         self.ringTonePlayer?.stop()
     }
 
-private func playRingbackTone() {
+    private func playRingbackTone() {
         Logger.log.i(message: "Call:: playRingbackTone()")
         guard let ringbackPlayer = self.ringbackPlayer else { return  }
 
@@ -727,5 +759,3 @@ private func playRingbackTone() {
         return nil
     }
 }
-
-
