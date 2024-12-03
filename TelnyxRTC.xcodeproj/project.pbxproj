@@ -43,6 +43,7 @@
 		996C67D22CFEA70F0056E508 /* RTCMediaStream+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C67D12CFEA70A0056E508 /* RTCMediaStream+Extension.swift */; };
 		996C67D42CFEA72C0056E508 /* RTCMediaStreamTrack+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C67D32CFEA7270056E508 /* RTCMediaStreamTrack+Extension.swift */; };
 		996C67D72CFEA96B0056E508 /* RTCIceCandidate+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C67D62CFEA9670056E508 /* RTCIceCandidate+Extension.swift */; };
+		996C67D92CFEB7E10056E508 /* RTCConfiguration+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C67D82CFEB7D30056E508 /* RTCConfiguration+Extension.swift */; };
 		99B6DFF82CF522140010CA96 /* WebRTCStatsEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFF72CF522070010CA96 /* WebRTCStatsEvent.swift */; };
 		99B6DFFA2CF5226F0010CA96 /* WebRTCStatsTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFF92CF522610010CA96 /* WebRTCStatsTag.swift */; };
 		99B6DFFD2CF546310010CA96 /* DebugReportStartMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFFC2CF546220010CA96 /* DebugReportStartMessage.swift */; };
@@ -181,6 +182,7 @@
 		996C67D12CFEA70A0056E508 /* RTCMediaStream+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RTCMediaStream+Extension.swift"; sourceTree = "<group>"; };
 		996C67D32CFEA7270056E508 /* RTCMediaStreamTrack+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RTCMediaStreamTrack+Extension.swift"; sourceTree = "<group>"; };
 		996C67D62CFEA9670056E508 /* RTCIceCandidate+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RTCIceCandidate+Extension.swift"; sourceTree = "<group>"; };
+		996C67D82CFEB7D30056E508 /* RTCConfiguration+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RTCConfiguration+Extension.swift"; sourceTree = "<group>"; };
 		99B6DFF72CF522070010CA96 /* WebRTCStatsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCStatsEvent.swift; sourceTree = "<group>"; };
 		99B6DFF92CF522610010CA96 /* WebRTCStatsTag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCStatsTag.swift; sourceTree = "<group>"; };
 		99B6DFFC2CF546220010CA96 /* DebugReportStartMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugReportStartMessage.swift; sourceTree = "<group>"; };
@@ -346,6 +348,7 @@
 		996C67D52CFEA7430056E508 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				996C67D82CFEB7D30056E508 /* RTCConfiguration+Extension.swift */,
 				996C67D62CFEA9670056E508 /* RTCIceCandidate+Extension.swift */,
 				996C67D32CFEA7270056E508 /* RTCMediaStreamTrack+Extension.swift */,
 				996C67D12CFEA70A0056E508 /* RTCMediaStream+Extension.swift */,
@@ -914,6 +917,7 @@
 				99B6DFFA2CF5226F0010CA96 /* WebRTCStatsTag.swift in Sources */,
 				99CC5BAE2CF80D3A00EF43DC /* WebRTCEventHandler.swift in Sources */,
 				996C67D02CFEA6F30056E508 /* RTCIceGatheringState+Extension.swift in Sources */,
+				996C67D92CFEB7E10056E508 /* RTCConfiguration+Extension.swift in Sources */,
 				B3AF248425EE7B6A0062EDA9 /* InternalConfig.swift in Sources */,
 				99CC5BAC2CF804A500EF43DC /* WebRTCStatsReporter.swift in Sources */,
 				9911247E2CF50092000C23BA /* Dictionary+Extensions.swift in Sources */,

@@ -92,24 +92,14 @@ class WebRTCStatsReporter {
         options["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
         
         if let connection = peer?.connection {
-            var peerConfiguration = [String: Any]()
-            peerConfiguration["bundlePolicy"] = connection.configuration.bundlePolicy.telnyx_to_string()
-            peerConfiguration["iceTransportPolicy"] = connection.configuration.iceTransportPolicy.telnyx_to_string()
-            peerConfiguration["rtcpMuxPolicy"] = connection.configuration.rtcpMuxPolicy.telnyx_to_string()
-            peerConfiguration["continualGatheringPolicy"] = connection.configuration.continualGatheringPolicy.telnyx_to_string()
-            peerConfiguration["sdpSemantics"] = connection.configuration.sdpSemantics.telnyx_to_string()
-            peerConfiguration["iceCandidatePoolSize"] = connection.configuration.iceCandidatePoolSize
-            peerConfiguration["iceServers"] = connection.configuration.iceServers.map { $0.telnyx_to_stats_dictionary() }
-            peerConfiguration["rtcpAudioReportIntervalMs"] = connection.configuration.rtcpAudioReportIntervalMs
-            peerConfiguration["rtcpVideoReportIntervalMs"] = connection.configuration.rtcpVideoReportIntervalMs
-            
-            debugData["peerConfiguration"] = peerConfiguration
+            debugData["peerConfiguration"] = connection.configuration.telnyx_to_stats_dictionary()
         }
         
         debugData["options"] = options
         data["data"] = debugData
         self.sendDebugReportDataMessage(id: reportId, data: data)
     }
+
     
     // MARK: - Task Execution
     private func executeTask() {
