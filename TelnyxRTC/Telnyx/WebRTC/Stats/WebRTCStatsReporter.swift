@@ -9,20 +9,30 @@ class WebRTCStatsReporter {
     private weak var peer: Peer?
     weak var socket: Socket?
     private let messageQueue = DispatchQueue(label: "WebRTCStatsReporter.MessageQueue") // Serial queue
-
+    
     // MARK: - Initializer
     init(peerId: UUID, peer: Peer, socket: Socket) {
         self.peerId = peerId
         self.peer = peer
         self.socket = socket
-        self.sendDebugReportStartMessage(id: reportId)
+        self.initializeReporter()
         self.setupEventHandler()
-        self.startDebugReport()
+    }
+    
+    // MARK: - Private Initialization Method
+    private func initializeReporter() {
+        DispatchQueue.global(qos: .background).async { [weak self] in
+            guard let self = self else { return }
+            self.sendDebugReportStartMessage(id: self.reportId)
+            self.sendAddConnectionMessage()
+            DispatchQueue.main.async { [weak self] in
+                self?.startDebugReport()
+            }
+        }
     }
     
     // MARK: - Start/Stop Reporting
     public func startDebugReport() {
-        self.sendAddConnectionMessage()
         let queue = DispatchQueue.main
         timer = DispatchSource.makeTimerSource(queue: queue)
         timer?.schedule(deadline: .now(), repeating: 2.0)
@@ -67,6 +77,38 @@ class WebRTCStatsReporter {
         } else {
             Logger.log.e(message: "WebRTCStatsReporter:: sendDebugReportDataMessage error")
         }
+    }
+    
+    private func sendAddConnectionMessage() {
+        var data = [String : Any]()
+        data["event"] = WebRTCStatsEvent.addConnection.rawValue
+        data["tag"] = WebRTCStatsTag.peer.rawValue
+        
+        data["connectionId"] = self.peer?.callLegID ?? UUID.init().uuidString.lowercased()
+        data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
+        
+        var debugData = [String: Any]()
+        var options = [String: Any]()
+        options["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
+        
+        if let connection = peer?.connection {
+            var peerConfiguration = [String: Any]()
+            peerConfiguration["bundlePolicy"] = connection.configuration.bundlePolicy.telnyx_to_string()
+            peerConfiguration["iceTransportPolicy"] = connection.configuration.iceTransportPolicy.telnyx_to_string()
+            peerConfiguration["rtcpMuxPolicy"] = connection.configuration.rtcpMuxPolicy.telnyx_to_string()
+            peerConfiguration["continualGatheringPolicy"] = connection.configuration.continualGatheringPolicy.telnyx_to_string()
+            peerConfiguration["sdpSemantics"] = connection.configuration.sdpSemantics.telnyx_to_string()
+            peerConfiguration["iceCandidatePoolSize"] = connection.configuration.iceCandidatePoolSize
+            peerConfiguration["iceServers"] = connection.configuration.iceServers.map { $0.telnyx_to_stats_dictionary() }
+            peerConfiguration["rtcpAudioReportIntervalMs"] = connection.configuration.rtcpAudioReportIntervalMs
+            peerConfiguration["rtcpVideoReportIntervalMs"] = connection.configuration.rtcpVideoReportIntervalMs
+            
+            debugData["peerConfiguration"] = peerConfiguration
+        }
+        
+        debugData["options"] = options
+        data["data"] = debugData
+        self.sendDebugReportDataMessage(id: reportId, data: data)
     }
     
     // MARK: - Task Execution
@@ -240,40 +282,5 @@ extension WebRTCStatsReporter {
             data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
             self.sendDebugReportDataMessage(id: reportId, data: data)
         }
-    }
-    
-    
-    private func sendAddConnectionMessage() {
-        var data = [String : Any]()
-        data["event"] = WebRTCStatsEvent.addConnection.rawValue
-        data["tag"] = WebRTCStatsTag.peer.rawValue
-        
-        // TODO: CHECK CONNECTION ID
-        data["connectionId"] = self.peer?.callLegID ??  UUID.init().uuidString.lowercased()
-        data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
-        
-        var debugData = [String: Any]()
-        var options = [String: Any]()
-        options["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
-        
-        
-        if let connection = peer?.connection {
-            var peerConfiguration = [String: Any]()
-            peerConfiguration["bundlePolicy"] = connection.configuration.bundlePolicy.telnyx_to_string()
-            peerConfiguration["iceTransportPolicy"] = connection.configuration.iceTransportPolicy.telnyx_to_string()
-            peerConfiguration["rtcpMuxPolicy"] = connection.configuration.rtcpMuxPolicy.telnyx_to_string()
-            peerConfiguration["continualGatheringPolicy"] = connection.configuration.continualGatheringPolicy.telnyx_to_string()
-            peerConfiguration["sdpSemantics"] = connection.configuration.sdpSemantics.telnyx_to_string()
-            peerConfiguration["iceCandidatePoolSize"] = connection.configuration.iceCandidatePoolSize
-            peerConfiguration["iceServers"] = connection.configuration.iceServers.map { $0.telnyx_to_stats_dictionary() }
-            peerConfiguration["rtcpAudioReportIntervalMs"] = connection.configuration.rtcpAudioReportIntervalMs
-            peerConfiguration["rtcpVideoReportIntervalMs"] = connection.configuration.rtcpVideoReportIntervalMs
-            
-            debugData["peerConfiguration"] = peerConfiguration
-        }
-        
-        debugData["options"] = options
-        data["data"] = debugData
-        self.sendDebugReportDataMessage(id: reportId, data: data)
     }
 }
