@@ -75,7 +75,8 @@ class Peer : NSObject, WebRTCEventHandler {
         fatalError("Peer:init is unavailable")
     }
 
-    required init(iceServers: [RTCIceServer], isAttach: Bool = false) {
+    required init(iceServers: [RTCIceServer],
+                  isAttach: Bool = false) {
         let config = RTCConfiguration()
         config.iceServers = iceServers
 

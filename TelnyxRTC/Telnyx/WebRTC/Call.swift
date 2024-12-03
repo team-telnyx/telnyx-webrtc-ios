@@ -248,10 +248,14 @@ public class Call {
         self.callOptions = TxCallOptions(destinationNumber: destinationNumber,
                                          clientState: clientState)
 
+        // We need to:
+        // - Create the reporter to send the startReporting message before creating the peer connection
+        // - Start the reporter once the peer connection is created
+        self.configureStatsReporter()
         self.peer = Peer(iceServers: self.iceServers)
+        self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
-        self.configureStatsReporter()
         self.peer?.offer(completion: { (sdp, error)  in
             
             if let error = error {
@@ -376,11 +380,11 @@ extension Call {
             return
         }
         self.answerCustomHeaders = customHeaders
+        self.configureStatsReporter()
         self.peer = Peer(iceServers: self.iceServers)
+        self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
-        self.configureStatsReporter()
-
         self.incomingOffer(sdp: remoteSdp)
         self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "",completion: { (sdp, error)  in
 
@@ -412,10 +416,11 @@ extension Call {
         peer?.dispose()
         self.statsReporter?.dispose()
         self.answerCustomHeaders = customHeaders
+        self.configureStatsReporter()
         self.peer = Peer(iceServers: self.iceServers, isAttach: true)
+        self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
-        self.configureStatsReporter()
         self.incomingOffer(sdp: remoteSdp)
         self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "",completion: { (sdp, error)  in
 
@@ -435,13 +440,17 @@ extension Call {
     
     private func configureStatsReporter() {
         if debug,
-           let callId = self.callInfo?.callId,
-           let peer = self.peer,
            let socket = self.socket {
             self.statsReporter?.dispose()
-            self.statsReporter = WebRTCStatsReporter(peerId: callId,
-                                                     peer: peer,
-                                                     socket: socket)
+            self.statsReporter = WebRTCStatsReporter(socket: socket)
+        }
+    }
+
+    private func startStatsReporter() {
+        if debug,
+           let callId = self.callInfo?.callId,
+           let peer = self.peer {
+            self.statsReporter?.startDebugReport(peerId: callId, peer: peer)
         }
     }
 }

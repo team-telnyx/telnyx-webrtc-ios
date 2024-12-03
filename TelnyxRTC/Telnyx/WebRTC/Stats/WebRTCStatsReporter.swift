@@ -11,28 +11,18 @@ class WebRTCStatsReporter {
     private let messageQueue = DispatchQueue(label: "WebRTCStatsReporter.MessageQueue") // Serial queue
     
     // MARK: - Initializer
-    init(peerId: UUID, peer: Peer, socket: Socket) {
+    init(socket: Socket) {
+        self.socket = socket
+        self.sendDebugReportStartMessage(id: self.reportId)
+    }
+    
+    public func startDebugReport(peerId: UUID,
+                                 peer: Peer) {
         self.peerId = peerId
         self.peer = peer
-        self.socket = socket
-        self.initializeReporter()
+        self.sendAddConnectionMessage()
         self.setupEventHandler()
-    }
-    
-    // MARK: - Private Initialization Method
-    private func initializeReporter() {
-        DispatchQueue.global(qos: .background).async { [weak self] in
-            guard let self = self else { return }
-            self.sendDebugReportStartMessage(id: self.reportId)
-            self.sendAddConnectionMessage()
-            DispatchQueue.main.async { [weak self] in
-                self?.startDebugReport()
-            }
-        }
-    }
-    
-    // MARK: - Start/Stop Reporting
-    public func startDebugReport() {
+
         let queue = DispatchQueue.main
         timer = DispatchSource.makeTimerSource(queue: queue)
         timer?.schedule(deadline: .now(), repeating: 2.0)
@@ -42,7 +32,7 @@ class WebRTCStatsReporter {
         timer?.resume()
     }
     
-    public func stopDebugReport() {
+    private func stopDebugReport() {
         timer?.cancel()
         timer = nil
         sendDebugReportStopMessage(id: reportId)
