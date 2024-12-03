@@ -309,7 +309,7 @@ extension Peer {
  */
 extension Peer : RTCPeerConnectionDelegate {
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange stateChanged: RTCSignalingState) {
-        let state = StatsUtils.mapSignalingState(stateChanged)
+        let state = stateChanged.telnyx_to_string()
         onSignalingStateChange?(stateChanged, peerConnection)
         Logger.log.i(message: "Peer:: connection didChange state: [\(state)]")
     }
@@ -334,12 +334,12 @@ extension Peer : RTCPeerConnectionDelegate {
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceConnectionState) {
         onIceConnectionChange?(newState)
-        Logger.log.i(message: "Peer:: connection didChange ICE connection state: [\(StatsUtils.mapIceConnectionState(newState).uppercased())]")
+        Logger.log.i(message: "Peer:: connection didChange ICE connection state: [\(newState.telnyx_to_string().uppercased())]")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {
         onIceGatheringChange?(newState)
-        Logger.log.s(message: "Peer:: connection didChange ICE gathering state: [\(StatsUtils.mapIceGatheringState(newState).uppercased())]")
+        Logger.log.s(message: "Peer:: connection didChange ICE gathering state: [\(newState.telnyx_to_string().uppercased())]")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {

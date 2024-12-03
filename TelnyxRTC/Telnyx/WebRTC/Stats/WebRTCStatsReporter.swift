@@ -22,11 +22,11 @@ class WebRTCStatsReporter {
     
     // MARK: - Start/Stop Reporting
     public func startDebugReport() {
+        self.sendAddConnectionMessage()
         let queue = DispatchQueue.main
         timer = DispatchSource.makeTimerSource(queue: queue)
         timer?.schedule(deadline: .now(), repeating: 2.0)
         timer?.setEventHandler { [weak self] in
-            self?.sendAddConnectionMessage()
             self?.executeTask()
         }
         timer?.resume()
@@ -150,9 +150,9 @@ extension WebRTCStatsReporter {
             data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
             
             var debugData = [String: Any]()
-            debugData["stream"] = StatsUtils.getStreamDetails(stream: stream)
+            debugData["stream"] = stream.telnyx_to_stats_dictionary()
             if let track = stream.audioTracks.first {
-                debugData["track"] = StatsUtils.getAudioTrackDetails(track: track)
+                debugData["track"] = track.telnyx_to_stats_dictionary()
                 debugData["title"] = track.kind + ":" + track.trackId + " stream:" + stream.streamId
             }
             data["data"] = debugData
@@ -174,7 +174,7 @@ extension WebRTCStatsReporter {
             debugCandidate["candidate"] = candidate.sdp
             debugCandidate["sdpMLineIndex"] = candidate.sdpMLineIndex
             debugCandidate["sdpMid"] = candidate.sdpMid
-            debugCandidate["usernameFragment"] = StatsUtils.extractUfrag(from: candidate.sdp) ?? ""
+            debugCandidate["usernameFragment"] = candidate.telnyx_stats_extractUfrag()
             
             data["data"] = debugCandidate
             self.sendDebugReportDataMessage(id: reportId, data: data)
@@ -192,7 +192,7 @@ extension WebRTCStatsReporter {
             data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
             
             var debugData = [String: Any]()
-            debugData["signalingState"] = StatsUtils.mapSignalingState(state)
+            debugData["signalingState"] = state.telnyx_to_string()
             debugData["localDescription"] = connection.localDescription?.sdp ?? ""
             debugData["remoteDescription"] = connection.remoteDescription?.sdp ?? ""
             
@@ -210,7 +210,7 @@ extension WebRTCStatsReporter {
             // TODO: CHECK CONNECTION ID
             data["connectionId"] = self.peer?.callLegID ??  UUID.init().uuidString.lowercased()
             data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
-            data["data"] = StatsUtils.mapIceConnectionState(state)
+            data["data"] = state.telnyx_to_string()
             self.sendDebugReportDataMessage(id: reportId, data: data)
         }
         
@@ -224,7 +224,7 @@ extension WebRTCStatsReporter {
             // TODO: CHECK CONNECTION ID
             data["connectionId"] = self.peer?.callLegID ??  UUID.init().uuidString.lowercased()
             data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
-            data["data"] = StatsUtils.mapIceGatheringState(state)
+            data["data"] = state.telnyx_to_string()
             self.sendDebugReportDataMessage(id: reportId, data: data)
         }
         
@@ -259,13 +259,13 @@ extension WebRTCStatsReporter {
         
         if let connection = peer?.connection {
             var peerConfiguration = [String: Any]()
-            peerConfiguration["bundlePolicy"] = StatsUtils.mapBundlePolicy(connection.configuration.bundlePolicy)
-            peerConfiguration["iceTransportPolicy"] = StatsUtils.mapTransportPolicy(connection.configuration.iceTransportPolicy)
-            peerConfiguration["rtcpMuxPolicy"] = StatsUtils.mapRtcpMuxPolicy(connection.configuration.rtcpMuxPolicy)
-            peerConfiguration["continualGatheringPolicy"] = StatsUtils.mapContinualGatheringPolicy(connection.configuration.continualGatheringPolicy)
-            peerConfiguration["sdpSemantics"] = StatsUtils.mapSdpSemantics(connection.configuration.sdpSemantics)
+            peerConfiguration["bundlePolicy"] = connection.configuration.bundlePolicy.telnyx_to_string()
+            peerConfiguration["iceTransportPolicy"] = connection.configuration.iceTransportPolicy.telnyx_to_string()
+            peerConfiguration["rtcpMuxPolicy"] = connection.configuration.rtcpMuxPolicy.telnyx_to_string()
+            peerConfiguration["continualGatheringPolicy"] = connection.configuration.continualGatheringPolicy.telnyx_to_string()
+            peerConfiguration["sdpSemantics"] = connection.configuration.sdpSemantics.telnyx_to_string()
             peerConfiguration["iceCandidatePoolSize"] = connection.configuration.iceCandidatePoolSize
-            peerConfiguration["iceServers"] = StatsUtils.mapIceServers(connection.configuration.iceServers)
+            peerConfiguration["iceServers"] = connection.configuration.iceServers.map { $0.telnyx_to_stats_dictionary() }
             peerConfiguration["rtcpAudioReportIntervalMs"] = connection.configuration.rtcpAudioReportIntervalMs
             peerConfiguration["rtcpVideoReportIntervalMs"] = connection.configuration.rtcpVideoReportIntervalMs
             
@@ -277,4 +277,3 @@ extension WebRTCStatsReporter {
         self.sendDebugReportDataMessage(id: reportId, data: data)
     }
 }
-
