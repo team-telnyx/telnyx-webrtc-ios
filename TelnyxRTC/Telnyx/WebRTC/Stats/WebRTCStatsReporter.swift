@@ -79,6 +79,16 @@ class WebRTCStatsReporter {
         }
     }
     
+    private func sendWebRTCStatsEvent(event: WebRTCStatsEvent, tag: WebRTCStatsTag, data: [String: Any]) {
+        var reportData = [String: Any]()
+        reportData["event"] = event.rawValue
+        reportData["tag"] = tag.rawValue
+        reportData["connectionId"] = self.peer?.callLegID ?? UUID.init().uuidString.lowercased()
+        reportData["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
+        reportData["data"] = data
+        self.sendDebugReportDataMessage(id: reportId, data: reportData)
+    }
+    
     private func sendAddConnectionMessage() {
         var data = [String : Any]()
         data["event"] = WebRTCStatsEvent.addConnection.rawValue
@@ -170,107 +180,51 @@ extension WebRTCStatsReporter {
 
 // MARK: - Peer Event Handling
 extension WebRTCStatsReporter {
+
     public func setupEventHandler() {
         self.peer?.onAddStream = { [weak self] stream in
             guard let self = self else { return }
-            var data = [String : Any]()
-            data["event"] = WebRTCStatsEvent.onTrack.rawValue
-            data["tag"] = WebRTCStatsTag.track.rawValue
-            
-            // TODO: CHECK CONNECTION ID
-            data["connectionId"] = self.peer?.callLegID ??  UUID.init().uuidString.lowercased()
-            data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
-            
             var debugData = [String: Any]()
             debugData["stream"] = stream.telnyx_to_stats_dictionary()
             if let track = stream.audioTracks.first {
                 debugData["track"] = track.telnyx_to_stats_dictionary()
                 debugData["title"] = track.kind + ":" + track.trackId + " stream:" + stream.streamId
             }
-            data["data"] = debugData
-            self.sendDebugReportDataMessage(id: reportId, data: data)
+            self.sendWebRTCStatsEvent(event: .onTrack, tag: .track, data: debugData)
         }
         
         self.peer?.onIceCandidate = { [weak self] candidate in
             guard let self = self else { return }
-            
-            var data = [String : Any]()
-            data["event"] = WebRTCStatsEvent.onIceCandidate.rawValue
-            data["tag"] = WebRTCStatsTag.connection.rawValue
-            
-            // TODO: CHECK CONNECTION ID
-            data["connectionId"] = self.peer?.callLegID ??  UUID.init().uuidString.lowercased()
-            data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
-            
             var debugCandidate = [String: Any]()
             debugCandidate["candidate"] = candidate.sdp
             debugCandidate["sdpMLineIndex"] = candidate.sdpMLineIndex
             debugCandidate["sdpMid"] = candidate.sdpMid
             debugCandidate["usernameFragment"] = candidate.telnyx_stats_extractUfrag()
-            
-            data["data"] = debugCandidate
-            self.sendDebugReportDataMessage(id: reportId, data: data)
+            self.sendWebRTCStatsEvent(event: .onIceCandidate, tag: .connection, data: debugCandidate)
         }
         
         self.peer?.onSignalingStateChange = { [weak self] state, connection in
             guard let self = self else { return }
-            
-            var data = [String : Any]()
-            data["event"] = WebRTCStatsEvent.onSignalingStateChange.rawValue
-            data["tag"] = WebRTCStatsTag.connection.rawValue
-            
-            // TODO: CHECK CONNECTION ID
-            data["connectionId"] = self.peer?.callLegID ??  UUID.init().uuidString.lowercased()
-            data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
-            
             var debugData = [String: Any]()
             debugData["signalingState"] = state.telnyx_to_string()
             debugData["localDescription"] = connection.localDescription?.sdp ?? ""
             debugData["remoteDescription"] = connection.remoteDescription?.sdp ?? ""
-            
-            data["data"] = debugData
-            self.sendDebugReportDataMessage(id: reportId, data: data)
+            self.sendWebRTCStatsEvent(event: .onSignalingStateChange, tag: .connection, data: debugData)
         }
         
         self.peer?.onIceConnectionChange = { [weak self] state in
             guard let self = self else { return }
-            
-            var data = [String : Any]()
-            data["event"] = WebRTCStatsEvent.onIceConnectionStateChange.rawValue
-            data["tag"] = WebRTCStatsTag.connection.rawValue
-            
-            // TODO: CHECK CONNECTION ID
-            data["connectionId"] = self.peer?.callLegID ??  UUID.init().uuidString.lowercased()
-            data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
-            data["data"] = state.telnyx_to_string()
-            self.sendDebugReportDataMessage(id: reportId, data: data)
+            self.sendWebRTCStatsEvent(event: .onIceConnectionStateChange, tag: .connection, data: ["data": state.telnyx_to_string()])
         }
         
         self.peer?.onIceGatheringChange = { [weak self] state in
             guard let self = self else { return }
-            
-            var data = [String : Any]()
-            data["event"] = WebRTCStatsEvent.onIceGatheringStateChange.rawValue
-            data["tag"] = WebRTCStatsTag.connection.rawValue
-            
-            // TODO: CHECK CONNECTION ID
-            data["connectionId"] = self.peer?.callLegID ??  UUID.init().uuidString.lowercased()
-            data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
-            data["data"] = state.telnyx_to_string()
-            self.sendDebugReportDataMessage(id: reportId, data: data)
+            self.sendWebRTCStatsEvent(event: .onIceGatheringStateChange, tag: .connection, data: ["data": state.telnyx_to_string()])
         }
         
         self.peer?.onNegotiationNeeded = { [weak self] in
             guard let self = self else { return }
-            
-            var data = [String : Any]()
-            data["event"] = WebRTCStatsEvent.onNegotiationNeeded.rawValue
-            data["tag"] = WebRTCStatsTag.connection.rawValue
-            
-            // TODO: CHECK CONNECTION ID
-            data["connectionId"] = self.peer?.callLegID ??  UUID.init().uuidString.lowercased()
-            data["peerId"] = peerId?.uuidString.lowercased() ?? UUID.init().uuidString.lowercased()
-            self.sendDebugReportDataMessage(id: reportId, data: data)
+            self.sendWebRTCStatsEvent(event: .onNegotiationNeeded, tag: .connection, data: [:])
         }
     }
 }
