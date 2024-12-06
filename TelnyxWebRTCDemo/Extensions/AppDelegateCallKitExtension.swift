@@ -214,7 +214,18 @@ extension AppDelegate : CXProviderDelegate {
     }
     
     func provider(_ provider: CXProvider, perform action: CXSetMutedCallAction) {
-        print("provider:performSetMutedAction:")
+        print("provider:performSetMutedAction: \(action.isMuted)")
+        if let call = currentCall {
+            if action.isMuted {
+                print("provider:performSetMutedAction: incoming action to mute call")
+                call.muteAudio()
+            } else {
+                print("provider:performSetMutedAction: incoming action to unmute call")
+                call.unmuteAudio()
+            }
+            print("provider:performSetMutedAction: call.isMuted \(call.isMuted)")
+        }
+        action.fulfill()
     }
     
     func processVoIPNotification(callUUID: UUID,pushMetaData:[String: Any]) {
