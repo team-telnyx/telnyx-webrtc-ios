@@ -12,7 +12,7 @@ import TelnyxRTC
 protocol UICallScreenDelegate: AnyObject {
     func onCallButton()
     func onEndCallButton()
-    func onMuteUnmuteSwitch(isMuted: Bool)
+    func onMuteUnmuteSwitch(mute: Bool)
     func onHoldUnholdSwitch(isOnHold: Bool)
     func onToggleSpeaker(isSpeakerActive: Bool)
 }
@@ -36,6 +36,13 @@ class UICallScreen: UIView {
     @IBOutlet weak var holdUnholdSwitch: UISwitch!
     @IBOutlet weak var holdUnholdLabel: UILabel!
     @IBOutlet weak var speakerOnOffSwitch: UISwitch!
+    
+    var isMuted: Bool = false {
+        didSet {
+            muteUnmuteSwitch.isOn = isMuted
+            muteUnmuteLabel.text = isMuted ? "Unmute" : "Mute"
+        }
+    }
     
     
     override init(frame: CGRect) {
@@ -123,11 +130,6 @@ class UICallScreen: UIView {
         self.holdUnholdLabel.text = "Hold"
     }
 
-    func resetMuteUnmuteState() {
-        self.muteUnmuteSwitch.setOn(false, animated: false)
-        self.muteUnmuteLabel.text = "Mute"
-    }
-
     @IBAction func callButtonTapped(_ sender: Any) {
         self.delegate?.onCallButton()
     }
@@ -137,12 +139,8 @@ class UICallScreen: UIView {
     }
 
     @IBAction func muteUnmuteTapped(_ sender: Any) {
-        if (muteUnmuteSwitch.isOn) {
-            self.muteUnmuteLabel.text = "Unmute"
-        } else {
-            self.muteUnmuteLabel.text = "Mute"
-        }
-        self.delegate?.onMuteUnmuteSwitch(isMuted: muteUnmuteSwitch.isOn)
+        let shouldMute = muteUnmuteSwitch.isOn
+        self.delegate?.onMuteUnmuteSwitch(mute: shouldMute)
     }
 
     @IBAction func holdUnholdTapped(_ sender: Any) {

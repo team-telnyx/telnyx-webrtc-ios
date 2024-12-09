@@ -76,11 +76,21 @@ class ViewController: UIViewController {
         self.telnyxClient = appDelegate.telnyxClient
         self.initViews()
         
+        // Register notifications
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(appWillEnterForeground),
+                                               name: UIApplication.willEnterForegroundNotification,
+                                               object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 
     func initViews() {
         print("ViewController:: initViews()")
         self.callView.isHidden = true
+        self.callView.isMuted = self.appDelegate.currentCall?.isMuted ?? false
         self.callView.delegate = self
         self.callView.hideEndButton(hide: true)
 
@@ -130,6 +140,11 @@ class ViewController: UIViewController {
             // Internal use only
             self.showHiddenOptions()
         }
+    }
+    
+    @objc func appWillEnterForeground() {
+        print("ViewController:: App is about to enter the foreground")
+        self.callView.isMuted = self.appDelegate.currentCall?.isMuted ?? false
     }
 
     func showHiddenOptions() {
@@ -251,8 +266,8 @@ class ViewController: UIViewController {
         self.incomingCall = false
         self.incomingCallView.isHidden = true
         self.callView.isHidden = false
-        self.callView.resetMuteUnmuteState()
         self.callView.resetHoldUnholdState()
+        self.callView.isMuted = self.appDelegate.currentCall?.isMuted ?? false
         self.callView.resetSpeakerState()
     }
     
@@ -300,12 +315,11 @@ extension ViewController : UICallScreenDelegate {
         appDelegate.executeEndCallAction(uuid: uuid)
     }
     
-    func onMuteUnmuteSwitch(isMuted: Bool) {
-        if (isMuted) {
-            self.appDelegate.currentCall?.muteAudio()
-        } else {
-            self.appDelegate.currentCall?.unmuteAudio()
+    func onMuteUnmuteSwitch(mute: Bool) {
+        guard let callId = self.appDelegate.currentCall?.callInfo?.callId else {
+            return
         }
+        self.appDelegate.executeMuteUnmuteAction(uuid: callId, mute: mute)
     }
     
     func onHoldUnholdSwitch(isOnHold: Bool) {

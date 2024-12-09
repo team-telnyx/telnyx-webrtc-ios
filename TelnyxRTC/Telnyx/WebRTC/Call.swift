@@ -120,9 +120,16 @@ public class Call {
     public var callInfo: TxCallInfo?
     /// `CallState` The actual state of the Call.
     public var callState: CallState = .NEW
+    
+    /// `isMuted` Indicates if the call audio is muted based on the peer's audio track state.
+    public var isMuted: Bool {
+        return !(peer?.isAudioTrackEnabled ?? false)
+    }
 
     private var ringTonePlayer: AVAudioPlayer?
     private var ringbackPlayer: AVAudioPlayer?
+    
+    
 
     // MARK: - Initializers
     /// Constructor for incoming calls
