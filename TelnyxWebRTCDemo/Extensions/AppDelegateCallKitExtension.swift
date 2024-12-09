@@ -139,7 +139,21 @@ extension AppDelegate : CXProviderDelegate {
             self.callKitUUID = nil
         }
     }
-    // MARK: - CXProviderDelegate - 
+    
+    func executeMuteUnmuteAction(uuid: UUID, mute: Bool) {
+        let muteAction = CXSetMutedCallAction(call: uuid, muted: mute)
+        let transaction = CXTransaction(action: muteAction)
+        
+        callKitCallController.request(transaction) { error in
+            if let error = error {
+                print("Error executing mute/unmute action: \(error.localizedDescription)")
+            } else {
+                print("Successfully executed mute/unmute action. Mute: \(mute)")
+            }
+        }
+    }
+    
+    // MARK: - CXProviderDelegate -
     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
         print("AppDelegate:: START call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
         self.callKitUUID = action.callUUID
