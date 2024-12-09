@@ -76,6 +76,15 @@ class ViewController: UIViewController {
         self.telnyxClient = appDelegate.telnyxClient
         self.initViews()
         
+        // Register notifications
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(appWillEnterForeground),
+                                               name: UIApplication.willEnterForegroundNotification,
+                                               object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 
     func initViews() {
@@ -131,6 +140,11 @@ class ViewController: UIViewController {
             // Internal use only
             self.showHiddenOptions()
         }
+    }
+    
+    @objc func appWillEnterForeground() {
+        print("ViewController:: App is about to enter the foreground")
+        self.callView.isMuted = self.appDelegate.currentCall?.isMuted ?? false
     }
 
     func showHiddenOptions() {
