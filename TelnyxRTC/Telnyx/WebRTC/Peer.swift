@@ -62,6 +62,7 @@ class Peer : NSObject, WebRTCEventHandler {
 
     public var isAudioTrackEnabled: Bool {
         if self.connection?.configuration.sdpSemantics == .planB {
+            return self.connection?.senders
                 .compactMap { $0.track as? RTCAudioTrack }
                 .first?.isEnabled ?? false
         } else {
