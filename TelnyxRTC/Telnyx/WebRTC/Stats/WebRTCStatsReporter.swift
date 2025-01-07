@@ -113,35 +113,63 @@ class WebRTCStatsReporter {
             var connection = [Any]()
             var statsData = [String: Any]()
             var statsObject = [String: Any]()
-            
+            Logger.log.i(message: "WebRTCStatsReporter:: Task executed at \(reports.statistics)")
+
             reports.statistics.forEach { report in
-                let values = report.value.values
+                var values = report.value.values
+                values["type"] = report.value.type as NSObject
+                values["id"] = report.value.id as NSObject
+                values["timestamp"] = (report.value.timestamp_us / 1000.0) as NSObject
+                
                 switch report.value.type {
                     case "inbound-rtp":
-                        audioInboundStats.append(values)
+                        if let kind = values["kind"] as? String, kind == "audio" {
+                            audioInboundStats.append(values)
+                            statsObject[report.key] = values
+                        }
                         
                     case "outbound-rtp":
-                        audioOutboundStats.append(values)
+                        if let kind = values["kind"] as? String, kind == "audio" {
+                            audioOutboundStats.append(values)
+                            statsObject[report.key] = values
+                        }
                         
                     case "candidate-pair":
                         connection.append(values)
+                        statsObject[report.key] = values
+                        
                     default:
                         statsObject[report.key] = values
                 }
             }
             
-            statsEvent["event"] = WebRTCStatsEvent.stats.rawValue
-            statsEvent["tag"] = WebRTCStatsTag.stats.rawValue
-            statsEvent["peerId"] = self.peerId?.uuidString
-            statsEvent["connectionId"] = peer.callLegID ?? ""
+            // Otbound Stats
+            audioOutboundStats.enumerated().forEach { (index, outboundStat) in
+                if let outboundDict = outboundStat as? [String: NSObject], // Aseguramos el tipo
+                   let mediaSourceId = outboundDict["mediaSourceId"] as? String,
+                   let mediaSource = statsObject[mediaSourceId] as? [String: NSObject] {
+                    var updatedStat = outboundDict
+                    var updatedMediaSource = mediaSource
+                    updatedMediaSource["id"] = mediaSourceId as NSObject
+                    updatedStat["track"] = updatedMediaSource as NSObject
+                    audioOutboundStats[index] = updatedStat as NSDictionary // Actualizamos en la lista
+                }
+            }
+
+            // Event Object
+            statsEvent["event"] = WebRTCStatsEvent.stats.rawValue as NSObject
+            statsEvent["tag"] = WebRTCStatsTag.stats.rawValue as NSObject
+            statsEvent["peerId"] = self.peerId?.uuidString as NSObject? ?? NSNull()
+            statsEvent["connectionId"] = peer.callLegID as NSObject? ?? NSNull()
             
             statsData["audio"] = [
                 "inbound": audioInboundStats,
                 "outbound": audioOutboundStats
-            ]
-            statsData["connection"] = connection
-            statsEvent["data"] = statsData
-            statsEvent["statsObject"] = statsObject
+            ] as NSObject
+            statsData["connection"] = connection as NSObject
+            statsEvent["data"] = statsData as NSObject
+            statsEvent["statsObject"] = statsObject as NSObject
+
             self.sendDebugReportDataMessage(id: self.reportId, data: statsEvent)
         })
     }
