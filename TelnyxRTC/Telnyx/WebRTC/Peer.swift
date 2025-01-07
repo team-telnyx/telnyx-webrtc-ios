@@ -60,6 +60,17 @@ class Peer : NSObject, WebRTCEventHandler {
     var onRemoveIceCandidates: (([RTCIceCandidate]) -> Void)?
     var onDataChannel: ((RTCDataChannel) -> Void)?
 
+    public var isAudioTrackEnabled: Bool {
+        if self.connection?.configuration.sdpSemantics == .planB {
+                .compactMap { $0.track as? RTCAudioTrack }
+                .first?.isEnabled ?? false
+        } else {
+            return self.connection?.transceivers
+                .compactMap { $0.sender.track as? RTCAudioTrack }
+                .first?.isEnabled ?? false
+        }
+    }
+    
     // The `RTCPeerConnectionFactory` is in charge of creating new RTCPeerConnection instances.
     // A new RTCPeerConnection should be created every new call, but the factory is shared.
     private static let factory: RTCPeerConnectionFactory = {
@@ -282,9 +293,19 @@ class Peer : NSObject, WebRTCEventHandler {
 extension Peer {
     //DO NOT USE THIS FOR planB
     private func setTrackEnabled<T: RTCMediaStreamTrack>(_ type: T.Type, isEnabled: Bool) {
-        self.connection?.transceivers
-            .compactMap { return $0.sender.track as? T }
-            .forEach { $0.isEnabled = isEnabled }
+        Logger.log.i(message: "setTrackEnabled: \(isEnabled)")
+
+        if let transceivers = self.connection?.transceivers {
+            Logger.log.i(message:"setTrackEnabled: transeivers \(transceivers)")
+
+            transceivers.compactMap { return $0.sender.track as? T }
+            .forEach {
+                $0.isEnabled = isEnabled
+                Logger.log.i(message:"setTrackEnabled IsEnabled: \(isEnabled)")
+            }
+        } else {
+            Logger.log.i(message:"setTrackEnabled transeivers empty")
+        }
     }
 }
 
@@ -303,6 +324,7 @@ extension Peer {
             self.setTrackEnabled(RTCAudioTrack.self, isEnabled: !mute)
         }
     }
+    
 }
 // MARK: -RTCPeerConnectionDelegate
 /**

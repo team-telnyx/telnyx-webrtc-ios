@@ -139,7 +139,21 @@ extension AppDelegate : CXProviderDelegate {
             self.callKitUUID = nil
         }
     }
-    // MARK: - CXProviderDelegate - 
+    
+    func executeMuteUnmuteAction(uuid: UUID, mute: Bool) {
+        let muteAction = CXSetMutedCallAction(call: uuid, muted: mute)
+        let transaction = CXTransaction(action: muteAction)
+        
+        callKitCallController.request(transaction) { error in
+            if let error = error {
+                print("Error executing mute/unmute action: \(error.localizedDescription)")
+            } else {
+                print("Successfully executed mute/unmute action. Mute: \(mute)")
+            }
+        }
+    }
+    
+    // MARK: - CXProviderDelegate -
     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
         print("AppDelegate:: START call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
         self.callKitUUID = action.callUUID
@@ -212,7 +226,18 @@ extension AppDelegate : CXProviderDelegate {
     }
     
     func provider(_ provider: CXProvider, perform action: CXSetMutedCallAction) {
-        print("provider:performSetMutedAction:")
+        print("provider:performSetMutedAction: \(action.isMuted)")
+        if let call = currentCall {
+            if action.isMuted {
+                print("provider:performSetMutedAction: incoming action to mute call")
+                call.muteAudio()
+            } else {
+                print("provider:performSetMutedAction: incoming action to unmute call")
+                call.unmuteAudio()
+            }
+            print("provider:performSetMutedAction: call.isMuted \(call.isMuted)")
+        }
+        action.fulfill()
     }
     
     func processVoIPNotification(callUUID: UUID,pushMetaData:[String: Any]) {
