@@ -110,7 +110,7 @@ class WebRTCStatsReporter {
             var statsEvent = [String: Any]()
             var audioInboundStats = [Any]()
             var audioOutboundStats = [Any]()
-            var connection = [Any]()
+            var connectionCandidates = [Any]()
             var statsData = [String: Any]()
             var statsObject = [String: Any]()
             Logger.log.i(message: "WebRTCStatsReporter:: Task executed at \(reports.statistics)")
@@ -135,7 +135,7 @@ class WebRTCStatsReporter {
                         }
                         
                     case "candidate-pair":
-                        connection.append(values)
+                        connectionCandidates.append(values)
                         statsObject[report.key] = values
                         
                     default:
@@ -155,6 +155,44 @@ class WebRTCStatsReporter {
                     audioOutboundStats[index] = updatedStat as NSDictionary // Actualizamos en la lista
                 }
             }
+            
+            // Retrieve the T01 stats and selectedCandidatePairId from the statsObject
+            if let t01Stats = statsObject["T01"] as? [String: NSObject],
+               let selectedCandidatePairId = t01Stats["selectedCandidatePairId"] as? String {
+                
+                // Find the corresponding candidate pair based on the selectedCandidatePairId
+                if let connectionCandidateMap = connectionCandidates.first(where: { candidate in
+                    // Ensure the element is a dictionary of type [String: NSObject]
+                    if let candidateDict = candidate as? [String: NSObject],
+                       let id = candidateDict["id"] as? String {
+                        // Match the candidate id with the selectedCandidatePairId
+                        return id == selectedCandidatePairId
+                    }
+                    return false
+                }) as? [String: NSObject] {
+                    var updatedConnection = connectionCandidateMap
+                    
+                    // Search for local and remote candidates using their respective ids
+                    if let localId = connectionCandidateMap["localCandidateId"] as? String,
+                       let local = statsObject[localId] as? [String: NSObject] {
+                        // Update the local candidate data
+                        var updatedLocal = local
+                        updatedLocal["id"] = localId as NSObject
+                        updatedConnection["local"] = updatedLocal as NSObject
+                    }
+                    
+                    if let remoteId = connectionCandidateMap["remoteCandidateId"] as? String,
+                       let remote = statsObject[remoteId] as? [String: NSObject] {
+                        // Update the remote candidate data
+                        var updatedRemote = remote
+                        updatedRemote["id"] = remoteId as NSObject
+                        updatedConnection["remote"] = updatedRemote as NSObject
+                    }
+                    
+                    // Add the updated connection candidate to the stats data
+                    statsData["connection"] = updatedConnection
+                }
+            }
 
             // Event Object
             statsEvent["event"] = WebRTCStatsEvent.stats.rawValue as NSObject
@@ -166,7 +204,6 @@ class WebRTCStatsReporter {
                 "inbound": audioInboundStats,
                 "outbound": audioOutboundStats
             ] as NSObject
-            statsData["connection"] = connection as NSObject
             statsEvent["data"] = statsData as NSObject
             statsEvent["statsObject"] = statsObject as NSObject
 
