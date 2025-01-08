@@ -13,16 +13,20 @@ class WebRTCStatsReporter {
     // MARK: - Initializer
     init(socket: Socket) {
         self.socket = socket
-        self.sendDebugReportStartMessage(id: self.reportId)
     }
     
     public func startDebugReport(peerId: UUID,
                                  peer: Peer) {
+        
         self.peerId = peerId
         self.peer = peer
-        self.sendAddConnectionMessage()
+        self.sendDebugReportStartMessage(id: self.reportId)
+        
+        let delay = DispatchTime.now() + 0.2
+        DispatchQueue.main.asyncAfter(deadline: delay) { [weak self] in
+            self?.sendAddConnectionMessage()
+        }
         self.setupEventHandler()
-
         let queue = DispatchQueue.main
         timer = DispatchSource.makeTimerSource(queue: queue)
         timer?.schedule(deadline: .now(), repeating: 2.0)
