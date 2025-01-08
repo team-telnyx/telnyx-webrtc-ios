@@ -2,13 +2,12 @@ import WebRTC
 
 class WebRTCStatsReporter {
     // MARK: - Properties
-    private let CANDIDATE_PAIR_LIMIT = 5
     private var timer: DispatchSourceTimer?
     private var peerId: UUID?
     private var reportId: UUID = UUID.init()
     private weak var peer: Peer?
     weak var socket: Socket?
-    private let messageQueue = DispatchQueue(label: "WebRTCStatsReporter.MessageQueue") // Serial queue
+    private let messageQueue = DispatchQueue(label: "WebRTCStatsReporter.MessageQueue")
     
     // MARK: - Initializer
     init(socket: Socket) {
@@ -149,24 +148,22 @@ class WebRTCStatsReporter {
             
             // Otbound Stats
             audioOutboundStats.enumerated().forEach { (index, outboundStat) in
-                if let outboundDict = outboundStat as? [String: NSObject], // Aseguramos el tipo
+                if let outboundDict = outboundStat as? [String: NSObject],
                    let mediaSourceId = outboundDict["mediaSourceId"] as? String,
                    let mediaSource = statsObject[mediaSourceId] as? [String: NSObject] {
                     var updatedStat = outboundDict
                     var updatedMediaSource = mediaSource
                     updatedMediaSource["id"] = mediaSourceId as NSObject
                     updatedStat["track"] = updatedMediaSource as NSObject
-                    audioOutboundStats[index] = updatedStat as NSDictionary // Actualizamos en la lista
+                    audioOutboundStats[index] = updatedStat as NSDictionary
                 }
             }
             
             // Retrieve the T01 stats and selectedCandidatePairId from the statsObject
             if let t01Stats = statsObject["T01"] as? [String: NSObject],
                let selectedCandidatePairId = t01Stats["selectedCandidatePairId"] as? String {
-                
                 // Find the corresponding candidate pair based on the selectedCandidatePairId
                 if let connectionCandidateMap = connectionCandidates.first(where: { candidate in
-                    // Ensure the element is a dictionary of type [String: NSObject]
                     if let candidateDict = candidate as? [String: NSObject],
                        let id = candidateDict["id"] as? String {
                         // Match the candidate id with the selectedCandidatePairId
@@ -192,7 +189,6 @@ class WebRTCStatsReporter {
                         updatedRemote["id"] = remoteId as NSObject
                         updatedConnection["remote"] = updatedRemote as NSObject
                     }
-                    
                     // Add the updated connection candidate to the stats data
                     statsData["connection"] = updatedConnection
                 }
