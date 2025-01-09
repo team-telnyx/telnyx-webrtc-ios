@@ -27,6 +27,9 @@ public struct TxConfig {
     public internal(set) var ringtone: String?
     public internal(set) var reconnectClient: Bool = true
     public internal(set) var pushEnvironment: PushEnvironment?
+    
+    // To enable stats debuggin
+    public internal(set) var debug: Bool = false
 
     // MARK: - Initializers
 
@@ -44,7 +47,8 @@ public struct TxConfig {
                 ringBackTone: String? = nil,
                 pushEnvironment: PushEnvironment? = nil,
                 logLevel: LogLevel = .none,
-                reconnectClient:Bool = true
+                reconnectClient: Bool = true,
+                debug: Bool = false
     ) {
         self.sipUser = sipUser
         self.password = password
@@ -56,6 +60,7 @@ public struct TxConfig {
         self.ringtone = ringtone
         self.reconnectClient = reconnectClient
         self.pushEnvironment = pushEnvironment
+        self.debug = debug
         Logger.log.verboseLevel = logLevel
     }
 
@@ -72,7 +77,8 @@ public struct TxConfig {
                 ringtone: String? = nil,
                 ringBackTone: String? = nil,
                 pushEnvironment: PushEnvironment? = nil,
-                logLevel: LogLevel = .none) {
+                logLevel: LogLevel = .none,
+                debug: Bool = false) {
         self.token = token
         if let pushToken = pushDeviceToken {
             //Create a notification configuration if there's an available a device push notification token
@@ -81,6 +87,7 @@ public struct TxConfig {
         self.ringBackTone = ringBackTone
         self.ringtone = ringtone
         self.pushEnvironment = pushEnvironment
+        self.debug = debug
         Logger.log.verboseLevel = logLevel
     }
 

@@ -468,8 +468,9 @@ extension TxClient {
                         delegate: self,
                         ringtone: self.txConfig?.ringtone,
                         ringbackTone: self.txConfig?.ringBackTone,
-                        iceServers: self.serverConfiguration.webRTCIceServers)
-        call.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState,customHeaders: customHeaders)
+                        iceServers: self.serverConfiguration.webRTCIceServers,
+                        debug: self.txConfig?.debug ?? false)
+        call.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState, customHeaders: customHeaders)
 
         currentCallId = callId
         self.calls[callId] = call
@@ -509,8 +510,8 @@ extension TxClient {
                         ringtone: self.txConfig?.ringtone,
                         ringbackTone: self.txConfig?.ringBackTone,
                         iceServers: self.serverConfiguration.webRTCIceServers,
-                        isAttach: isAttach
-        )
+                        isAttach: isAttach,
+                        debug: self.txConfig?.debug ?? false)
         call.callInfo?.callerName = callerName
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)
@@ -593,11 +594,11 @@ extension TxClient {
         if(noActiveCalls){
             do {
                 Logger.log.i(message: "TxClient:: No Active Calls Connecting Again")
-                 try self.connectFromPush(txConfig: txConfig, serverConfiguration: pnServerConfig)
+                try self.connectFromPush(txConfig: txConfig, serverConfiguration: pnServerConfig)
                 
                 // Create an initial call_object to handle early bye message
                 if let newCallId = (pushMetaData["call_id"] as? String) {
-                    self.calls[UUID(uuidString: newCallId)!] = Call(callId: UUID(uuidString: newCallId)! , sessionId: newCallId, socket: self.socket!, delegate: self, iceServers: self.serverConfiguration.webRTCIceServers)
+                    self.calls[UUID(uuidString: newCallId)!] = Call(callId: UUID(uuidString: newCallId)! , sessionId: newCallId, socket: self.socket!, delegate: self, iceServers: self.serverConfiguration.webRTCIceServers, debug: self.txConfig?.debug ?? false)
                 }
             } catch let error {
                 Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")

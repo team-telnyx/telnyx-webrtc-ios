@@ -10,11 +10,10 @@ import Foundation
 import WebRTC
 
 protocol PeerDelegate: AnyObject {
-    //TODO: Rename this to "negotiationDidEnded"
-    func onICECandidate(sdp: RTCSessionDescription?, iceCandidate: RTCIceCandidate)
+    func onNegotiationEnded(sdp: RTCSessionDescription?)
 }
 
-class Peer : NSObject {
+class Peer : NSObject, WebRTCEventHandler {
 
     private let audioQueue = DispatchQueue(label: "audio")
     private let NEGOTIATION_TIMOUT = 0.3 //time in milliseconds
@@ -22,11 +21,12 @@ class Peer : NSObject {
     private let VIDEO_TRACK_ID = "video0"
     //TODO: REMOVE THIS FOR V1
     private let VIDEO_DEMO_LOCAL_VIDEO = "local_video_streaming.mp4"
-    private var gatheredICECandidates:[String] = []
-    var socket:Socket? 
-    private let timeStamp = Timestamp()
+    private var gatheredICECandidates: [String] = []
+    var socket: Socket?
 
-    private let mediaConstrains = [kRTCMediaConstraintsOfferToReceiveAudio: kRTCMediaConstraintsValueTrue, kRTCMediaConstraintsOfferToReceiveVideo: kRTCMediaConstraintsValueFalse]
+
+    private let mediaConstrains = [kRTCMediaConstraintsOfferToReceiveAudio: kRTCMediaConstraintsValueTrue,
+                                   kRTCMediaConstraintsOfferToReceiveVideo: kRTCMediaConstraintsValueFalse]
 
     weak var delegate: PeerDelegate?
     var connection : RTCPeerConnection?
@@ -39,7 +39,7 @@ class Peer : NSObject {
     private var videoCapturer: RTCVideoCapturer?
     private var localVideoTrack: RTCVideoTrack?
     private var remoteVideoTrack: RTCVideoTrack?
-    private var callLegID: String?
+    internal var callLegID: String?
 
     //Data channel
     private var localDataChannel: RTCDataChannel?
@@ -48,6 +48,17 @@ class Peer : NSObject {
     //ICE negotiation
     private var negotiationTimer: Timer?
     private var negotiationEnded: Bool = false
+
+    // WEBRTC STATS
+    var onSignalingStateChange: ((RTCSignalingState, RTCPeerConnection) -> Void)?
+    var onAddStream: ((RTCMediaStream) -> Void)?
+    var onRemoveStream: ((RTCMediaStream) -> Void)?
+    var onNegotiationNeeded: (() -> Void)?
+    var onIceConnectionChange: ((RTCIceConnectionState) -> Void)?
+    var onIceGatheringChange: ((RTCIceGatheringState) -> Void)?
+    var onIceCandidate: ((RTCIceCandidate) -> Void)?
+    var onRemoveIceCandidates: (([RTCIceCandidate]) -> Void)?
+    var onDataChannel: ((RTCDataChannel) -> Void)?
 
     public var isAudioTrackEnabled: Bool {
         if self.connection?.configuration.sdpSemantics == .planB {
@@ -76,7 +87,8 @@ class Peer : NSObject {
         fatalError("Peer:init is unavailable")
     }
 
-    required init(iceServers: [RTCIceServer],isAttach:Bool = false) {
+    required init(iceServers: [RTCIceServer],
+                  isAttach: Bool = false) {
         let config = RTCConfiguration()
         config.iceServers = iceServers
 
@@ -94,7 +106,7 @@ class Peer : NSObject {
 
         super.init()
         self.createMediaSenders()
-        if(!isAttach){
+        if (!isAttach) {
             self.configureAudioSession()
         }
         //listen RTCPeer connection events
@@ -187,7 +199,7 @@ class Peer : NSObject {
 
 
     // MARK: Signaling ANSWER
-    func answer(callLegId:String,completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
+    func answer(callLegId: String, completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
         self.negotiationEnded = false
         let constrains = RTCMediaConstraints(mandatoryConstraints: self.mediaConstrains,
                                              optionalConstraints: nil)
@@ -213,108 +225,6 @@ class Peer : NSObject {
             })
         }
     }
-    
-    private var timer: DispatchSourceTimer?
-
-    private var statsEvent = [String: Any]()
-    private var inboundStats = [Any]()
-    private var outBoundStats = [Any]()
-    private var statsData = [String: Any]()
-    private var audio = [String: [Any]]()
-    private var candidatePairs =  [Any]()
-    private let CANDIDATE_PAIR_LIMIT = 5
-    private var debugStatsId = UUID.init()
-    private var debugReportStarted = false
-    private var isDebugStats = false
-
-        func startTimer() {
-            isDebugStats = true
-            let queue = DispatchQueue.main
-            timer = DispatchSource.makeTimerSource(queue: queue)
-            timer?.schedule(deadline: .now(), repeating: 2.0)
-            timer?.setEventHandler { [weak self] in
-                self?.executeTask()
-            }
-            timer?.resume()
-        }
-
-        func stopTimer() {
-            statsData["audio"] = audio
-            statsEvent["data"] = statsData
-            statsEvent.printJson()
-            timer?.cancel()
-            timer = nil
-            sendStatsType(id: debugStatsId, type: StatsType.STOP_STARTS.rawValue)
-            debugReportStarted = false
-            isDebugStats = false
-        }
-    
-    /// To receive INVITE message after Push Noficiation is Received. Send attachCall Command
-    fileprivate func sendStats(id:UUID,data:[String:Any]) {
-        Logger.log.e(message: "TxClient:: Sending Stats")
-        let statsMessage = StatsMessage(reportID: id.uuidString.lowercased(), reportData: data)
-        self.socket?.sendMessage(message: statsMessage.encode())
-    }
-    
-    fileprivate func sendStatsType(id:UUID,type:String) {
-        Logger.log.e(message: "TxClient:: Sending Stats \(type)")
-        let statsMessage = InitiateOrStopStats(type: type, reportID: id.uuidString.lowercased())
-        self.socket?.sendMessage(message: statsMessage.encode())
-    }
-    
-    
-
-        private func executeTask() {
-            print("Task executed at \(Date())")
-            
-            
-            if(!debugReportStarted){
-                debugStatsId = UUID.init()
-                sendStatsType(id: debugStatsId, type: StatsType.START_STARTS.rawValue)
-                debugReportStarted = true
-            }
-          
-            statsEvent["event"] = "stats"
-            statsEvent["tag"] = "stats"
-            statsEvent["peerId"] = "stats"
-            statsEvent["connectionId"] = self.callLegID ?? ""
-            statsEvent["timeTaken"] = 1
-            
-            
-
-            self.connection?.statistics(completionHandler: { reports in
-                reports.statistics.forEach { report in
-                    if(report.value.type == "inbound-rtp") {
-                        //Logger.log.i(message: "Peer:: ICE negotiation updated. Report New: \(report.values)")
-                        self.inboundStats.append(report.value.values)
-                    }
-                    if(report.value.type == "outbound-rtp") {
-                        //Logger.log.i(message: "Peer:: ICE negotiation updated. Report New: \(report.values)")
-                        self.outBoundStats.append(report.value.values)
-                    }
-                    if(report.value.type == "candidate-pair" && self.candidatePairs.count < self.CANDIDATE_PAIR_LIMIT) {
-                        //Logger.log.i(message: "Peer:: ICE negotiation updated. Report New: \(report.values)")
-                        self.candidatePairs.append(report.value.values)
-                    }
-                }
-            })
-            audio["outbound"] = outBoundStats
-            audio["inbound"] = inboundStats
-            statsData["audio"] = audio
-            statsEvent["data"] = statsData
-            statsEvent["timestamp"] = timeStamp.getTimestamp()
-
-            if(inboundStats.count > 0 && outBoundStats.count > 0 && candidatePairs.count > 0){
-                inboundStats.removeAll()
-                outBoundStats.removeAll()
-                candidatePairs.removeAll()
-                statsData.removeAll()
-                audio.removeAll()
-                self.sendStats(id: debugStatsId, data: statsEvent)
-            }
-
-        }
-
 
     /**
      This code should be started when the first ICE candidate is created.
@@ -347,7 +257,7 @@ class Peer : NSObject {
                 self.negotiationEnded = true
                 // At this moment we should have at least one ICE candidate.
                 // Lets stop the ICE negotiation process and call the apropiate delegate
-                self.delegate?.onICECandidate(sdp: peerConnection.localDescription, iceCandidate: candidate)
+                self.delegate?.onNegotiationEnded(sdp: peerConnection.localDescription)
                 Logger.log.i(message: "Peer:: ICE negotiation ended.")
             }
         }
@@ -356,22 +266,28 @@ class Peer : NSObject {
     /// Close connection and release resources
     func dispose() {
         Logger.log.i(message: "Peer:: dispose()")
-        if(isDebugStats){
-            stopTimer()
-        }
         
-        //This should release all the connection resources
-        //including audio / video streams
         self.connection?.close()
         self.delegate = nil
-
+        
         self.localAudioTrack = nil
         self.localVideoTrack = nil
         self.localDataChannel = nil
-
+        
         self.remoteVideoTrack = nil
         self.remoteDataChannel = nil
+        
+        self.onSignalingStateChange = nil
+        self.onAddStream = nil
+        self.onRemoveStream = nil
+        self.onNegotiationNeeded = nil
+        self.onIceConnectionChange = nil
+        self.onIceGatheringChange = nil
+        self.onIceCandidate = nil
+        self.onRemoveIceCandidates = nil
+        self.onDataChannel = nil
     }
+
 
 }
 // MARK: - Tracks handling
@@ -417,27 +333,13 @@ extension Peer {
  */
 extension Peer : RTCPeerConnectionDelegate {
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange stateChanged: RTCSignalingState) {
-        var state = ""
-        switch(stateChanged) {
-            case .stable:
-                state = "stable"
-            case .haveLocalOffer:
-                state = "haveLocalOffer"
-            case .haveLocalPrAnswer:
-                state = "haveLocalPrAnswer"
-            case .haveRemoteOffer:
-                state = "haveRemoteOffer"
-            case .haveRemotePrAnswer:
-                state = "haveRemotePrAnswer"
-            case .closed:
-                state = "closed"
-            @unknown default:
-                state = "unknown"
-        }
-        Logger.log.i(message: "Peer:: connection didChange state: [\(state.uppercased())]")
+        let state = stateChanged.telnyx_to_string()
+        onSignalingStateChange?(stateChanged, peerConnection)
+        Logger.log.i(message: "Peer:: connection didChange state: [\(state)]")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didAdd stream: RTCMediaStream) {
+        onAddStream?(stream)
         Logger.log.i(message: "Peer:: connection didAdd: \(stream)")
         if stream.videoTracks.count > 0 {
             self.remoteVideoTrack = stream.videoTracks[0]
@@ -445,51 +347,23 @@ extension Peer : RTCPeerConnectionDelegate {
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didRemove stream: RTCMediaStream) {
-       // Logger.log.i(message: "Peer:: connection didRemove \(stream)")
+        onRemoveStream?(stream)
+        Logger.log.i(message: "Peer:: connection didRemove \(stream)")
     }
 
     func peerConnectionShouldNegotiate(_ peerConnection: RTCPeerConnection) {
+        onNegotiationNeeded?()
         Logger.log.i(message: "Peer:: connection should negotiate")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceConnectionState) {
-        var state = ""
-        switch(newState) {
-            case .checking:
-                state = "checking"
-            case .new:
-                state = "new"
-            case .connected:
-                state = "connected"
-            case .completed:
-                state = "completed"
-            case .failed:
-                state = "failed"
-            case .disconnected:
-                state = "disconnected"
-            case .closed:
-                state = "closed"
-            case .count:
-                state = "count"
-            @unknown default:
-                state = "unknown"
-        }
-        Logger.log.i(message: "Peer:: connection didChange RTCIceConnectionState [\(state.uppercased())]")
+        onIceConnectionChange?(newState)
+        Logger.log.i(message: "Peer:: connection didChange ICE connection state: [\(newState.telnyx_to_string().uppercased())]")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {
-        var state = ""
-        switch(newState) {
-            case .new:
-                state = "new"
-            case .gathering:
-                state = "gathering"
-            case .complete:
-                state = "complete"
-            @unknown default:
-                state = "unknown"
-        }
-        Logger.log.s(message: "Peer:: connection didChange RTCIceGatheringState [\(state.uppercased())]")
+        onIceGatheringChange?(newState)
+        Logger.log.s(message: "Peer:: connection didChange ICE gathering state: [\(newState.telnyx_to_string().uppercased())]")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
@@ -509,6 +383,8 @@ extension Peer : RTCPeerConnectionDelegate {
             return
         }
 
+        // We call the callback when the iceCandidate is added
+        onIceCandidate?(candidate)
         // Add the generated ICE candidate to the peer connection.
         // This helps populate the local SDP with the ICE candidate information.
         connection?.add(candidate, completionHandler: { error in
@@ -531,71 +407,13 @@ extension Peer : RTCPeerConnectionDelegate {
         }
     }
 
-
     func peerConnection(_ peerConnection: RTCPeerConnection, didRemove candidates: [RTCIceCandidate]) {
-     //   Logger.log.i(message: "Peer:: connection didRemove [RTCIceCandidate]: \(candidates)")
+        onRemoveIceCandidates?(candidates)
+        Logger.log.i(message: "Peer:: connection didRemove [RTCIceCandidate]: \(candidates)")
     }
     
-
-
     func peerConnection(_ peerConnection: RTCPeerConnection, didOpen dataChannel: RTCDataChannel) {
+        onDataChannel?(dataChannel)
         Logger.log.i(message: "Peer:: connection didOpen RTCDataChannel: \(dataChannel)")
     }
 }
-
-// MARK: - Dictionary
-extension Dictionary {
-
-    var json: String {
-        let invalidJson = "Not a valid JSON"
-        do {
-            let jsonData = try JSONSerialization.data(withJSONObject: self, options: .prettyPrinted)
-            return String(bytes: jsonData, encoding: String.Encoding.utf8) ?? invalidJson
-        } catch {
-            return invalidJson
-        }
-    }
-
-    func printJson() {
-        print(json)
-    }
-
-}
-
-// MARK: - Stats
-
-private let PROTOCOL_VERSION: String = "2.0"
-
-
-
-enum StatsType : String  {
-    case STOP_STARTS = "debug_report_stop"
-    case START_STARTS = "debug_report_start"
-}
-
-class InitiateOrStopStats {
-    
-    private var jsonMessage: [String: Any] = [String: Any]()
-    let jsonrpc = PROTOCOL_VERSION
-    var id: String = UUID.init().uuidString.lowercased()
-    
-    init(type:String,reportID:String){
-        self.jsonMessage = [String: Any]()
-        self.jsonMessage["jsonrpc"] = self.jsonrpc
-        self.jsonMessage["id"] = self.id
-        self.jsonMessage["debug_report_version"] = 1
-        self.jsonMessage["type"] = type
-        self.jsonMessage["debug_report_id"] = reportID
-    }
-    
-    func encode() -> String? {
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: jsonMessage, options: []),
-              let jsonString = String(data: jsonData, encoding: .utf8) else {
-            Logger.log.e(message: "Message:: encode() error")
-            return nil
-        }
-        return jsonString
-    }
-}
-
-

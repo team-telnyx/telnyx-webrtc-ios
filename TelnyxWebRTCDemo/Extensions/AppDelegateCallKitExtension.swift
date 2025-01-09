@@ -167,13 +167,11 @@ extension AppDelegate : CXProviderDelegate {
             }
         }
         action.fulfill()
-        self.currentCall?.startDebugStats()
     }
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         print("AppDelegate:: ANSWER call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
         self.telnyxClient?.answerFromCallkit(answerAction: action, customHeaders:  ["X-test-answer":"ios-test"])
-        self.currentCall?.startDebugStats()
     }
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
@@ -266,7 +264,9 @@ extension AppDelegate : CXProviderDelegate {
                                 ringBackTone: "ringback_tone.mp3",
                                 //You can choose the appropriate verbosity level of the SDK.
                                 logLevel: .all,
-                                reconnectClient: true)
+                                reconnectClient: true,
+                                // Enable WebRTC stats debug
+                                debug: true)
         
         do {
             try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)
