@@ -19,7 +19,7 @@ desc "Run unit tests."
 lane :tests do
    run_tests(workspace: "TelnyxRTC.xcworkspace",
             devices: ["iPhone 8"],
-            scheme: "TelnyxRTCSDK")
+            scheme: "TelnyxRTCTests")
 end
 
 desc "Create a file with the Changelog output between a specific TAG and HEAD"
