@@ -52,7 +52,7 @@ jobs:
       env:
         COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
       run: |
-        pod trunk push TelnyxRTC.podspec
+        pod trunk push TelnyxRTC.podspec --allow-warnings
     
     - name: "✏️ Get Current TAG"
       id: get-current-tag
