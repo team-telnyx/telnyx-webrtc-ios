@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		082A39A06E67E437E128BA09 /* Pods_TelnyxWebRTCDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D332023692FCF5CA94EC5F61 /* Pods_TelnyxWebRTCDemo.framework */; };
 		099ECF65E2B07127B9F18BC2 /* Pods_TelnyxRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53A56EE8CFF7CB3C0B09199A /* Pods_TelnyxRTC.framework */; };
-		1B0B82F8E58A096FBA0FB9CC /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
 		3B0F56CB2C7F15830011A48A /* StatsMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B0F56CA2C7F15830011A48A /* StatsMessage.swift */; };
 		3B1BE6F72AA9A467000B7962 /* TxPushIPConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */; };
 		3B1F43EF2AE0B01E00A610BA /* Params.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1F43EE2AE0B01E00A610BA /* Params.swift */; };
@@ -64,8 +63,6 @@
 		B309D24025F06EA600A2AADF /* InviteMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D23F25F06EA600A2AADF /* InviteMessage.swift */; };
 		B309D24E25F0717B00A2AADF /* UICallScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = B309D24D25F0717B00A2AADF /* UICallScreen.xib */; };
 		B309D25325F071DD00A2AADF /* UICallScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D25225F071DD00A2AADF /* UICallScreen.swift */; };
-		B309D26225F1574C00A2AADF /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
-		B309D26325F1574C00A2AADF /* BuildFile in Embed Frameworks */ = {isa = PBXBuildFile; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B309D27B25F17C1700A2AADF /* UIIncomingCallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D27925F17C1700A2AADF /* UIIncomingCallView.swift */; };
 		B309D27C25F17C1700A2AADF /* UIIncomingCallView.xib in Resources */ = {isa = PBXBuildFile; fileRef = B309D27A25F17C1700A2AADF /* UIIncomingCallView.xib */; };
 		B309D28225F1838700A2AADF /* ByeMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D28125F1838700A2AADF /* ByeMessage.swift */; };
@@ -134,7 +131,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				B309D26325F1574C00A2AADF /* BuildFile in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -260,7 +256,6 @@
 			files = (
 				3BC03B572CC261F500FD2B29 /* Bugsnag.framework in Frameworks */,
 				B309D13D25EF119E00A2AADF /* Starscream.framework in Frameworks */,
-				B309D26225F1574C00A2AADF /* BuildFile in Frameworks */,
 				099ECF65E2B07127B9F18BC2 /* Pods_TelnyxRTC.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -279,7 +274,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				3BC03B592CC2653700FD2B29 /* TelnyxRTC.framework in Frameworks */,
-				1B0B82F8E58A096FBA0FB9CC /* BuildFile in Frameworks */,
 				3BC03B4E2CC25F5F00FD2B29 /* Reachability.framework in Frameworks */,
 				082A39A06E67E437E128BA09 /* Pods_TelnyxWebRTCDemo.framework in Frameworks */,
 			);
