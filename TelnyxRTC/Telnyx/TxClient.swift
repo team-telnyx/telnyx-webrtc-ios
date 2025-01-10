@@ -8,7 +8,7 @@
 
 import Foundation
 import AVFoundation
-internal import Bugsnag
+import Bugsnag
 import WebRTC
 import CallKit
 

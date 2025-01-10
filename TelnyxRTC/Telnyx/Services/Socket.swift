@@ -7,7 +7,7 @@
 //
 
 import Foundation
-internal import Starscream
+import Starscream
 
 class Socket {
     
