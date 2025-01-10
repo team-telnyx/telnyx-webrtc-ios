@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		082A39A06E67E437E128BA09 /* Pods_TelnyxWebRTCDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D332023692FCF5CA94EC5F61 /* Pods_TelnyxWebRTCDemo.framework */; };
 		099ECF65E2B07127B9F18BC2 /* Pods_TelnyxRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53A56EE8CFF7CB3C0B09199A /* Pods_TelnyxRTC.framework */; };
 		3B0F56CB2C7F15830011A48A /* StatsMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B0F56CA2C7F15830011A48A /* StatsMessage.swift */; };
 		3B1BE6F72AA9A467000B7962 /* TxPushIPConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */; };
@@ -275,7 +274,6 @@
 			files = (
 				3BC03B592CC2653700FD2B29 /* TelnyxRTC.framework in Frameworks */,
 				3BC03B4E2CC25F5F00FD2B29 /* Reachability.framework in Frameworks */,
-				082A39A06E67E437E128BA09 /* Pods_TelnyxWebRTCDemo.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1241,7 +1239,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.20;
+				MARKETING_VERSION = 0.1.22;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -1266,7 +1264,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.20;
+				MARKETING_VERSION = 0.1.22;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
