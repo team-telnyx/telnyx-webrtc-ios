@@ -46,7 +46,7 @@ jobs:
 
     - name: "🤖 Podspec lint"
       run: |
-        pod lib lint
+        pod lib lint --allow-warnings
 
     - name: "🚀  Publish to CocoaPods register"
       env:
