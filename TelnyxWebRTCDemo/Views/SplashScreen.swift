@@ -5,7 +5,6 @@ struct SplashScreen: View {
     
     var body: some View {
         if isActive {
-            // Replace this with your main storyboard view
             MainStoryboardView()
         } else {
             VStack {
