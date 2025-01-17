@@ -72,7 +72,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         print("ViewController:: viewDidLoad()")
-
+        self.appDelegate.voipDelegate = self
         self.telnyxClient = appDelegate.telnyxClient
         self.initViews()
         
