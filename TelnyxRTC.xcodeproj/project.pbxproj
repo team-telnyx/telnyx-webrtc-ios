@@ -22,12 +22,13 @@
 		3BF1D5842BEB7B8F0097453F /* TelnyxRTC.podspec in Resources */ = {isa = PBXBuildFile; fileRef = 3BF1D5832BEB7B8F0097453F /* TelnyxRTC.podspec */; };
 		9911247E2CF50092000C23BA /* Dictionary+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9911247D2CF50088000C23BA /* Dictionary+Extensions.swift */; };
 		991A6D442D3A96C100B29785 /* SplashScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991A6D432D3A96C100B29785 /* SplashScreen.swift */; };
+		991A6D492D3AB36E00B29785 /* SipCredentialsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991A6D482D3AB36E00B29785 /* SipCredentialsView.swift */; };
+		991A6D4A2D3AB36E00B29785 /* SipCredentialHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991A6D462D3AB36E00B29785 /* SipCredentialHeader.swift */; };
+		991A6D4B2D3AB36E00B29785 /* SipCredentialRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991A6D472D3AB36E00B29785 /* SipCredentialRow.swift */; };
 		995BF7132CE7E8F100454076 /* WebRTCEnvironmentExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995BF7122CE7E8EB00454076 /* WebRTCEnvironmentExtension.swift */; };
 		995BF7162CE7EB2600454076 /* SipUserCredential.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995BF7152CE7EB2200454076 /* SipUserCredential.swift */; };
 		995BF71C2CE7EC0600454076 /* SipCredentialsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995BF71A2CE7EBF800454076 /* SipCredentialsManager.swift */; };
 		995BF7202CE8175B00454076 /* SipCredentialsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995BF71F2CE8175200454076 /* SipCredentialsViewController.swift */; };
-		995BF7222CE818A400454076 /* SipCredentialsViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 995BF7212CE818A400454076 /* SipCredentialsViewController.xib */; };
-		995BF7242CE8474A00454076 /* UISipCredentialHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995BF7232CE8471B00454076 /* UISipCredentialHeaderView.swift */; };
 		996C67BC2CFEA4880056E508 /* RTCIceServer+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C67BB2CFEA4790056E508 /* RTCIceServer+Extension.swift */; };
 		996C67BE2CFEA4D70056E508 /* RTClsCertPolicy+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C67BD2CFEA4C80056E508 /* RTClsCertPolicy+Extension.swift */; };
 		996C67C02CFEA5600056E508 /* RTCBundlePolicy+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C67BF2CFEA55B0056E508 /* RTCBundlePolicy+Extension.swift */; };
@@ -157,12 +158,13 @@
 		8B61D13D5509735BFDC3E601 /* Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig"; sourceTree = "<group>"; };
 		9911247D2CF50088000C23BA /* Dictionary+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Dictionary+Extensions.swift"; sourceTree = "<group>"; };
 		991A6D432D3A96C100B29785 /* SplashScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreen.swift; sourceTree = "<group>"; };
+		991A6D462D3AB36E00B29785 /* SipCredentialHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialHeader.swift; sourceTree = "<group>"; };
+		991A6D472D3AB36E00B29785 /* SipCredentialRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialRow.swift; sourceTree = "<group>"; };
+		991A6D482D3AB36E00B29785 /* SipCredentialsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialsView.swift; sourceTree = "<group>"; };
 		995BF7122CE7E8EB00454076 /* WebRTCEnvironmentExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCEnvironmentExtension.swift; sourceTree = "<group>"; };
 		995BF7152CE7EB2200454076 /* SipUserCredential.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipUserCredential.swift; sourceTree = "<group>"; };
 		995BF71A2CE7EBF800454076 /* SipCredentialsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialsManager.swift; sourceTree = "<group>"; };
 		995BF71F2CE8175200454076 /* SipCredentialsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialsViewController.swift; sourceTree = "<group>"; };
-		995BF7212CE818A400454076 /* SipCredentialsViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SipCredentialsViewController.xib; sourceTree = "<group>"; };
-		995BF7232CE8471B00454076 /* UISipCredentialHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UISipCredentialHeaderView.swift; sourceTree = "<group>"; };
 		996C67BB2CFEA4790056E508 /* RTCIceServer+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RTCIceServer+Extension.swift"; sourceTree = "<group>"; };
 		996C67BD2CFEA4C80056E508 /* RTClsCertPolicy+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RTClsCertPolicy+Extension.swift"; sourceTree = "<group>"; };
 		996C67BF2CFEA55B0056E508 /* RTCBundlePolicy+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RTCBundlePolicy+Extension.swift"; sourceTree = "<group>"; };
@@ -334,7 +336,6 @@
 			isa = PBXGroup;
 			children = (
 				995BF71F2CE8175200454076 /* SipCredentialsViewController.swift */,
-				995BF7212CE818A400454076 /* SipCredentialsViewController.xib */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -408,8 +409,10 @@
 		B309D1FB25F028F100A2AADF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				991A6D462D3AB36E00B29785 /* SipCredentialHeader.swift */,
+				991A6D472D3AB36E00B29785 /* SipCredentialRow.swift */,
+				991A6D482D3AB36E00B29785 /* SipCredentialsView.swift */,
 				991A6D432D3A96C100B29785 /* SplashScreen.swift */,
-				995BF7232CE8471B00454076 /* UISipCredentialHeaderView.swift */,
 				B309D27A25F17C1700A2AADF /* UIIncomingCallView.xib */,
 				B309D27925F17C1700A2AADF /* UIIncomingCallView.swift */,
 				B309D1FC25F0291100A2AADF /* UISettingsView.xib */,
@@ -751,7 +754,6 @@
 				B368BEF425EDDD070032AE52 /* Assets.xcassets in Resources */,
 				B3E1033325F7F94900227DCE /* ringback_tone.mp3 in Resources */,
 				B368BEF225EDDD060032AE52 /* Main.storyboard in Resources */,
-				995BF7222CE818A400454076 /* SipCredentialsViewController.xib in Resources */,
 				B309D24E25F0717B00A2AADF /* UICallScreen.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -943,7 +945,6 @@
 				995BF7132CE7E8F100454076 /* WebRTCEnvironmentExtension.swift in Sources */,
 				B3B1D9A426545807008D28C9 /* UserDefaultExtension.swift in Sources */,
 				B32AE8BB26D6952500C7C6F4 /* AppDelegateCallKitExtension.swift in Sources */,
-				995BF7242CE8474A00454076 /* UISipCredentialHeaderView.swift in Sources */,
 				B3AF24AA25EE84570062EDA9 /* UIViewControllerExtension.swift in Sources */,
 				995BF7202CE8175B00454076 /* SipCredentialsViewController.swift in Sources */,
 				B309D25325F071DD00A2AADF /* UICallScreen.swift in Sources */,
@@ -952,6 +953,9 @@
 				991A6D442D3A96C100B29785 /* SplashScreen.swift in Sources */,
 				B368BEEF25EDDD060032AE52 /* ViewController.swift in Sources */,
 				995BF7162CE7EB2600454076 /* SipUserCredential.swift in Sources */,
+				991A6D492D3AB36E00B29785 /* SipCredentialsView.swift in Sources */,
+				991A6D4A2D3AB36E00B29785 /* SipCredentialHeader.swift in Sources */,
+				991A6D4B2D3AB36E00B29785 /* SipCredentialRow.swift in Sources */,
 				995BF71C2CE7EC0600454076 /* SipCredentialsManager.swift in Sources */,
 				B368BEEB25EDDD060032AE52 /* AppDelegate.swift in Sources */,
 				B309D20225F0291B00A2AADF /* UISettingsView.swift in Sources */,
@@ -1238,7 +1242,7 @@
 				DEVELOPMENT_TEAM = YKUVNPU9FS;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = TelnyxWebRTCDemo/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1263,7 +1267,7 @@
 				DEVELOPMENT_TEAM = YKUVNPU9FS;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = TelnyxWebRTCDemo/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
