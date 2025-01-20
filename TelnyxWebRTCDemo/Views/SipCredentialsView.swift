@@ -11,7 +11,7 @@ struct SipCredentialsView: View {
     
     var body: some View {
         ZStack {
-            VStack(spacing: 0) {
+            VStack(spacing: 20) {
                 List {
                     Section {
                         if credentialsList.isEmpty {
@@ -21,6 +21,7 @@ struct SipCredentialsView: View {
                                 .multilineTextAlignment(.center)
                                 .listRowBackground(Color.clear)
                                 .padding(.vertical, 20)
+                                .listRowSeparator(.hidden)
                         } else {
                             ForEach(credentialsList, id: \.username) { credential in
                                 SipCredentialRow(
@@ -59,11 +60,12 @@ struct SipCredentialsView: View {
                 .listStyle(.plain)
                 
                 HStack(spacing: 12) {
+                    Spacer()
                     Button(action: { dismiss() }) {
                         Text("Cancel")
                             .font(.system(size: 16))
                             .foregroundColor(Color(hex: "#1D1D1D"))
-                            .frame(maxWidth: .infinity)
+                            .frame(width: 100)
                             .padding(.vertical, 12)
                             .background(.white)
                             .overlay(
@@ -82,7 +84,7 @@ struct SipCredentialsView: View {
                         Text("Confirm")
                             .font(.system(size: 16))
                             .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
+                            .frame(width: 100)
                             .padding(.vertical, 12)
                             .background(Color(hex: "#1D1D1D"))
                             .cornerRadius(20)
