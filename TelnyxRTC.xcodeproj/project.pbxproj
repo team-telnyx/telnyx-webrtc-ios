@@ -44,6 +44,8 @@
 		996C67D72CFEA96B0056E508 /* RTCIceCandidate+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C67D62CFEA9670056E508 /* RTCIceCandidate+Extension.swift */; };
 		996C67D92CFEB7E10056E508 /* RTCConfiguration+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C67D82CFEB7D30056E508 /* RTCConfiguration+Extension.swift */; };
 		998670382D3E9506001E1D01 /* Color+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998670372D3E94FA001E1D01 /* Color+Extensions.swift */; };
+		9986703A2D3E9DCE001E1D01 /* SipInputCredentialsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998670392D3E9DC3001E1D01 /* SipInputCredentialsView.swift */; };
+		9986703C2D3EAF64001E1D01 /* ErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9986703B2D3EAF62001E1D01 /* ErrorView.swift */; };
 		99B6DFF82CF522140010CA96 /* WebRTCStatsEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFF72CF522070010CA96 /* WebRTCStatsEvent.swift */; };
 		99B6DFFA2CF5226F0010CA96 /* WebRTCStatsTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFF92CF522610010CA96 /* WebRTCStatsTag.swift */; };
 		99B6DFFD2CF546310010CA96 /* DebugReportStartMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFFC2CF546220010CA96 /* DebugReportStartMessage.swift */; };
@@ -181,6 +183,8 @@
 		996C67D62CFEA9670056E508 /* RTCIceCandidate+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RTCIceCandidate+Extension.swift"; sourceTree = "<group>"; };
 		996C67D82CFEB7D30056E508 /* RTCConfiguration+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RTCConfiguration+Extension.swift"; sourceTree = "<group>"; };
 		998670372D3E94FA001E1D01 /* Color+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extensions.swift"; sourceTree = "<group>"; };
+		998670392D3E9DC3001E1D01 /* SipInputCredentialsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipInputCredentialsView.swift; sourceTree = "<group>"; };
+		9986703B2D3EAF62001E1D01 /* ErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorView.swift; sourceTree = "<group>"; };
 		99B6DFF72CF522070010CA96 /* WebRTCStatsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCStatsEvent.swift; sourceTree = "<group>"; };
 		99B6DFF92CF522610010CA96 /* WebRTCStatsTag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCStatsTag.swift; sourceTree = "<group>"; };
 		99B6DFFC2CF546220010CA96 /* DebugReportStartMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugReportStartMessage.swift; sourceTree = "<group>"; };
@@ -411,6 +415,8 @@
 		B309D1FB25F028F100A2AADF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				9986703B2D3EAF62001E1D01 /* ErrorView.swift */,
+				998670392D3E9DC3001E1D01 /* SipInputCredentialsView.swift */,
 				991A6D462D3AB36E00B29785 /* SipCredentialHeader.swift */,
 				991A6D472D3AB36E00B29785 /* SipCredentialRow.swift */,
 				991A6D482D3AB36E00B29785 /* SipCredentialsView.swift */,
@@ -953,6 +959,7 @@
 				B309D25325F071DD00A2AADF /* UICallScreen.swift in Sources */,
 				B3B8F53726E7D4EF0007B583 /* AppDelegateTelnyxVoIPExtension.swift in Sources */,
 				B309D27B25F17C1700A2AADF /* UIIncomingCallView.swift in Sources */,
+				9986703A2D3E9DCE001E1D01 /* SipInputCredentialsView.swift in Sources */,
 				991A6D442D3A96C100B29785 /* SplashScreen.swift in Sources */,
 				B368BEEF25EDDD060032AE52 /* ViewController.swift in Sources */,
 				995BF7162CE7EB2600454076 /* SipUserCredential.swift in Sources */,
@@ -965,6 +972,7 @@
 				B309D20225F0291B00A2AADF /* UISettingsView.swift in Sources */,
 				B32AE8BF26D6D69E00C7C6F4 /* ViewControllerVoIPExtension.swift in Sources */,
 				B3C008B226C1B2C5003E7AE3 /* LoadingView.swift in Sources */,
+				9986703C2D3EAF64001E1D01 /* ErrorView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
