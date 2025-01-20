@@ -79,6 +79,7 @@ struct SipCredentialsView: View {
                             }
                             .listRowInsets(EdgeInsets())
                             .listRowSeparator(.hidden)
+                            .listRowBackground(Color.white)
                         }
                     }
                 }

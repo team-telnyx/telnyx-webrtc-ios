@@ -21,6 +21,7 @@ struct SipCredentialHeader: View {
                         .foregroundColor(Color(hex: "#1D1D1D"))
                 }
             }
+            .padding(.top, 20)
             HStack {
                 Button(action: onAddProfile) {
                     Text("+ Add new profile")
