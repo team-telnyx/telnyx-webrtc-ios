@@ -46,6 +46,7 @@
 		998670382D3E9506001E1D01 /* Color+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998670372D3E94FA001E1D01 /* Color+Extensions.swift */; };
 		9986703A2D3E9DCE001E1D01 /* SipInputCredentialsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998670392D3E9DC3001E1D01 /* SipInputCredentialsView.swift */; };
 		9986703C2D3EAF64001E1D01 /* ErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9986703B2D3EAF62001E1D01 /* ErrorView.swift */; };
+		9986703E2D3EC7A3001E1D01 /* View+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9986703D2D3EC7A0001E1D01 /* View+Extensions.swift */; };
 		99B6DFF82CF522140010CA96 /* WebRTCStatsEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFF72CF522070010CA96 /* WebRTCStatsEvent.swift */; };
 		99B6DFFA2CF5226F0010CA96 /* WebRTCStatsTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFF92CF522610010CA96 /* WebRTCStatsTag.swift */; };
 		99B6DFFD2CF546310010CA96 /* DebugReportStartMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFFC2CF546220010CA96 /* DebugReportStartMessage.swift */; };
@@ -185,6 +186,7 @@
 		998670372D3E94FA001E1D01 /* Color+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extensions.swift"; sourceTree = "<group>"; };
 		998670392D3E9DC3001E1D01 /* SipInputCredentialsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipInputCredentialsView.swift; sourceTree = "<group>"; };
 		9986703B2D3EAF62001E1D01 /* ErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorView.swift; sourceTree = "<group>"; };
+		9986703D2D3EC7A0001E1D01 /* View+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extensions.swift"; sourceTree = "<group>"; };
 		99B6DFF72CF522070010CA96 /* WebRTCStatsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCStatsEvent.swift; sourceTree = "<group>"; };
 		99B6DFF92CF522610010CA96 /* WebRTCStatsTag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCStatsTag.swift; sourceTree = "<group>"; };
 		99B6DFFC2CF546220010CA96 /* DebugReportStartMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugReportStartMessage.swift; sourceTree = "<group>"; };
@@ -585,6 +587,7 @@
 		B3AF24A825EE84410062EDA9 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				9986703D2D3EC7A0001E1D01 /* View+Extensions.swift */,
 				998670372D3E94FA001E1D01 /* Color+Extensions.swift */,
 				995BF7122CE7E8EB00454076 /* WebRTCEnvironmentExtension.swift */,
 				B3AF24A925EE84570062EDA9 /* UIViewControllerExtension.swift */,
@@ -959,6 +962,7 @@
 				B309D25325F071DD00A2AADF /* UICallScreen.swift in Sources */,
 				B3B8F53726E7D4EF0007B583 /* AppDelegateTelnyxVoIPExtension.swift in Sources */,
 				B309D27B25F17C1700A2AADF /* UIIncomingCallView.swift in Sources */,
+				9986703E2D3EC7A3001E1D01 /* View+Extensions.swift in Sources */,
 				9986703A2D3E9DCE001E1D01 /* SipInputCredentialsView.swift in Sources */,
 				991A6D442D3A96C100B29785 /* SplashScreen.swift in Sources */,
 				B368BEEF25EDDD060032AE52 /* ViewController.swift in Sources */,

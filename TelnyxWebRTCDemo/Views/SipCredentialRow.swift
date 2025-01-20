@@ -13,7 +13,7 @@ struct SipCredentialRow: View {
                     .foregroundColor(Color(hex: "#1D1D1D"))
                     .padding(.vertical, 5)
                     .padding(.horizontal, 16)
-                    .lineLimit(1)                
+                    .lineLimit(1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(isSelected ? Color(hex: "#F5F3E4") : .white)
@@ -32,8 +32,7 @@ struct SipCredentialRow: View {
                 
             }
             .frame(width: 30 , alignment: .center)
-
-        }.padding(.horizontal, 24)
+        }
     }
 }
 

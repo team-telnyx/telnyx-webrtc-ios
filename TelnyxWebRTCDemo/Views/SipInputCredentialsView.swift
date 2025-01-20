@@ -87,10 +87,8 @@ struct SipInputCredentialsView: View {
                 Spacer()
             }
             .padding(.vertical, 12)
-            .background(Color(uiColor: .systemBackground))
-            
-            
-        }.padding()
+            .background(.white)
+        }
     }
 }
 
