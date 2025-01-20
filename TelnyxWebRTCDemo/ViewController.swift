@@ -49,6 +49,7 @@ class Monitor {
 
 class ViewController: UIViewController {
 
+    private let sipCredentialsVC = SipCredentialsViewController()
     var userDefaults: UserDefaults = UserDefaults.init()
     var telnyxClient: TxClient?
     var incomingCall: Bool = false
@@ -89,6 +90,7 @@ class ViewController: UIViewController {
 
     func initViews() {
         print("ViewController:: initViews()")
+        self.sipCredentialsVC.delegate = self
         self.callView.isHidden = true
         self.callView.isMuted = self.appDelegate.currentCall?.isMuted ?? false
         self.callView.delegate = self
@@ -346,9 +348,7 @@ extension ViewController : UICallScreenDelegate {
 // MARK: - UISettingsViewProtocol
 extension ViewController: UISettingsViewDelegate {
     func onOpenSipSelector() {
-        let sipCredentialsVC = SipCredentialsViewController()
-        sipCredentialsVC.delegate = self
-        self.present(sipCredentialsVC, animated: true, completion: nil)
+        self.present(self.sipCredentialsVC, animated: true, completion: nil)
     }
 }
 

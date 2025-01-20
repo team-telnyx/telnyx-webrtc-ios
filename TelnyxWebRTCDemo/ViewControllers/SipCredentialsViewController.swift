@@ -7,23 +7,20 @@ protocol SipCredentialsViewControllerDelegate: AnyObject {
 
 class SipCredentialsViewController: UIViewController {
     weak var delegate: SipCredentialsViewControllerDelegate?
-    
-    init() {
-        super.init(nibName: nil, bundle: nil)
-    }
-    
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-    }
+    private var hostingController: UIHostingController<SipCredentialsView>?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         let sipCredentialsView = SipCredentialsView { [weak self] credential in
-            self?.delegate?.onSipCredentialSelected(credential: credential)
+            guard let self = self else { return }
+            self.delegate?.onSipCredentialSelected(credential: credential)
+            self.dismiss(animated: true)
         }
         
         let hostingController = UIHostingController(rootView: sipCredentialsView)
+        self.hostingController = hostingController // Guarda la referencia
+        
         addChild(hostingController)
         view.addSubview(hostingController.view)
         
