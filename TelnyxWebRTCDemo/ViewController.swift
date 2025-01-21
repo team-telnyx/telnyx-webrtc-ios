@@ -49,7 +49,7 @@ class Monitor {
 
 class ViewController: UIViewController {
 
-    private let sipCredentialsVC = SipCredentialsViewController()
+    let sipCredentialsVC = SipCredentialsViewController()
     var userDefaults: UserDefaults = UserDefaults.init()
     var telnyxClient: TxClient?
     var incomingCall: Bool = false
@@ -199,71 +199,20 @@ class ViewController: UIViewController {
     }
 
     @IBAction func connectButtonTapped(_ sender: Any) {
-        guard let telnyxClient = self.telnyxClient else {
-            return
-        }
-        if (telnyxClient.isConnected()) {
-            telnyxClient.disconnect()
+        // Get stored token from APNS
+        let deviceToken = userDefaults.getPushToken()
+        if settingsView.isTokenSelected {
+            guard let telnyxToken = settingsView.tokenLabel.text, !telnyxToken.isEmpty else {
+                print("ViewController:: connectButtonTapped() ERROR: Telnyx Token should not be empty. Go to https://developers.telnyx.com/docs/v2/webrtc/quickstart to learn on how to create On-demand tokens.")
+                return
+            }
+            connectToTelnyx(telnyxToken: telnyxToken, sipCredential: nil, deviceToken: deviceToken)
         } else {
-
-            let deviceToken = userDefaults.getPushToken() //Get stored token from APNS
-
-            var txConfig: TxConfig? = nil
-            // Set the connection configuration object.
-            // We can login with a user token: https://developers.telnyx.com/docs/v2/webrtc/quickstart
-            // Or we can use SIP credentials (SIP user and password)
-            if self.settingsView.isTokenSelected {
-                guard let telnyxToken = self.settingsView.tokenLabel.text, !telnyxToken.isEmpty else {
-                    print("ViewController:: connectButtonTapped() ERROR: Telnyx Token should not be empty. Go to https://developers.telnyx.com/docs/v2/webrtc/quickstart to learn on how to create On-demand tokens.")
-                    return
-                }
-                txConfig = TxConfig(token: telnyxToken,
-                                    pushDeviceToken: deviceToken,
-                                    ringtone: "incoming_call.mp3",
-                                    ringBackTone: "ringback_tone.mp3",
-                                    pushEnvironment: .production,
-                                    //You can choose the appropriate verbosity level of the SDK.
-                                    logLevel: .all,
-                                    // Enable webrtc stats debug
-                                    debug: true)
-            } else {
-                // To obtain SIP credentials, please go to https://portal.telnyx.com
-                guard let sipUser = self.settingsView.sipUsernameLabel.text, !sipUser.isEmpty,
-                      let password = self.settingsView.passwordUserNameLabel.text, !password.isEmpty else {
-                    print("ViewController:: connectButtonTapped() ERROR: SIP User and Password should not be empty.")
-                    return
-                }
-
-                txConfig = TxConfig(sipUser: sipUser,
-                                    password: password,
-                                    pushDeviceToken: deviceToken,
-                                    ringtone: "incoming_call.mp3",
-                                    ringBackTone: "ringback_tone.mp3",
-                                    //You can choose the appropriate verbosity level of the SDK.
-                                    logLevel: .all,
-                                    reconnectClient: true,
-                                    // Enable webrtc stats debug
-                                    debug: true)
-
-                //store user / password in user defaults
-                let selectedCredential = SipCredential(username: sipUser, password: password)
-                SipCredentialsManager.shared.addOrUpdateCredential(selectedCredential)
-                SipCredentialsManager.shared.saveSelectedCredential(selectedCredential)
-                self.settingsView.selectCredentialButton.isHidden = false
+            guard let sipCredential = getSelectedSipCredential() else {
+                print("ViewController:: connectButtonTapped() ERROR: SIP User and Password should not be empty.")
+                return
             }
-
-            do {
-                if let serverConfig = serverConfig {
-                    print("Development Server ")
-                    try telnyxClient.connect(txConfig: txConfig!, serverConfiguration: serverConfig)
-                } else {
-                    try telnyxClient.connect(txConfig: txConfig!)
-                    print("Production Server ")
-                }
-                self.showLoadingView()
-            } catch let error {
-                print("ViewController:: connect Error \(error)")
-            }
+            connectToTelnyx(telnyxToken: nil, sipCredential: sipCredential, deviceToken: deviceToken)
         }
     }
 
@@ -345,6 +294,86 @@ extension ViewController : UICallScreenDelegate {
     }
 }
 
+// MARK: - Handle connection
+extension ViewController {
+    private func connectToTelnyx(telnyxToken: String?, sipCredential: SipCredential?, deviceToken: String) {
+        guard let telnyxClient = self.telnyxClient else { return }
+        
+        if telnyxClient.isConnected() {
+            telnyxClient.disconnect()
+            return
+        }
+        
+        do {
+            let txConfig = try createTxConfig(telnyxToken: telnyxToken, sipCredential: sipCredential, deviceToken: deviceToken)
+            
+            if let serverConfig = serverConfig {
+                print("Development Server ")
+                try telnyxClient.connect(txConfig: txConfig, serverConfiguration: serverConfig)
+            } else {
+                print("Production Server ")
+                try telnyxClient.connect(txConfig: txConfig)
+            }
+            
+            self.showLoadingView()
+        } catch let error {
+            print("ViewController:: connect Error \(error)")
+        }
+    }
+    
+    private func createTxConfig(telnyxToken: String?, sipCredential: SipCredential?, deviceToken: String) throws -> TxConfig {
+        var txConfig: TxConfig? = nil
+        
+        // Set the connection configuration object.
+        // We can login with a user token: https://developers.telnyx.com/docs/v2/webrtc/quickstart
+        // Or we can use SIP credentials (SIP user and password)
+        if let token = telnyxToken {
+            txConfig = TxConfig(token: token,
+                                pushDeviceToken: deviceToken,
+                                ringtone: "incoming_call.mp3",
+                                ringBackTone: "ringback_tone.mp3",
+                                pushEnvironment: .production,
+                                // You can choose the appropriate verbosity level of the SDK.
+                                logLevel: .all,
+                                // Enable webrtc stats debug
+                                debug: true)
+        } else if let credential = sipCredential {
+            // To obtain SIP credentials, please go to https://portal.telnyx.com
+            txConfig = TxConfig(sipUser: credential.username,
+                                password: credential.password,
+                                pushDeviceToken: deviceToken,
+                                ringtone: "incoming_call.mp3",
+                                ringBackTone: "ringback_tone.mp3",
+                                // You can choose the appropriate verbosity level of the SDK.
+                                logLevel: .all,
+                                reconnectClient: true,
+                                // Enable webrtc stats debug
+                                debug: true)
+            
+            // Store user / password in user defaults
+            SipCredentialsManager.shared.addOrUpdateCredential(credential)
+            SipCredentialsManager.shared.saveSelectedCredential(credential)
+            self.settingsView.selectCredentialButton.isHidden = false
+        }
+        
+        guard let config = txConfig else {
+            throw NSError(domain: "ViewController", code: 1, userInfo: [NSLocalizedDescriptionKey: "No valid credentials provided."])
+        }
+        
+        return config
+    }
+    
+    private func getSelectedSipCredential() -> SipCredential? {
+        guard let sipUser = self.settingsView.sipUsernameLabel.text, !sipUser.isEmpty,
+              let password = self.settingsView.passwordUserNameLabel.text, !password.isEmpty else {
+            return nil
+        }
+        return SipCredential(username: sipUser, password: password)
+    }
+    
+}
+
+
 // MARK: - UISettingsViewProtocol
 extension ViewController: UISettingsViewDelegate {
     func onOpenSipSelector() {
@@ -354,6 +383,14 @@ extension ViewController: UISettingsViewDelegate {
 
 // MARK: - SipCredentialsViewControllerDelegate
 extension ViewController: SipCredentialsViewControllerDelegate {
+    func onNewSipCredential(credential: SipCredential?) {
+        let deviceToken = userDefaults.getPushToken()
+        guard let sipCredential = credential else {
+            print("ViewController:: connectButtonTapped() ERROR: SIP User and Password should not be empty.")
+            return
+        }
+        connectToTelnyx(telnyxToken: nil, sipCredential: sipCredential, deviceToken: deviceToken)
+    }
 
     func onSipCredentialSelected(credential: SipCredential?) {
         self.settingsView.sipUsernameLabel.text = credential?.username ?? ""

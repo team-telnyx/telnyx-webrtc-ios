@@ -6,10 +6,19 @@ struct SipCredentialsView: View {
     @State private var selectedCredential: SipCredential?
     @State private var tempSelectedCredential: SipCredential?
     @State private var isSelectedCredentialChanged = false
-    @State private var isShowingCredentialsInput = false
+    @Binding var isShowingCredentialsInput: Bool
+    @State private var internalIsShowingCredentialsInput: Bool
     @State private var viewHeight: CGFloat = 0
     
     let onCredentialSelected: (SipCredential?) -> Void
+    let onSignIn: (SipCredential?) -> Void
+    
+    init(isShowingCredentialsInput: Binding<Bool>, onCredentialSelected: @escaping (SipCredential?) -> Void, onSignIn: @escaping (SipCredential?) -> Void) {
+        self._isShowingCredentialsInput = isShowingCredentialsInput
+        self._internalIsShowingCredentialsInput = State(initialValue: isShowingCredentialsInput.wrappedValue)
+        self.onCredentialSelected = onCredentialSelected
+        self.onSignIn = onSignIn
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -19,38 +28,41 @@ struct SipCredentialsView: View {
                 onClose: { dismiss() },
                 onAddProfile: {
                     withAnimation {
-                        isShowingCredentialsInput.toggle()
+                        internalIsShowingCredentialsInput.toggle()
+                        isShowingCredentialsInput = internalIsShowingCredentialsInput
                     }
                 }
             )
-            if isShowingCredentialsInput {
+            
+            if internalIsShowingCredentialsInput {
                 SipInputCredentialsView(
                     username: "",
                     password: "",
                     isPasswordVisible: false,
                     hasError: false,
-                    onSignIn: {
-                        // Logic for signing in
+                    onSignIn: { newCredential in
+                        onSignIn(newCredential)
                     },
                     onCancel: {
                         withAnimation {
+                            internalIsShowingCredentialsInput = false
                             isShowingCredentialsInput = false
                         }
                     }
                 )
                 .transition(.move(edge: .top))
-                .frame(height: isShowingCredentialsInput ? viewHeight : 0)
+                .frame(height: internalIsShowingCredentialsInput ? viewHeight : 0)
                 .background(Color.white)
                 .cornerRadius(12)
                 .padding(.horizontal, 20)
                 .onAppear {
-                    viewHeight = 300 // Set the height you want for the form
+                    viewHeight = 300
                 }
             }
             
             List {
                 Section {
-                    if credentialsList.isEmpty && !isShowingCredentialsInput {
+                    if credentialsList.isEmpty && !internalIsShowingCredentialsInput {
                         Text("No SIP credentials available. Credentials will appear here after using them to connect.")
                             .font(.system(size: 16))
                             .foregroundColor(.gray)
@@ -87,7 +99,7 @@ struct SipCredentialsView: View {
             .listStyle(.insetGrouped)
             .background(.white)
             .applyScrollContentBackground()
-
+            
             HStack(spacing: 12) {
                 Spacer()
                 Button(action: { dismiss() }) {
@@ -127,20 +139,13 @@ struct SipCredentialsView: View {
             credentialsList = SipCredentialsManager.shared.getCredentials()
             selectedCredential = SipCredentialsManager.shared.getSelectedCredential()
             tempSelectedCredential = selectedCredential
+            internalIsShowingCredentialsInput = isShowingCredentialsInput
         }
         .onDisappear {
-
             if isSelectedCredentialChanged {
                 selectedCredential = SipCredentialsManager.shared.getSelectedCredential()
                 onCredentialSelected(selectedCredential)
             }
         }
-    }
-       
-}
-
-#Preview {
-    SipCredentialsView { credential in
-        print("Selected credential: \(String(describing: credential?.username))")
     }
 }

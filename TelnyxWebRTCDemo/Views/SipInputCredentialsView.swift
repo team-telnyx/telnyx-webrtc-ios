@@ -6,14 +6,14 @@ struct SipInputCredentialsView: View {
     @State private var isPasswordVisible: Bool
     @State private var hasError: Bool
     
-    var onSignIn: () -> Void
+    let onSignIn: (SipCredential?) -> Void
     var onCancel: () -> Void
     
     init(username: String = "",
          password: String = "",
          isPasswordVisible: Bool = false,
          hasError: Bool = false,
-         onSignIn: @escaping () -> Void = {},
+         onSignIn: @escaping (SipCredential?) -> Void = { _ in },
          onCancel: @escaping () -> Void = {}) {
         self._username = State(initialValue: username)
         self._password = State(initialValue: password)
@@ -24,14 +24,14 @@ struct SipInputCredentialsView: View {
     }
     
     var body: some View {
-        
-        VStack(alignment: .leading,
-               spacing: 12) {
+        VStack(alignment: .leading, spacing: 12) {
             if hasError {
                 ErrorView(errorMessage: "That username/password combination does not match our records. Please try again.")
             }
+            
             Text("Username")
                 .foregroundColor(.black)
+            
             HStack {
                 TextField("Enter username", text: $username)
                     .padding(.horizontal, 10)
@@ -42,6 +42,7 @@ struct SipInputCredentialsView: View {
             
             Text("Password")
                 .foregroundColor(.black)
+            
             HStack {
                 if isPasswordVisible {
                     TextField("Enter password", text: $password)
@@ -52,6 +53,7 @@ struct SipInputCredentialsView: View {
                         .padding(.horizontal, 10)
                         .frame(height: 40)
                 }
+                
                 Button(action: {
                     isPasswordVisible.toggle()
                 }) {
@@ -62,8 +64,12 @@ struct SipInputCredentialsView: View {
             }
             .background(RoundedRectangle(cornerRadius: 4)
                 .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
+            
             HStack(spacing: 12) {
-                Button(action: { onSignIn() }) {
+                Button(action: {
+                    let credential = SipCredential(username: username, password: password)
+                    onSignIn(credential)
+                }) {
                     Text("Sign In")
                         .font(.system(size: 16).bold())
                         .foregroundColor(Color(hex: "#525252"))
@@ -72,6 +78,7 @@ struct SipInputCredentialsView: View {
                         .background(Color(hex: "#F5F3E4"))
                         .cornerRadius(20)
                 }
+                
                 Button(action: { onCancel() }) {
                     Text("Cancel")
                         .font(.system(size: 16))
@@ -93,14 +100,10 @@ struct SipInputCredentialsView: View {
 }
 
 #Preview {
-    Group {
-        SipInputCredentialsView(username: "testuser",
-                                password: "password",
-                                isPasswordVisible: true,
-                                hasError: true)
+    SipInputCredentialsView(username: "testuser",
+                            password: "password",
+                            isPasswordVisible: true,
+                            hasError: true) { credential in
+        print("Signed in with: \(credential?.username ?? "nil")")
     }
 }
-
-
-
-
