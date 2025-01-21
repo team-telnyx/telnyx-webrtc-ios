@@ -38,22 +38,22 @@ struct SipInputCredentialsView: View {
                 .padding(.bottom, 12)
             
             if isTokenLogin {
-                Text("Token Caller Id")
+                Text("Token")
                     .foregroundColor(.black)
                 
                 HStack {
-                    TextField("Enter token caller id", text: $tokenCallerId)
+                    TextField("Enter token", text: $tokenCallerId)
                         .padding(.horizontal, 10)
                         .frame(height: 40)
                 }
                 .background(RoundedRectangle(cornerRadius: 4)
                     .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
                 
-                Text("Caller Id Number")
+                Text("Caller Number")
                     .foregroundColor(.black)
                 
                 HStack {
-                    TextField("Enter caller id number", text: $callerIdNumber)
+                    TextField("Enter caller number", text: $callerIdNumber)
                         .padding(.horizontal, 10)
                         .frame(height: 40)
                 }
@@ -107,11 +107,11 @@ struct SipInputCredentialsView: View {
                 .background(RoundedRectangle(cornerRadius: 4)
                     .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
                 
-                Text("Caller Id Number")
+                Text("Caller Number")
                     .foregroundColor(.black)
                 
                 HStack {
-                    TextField("Enter caller id number", text: $callerIdNumber)
+                    TextField("Enter caller number", text: $callerIdNumber)
                         .padding(.horizontal, 10)
                         .frame(height: 40)
                 }
