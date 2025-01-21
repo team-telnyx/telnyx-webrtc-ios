@@ -36,43 +36,38 @@ struct SipCredentialsView: View {
                 }
             )
             if internalIsShowingCredentialsInput {
-                SipInputCredentialsView(
-                    username: "",
-                    password: "",
-                    isPasswordVisible: false,
-                    hasError: false,
-                    onSignIn: { newCredential in
-                        onSignIn(newCredential)
-                    },
-                    onCancel: {
-                        withAnimation {
-                            internalIsShowingCredentialsInput = false
-                            isShowingCredentialsInput = false
+                ScrollView {
+                    
+                    SipInputCredentialsView(
+                        username: "",
+                        password: "",
+                        isPasswordVisible: false,
+                        hasError: false,
+                        onSignIn: { newCredential in
+                            onSignIn(newCredential)
+                        },
+                        onCancel: {
+                            withAnimation {
+                                internalIsShowingCredentialsInput = false
+                                isShowingCredentialsInput = false
+                            }
                         }
+                    )
+                    .transition(.move(edge: .top))
+                    .frame(height: viewHeight)
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 20)
+                    .offset(y: 0)
+                    .onAppear {
+                        viewHeight = 500
                     }
-                )
-                .background(
-                    GeometryReader { geometry in
-                        Color.clear
-                            .onAppear {
-                                viewHeight = geometry.size.height
-                            }
-                            .onChange(of: geometry.size.height) { newHeight in
-                                viewHeight = newHeight
-                            }
-                            .onDisappear {
-                                viewHeight = 0
-                            }
+                    .onDisappear {
+                        viewHeight = 0
                     }
-                )
-                .transition(.move(edge: .top))
-                .frame(height: viewHeight)
-                .background(Color.white)
-                .cornerRadius(12)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 20)
-                .offset(y: 0)
-                Spacer()
+                    Spacer()
+                }
             } else {
                 List {
                     Section {
@@ -113,7 +108,7 @@ struct SipCredentialsView: View {
                 .listStyle(.insetGrouped)
                 .background(.white)
                 .applyScrollContentBackground()
-                
+                Spacer()
                 HStack(spacing: 12) {
                     Spacer()
                     Button(action: { dismiss() }) {
@@ -180,3 +175,4 @@ struct SipCredentialsView_Previews: PreviewProvider {
         )
     }
 }
+
