@@ -10,8 +10,6 @@ struct SipCredentialsView: View {
     @State private var internalIsShowingCredentialsInput: Bool
     @State private var viewHeight: CGFloat = 0
     
-    let kViewHeight: CGFloat = 300.0
-    
     let onCredentialSelected: (SipCredential?) -> Void
     let onSignIn: (SipCredential?) -> Void
     
@@ -53,22 +51,27 @@ struct SipCredentialsView: View {
                         }
                     }
                 )
+                .background(
+                    GeometryReader { geometry in
+                        Color.clear
+                            .onAppear {
+                                viewHeight = geometry.size.height
+                            }
+                            .onChange(of: geometry.size.height) { newHeight in
+                                viewHeight = newHeight
+                            }
+                            .onDisappear {
+                                viewHeight = 0
+                            }
+                    }
+                )
                 .transition(.move(edge: .top))
                 .frame(height: viewHeight)
                 .background(Color.white)
                 .cornerRadius(12)
                 .padding(.horizontal, 20)
+                .padding(.vertical, 20)
                 .offset(y: 0)
-                .onAppear {
-                    withAnimation{
-                        viewHeight = kViewHeight
-                    }
-                }
-                .onDisappear {
-                    withAnimation{
-                        viewHeight = 0
-                    }
-                }
                 Spacer()
             } else {
                 List {

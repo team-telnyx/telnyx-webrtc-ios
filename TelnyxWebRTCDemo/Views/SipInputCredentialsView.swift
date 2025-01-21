@@ -5,6 +5,10 @@ struct SipInputCredentialsView: View {
     @State private var password: String
     @State private var isPasswordVisible: Bool
     @State private var hasError: Bool
+    @State private var isTokenLogin: Bool = false
+    @State private var tokenCallerId: String = ""
+    @State private var callerIdNumber: String = ""
+    @State private var callerName: String = ""
     
     let onSignIn: (SipCredential?) -> Void
     var onCancel: () -> Void
@@ -24,46 +28,107 @@ struct SipInputCredentialsView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading,
+               spacing: 12) {
             if hasError {
                 ErrorView(errorMessage: "That username/password combination does not match our records. Please try again.")
             }
+            Toggle("Token Login", isOn: $isTokenLogin)
+                .toggleStyle(SwitchToggleStyle(tint: .black))
+                .padding(.bottom, 12)
             
-            Text("Username")
-                .foregroundColor(.black)
-            
-            HStack {
-                TextField("Enter username", text: $username)
-                    .padding(.horizontal, 10)
-                    .frame(height: 40)
-            }
-            .background(RoundedRectangle(cornerRadius: 4)
-                .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
-            
-            Text("Password")
-                .foregroundColor(.black)
-            
-            HStack {
-                if isPasswordVisible {
-                    TextField("Enter password", text: $password)
-                        .padding(.horizontal, 10)
-                        .frame(height: 40)
-                } else {
-                    SecureField("Enter password", text: $password)
-                        .padding(.horizontal, 10)
-                        .frame(height: 40)
-                }
+            if isTokenLogin {
+                Text("Token Caller Id")
+                    .foregroundColor(.black)
                 
-                Button(action: {
-                    isPasswordVisible.toggle()
-                }) {
-                    Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
-                        .foregroundColor(Color(hex: "#525252"))
-                        .padding(.trailing, 10)
+                HStack {
+                    TextField("Enter token caller id", text: $tokenCallerId)
+                        .padding(.horizontal, 10)
+                        .frame(height: 40)
                 }
+                .background(RoundedRectangle(cornerRadius: 4)
+                    .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
+                
+                Text("Caller Id Number")
+                    .foregroundColor(.black)
+                
+                HStack {
+                    TextField("Enter caller id number", text: $callerIdNumber)
+                        .padding(.horizontal, 10)
+                        .frame(height: 40)
+                }
+                .background(RoundedRectangle(cornerRadius: 4)
+                    .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
+                
+                Text("Caller Name")
+                    .foregroundColor(.black)
+                
+                HStack {
+                    TextField("Enter caller name", text: $callerName)
+                        .padding(.horizontal, 10)
+                        .frame(height: 40)
+                }
+                .background(RoundedRectangle(cornerRadius: 4)
+                    .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
+            } else {
+                Text("Username")
+                    .foregroundColor(.black)
+                
+                HStack {
+                    TextField("Enter username", text: $username)
+                        .padding(.horizontal, 10)
+                        .frame(height: 40)
+                }
+                .background(RoundedRectangle(cornerRadius: 4)
+                    .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
+                
+                Text("Password")
+                    .foregroundColor(.black)
+                
+                HStack {
+                    if isPasswordVisible {
+                        TextField("Enter password", text: $password)
+                            .padding(.horizontal, 10)
+                            .frame(height: 40)
+                    } else {
+                        SecureField("Enter password", text: $password)
+                            .padding(.horizontal, 10)
+                            .frame(height: 40)
+                    }
+                    
+                    Button(action: {
+                        isPasswordVisible.toggle()
+                    }) {
+                        Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
+                            .foregroundColor(Color(hex: "#525252"))
+                            .padding(.trailing, 10)
+                    }
+                }
+                .background(RoundedRectangle(cornerRadius: 4)
+                    .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
+                
+                Text("Caller Id Number")
+                    .foregroundColor(.black)
+                
+                HStack {
+                    TextField("Enter caller id number", text: $callerIdNumber)
+                        .padding(.horizontal, 10)
+                        .frame(height: 40)
+                }
+                .background(RoundedRectangle(cornerRadius: 4)
+                    .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
+                
+                Text("Caller Name")
+                    .foregroundColor(.black)
+                
+                HStack {
+                    TextField("Enter caller name", text: $callerName)
+                        .padding(.horizontal, 10)
+                        .frame(height: 40)
+                }
+                .background(RoundedRectangle(cornerRadius: 4)
+                    .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
             }
-            .background(RoundedRectangle(cornerRadius: 4)
-                .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
             
             HStack(spacing: 12) {
                 Button(action: {
@@ -95,8 +160,11 @@ struct SipInputCredentialsView: View {
             }
             .padding(.vertical, 12)
             .background(.white)
-        }
+            Spacer()
+        }.padding(.horizontal, 5)
+
     }
+    
 }
 
 #Preview {
