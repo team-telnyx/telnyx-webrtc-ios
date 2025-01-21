@@ -13,7 +13,9 @@ struct SipCredentialsView: View {
     let onCredentialSelected: (SipCredential?) -> Void
     let onSignIn: (SipCredential?) -> Void
     
-    init(isShowingCredentialsInput: Binding<Bool>, onCredentialSelected: @escaping (SipCredential?) -> Void, onSignIn: @escaping (SipCredential?) -> Void) {
+    init(isShowingCredentialsInput: Binding<Bool>,
+         onCredentialSelected: @escaping (SipCredential?) -> Void,
+         onSignIn: @escaping (SipCredential?) -> Void) {
         self._isShowingCredentialsInput = isShowingCredentialsInput
         self._internalIsShowingCredentialsInput = State(initialValue: isShowingCredentialsInput.wrappedValue)
         self.onCredentialSelected = onCredentialSelected
@@ -33,7 +35,6 @@ struct SipCredentialsView: View {
                     }
                 }
             )
-            
             if internalIsShowingCredentialsInput {
                 SipInputCredentialsView(
                     username: "",
@@ -51,89 +52,99 @@ struct SipCredentialsView: View {
                     }
                 )
                 .transition(.move(edge: .top))
-                .frame(height: internalIsShowingCredentialsInput ? viewHeight : 0)
+                .frame(height: viewHeight)
                 .background(Color.white)
                 .cornerRadius(12)
                 .padding(.horizontal, 20)
+                .offset(y: 0)
                 .onAppear {
-                    viewHeight = 300
+                    withAnimation{
+                        viewHeight = 300
+                    }
                 }
-            }
-            
-            List {
-                Section {
-                    if credentialsList.isEmpty && !internalIsShowingCredentialsInput {
-                        Text("No SIP credentials available. Credentials will appear here after using them to connect.")
-                            .font(.system(size: 16))
-                            .foregroundColor(.gray)
-                            .multilineTextAlignment(.center)
-                            .listRowBackground(Color.clear)
-                            .padding(.vertical, 20)
-                            .listRowSeparator(.hidden)
-                    } else {
-                        ForEach(credentialsList, id: \.username) { credential in
-                            SipCredentialRow(
-                                credential: credential,
-                                isSelected: credential.username == tempSelectedCredential?.username,
-                                onDelete: {
-                                    withAnimation {
-                                        if selectedCredential?.username == credential.username {
-                                            isSelectedCredentialChanged = true
+                .onDisappear {
+                    withAnimation{
+                        viewHeight = 0
+                    }
+                }
+                Spacer()
+            } else {
+                List {
+                    Section {
+                        if credentialsList.isEmpty && !internalIsShowingCredentialsInput {
+                            Text("No SIP credentials available. Credentials will appear here after using them to connect.")
+                                .font(.system(size: 16))
+                                .foregroundColor(.gray)
+                                .multilineTextAlignment(.center)
+                                .listRowBackground(Color.clear)
+                                .padding(.vertical, 20)
+                                .listRowSeparator(.hidden)
+                        } else {
+                            ForEach(credentialsList, id: \.username) { credential in
+                                SipCredentialRow(
+                                    credential: credential,
+                                    isSelected: credential.username == tempSelectedCredential?.username,
+                                    onDelete: {
+                                        withAnimation {
+                                            if selectedCredential?.username == credential.username {
+                                                isSelectedCredentialChanged = true
+                                            }
+                                            SipCredentialsManager.shared.removeCredential(username: credential.username)
+                                            credentialsList = SipCredentialsManager.shared.getCredentials()
                                         }
-                                        SipCredentialsManager.shared.removeCredential(username: credential.username)
-                                        credentialsList = SipCredentialsManager.shared.getCredentials()
                                     }
+                                )
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    tempSelectedCredential = credential
                                 }
-                            )
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                tempSelectedCredential = credential
+                                .listRowInsets(EdgeInsets())
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(Color.white)
                             }
-                            .listRowInsets(EdgeInsets())
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.white)
                         }
                     }
                 }
-            }
-            .listStyle(.insetGrouped)
-            .background(.white)
-            .applyScrollContentBackground()
-            
-            HStack(spacing: 12) {
-                Spacer()
-                Button(action: { dismiss() }) {
-                    Text("Cancel")
-                        .font(.system(size: 16))
-                        .foregroundColor(Color(hex: "#1D1D1D"))
-                        .frame(width: 100)
-                        .padding(.vertical, 12)
-                        .background(.white)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color(hex: "#1D1D1D"), lineWidth: 1)
-                        )
-                }
+                .listStyle(.insetGrouped)
+                .background(.white)
+                .applyScrollContentBackground()
                 
-                Button(action: {
-                    if let credential = tempSelectedCredential {
-                        SipCredentialsManager.shared.saveSelectedCredential(credential)
-                        isSelectedCredentialChanged = true
+                HStack(spacing: 12) {
+                    Spacer()
+                    Button(action: { dismiss() }) {
+                        Text("Cancel")
+                            .font(.system(size: 16))
+                            .foregroundColor(Color(hex: "#1D1D1D"))
+                            .frame(width: 100)
+                            .padding(.vertical, 12)
+                            .background(.white)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(Color(hex: "#1D1D1D"), lineWidth: 1)
+                            )
                     }
-                    dismiss()
-                }) {
-                    Text("Confirm")
-                        .font(.system(size: 16))
-                        .foregroundColor(.white)
-                        .frame(width: 100)
-                        .padding(.vertical, 12)
-                        .background(Color(hex: "#1D1D1D"))
-                        .cornerRadius(20)
+                    
+                    Button(action: {
+                        if let credential = tempSelectedCredential {
+                            SipCredentialsManager.shared.saveSelectedCredential(credential)
+                            isSelectedCredentialChanged = true
+                        }
+                        dismiss()
+                    }) {
+                        Text("Confirm")
+                            .font(.system(size: 16))
+                            .foregroundColor(.white)
+                            .frame(width: 100)
+                            .padding(.vertical, 12)
+                            .background(Color(hex: "#1D1D1D"))
+                            .cornerRadius(20)
+                    }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(.white)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(.white)
+            
         }
         .onAppear {
             credentialsList = SipCredentialsManager.shared.getCredentials()
@@ -146,6 +157,8 @@ struct SipCredentialsView: View {
                 selectedCredential = SipCredentialsManager.shared.getSelectedCredential()
                 onCredentialSelected(selectedCredential)
             }
+            internalIsShowingCredentialsInput = false
+            isShowingCredentialsInput = false
         }
     }
 }
