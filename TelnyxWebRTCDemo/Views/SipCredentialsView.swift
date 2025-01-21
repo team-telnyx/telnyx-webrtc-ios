@@ -10,6 +10,8 @@ struct SipCredentialsView: View {
     @State private var internalIsShowingCredentialsInput: Bool
     @State private var viewHeight: CGFloat = 0
     
+    let kViewHeight: CGFloat = 300.0
+    
     let onCredentialSelected: (SipCredential?) -> Void
     let onSignIn: (SipCredential?) -> Void
     
@@ -59,7 +61,7 @@ struct SipCredentialsView: View {
                 .offset(y: 0)
                 .onAppear {
                     withAnimation{
-                        viewHeight = 300
+                        viewHeight = kViewHeight
                     }
                 }
                 .onDisappear {
@@ -160,5 +162,18 @@ struct SipCredentialsView: View {
             internalIsShowingCredentialsInput = false
             isShowingCredentialsInput = false
         }
+    }
+}
+
+// MARK: -
+struct SipCredentialsView_Previews: PreviewProvider {
+    @State static var isShowingCredentialsInput = true
+    
+    static var previews: some View {
+        SipCredentialsView(
+            isShowingCredentialsInput: $isShowingCredentialsInput,
+            onCredentialSelected: { _ in },
+            onSignIn: { _ in }
+        )
     }
 }
