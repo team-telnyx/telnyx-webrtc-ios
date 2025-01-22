@@ -10,6 +10,7 @@ class SipCredentialsViewController: UIViewController {
     weak var delegate: SipCredentialsViewControllerDelegate?
     private var hostingController: UIHostingController<SipCredentialsView>?
     private var isShowingCredentialsInput = false
+    private var sipCredentialsView: SipCredentialsView?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,9 +26,22 @@ class SipCredentialsViewController: UIViewController {
                 self.dismiss(animated: true)
             },
             onSignIn: { [weak self] newCredential in
-                self?.delegate?.onNewSipCredential(credential: newCredential)
+                guard let self = self else { return }
+                
+                // Verify connection with SDK
+                if let credential = newCredential {
+                    // Store credential and set as active profile
+                    SipCredentialsManager.shared.saveCredential(credential)
+                    SipCredentialsManager.shared.saveSelectedCredential(credential)
+                    
+                    // Notify delegate and close view
+                    self.delegate?.onNewSipCredential(credential: credential)
+                    self.dismiss(animated: true)
+                }
             }
         )
+        
+        self.sipCredentialsView = sipCredentialsView
         
         let hostingController = UIHostingController(rootView: sipCredentialsView)
         self.hostingController = hostingController // Guarda la referencia

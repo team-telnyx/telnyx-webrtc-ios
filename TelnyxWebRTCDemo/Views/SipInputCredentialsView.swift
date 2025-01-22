@@ -5,10 +5,12 @@ struct SipInputCredentialsView: View {
     @State private var password: String
     @State private var isPasswordVisible: Bool
     @State private var hasError: Bool
+    @State private var errorMessage: String = ""
     @State private var isTokenLogin: Bool = false
     @State private var tokenCallerId: String = ""
     @State private var callerIdNumber: String = ""
     @State private var callerName: String = ""
+    @State private var isLoading: Bool = false
     
     let onSignIn: (SipCredential?) -> Void
     var onCancel: () -> Void
@@ -27,11 +29,52 @@ struct SipInputCredentialsView: View {
         self.onCancel = onCancel
     }
     
+    private func validateAndSignIn() {
+        isLoading = true
+        hasError = false
+        errorMessage = ""
+        
+        if isTokenLogin {
+            if tokenCallerId.isEmpty {
+                hasError = true
+                errorMessage = "Token is required"
+                isLoading = false
+                return
+            }
+            
+            let credential = SipCredential(
+                username: tokenCallerId,
+                callerNumber: callerIdNumber,
+                callerName: callerName,
+                isTokenLogin: true
+            )
+            onSignIn(credential)
+        } else {
+            if username.isEmpty || password.isEmpty {
+                hasError = true
+                errorMessage = "Username and password are required"
+                isLoading = false
+                return
+            }
+            
+            let credential = SipCredential(
+                username: username,
+                password: password,
+                callerNumber: callerIdNumber,
+                callerName: callerName,
+                isTokenLogin: false
+            )
+            onSignIn(credential)
+        }
+    }
+    
     var body: some View {
         VStack(alignment: .leading,
                spacing: 12) {
             if hasError {
-                ErrorView(errorMessage: "That username/password combination does not match our records. Please try again.")
+                ErrorView(errorMessage: errorMessage.isEmpty ? 
+                    "That username/password combination does not match our records. Please try again." : 
+                    errorMessage)
             }
             Toggle("Token Login", isOn: $isTokenLogin)
                 .toggleStyle(SwitchToggleStyle(tint: .black))
@@ -131,18 +174,23 @@ struct SipInputCredentialsView: View {
             }
             
             HStack(spacing: 12) {
-                Button(action: {
-                    let credential = SipCredential(username: username, password: password)
-                    onSignIn(credential)
-                }) {
-                    Text("Sign In")
-                        .font(.system(size: 16).bold())
-                        .foregroundColor(Color(hex: "#525252"))
-                        .frame(width: 100)
-                        .padding(.vertical, 12)
-                        .background(Color(hex: "#F5F3E4"))
-                        .cornerRadius(20)
+                Button(action: validateAndSignIn) {
+                    HStack {
+                        if isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "#525252")))
+                                .scaleEffect(0.8)
+                        }
+                        Text(isLoading ? "Connecting..." : "Sign In")
+                            .font(.system(size: 16).bold())
+                            .foregroundColor(Color(hex: "#525252"))
+                    }
+                    .frame(width: isLoading ? 120 : 100)
+                    .padding(.vertical, 12)
+                    .background(Color(hex: "#F5F3E4"))
+                    .cornerRadius(20)
                 }
+                .disabled(isLoading)
                 
                 Button(action: { onCancel() }) {
                     Text("Cancel")
