@@ -1,4 +1,5 @@
 import WebRTC
+import Foundation
 
 extension RTCConfiguration {
     func telnyx_to_stats_dictionary() -> [String: Any] {

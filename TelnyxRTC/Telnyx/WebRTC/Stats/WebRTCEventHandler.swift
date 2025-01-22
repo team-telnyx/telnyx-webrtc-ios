@@ -1,4 +1,5 @@
 import WebRTC
+import Foundation
 
 protocol WebRTCEventHandler {
     var onSignalingStateChange: ((RTCSignalingState, RTCPeerConnection) -> Void)? { get set }

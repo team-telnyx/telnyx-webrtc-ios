@@ -1,3 +1,5 @@
+import Foundation
+
 // MARK: - Dictionary
 extension Dictionary {
 

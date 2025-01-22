@@ -1,4 +1,5 @@
 import WebRTC
+import Foundation
 
 // MARK: - RTCIceServer Extension
 extension RTCIceServer {
