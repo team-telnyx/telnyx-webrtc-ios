@@ -46,13 +46,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = UIHostingController(rootView: SplashScreen())
         window?.makeKeyAndVisible()
-        
-        // Set delegate after splash screen transition
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.1) {
-            if let viewController = self.window?.rootViewController?.children.first?.children.first as? ViewController {
-                self.voipDelegate = viewController
-            }
-        }
 
         // Instantiate the Telnyx Client SDK
         self.telnyxClient = TxClient()

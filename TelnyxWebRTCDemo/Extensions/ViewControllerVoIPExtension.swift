@@ -83,6 +83,7 @@ extension ViewController : VoIPDelegate {
     func onClientReady() {
         print("ViewController:: TxClientDelegate onClientReady()")
         DispatchQueue.main.async {
+            self.sipCredentialsVC.dismiss(animated: false)
             self.removeLoadingView()
             self.socketStateLabel.text = "Client ready"
             self.settingsView.isHidden = true
