@@ -5,14 +5,16 @@ enum SocketState {
     case disconnected
 }
 
+
 struct HomeView: View {
     @State private var logoPosition: CGFloat = 0
     @State private var isAnimating: Bool = false
     @State private var textOpacity: Double = 0.0
-    @State private var socketState: SocketState = .disconnected
-    @State private var sessionId: String = "-"
-    @State private var selectedProfile: SipCredential? = nil
     
+    @Binding var socketState: SocketState
+    @Binding var selectedProfile: SipCredential?
+    @Binding var sessionId: String
+
     let onAddProfile: () -> Void
     let onSwitchProfile: () -> Void
     let onConnect: () -> Void
@@ -121,7 +123,6 @@ struct HomeView: View {
                             .padding(.leading, 30)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             
-                            
                             Spacer()
                         }
                         .opacity(textOpacity)
@@ -158,6 +159,9 @@ struct HomeView: View {
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
         HomeView(
+            socketState: .constant(.disconnected),
+            selectedProfile: .constant(nil),
+            sessionId: .constant("-"),
             onAddProfile: {},
             onSwitchProfile: {},
             onConnect: {}
