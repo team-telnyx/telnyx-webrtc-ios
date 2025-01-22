@@ -4,6 +4,7 @@
 //
 //  Created by Guillermo Battistel on 05/08/2021.
 //
+import Foundation
 
 internal enum GatewayStates : String {
     case UNREGED = "UNREGED"

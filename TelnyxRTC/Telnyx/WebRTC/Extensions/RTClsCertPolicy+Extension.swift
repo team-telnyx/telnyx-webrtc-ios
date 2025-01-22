@@ -1,4 +1,5 @@
 import WebRTC
+import Foundation
 
 extension RTCTlsCertPolicy {
     func telnyx_to_string() -> String {

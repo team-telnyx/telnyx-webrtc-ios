@@ -7,6 +7,7 @@
 //
 
 import WebRTC
+import Foundation
 
 public enum WebRTCEnvironment {
     case development

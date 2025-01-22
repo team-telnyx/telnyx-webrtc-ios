@@ -1,3 +1,5 @@
+import Foundation
+
 enum WebRTCStatsEvent: String {
     case addConnection = "addConnection"
     case stats = "stats"

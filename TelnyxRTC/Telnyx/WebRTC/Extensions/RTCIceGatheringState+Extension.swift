@@ -1,4 +1,5 @@
 import WebRTC
+import Foundation
 
 extension RTCIceGatheringState {
     func telnyx_to_string() -> String {
