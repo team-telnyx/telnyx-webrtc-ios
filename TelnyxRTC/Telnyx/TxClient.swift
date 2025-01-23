@@ -199,6 +199,51 @@ public class TxClient {
         self.serverConfiguration = TxServerConfiguration()
         self.configure()
         sessionId = UUID().uuidString.lowercased()
+        
+        // Start monitoring audio route changes
+        setupAudioRouteChangeMonitoring()
+    }
+    
+    private func setupAudioRouteChangeMonitoring() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAudioRouteChange),
+            name: AVAudioSession.routeChangeNotification,
+            object: nil)
+    }
+    
+    @objc private func handleAudioRouteChange(notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
+              let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
+            return
+        }
+        
+        let session = AVAudioSession.sharedInstance()
+        let currentRoute = session.currentRoute
+        
+        // Check if we have any output ports
+        guard let output = currentRoute.outputs.first else {
+            return
+        }
+        
+        Logger.log.i(message: "Audio route changed: \(output.portType), reason: \(reason)")
+        
+        switch reason {
+        case .categoryChange, .override, .routeConfigurationChange:
+            // Update speaker state based on current output
+            let isSpeaker = output.portType == .builtInSpeaker
+            speakerOn = isSpeaker
+            
+            // Notify UI of the change
+            NotificationCenter.default.post(
+                name: NSNotification.Name("AudioRouteChanged"),
+                object: nil,
+                userInfo: ["isSpeakerOn": isSpeaker]
+            )
+        default:
+            break
+        }
     }
 
     // MARK: - Connection handling
@@ -257,6 +302,12 @@ public class TxClient {
             call.hangup()
         }
         self.calls.removeAll()
+        
+        // Remove audio route change observer
+        NotificationCenter.default.removeObserver(self, 
+                                                name: AVAudioSession.routeChangeNotification, 
+                                                object: nil)
+        
         socket?.disconnect(reconnect: false)
         delegate?.onSocketDisconnected()
     }
@@ -627,10 +678,29 @@ extension TxClient {
     public func setEarpiece() {
         do {
             let audioSession = AVAudioSession.sharedInstance()
+            let rtcAudioSession = RTCAudioSession.sharedInstance()
+            
+            rtcAudioSession.lockForConfiguration()
+            defer {
+                rtcAudioSession.unlockForConfiguration()
+            }
+            
+            // Configure audio session for earpiece output
             try audioSession.overrideOutputAudioPort(.none)
+            try rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord,
+                                          options: [.allowBluetooth, .allowBluetoothA2DP, .mixWithOthers])
+            
+            // Update speaker state
             speakerOn = false
+            
+            // Post notification for UI update
+            NotificationCenter.default.post(name: NSNotification.Name("AudioRouteChanged"), 
+                                         object: nil,
+                                         userInfo: ["isSpeakerOn": false])
+            
+            Logger.log.i(message: "Earpiece mode enabled successfully")
         } catch let error {
-            Logger.log.e(message: "Error setting Earpiece \(error)")
+            Logger.log.e(message: "Error setting Earpiece: \(error)")
         }
     }
 
@@ -638,10 +708,29 @@ extension TxClient {
     public func setSpeaker() {
         do {
             let audioSession = AVAudioSession.sharedInstance()
+            let rtcAudioSession = RTCAudioSession.sharedInstance()
+            
+            rtcAudioSession.lockForConfiguration()
+            defer {
+                rtcAudioSession.unlockForConfiguration()
+            }
+            
+            // Configure audio session for speaker output
             try audioSession.overrideOutputAudioPort(.speaker)
+            try rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord,
+                                          options: [.defaultToSpeaker, .allowBluetooth, .allowBluetoothA2DP, .mixWithOthers])
+            
+            // Update speaker state
             speakerOn = true
+            
+            // Post notification for UI update
+            NotificationCenter.default.post(name: NSNotification.Name("AudioRouteChanged"), 
+                                         object: nil,
+                                         userInfo: ["isSpeakerOn": true])
+            
+            Logger.log.i(message: "Speaker mode enabled successfully")
         } catch let error {
-            Logger.log.e(message: "Error setting Speaker \(error)")
+            Logger.log.e(message: "Error setting Speaker: \(error)")
         }
     }
 }
