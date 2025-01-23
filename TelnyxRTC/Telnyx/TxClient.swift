@@ -175,13 +175,13 @@ public class TxClient {
     
     
     public func enableAudioSession(audioSession: AVAudioSession){
-        RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
-        RTCAudioSession.sharedInstance().isAudioEnabled = true
+        setupCorrectAudioConfiguration()
+        setAudioSessionActive(true)
     }
     
     public func disableAudioSession(audioSession: AVAudioSession){
-        RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
-        RTCAudioSession.sharedInstance().isAudioEnabled = false
+        resetAudioConfiguration()
+        setAudioSessionActive(false)
     }
     
     let currentRoute = AVAudioSession.sharedInstance().currentRoute
@@ -199,6 +199,50 @@ public class TxClient {
         self.serverConfiguration = TxServerConfiguration()
         self.configure()
         sessionId = UUID().uuidString.lowercased()
+        // Start monitoring audio route changes
+        setupAudioRouteChangeMonitoring()
+    }
+    
+    private func setupAudioRouteChangeMonitoring() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAudioRouteChange),
+            name: AVAudioSession.routeChangeNotification,
+            object: nil)
+    }
+    
+    @objc private func handleAudioRouteChange(notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
+              let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
+            return
+        }
+        
+        let session = AVAudioSession.sharedInstance()
+        let currentRoute = session.currentRoute
+        
+        // Check if we have any output ports
+        guard let output = currentRoute.outputs.first else {
+            return
+        }
+        
+        Logger.log.i(message: "Audio route changed: \(output.portType), reason: \(reason)")
+        
+        switch reason {
+            case .categoryChange, .override, .routeConfigurationChange:
+                // Update speaker state based on current output
+                let isSpeaker = output.portType == .builtInSpeaker
+                speakerOn = isSpeaker
+                
+                // Notify UI of the change
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("AudioRouteChanged"),
+                    object: nil,
+                    userInfo: ["isSpeakerOn": isSpeaker]
+                )
+            default:
+                break
+        }
     }
 
     // MARK: - Connection handling
@@ -257,6 +301,13 @@ public class TxClient {
             call.hangup()
         }
         self.calls.removeAll()
+        
+        // Remove audio route change observer
+        NotificationCenter.default.removeObserver(self,
+                                                  name: AVAudioSession.routeChangeNotification,
+                                                  object: nil)
+        
+
         socket?.disconnect(reconnect: false)
         delegate?.onSocketDisconnected()
     }
@@ -725,7 +776,7 @@ extension TxClient : SocketDelegate {
     
     func onSocketDisconnected(reconnect: Bool) {
         
-        if(reconnect){
+        if(reconnect) {
             Logger.log.i(message: "TxClient:: SocketDelegate  Reconnecting")
             DispatchQueue.main.asyncAfter(deadline: .now() + TxClient.RECONNECT_BUFFER) {
                 do {
@@ -978,5 +1029,55 @@ extension TxClient : SocketDelegate {
                     break
             }
         }
+    }
+}
+
+// MARK: - Audio session configurations
+extension TxClient {
+    internal func resetAudioConfiguration() {
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            try audioSession.setCategory(
+                .playback,
+                mode: .default,
+                options: [.mixWithOthers]
+            )
+        } catch {
+            print(error)
+        }
+    }
+
+    internal func setupCorrectAudioConfiguration() {
+        let rtcAudioSession = RTCAudioSession.sharedInstance()
+        rtcAudioSession.lockForConfiguration()
+        
+        let configuration = RTCAudioSessionConfiguration.webRTC()
+        configuration.categoryOptions = [
+            .allowBluetoothA2DP,
+            .duckOthers,
+            .allowBluetooth,
+            .mixWithOthers
+        ]
+        
+        do {
+            try rtcAudioSession.setConfiguration(configuration)
+        } catch {
+            print(error)
+        }
+        
+        rtcAudioSession.unlockForConfiguration()
+    }
+
+    internal func setAudioSessionActive(_ active: Bool) {
+        let rtcAudioSession = RTCAudioSession.sharedInstance()
+        
+        rtcAudioSession.lockForConfiguration()
+        do {
+            try rtcAudioSession.setActive(active)
+            rtcAudioSession.isAudioEnabled = active
+        } catch {
+            print(error)
+        }
+        rtcAudioSession.unlockForConfiguration()
     }
 }
