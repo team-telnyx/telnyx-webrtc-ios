@@ -7,14 +7,11 @@ enum SocketState {
 
 
 struct HomeView: View {
-    @State private var logoPosition: CGFloat = 0
+    @ObservedObject var viewModel: HomeViewModel
+    
     @State private var isAnimating: Bool = false
     @State private var textOpacity: Double = 0.0
     
-    @Binding var socketState: SocketState
-    @Binding var selectedProfile: SipCredential?
-    @Binding var sessionId: String
-
     let onAddProfile: () -> Void
     let onSwitchProfile: () -> Void
     let onConnect: () -> Void
@@ -23,14 +20,13 @@ struct HomeView: View {
         VStack {
             GeometryReader { geometry in
                 VStack {
-                    Spacer()
-                        .frame(height: isAnimating ? 50 : (geometry.size.height / 2 - 100))
+                    Spacer().frame(height: isAnimating ? 50 : (geometry.size.height / 2 - 100))
                     Image("telnyx-logo")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 200)
-                    Spacer()
-                        .frame(height: isAnimating ? 0 : (geometry.size.height / 2 - 100))
+                    Spacer().frame(height: isAnimating ? 0 : (geometry.size.height / 2 - 100))
+                    
                     if isAnimating {
                         VStack {
                             Text("Please confirm details below and click ‘Connect’ to make a call.")
@@ -38,6 +34,7 @@ struct HomeView: View {
                                 .foregroundColor(Color(hex: "1D1D1D"))
                                 .padding(.top, 20)
                                 .padding(20)
+                            
                             // Socket State
                             VStack {
                                 Text("Socket")
@@ -48,9 +45,9 @@ struct HomeView: View {
                                 
                                 HStack {
                                     Circle()
-                                        .fill(socketState == .connected ? Color(hex: "00E3AA") : Color(hex: "D40000"))
+                                        .fill(viewModel.socketState == .connected ? Color(hex: "00E3AA") : Color(hex: "D40000"))
                                         .frame(width: 8, height: 8)
-                                    Text(socketState == .connected ? "Connected" : "Disconnected")
+                                    Text(viewModel.socketState == .connected ? "Connected" : "Disconnected")
                                         .font(.system(size: 18, weight: .regular))
                                         .foregroundColor(Color(hex: "1D1D1D"))
                                 }
@@ -59,6 +56,7 @@ struct HomeView: View {
                             }
                             .padding(.leading, 30)
                             .frame(maxWidth: .infinity, alignment: .leading)
+                            
                             // Session
                             VStack {
                                 Text("Session ID")
@@ -67,7 +65,7 @@ struct HomeView: View {
                                     .padding(.top, 10)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 
-                                Text(sessionId)
+                                Text(viewModel.sessionId)
                                     .font(.system(size: 18, weight: .regular))
                                     .foregroundColor(Color(hex: "1D1D1D"))
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -84,7 +82,7 @@ struct HomeView: View {
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 
                                 ZStack {
-                                    if selectedProfile == nil {
+                                    if viewModel.selectedProfile == nil {
                                         Button(action: onAddProfile) {
                                             Text("+ Add new profile")
                                                 .font(.system(size: 14).bold())
@@ -96,7 +94,7 @@ struct HomeView: View {
                                         }
                                     } else {
                                         HStack {
-                                            Text(selectedProfile?.username ?? "")
+                                            Text(viewModel.selectedProfile?.username ?? "")
                                                 .font(.system(size: 18, weight: .regular))
                                                 .foregroundColor(Color(hex: "1D1D1D"))
                                                 .frame(maxWidth: 200)
@@ -118,11 +116,10 @@ struct HomeView: View {
                                         Spacer()
                                     }
                                 }.frame(maxWidth: .infinity, alignment: .leading)
-                                
                             }
                             .padding(.leading, 30)
                             .frame(maxWidth: .infinity, alignment: .leading)
-
+                            
                             Spacer()
                             Button(action: onConnect) {
                                 Text("Connect")
@@ -139,7 +136,6 @@ struct HomeView: View {
                         .opacity(textOpacity)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
-                    
                 }
                 .frame(maxWidth: .infinity)
                 .background(Color.white)
@@ -161,9 +157,7 @@ struct HomeView: View {
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
         HomeView(
-            socketState: .constant(.disconnected),
-            selectedProfile: .constant(nil),
-            sessionId: .constant("-"),
+            viewModel: HomeViewModel(),
             onAddProfile: {},
             onSwitchProfile: {},
             onConnect: {}

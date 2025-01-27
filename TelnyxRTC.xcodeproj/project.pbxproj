@@ -49,6 +49,7 @@
 		9986703E2D3EC7A3001E1D01 /* View+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9986703D2D3EC7A0001E1D01 /* View+Extensions.swift */; };
 		998670402D40849C001E1D01 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9986703F2D408493001E1D01 /* HomeViewController.swift */; };
 		998670422D4096AA001E1D01 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998670412D4096A7001E1D01 /* HomeView.swift */; };
+		99ADA94E2D47C9B6000C956A /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA94C2D47C9B6000C956A /* HomeViewModel.swift */; };
 		99B6DFF82CF522140010CA96 /* WebRTCStatsEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFF72CF522070010CA96 /* WebRTCStatsEvent.swift */; };
 		99B6DFFA2CF5226F0010CA96 /* WebRTCStatsTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFF92CF522610010CA96 /* WebRTCStatsTag.swift */; };
 		99B6DFFD2CF546310010CA96 /* DebugReportStartMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFFC2CF546220010CA96 /* DebugReportStartMessage.swift */; };
@@ -191,6 +192,7 @@
 		9986703D2D3EC7A0001E1D01 /* View+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extensions.swift"; sourceTree = "<group>"; };
 		9986703F2D408493001E1D01 /* HomeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
 		998670412D4096A7001E1D01 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		99ADA94C2D47C9B6000C956A /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
 		99B6DFF72CF522070010CA96 /* WebRTCStatsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCStatsEvent.swift; sourceTree = "<group>"; };
 		99B6DFF92CF522610010CA96 /* WebRTCStatsTag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCStatsTag.swift; sourceTree = "<group>"; };
 		99B6DFFC2CF546220010CA96 /* DebugReportStartMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugReportStartMessage.swift; sourceTree = "<group>"; };
@@ -374,6 +376,14 @@
 			path = Extensions;
 			sourceTree = "<group>";
 		};
+		99ADA94D2D47C9B6000C956A /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				99ADA94C2D47C9B6000C956A /* HomeViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
 		99B6DFFB2CF542E20010CA96 /* Stats */ = {
 			isa = PBXGroup;
 			children = (
@@ -518,6 +528,7 @@
 				995BF7142CE7EB0B00454076 /* Models */,
 				B3E1032F25F7F93000227DCE /* Resources */,
 				B309D1FB25F028F100A2AADF /* Views */,
+				99ADA94D2D47C9B6000C956A /* ViewModels */,
 				995BF71E2CE8174B00454076 /* ViewControllers */,
 				B3AF24A825EE84410062EDA9 /* Extensions */,
 				B368BEEA25EDDD060032AE52 /* AppDelegate.swift */,
@@ -981,6 +992,7 @@
 				995BF71C2CE7EC0600454076 /* SipCredentialsManager.swift in Sources */,
 				998670382D3E9506001E1D01 /* Color+Extensions.swift in Sources */,
 				B368BEEB25EDDD060032AE52 /* AppDelegate.swift in Sources */,
+				99ADA94E2D47C9B6000C956A /* HomeViewModel.swift in Sources */,
 				B309D20225F0291B00A2AADF /* UISettingsView.swift in Sources */,
 				B32AE8BF26D6D69E00C7C6F4 /* ViewControllerVoIPExtension.swift in Sources */,
 				B3C008B226C1B2C5003E7AE3 /* LoadingView.swift in Sources */,

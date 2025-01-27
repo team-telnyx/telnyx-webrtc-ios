@@ -3,31 +3,28 @@ import SwiftUI
 
 class HomeViewController: UIViewController {
     private var hostingController: UIHostingController<HomeView>?
+    let sipCredentialsVC = SipCredentialsViewController()
     
-    @State private var socketState: SocketState = .disconnected
-    @State private var selectedProfile: SipCredential? = nil
-    @State private var sessionId: String = "-"
+    // ✅ Usamos un ObservableObject para manejar el estado
+    private var viewModel = HomeViewModel()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let homeView = HomeView(
-            socketState: Binding(get: { self.socketState }, set: { self.socketState = $0 }),
-            selectedProfile: Binding(get: { self.selectedProfile }, set: { self.selectedProfile = $0 }),
-            sessionId: Binding(get: { self.sessionId }, set: { self.sessionId = $0 }),
-            onAddProfile: { [weak self] in
-                self?.handleAddProfile()
-            },
-            onSwitchProfile: { [weak self] in
-                self?.handleSwitchProfile()
-            },
-            onConnect: { [weak self] in
-                self?.handleConnect()
-            }
+        let homeView = HomeView(viewModel: viewModel,
+                                onAddProfile: { [weak self] in
+            self?.handleAddProfile()
+        },
+                                onSwitchProfile: { [weak self] in
+            self?.handleSwitchProfile()
+        },
+                                onConnect: { [weak self] in
+            self?.handleConnect()
+        }
         )
         
         let hostingController = UIHostingController(rootView: homeView)
-        self.hostingController = hostingController // Guarda la referencia
+        self.hostingController = hostingController
         
         addChild(hostingController)
         view.addSubview(hostingController.view)
@@ -41,20 +38,44 @@ class HomeViewController: UIViewController {
         ])
         
         hostingController.didMove(toParent: self)
+        
+        self.initViews()
     }
     
     private func handleAddProfile() {
-        // Implementa la lógica para agregar un perfil
         print("Add Profile tapped")
+        self.present(self.sipCredentialsVC, animated: true, completion: nil)
     }
     
     private func handleSwitchProfile() {
-        // Implementa la lógica para cambiar de perfil
         print("Switch Profile tapped")
+        self.present(self.sipCredentialsVC, animated: true, completion: nil)
     }
     
     private func handleConnect() {
-        // Implementa la lógica para conectar
         print("Connect tapped")
+    }
+}
+
+// MARK: - VIEWS
+extension HomeViewController {
+    func initViews() {
+        self.sipCredentialsVC.delegate = self
+        self.hideKeyboardWhenTappedAround()
+    }
+}
+
+// MARK: - SipCredentialsViewControllerDelegate
+extension HomeViewController: SipCredentialsViewControllerDelegate {
+    func onNewSipCredential(credential: SipCredential?) {
+        DispatchQueue.main.async {
+            self.viewModel.selectedProfile = credential
+        }
+    }
+    
+    func onSipCredentialSelected(credential: SipCredential?) {
+        DispatchQueue.main.async {
+            self.viewModel.selectedProfile = credential
+        }
     }
 }
