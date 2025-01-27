@@ -122,22 +122,24 @@ struct HomeView: View {
                             }
                             .padding(.leading, 30)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            
+
                             Spacer()
+                            Button(action: onConnect) {
+                                Text("Connect")
+                                    .font(.system(size: 16).bold())
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: 300)
+                                    .padding(.vertical, 12)
+                                    .background(Color(hex: "#1D1D1D"))
+                                    .cornerRadius(20)
+                            }
+                            .padding(.horizontal, 60)
+                            .padding(.bottom, 20)
                         }
                         .opacity(textOpacity)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
-                    Spacer()
-                    Button(action: onConnect) {
-                        Text("Connect")
-                            .font(.system(size: 16).bold())
-                            .foregroundColor(.white)
-                            .frame(maxWidth: 300)
-                            .padding(.vertical, 12)
-                            .background(Color(hex: "#1D1D1D"))
-                            .cornerRadius(20)
-                    }.padding(.horizontal, 60)
+                    
                 }
                 .frame(maxWidth: .infinity)
                 .background(Color.white)
