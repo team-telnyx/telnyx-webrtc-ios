@@ -53,15 +53,4 @@ jobs:
         COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
       run: |
         pod trunk push TelnyxRTC.podspec --allow-warnings
-    
-    - name: "✏️ Get Current TAG"
-      id: get-current-tag
-      run:  echo "::set-output name=CURRENT_TAG::$(git describe --tags $(git rev-list --tags --max-count=1))"
 
-    - name: "🎉  Send release to Slack"
-      uses: homeday-de/slack-release-bot-action@main
-      with:
-        webhook_url: ${{ secrets.SLACK_RELEASE_BOT_WEBHOOK_URL }}
-        title: "Telnyx iOS WebRTC SDK release v${{ steps.get-current-tag.outputs.CURRENT_TAG }}"
-        body: "${{ steps.changelog-file.outputs.content }}"
-        context: Telnyx iOS WebRTC SDK
