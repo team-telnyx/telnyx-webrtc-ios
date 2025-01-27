@@ -136,8 +136,15 @@ class Peer : NSObject, WebRTCEventHandler {
                 Logger.log.i(message: "Peer:: Configuring AVAudioSession")
                 self.rtcAudioSession.useManualAudio = true
                 self.rtcAudioSession.isAudioEnabled = false
-                try self.rtcAudioSession.setCategory(AVAudioSession.Category(rawValue: AVAudioSession.Category.playAndRecord.rawValue))
-                try self.rtcAudioSession.setMode(AVAudioSession.Mode.voiceChat)
+                try rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord,
+                                                mode: AVAudioSession.Mode.voiceChat,
+                                                options: [
+                                                    .allowBluetoothA2DP,
+                                                    .duckOthers,
+                                                    .allowBluetooth,
+                                                    .mixWithOthers
+                                                ])
+
                 Logger.log.i(message: "Peer:: Configuring AVAudioSession configured")
             } catch let error {
                 Logger.log.e(message: "Peer:: Error changing AVAudioSession category: \(error.localizedDescription)")
