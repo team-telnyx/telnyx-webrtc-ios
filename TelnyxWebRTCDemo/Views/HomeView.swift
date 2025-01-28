@@ -1,6 +1,7 @@
 import SwiftUI
 
 enum SocketState {
+    case clientReady
     case connected
     case disconnected
 }
@@ -35,7 +36,7 @@ struct HomeView: View {
                         
                         if isAnimating {
                             VStack {
-                                if viewModel.socketState == .connected {
+                                if viewModel.socketState == .connected || viewModel.socketState == .clientReady {
                                     Text("Enter a destination (phone number or SIP user) to initiate your call.")
                                         .font(.system(size: 18, weight: .regular))
                                         .foregroundColor(Color(hex: "1D1D1D"))
@@ -57,9 +58,9 @@ struct HomeView: View {
                                     
                                     HStack {
                                         Circle()
-                                            .fill(viewModel.socketState == .connected ? Color(hex: "00E3AA") : Color(hex: "D40000"))
+                                            .fill(viewModel.socketState == .connected || viewModel.socketState == .clientReady ? Color(hex: "00E3AA") : Color(hex: "D40000"))
                                             .frame(width: 8, height: 8)
-                                        Text(viewModel.socketState == .connected ? "Connected" : "Disconnected")
+                                        Text(socketStateText(for: viewModel.socketState))
                                             .font(.system(size: 15, weight: .regular))
                                             .foregroundColor(Color(hex: "1D1D1D"))
                                     }
@@ -161,8 +162,19 @@ struct HomeView: View {
         switch state {
             case .disconnected:
                 profileView
-            case .connected:
+            case .connected, .clientReady:
                 callView
+        }
+    }
+    
+    private func socketStateText(for state: SocketState) -> String {
+        switch state {
+            case .disconnected:
+                return "disconnected"
+            case .connected:
+                return "connected"
+            case .clientReady:
+                return "client-ready"
         }
     }
 }

@@ -67,7 +67,7 @@ extension HomeViewController : VoIPDelegate {
         print("ViewController:: TxClientDelegate onClientReady()")
         DispatchQueue.main.async {
             self.viewModel.isLoading = false
-            self.viewModel.socketState = .connected
+            self.viewModel.socketState = .clientReady
         }
     }
     
