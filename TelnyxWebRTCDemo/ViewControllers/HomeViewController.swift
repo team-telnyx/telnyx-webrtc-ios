@@ -1,16 +1,22 @@
 import UIKit
 import SwiftUI
+import TelnyxRTC
 
 class HomeViewController: UIViewController {
     private var hostingController: UIHostingController<HomeView>?
     let sipCredentialsVC = SipCredentialsViewController()
     
-    // ✅ Usamos un ObservableObject para manejar el estado
     private var viewModel = HomeViewModel()
+
+    var telnyxClient: TxClient?
+    var userDefaults: UserDefaults = UserDefaults.init()
+    var serverConfig: TxServerConfiguration?
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        self.telnyxClient = appDelegate.telnyxClient
+
         let homeView = HomeView(viewModel: viewModel,
                                 onAddProfile: { [weak self] in
             self?.handleAddProfile()
@@ -20,6 +26,9 @@ class HomeViewController: UIViewController {
         },
                                 onConnect: { [weak self] in
             self?.handleConnect()
+        },
+                                onLongPressLogo: { [weak self] in
+            self?.showHiddenOptions()
         }
         )
         
@@ -40,6 +49,7 @@ class HomeViewController: UIViewController {
         hostingController.didMove(toParent: self)
         
         self.initViews()
+        self.initEnvironment()
     }
     
     private func handleAddProfile() {
@@ -78,4 +88,56 @@ extension HomeViewController: SipCredentialsViewControllerDelegate {
             self.viewModel.selectedProfile = credential
         }
     }
+}
+
+// MARK: - Environment selector
+extension HomeViewController {
+    private func showHiddenOptions() {
+        let alert = UIAlertController(title: "Options", message: "", preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "Development Environment", style: .default , handler:{ (UIAlertAction)in
+            self.serverConfig = TxServerConfiguration(environment: .development)
+            self.userDefaults.saveEnvironment(.development)
+            self.updateEnvironment()
+        }))
+        
+        alert.addAction(UIAlertAction(title: "Production Environment", style: .default , handler:{ (UIAlertAction)in
+            self.serverConfig = nil
+            self.userDefaults.saveEnvironment(.production)
+            self.updateEnvironment()
+        }))
+        
+        alert.addAction(UIAlertAction(title: "Copy APNS token", style: .default , handler:{ (UIAlertAction)in
+            // To copy the APNS push token to pasteboard
+            let token = UserDefaults.init().getPushToken()
+            UIPasteboard.general.string = token
+        }))
+        alert.addAction(UIAlertAction(title: "Disable Push Notifications", style: .default , handler:{ (UIAlertAction)in
+            self.telnyxClient?.disablePushNotifications()
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    func updateEnvironment() {
+        DispatchQueue.main.async {
+            // Update selected credentials in UI after switching environment
+            let credentials = SipCredentialsManager.shared.getSelectedCredential()
+            self.onSipCredentialSelected(credential: credentials)
+            
+            let sdkVersion = Bundle(for: TxClient.self).infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+            let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+            
+            let env = self.serverConfig?.environment == .development ? "Development" : "Production "
+            self.viewModel.environment = "\(env) TelnyxSDK [v\(sdkVersion)] - App [v\(appVersion)]"
+        }
+    }
+    
+    func initEnvironment() {
+        if self.userDefaults.getEnvironment() == .development {
+            self.serverConfig = TxServerConfiguration(environment: .development)
+        }
+        self.updateEnvironment()
+    }
+    
 }

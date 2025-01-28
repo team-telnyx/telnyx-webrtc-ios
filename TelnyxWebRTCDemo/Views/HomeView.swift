@@ -15,6 +15,7 @@ struct HomeView: View {
     let onAddProfile: () -> Void
     let onSwitchProfile: () -> Void
     let onConnect: () -> Void
+    let onLongPressLogo: () -> Void
     
     var body: some View {
         VStack {
@@ -25,6 +26,9 @@ struct HomeView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 200)
+                        .onLongPressGesture {
+                            onLongPressLogo()
+                        }
                     Spacer().frame(height: isAnimating ? 0 : (geometry.size.height / 2 - 100))
                     
                     if isAnimating {
@@ -132,6 +136,12 @@ struct HomeView: View {
                             }
                             .padding(.horizontal, 60)
                             .padding(.bottom, 20)
+                            
+                            // Environment Text
+                            Text("\(viewModel.environment)")
+                                .font(.system(size: 14, weight: .regular))
+                                .foregroundColor(Color(hex: "1D1D1D"))
+                                .padding(.bottom, 20)
                         }
                         .opacity(textOpacity)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -160,7 +170,8 @@ struct HomeView_Previews: PreviewProvider {
             viewModel: HomeViewModel(),
             onAddProfile: {},
             onSwitchProfile: {},
-            onConnect: {}
+            onConnect: {},
+            onLongPressLogo: {}
         )
     }
 }
