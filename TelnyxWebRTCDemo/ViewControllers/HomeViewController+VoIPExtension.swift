@@ -11,7 +11,6 @@ extension HomeViewController : VoIPDelegate {
     func onSocketConnected() {
         print("ViewController:: TxClientDelegate onSocketConnected()")
         DispatchQueue.main.async {
-            self.viewModel.isLoading = false
             self.viewModel.socketState = .connected
         }
     }

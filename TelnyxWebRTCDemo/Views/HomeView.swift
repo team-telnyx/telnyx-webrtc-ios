@@ -54,7 +54,7 @@ struct HomeView: View {
                                             .fill(viewModel.socketState == .connected ? Color(hex: "00E3AA") : Color(hex: "D40000"))
                                             .frame(width: 8, height: 8)
                                         Text(viewModel.socketState == .connected ? "Connected" : "Disconnected")
-                                            .font(.system(size: 18, weight: .regular))
+                                            .font(.system(size: 15, weight: .regular))
                                             .foregroundColor(Color(hex: "1D1D1D"))
                                     }
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -72,8 +72,9 @@ struct HomeView: View {
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                     
                                     Text(viewModel.sessionId)
-                                        .font(.system(size: 18, weight: .regular))
+                                        .font(.system(size: 15, weight: .regular))
                                         .foregroundColor(Color(hex: "1D1D1D"))
+                                        .padding(.top, 5)
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                 }
                                 .padding(.leading, 30)
@@ -107,7 +108,7 @@ struct HomeView: View {
                                             .cornerRadius(20)
                                     }
                                     .padding(.horizontal, 60)
-                                    .padding(.bottom, 20)
+                                    .padding(.bottom, 10)
                                 }
                                 
                                 
@@ -115,7 +116,7 @@ struct HomeView: View {
                                 Text(viewModel.environment)
                                     .font(.system(size: 14, weight: .regular))
                                     .foregroundColor(Color(hex: "1D1D1D"))
-                                    .padding(.bottom, 20)
+                                    .padding(.bottom, 5)
                             }
                             .opacity(textOpacity)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
