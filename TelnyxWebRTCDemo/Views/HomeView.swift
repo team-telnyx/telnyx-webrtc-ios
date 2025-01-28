@@ -5,17 +5,17 @@ enum SocketState {
     case disconnected
 }
 
-
 struct HomeView: View {
     @ObservedObject var viewModel: HomeViewModel
     
     @State private var isAnimating: Bool = false
     @State private var textOpacity: Double = 0.0
-    
-    let onAddProfile: () -> Void
-    let onSwitchProfile: () -> Void
+
     let onConnect: () -> Void
     let onLongPressLogo: () -> Void
+    
+    let profileView: AnyView
+    let callView: AnyView
     
     var body: some View {
         VStack {
@@ -77,52 +77,8 @@ struct HomeView: View {
                             .padding(.leading, 30)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             
-                            // Profile
-                            VStack {
-                                Text("Profile")
-                                    .font(.system(size: 18, weight: .regular))
-                                    .foregroundColor(Color(hex: "#525252"))
-                                    .padding(.top, 10)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                
-                                ZStack {
-                                    if viewModel.selectedProfile == nil {
-                                        Button(action: onAddProfile) {
-                                            Text("+ Add new profile")
-                                                .font(.system(size: 14).bold())
-                                                .foregroundColor(Color(hex: "#1D1D1D"))
-                                                .frame(width: 150)
-                                                .padding(.vertical, 8)
-                                                .background(Color(hex: "#F5F3E4"))
-                                                .cornerRadius(16)
-                                        }
-                                    } else {
-                                        HStack {
-                                            Text(viewModel.selectedProfile?.username ?? "")
-                                                .font(.system(size: 18, weight: .regular))
-                                                .foregroundColor(Color(hex: "1D1D1D"))
-                                                .frame(maxWidth: 200)
-                                                .lineLimit(1)
-                                            
-                                            Button(action: onSwitchProfile) {
-                                                Text("Switch Profile")
-                                                    .font(.system(size: 14).bold())
-                                                    .foregroundColor(Color(hex: "#1D1D1D"))
-                                                    .padding(.vertical, 8)
-                                                    .padding(.horizontal, 12)
-                                                    .background(Color(hex: "#EBEBEB"))
-                                                    .cornerRadius(16)
-                                            }
-                                            
-                                            Spacer()
-                                        }
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                        Spacer()
-                                    }
-                                }.frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                            .padding(.leading, 30)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                            // Profile or Call view
+                            profileOrCallView(for: viewModel.socketState)
                             
                             Spacer()
                             Button(action: onConnect) {
@@ -138,7 +94,7 @@ struct HomeView: View {
                             .padding(.bottom, 20)
                             
                             // Environment Text
-                            Text("\(viewModel.environment)")
+                            Text(viewModel.environment)
                                 .font(.system(size: 14, weight: .regular))
                                 .foregroundColor(Color(hex: "1D1D1D"))
                                 .padding(.bottom, 20)
@@ -162,16 +118,26 @@ struct HomeView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.white)
     }
+    
+    @ViewBuilder
+    private func profileOrCallView(for state: SocketState) -> some View {
+        switch state {
+            case .disconnected:
+                profileView
+            case .connected:
+                callView
+        }
+    }
 }
 
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
         HomeView(
             viewModel: HomeViewModel(),
-            onAddProfile: {},
-            onSwitchProfile: {},
             onConnect: {},
-            onLongPressLogo: {}
+            onLongPressLogo: {},
+            profileView: AnyView(ProfileView(viewModel: ProfileViewModel(), onAddProfile: {}, onSwitchProfile: {})),
+            callView: AnyView(CallView())
         )
     }
 }

@@ -7,6 +7,7 @@ class HomeViewController: UIViewController {
     let sipCredentialsVC = SipCredentialsViewController()
     
     private var viewModel = HomeViewModel()
+    private var profileViewModel = ProfileViewModel()
 
     var telnyxClient: TxClient?
     var userDefaults: UserDefaults = UserDefaults.init()
@@ -17,20 +18,25 @@ class HomeViewController: UIViewController {
         super.viewDidLoad()
         self.telnyxClient = appDelegate.telnyxClient
 
-        let homeView = HomeView(viewModel: viewModel,
-                                onAddProfile: { [weak self] in
-            self?.handleAddProfile()
-        },
-                                onSwitchProfile: { [weak self] in
-            self?.handleSwitchProfile()
-        },
-                                onConnect: { [weak self] in
-            self?.handleConnect()
-        },
-                                onLongPressLogo: { [weak self] in
-            self?.showHiddenOptions()
-        }
-        )
+        let profileView = ProfileView(
+            viewModel: profileViewModel,
+            onAddProfile: { [weak self] in
+                self?.handleAddProfile()
+            },
+            onSwitchProfile: { [weak self] in
+                self?.handleSwitchProfile()
+            })
+        
+        let homeView = HomeView(
+            viewModel: viewModel,
+            onConnect: { [weak self] in
+                self?.handleConnect()
+            },
+            onLongPressLogo: { [weak self] in
+                self?.showHiddenOptions()
+            },
+            profileView: AnyView(profileView),
+            callView: AnyView(CallView()))
         
         let hostingController = UIHostingController(rootView: homeView)
         self.hostingController = hostingController
@@ -79,13 +85,13 @@ extension HomeViewController {
 extension HomeViewController: SipCredentialsViewControllerDelegate {
     func onNewSipCredential(credential: SipCredential?) {
         DispatchQueue.main.async {
-            self.viewModel.selectedProfile = credential
+            self.profileViewModel.selectedProfile = credential
         }
     }
     
     func onSipCredentialSelected(credential: SipCredential?) {
         DispatchQueue.main.async {
-            self.viewModel.selectedProfile = credential
+            self.profileViewModel.selectedProfile = credential
         }
     }
 }

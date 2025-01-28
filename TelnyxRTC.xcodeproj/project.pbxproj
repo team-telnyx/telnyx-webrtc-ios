@@ -50,6 +50,9 @@
 		998670402D40849C001E1D01 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9986703F2D408493001E1D01 /* HomeViewController.swift */; };
 		998670422D4096AA001E1D01 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998670412D4096A7001E1D01 /* HomeView.swift */; };
 		99ADA94E2D47C9B6000C956A /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA94C2D47C9B6000C956A /* HomeViewModel.swift */; };
+		99ADA9A82D4878FA000C956A /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9A72D4878ED000C956A /* ProfileView.swift */; };
+		99ADA9AA2D487ACC000C956A /* CallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9A92D487AC4000C956A /* CallView.swift */; };
+		99ADA9AE2D487DE5000C956A /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9AD2D487DE1000C956A /* ProfileViewModel.swift */; };
 		99B6DFF82CF522140010CA96 /* WebRTCStatsEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFF72CF522070010CA96 /* WebRTCStatsEvent.swift */; };
 		99B6DFFA2CF5226F0010CA96 /* WebRTCStatsTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFF92CF522610010CA96 /* WebRTCStatsTag.swift */; };
 		99B6DFFD2CF546310010CA96 /* DebugReportStartMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFFC2CF546220010CA96 /* DebugReportStartMessage.swift */; };
@@ -193,6 +196,9 @@
 		9986703F2D408493001E1D01 /* HomeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
 		998670412D4096A7001E1D01 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		99ADA94C2D47C9B6000C956A /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
+		99ADA9A72D4878ED000C956A /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		99ADA9A92D487AC4000C956A /* CallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallView.swift; sourceTree = "<group>"; };
+		99ADA9AD2D487DE1000C956A /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
 		99B6DFF72CF522070010CA96 /* WebRTCStatsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCStatsEvent.swift; sourceTree = "<group>"; };
 		99B6DFF92CF522610010CA96 /* WebRTCStatsTag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCStatsTag.swift; sourceTree = "<group>"; };
 		99B6DFFC2CF546220010CA96 /* DebugReportStartMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugReportStartMessage.swift; sourceTree = "<group>"; };
@@ -379,6 +385,7 @@
 		99ADA94D2D47C9B6000C956A /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				99ADA9AD2D487DE1000C956A /* ProfileViewModel.swift */,
 				99ADA94C2D47C9B6000C956A /* HomeViewModel.swift */,
 			);
 			path = ViewModels;
@@ -432,6 +439,8 @@
 		B309D1FB25F028F100A2AADF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				99ADA9A92D487AC4000C956A /* CallView.swift */,
+				99ADA9A72D4878ED000C956A /* ProfileView.swift */,
 				998670412D4096A7001E1D01 /* HomeView.swift */,
 				9986703B2D3EAF62001E1D01 /* ErrorView.swift */,
 				998670392D3E9DC3001E1D01 /* SipInputCredentialsView.swift */,
@@ -973,6 +982,7 @@
 			files = (
 				995BF7132CE7E8F100454076 /* WebRTCEnvironmentExtension.swift in Sources */,
 				B3B1D9A426545807008D28C9 /* UserDefaultExtension.swift in Sources */,
+				99ADA9AE2D487DE5000C956A /* ProfileViewModel.swift in Sources */,
 				B32AE8BB26D6952500C7C6F4 /* AppDelegateCallKitExtension.swift in Sources */,
 				998670422D4096AA001E1D01 /* HomeView.swift in Sources */,
 				B3AF24AA25EE84570062EDA9 /* UIViewControllerExtension.swift in Sources */,
@@ -983,9 +993,11 @@
 				9986703E2D3EC7A3001E1D01 /* View+Extensions.swift in Sources */,
 				9986703A2D3E9DCE001E1D01 /* SipInputCredentialsView.swift in Sources */,
 				991A6D442D3A96C100B29785 /* SplashScreen.swift in Sources */,
+				99ADA9A82D4878FA000C956A /* ProfileView.swift in Sources */,
 				998670402D40849C001E1D01 /* HomeViewController.swift in Sources */,
 				B368BEEF25EDDD060032AE52 /* ViewController.swift in Sources */,
 				995BF7162CE7EB2600454076 /* SipUserCredential.swift in Sources */,
+				99ADA9AA2D487ACC000C956A /* CallView.swift in Sources */,
 				991A6D492D3AB36E00B29785 /* SipCredentialsView.swift in Sources */,
 				991A6D4A2D3AB36E00B29785 /* SipCredentialHeader.swift in Sources */,
 				991A6D4B2D3AB36E00B29785 /* SipCredentialRow.swift in Sources */,
