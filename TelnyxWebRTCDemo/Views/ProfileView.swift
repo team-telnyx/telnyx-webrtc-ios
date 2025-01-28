@@ -30,7 +30,7 @@ struct ProfileView: View {
                         Text(viewModel.selectedProfile?.username ?? "")
                             .font(.system(size: 18, weight: .regular))
                             .foregroundColor(Color(hex: "1D1D1D"))
-                            .frame(maxWidth: 200)
+                            .frame(maxWidth: 150, alignment: .leading)
                             .lineLimit(1)
                         
                         Button(action: onSwitchProfile) {
