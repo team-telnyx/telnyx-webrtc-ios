@@ -12,6 +12,7 @@ struct HomeView: View {
     @State private var textOpacity: Double = 0.0
     
     let onConnect: () -> Void
+    let onDisconnect: () -> Void
     let onLongPressLogo: () -> Void
     
     let profileView: AnyView
@@ -82,17 +83,33 @@ struct HomeView: View {
                                 profileOrCallView(for: viewModel.socketState)
                                 
                                 Spacer()
-                                Button(action: onConnect) {
-                                    Text("Connect")
-                                        .font(.system(size: 16).bold())
-                                        .foregroundColor(.white)
-                                        .frame(maxWidth: 300)
-                                        .padding(.vertical, 12)
-                                        .background(Color(hex: "#1D1D1D"))
-                                        .cornerRadius(20)
+                                
+                                if viewModel.socketState == .disconnected {
+                                    Button(action: onConnect) {
+                                        Text("Connect")
+                                            .font(.system(size: 16).bold())
+                                            .foregroundColor(.white)
+                                            .frame(maxWidth: 300)
+                                            .padding(.vertical, 12)
+                                            .background(Color(hex: "#1D1D1D"))
+                                            .cornerRadius(20)
+                                    }
+                                    .padding(.horizontal, 60)
+                                    .padding(.bottom, 20)
+                                } else {
+                                    Button(action: onDisconnect) {
+                                        Text("Disconnect")
+                                            .font(.system(size: 16).bold())
+                                            .foregroundColor(.white)
+                                            .frame(maxWidth: 300)
+                                            .padding(.vertical, 12)
+                                            .background(Color(hex: "#1D1D1D"))
+                                            .cornerRadius(20)
+                                    }
+                                    .padding(.horizontal, 60)
+                                    .padding(.bottom, 20)
                                 }
-                                .padding(.horizontal, 60)
-                                .padding(.bottom, 20)
+                                
                                 
                                 // Environment Text
                                 Text(viewModel.environment)
@@ -148,6 +165,7 @@ struct HomeView_Previews: PreviewProvider {
         HomeView(
             viewModel: HomeViewModel(),
             onConnect: {},
+            onDisconnect: {},
             onLongPressLogo: {},
             profileView: AnyView(
                 ProfileView(

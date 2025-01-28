@@ -54,6 +54,7 @@
 		99ADA9AA2D487ACC000C956A /* CallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9A92D487AC4000C956A /* CallView.swift */; };
 		99ADA9AE2D487DE5000C956A /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9AD2D487DE1000C956A /* ProfileViewModel.swift */; };
 		99ADA9B02D4886E7000C956A /* CallViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9AF2D4886E3000C956A /* CallViewModel.swift */; };
+		99ADA9B22D488D98000C956A /* HomeViewController+VoIPExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9B12D488D92000C956A /* HomeViewController+VoIPExtension.swift */; };
 		99B6DFF82CF522140010CA96 /* WebRTCStatsEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFF72CF522070010CA96 /* WebRTCStatsEvent.swift */; };
 		99B6DFFA2CF5226F0010CA96 /* WebRTCStatsTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFF92CF522610010CA96 /* WebRTCStatsTag.swift */; };
 		99B6DFFD2CF546310010CA96 /* DebugReportStartMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFFC2CF546220010CA96 /* DebugReportStartMessage.swift */; };
@@ -201,6 +202,7 @@
 		99ADA9A92D487AC4000C956A /* CallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallView.swift; sourceTree = "<group>"; };
 		99ADA9AD2D487DE1000C956A /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
 		99ADA9AF2D4886E3000C956A /* CallViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallViewModel.swift; sourceTree = "<group>"; };
+		99ADA9B12D488D92000C956A /* HomeViewController+VoIPExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeViewController+VoIPExtension.swift"; sourceTree = "<group>"; };
 		99B6DFF72CF522070010CA96 /* WebRTCStatsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCStatsEvent.swift; sourceTree = "<group>"; };
 		99B6DFF92CF522610010CA96 /* WebRTCStatsTag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCStatsTag.swift; sourceTree = "<group>"; };
 		99B6DFFC2CF546220010CA96 /* DebugReportStartMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugReportStartMessage.swift; sourceTree = "<group>"; };
@@ -357,6 +359,7 @@
 		995BF71E2CE8174B00454076 /* ViewControllers */ = {
 			isa = PBXGroup;
 			children = (
+				99ADA9B12D488D92000C956A /* HomeViewController+VoIPExtension.swift */,
 				9986703F2D408493001E1D01 /* HomeViewController.swift */,
 				995BF71F2CE8175200454076 /* SipCredentialsViewController.swift */,
 			);
@@ -1008,6 +1011,7 @@
 				995BF71C2CE7EC0600454076 /* SipCredentialsManager.swift in Sources */,
 				998670382D3E9506001E1D01 /* Color+Extensions.swift in Sources */,
 				B368BEEB25EDDD060032AE52 /* AppDelegate.swift in Sources */,
+				99ADA9B22D488D98000C956A /* HomeViewController+VoIPExtension.swift in Sources */,
 				99ADA94E2D47C9B6000C956A /* HomeViewModel.swift in Sources */,
 				B309D20225F0291B00A2AADF /* UISettingsView.swift in Sources */,
 				B32AE8BF26D6D69E00C7C6F4 /* ViewControllerVoIPExtension.swift in Sources */,

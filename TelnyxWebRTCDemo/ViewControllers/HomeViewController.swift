@@ -1,23 +1,27 @@
 import UIKit
 import SwiftUI
 import TelnyxRTC
+import Reachability
 
 class HomeViewController: UIViewController {
     private var hostingController: UIHostingController<HomeView>?
     let sipCredentialsVC = SipCredentialsViewController()
     
-    private var viewModel = HomeViewModel()
-    private var profileViewModel = ProfileViewModel()
-    private var callViewModel = CallViewModel()
+    var viewModel = HomeViewModel()
+    var profileViewModel = ProfileViewModel()
+    var callViewModel = CallViewModel()
     
     var telnyxClient: TxClient?
     var userDefaults: UserDefaults = UserDefaults.init()
     var serverConfig: TxServerConfiguration?
     
-    
+    var incomingCall: Bool = false
+    let reachability = try! Reachability()
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.telnyxClient = appDelegate.telnyxClient
+        self.appDelegate.voipDelegate = self
+        self.telnyxClient = self.appDelegate.telnyxClient
         
         let profileView = ProfileView(
             viewModel: profileViewModel,
@@ -39,6 +43,9 @@ class HomeViewController: UIViewController {
             viewModel: viewModel,
             onConnect: { [weak self] in
                 self?.handleConnect()
+            },
+            onDisconnect: { [weak self] in
+                self?.handleDisconnect()
             },
             onLongPressLogo: { [weak self] in
                 self?.showHiddenOptions()
@@ -76,8 +83,23 @@ class HomeViewController: UIViewController {
         self.present(self.sipCredentialsVC, animated: true, completion: nil)
     }
     
-    private func handleConnect() {
+    func handleConnect() {
         print("Connect tapped")
+        let deviceToken = userDefaults.getPushToken()
+        if let selectedProfile = profileViewModel.selectedProfile {
+            if selectedProfile.isToken ?? false {
+                connectToTelnyx(telnyxToken: selectedProfile.username, sipCredential: nil, deviceToken: deviceToken)
+            } else {
+                connectToTelnyx(telnyxToken: nil, sipCredential: selectedProfile, deviceToken: deviceToken)
+            }
+        }
+    }
+    
+    func handleDisconnect() {
+        print("Disconnect tapped")
+        if self.telnyxClient?.isConnected() ?? false {
+            self.telnyxClient?.disconnect()
+        }
     }
 }
 
@@ -86,6 +108,13 @@ extension HomeViewController {
     func initViews() {
         self.sipCredentialsVC.delegate = self
         self.hideKeyboardWhenTappedAround()
+        self.reachability.whenReachable = { reachability in
+            if reachability.connection == .wifi {
+                print("Reachable via WiFi")
+            } else {
+                print("Reachable via Cellular")
+            }
+        }
     }
 }
 
@@ -156,3 +185,76 @@ extension HomeViewController {
     
 }
 
+// MARK: - Handle connection
+extension HomeViewController {
+    private func connectToTelnyx(telnyxToken: String?,
+                                 sipCredential: SipCredential?,
+                                 deviceToken: String) {
+        guard let telnyxClient = self.telnyxClient else { return }
+        
+        if telnyxClient.isConnected() {
+            telnyxClient.disconnect()
+            return
+        }
+        
+        do {
+            let txConfig = try createTxConfig(telnyxToken: telnyxToken, sipCredential: sipCredential, deviceToken: deviceToken)
+            
+            if let serverConfig = serverConfig {
+                print("Development Server ")
+                try telnyxClient.connect(txConfig: txConfig, serverConfiguration: serverConfig)
+            } else {
+                print("Production Server ")
+                try telnyxClient.connect(txConfig: txConfig)
+            }
+            
+            self.viewModel.isLoading = true
+        } catch let error {
+            print("ViewController:: connect Error \(error)")
+            self.viewModel.isLoading = false
+        }
+    }
+    
+    private func createTxConfig(telnyxToken: String?,
+                                sipCredential: SipCredential?,
+                                deviceToken: String) throws -> TxConfig {
+        var txConfig: TxConfig? = nil
+        
+        // Set the connection configuration object.
+        // We can login with a user token: https://developers.telnyx.com/docs/v2/webrtc/quickstart
+        // Or we can use SIP credentials (SIP user and password)
+        if let token = telnyxToken {
+            txConfig = TxConfig(token: token,
+                                pushDeviceToken: deviceToken,
+                                ringtone: "incoming_call.mp3",
+                                ringBackTone: "ringback_tone.mp3",
+                                pushEnvironment: .production,
+                                // You can choose the appropriate verbosity level of the SDK.
+                                logLevel: .all,
+                                // Enable webrtc stats debug
+                                debug: true)
+        } else if let credential = sipCredential {
+            // To obtain SIP credentials, please go to https://portal.telnyx.com
+            txConfig = TxConfig(sipUser: credential.username,
+                                password: credential.password,
+                                pushDeviceToken: deviceToken,
+                                ringtone: "incoming_call.mp3",
+                                ringBackTone: "ringback_tone.mp3",
+                                // You can choose the appropriate verbosity level of the SDK.
+                                logLevel: .all,
+                                reconnectClient: true,
+                                // Enable webrtc stats debug
+                                debug: true)
+            
+            // Store user / password in user defaults
+            SipCredentialsManager.shared.addOrUpdateCredential(credential)
+            SipCredentialsManager.shared.saveSelectedCredential(credential)
+        }
+        
+        guard let config = txConfig else {
+            throw NSError(domain: "ViewController", code: 1, userInfo: [NSLocalizedDescriptionKey: "No valid credentials provided."])
+        }
+        
+        return config
+    }
+}
