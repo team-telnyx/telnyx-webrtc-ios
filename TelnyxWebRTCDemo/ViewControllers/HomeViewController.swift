@@ -121,9 +121,12 @@ extension HomeViewController {
 // MARK: - SipCredentialsViewControllerDelegate
 extension HomeViewController: SipCredentialsViewControllerDelegate {
     func onNewSipCredential(credential: SipCredential?) {
-        DispatchQueue.main.async {
-            self.profileViewModel.selectedProfile = credential
+        let deviceToken = userDefaults.getPushToken()
+        guard let sipCredential = credential else {
+            print("HomeVeiwController :: connectButtonTapped() ERROR: SIP User and Password should not be empty.")
+            return
         }
+        connectToTelnyx(telnyxToken: nil, sipCredential: sipCredential, deviceToken: deviceToken)
     }
     
     func onSipCredentialSelected(credential: SipCredential?) {

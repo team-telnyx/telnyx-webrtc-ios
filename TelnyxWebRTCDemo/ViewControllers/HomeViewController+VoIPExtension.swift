@@ -12,6 +12,7 @@ extension HomeViewController : VoIPDelegate {
         print("ViewController:: TxClientDelegate onSocketConnected()")
         DispatchQueue.main.async {
             self.viewModel.socketState = .connected
+            self.sipCredentialsVC.dismiss(animated: false)
         }
     }
     
