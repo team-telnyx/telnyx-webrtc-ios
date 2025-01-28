@@ -1,16 +1,147 @@
 import SwiftUI
+import TelnyxRTC
 
 struct CallView: View {
+    @ObservedObject var viewModel: CallViewModel
+    
+    let onStartCall: () -> Void
+    let onEndCall: () -> Void
+    let onMuteUnmuteSwitch: (Bool) -> Void
+    let onToggleSpeaker: (Bool) -> Void
+    
     var body: some View {
         VStack {
-            Text("Call View")
-                .font(.system(size: 18, weight: .regular))
-                .foregroundColor(Color(hex: "#525252"))
-                .padding(.top, 10)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            // Add more UI elements for the connected state
+            switch viewModel.callState {
+                case .NEW, .DONE:
+                    callView
+                case .RINGING:
+                    incomingCallView
+                case .ACTIVE, .HELD, .CONNECTING:
+                    callingView
+            }
         }
-        .padding(.leading, 30)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+    }
+    
+    @ViewBuilder
+    private var callView: some View {
+        VStack {
+            TextField("Enter sip address or phone number", text: $viewModel.sipAddress)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding()
+            
+            Spacer()
+            
+            Button(action: {
+                onStartCall()
+                viewModel.callState = .CONNECTING
+            }) {
+                Image(systemName: "phone.fill")
+                    .foregroundColor(Color(hex: "#1D1D1D"))
+                    .frame(width: 60, height: 60)
+                    .background(Color(hex: "#00E3AA"))
+                    .clipShape(Circle())
+            }
+            .padding()
+            
+            Spacer()
+        }
+    }
+    
+    @ViewBuilder
+    private var callingView: some View {
+        VStack {
+            TextField("Enter sip address or phone number", text: $viewModel.sipAddress)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding()
+                .disabled(true)
+                .opacity(0.5)
+            
+            Spacer()
+            
+            HStack {
+                Button(action: {
+                    viewModel.isMuted.toggle()
+                    onMuteUnmuteSwitch(viewModel.isMuted)
+                }) {
+                    Image(systemName: viewModel.isMuted ? "mic.slash.fill" : "mic.fill")
+                        .foregroundColor(Color(hex: "#1D1D1D"))
+                        .frame(width: 60, height: 60)
+                        .background(Color(hex: "#F5F3E4"))
+                        .clipShape(Circle())
+                }
+                .padding()
+                
+                Button(action: {
+                    onEndCall()
+                    viewModel.callState = .DONE
+                }) {
+                    Image(systemName: "phone.down.fill")
+                        .foregroundColor(Color(hex: "#1D1D1D"))
+                        .frame(width: 60, height: 60)
+                        .background(Color(hex: "#EB0000"))
+                        .clipShape(Circle())
+                }
+                .padding()
+                
+                Button(action: {
+                    viewModel.isSpeakerOn.toggle()
+                    onToggleSpeaker(viewModel.isSpeakerOn)
+                }) {
+                    Image(systemName: viewModel.isSpeakerOn ? "speaker.wave.3.fill" : "speaker.wave.1.fill")
+                        .foregroundColor(Color(hex: "#1D1D1D"))
+                        .frame(width: 60, height: 60)
+                        .background(Color(hex: "#F5F3E4"))
+                        .clipShape(Circle())
+                }
+                .padding()
+            }
+            
+            Spacer()
+        }
+    }
+    
+    @ViewBuilder
+    private var incomingCallView: some View {
+        VStack {
+            Spacer()
+            
+            HStack {
+                Button(action: {
+                    viewModel.callState = .ACTIVE
+                }) {
+                    Image(systemName: "phone.fill")
+                        .foregroundColor(Color(hex: "#1D1D1D"))
+                        .frame(width: 60, height: 60)
+                        .background(Color(hex: "#00E3AA"))
+                        .clipShape(Circle())
+                }
+                .padding()
+                
+                Button(action: {
+                    viewModel.callState = .DONE
+                }) {
+                    Image(systemName: "phone.down.fill")
+                        .foregroundColor(Color(hex: "#1D1D1D"))
+                        .frame(width: 60, height: 60)
+                        .background(Color(hex: "#EB0000"))
+                        .clipShape(Circle())
+                }
+                .padding()
+            }
+            
+            Spacer()
+        }
+    }
+}
+
+struct CallView_Previews: PreviewProvider {
+    static var previews: some View {
+        CallView(
+            viewModel: CallViewModel(),
+            onStartCall: {},
+            onEndCall: {},
+            onMuteUnmuteSwitch: { _ in },
+            onToggleSpeaker: { _ in })
     }
 }

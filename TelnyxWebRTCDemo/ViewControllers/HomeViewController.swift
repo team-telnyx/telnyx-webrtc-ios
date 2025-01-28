@@ -8,16 +8,17 @@ class HomeViewController: UIViewController {
     
     private var viewModel = HomeViewModel()
     private var profileViewModel = ProfileViewModel()
-
+    private var callViewModel = CallViewModel()
+    
     var telnyxClient: TxClient?
     var userDefaults: UserDefaults = UserDefaults.init()
     var serverConfig: TxServerConfiguration?
-
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.telnyxClient = appDelegate.telnyxClient
-
+        
         let profileView = ProfileView(
             viewModel: profileViewModel,
             onAddProfile: { [weak self] in
@@ -26,6 +27,13 @@ class HomeViewController: UIViewController {
             onSwitchProfile: { [weak self] in
                 self?.handleSwitchProfile()
             })
+        
+        let callView = CallView(
+            viewModel: callViewModel,
+            onStartCall: {},
+            onEndCall: {},
+            onMuteUnmuteSwitch: { _ in },
+            onToggleSpeaker: { _ in })
         
         let homeView = HomeView(
             viewModel: viewModel,
@@ -36,7 +44,7 @@ class HomeViewController: UIViewController {
                 self?.showHiddenOptions()
             },
             profileView: AnyView(profileView),
-            callView: AnyView(CallView()))
+            callView: AnyView(callView))
         
         let hostingController = UIHostingController(rootView: homeView)
         self.hostingController = hostingController
@@ -147,3 +155,4 @@ extension HomeViewController {
     }
     
 }
+

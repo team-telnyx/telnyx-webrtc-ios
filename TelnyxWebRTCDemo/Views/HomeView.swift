@@ -10,7 +10,7 @@ struct HomeView: View {
     
     @State private var isAnimating: Bool = false
     @State private var textOpacity: Double = 0.0
-
+    
     let onConnect: () -> Void
     let onLongPressLogo: () -> Void
     
@@ -137,7 +137,12 @@ struct HomeView_Previews: PreviewProvider {
             onConnect: {},
             onLongPressLogo: {},
             profileView: AnyView(ProfileView(viewModel: ProfileViewModel(), onAddProfile: {}, onSwitchProfile: {})),
-            callView: AnyView(CallView())
+            callView: AnyView(CallView(viewModel: CallViewModel(), onStartCall: {
+            }, onEndCall: {
+            }, onMuteUnmuteSwitch: { _ in
+            }, onToggleSpeaker: { _ in
+            }))
         )
     }
 }
+
