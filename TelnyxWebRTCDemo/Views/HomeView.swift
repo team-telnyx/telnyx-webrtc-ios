@@ -35,11 +35,17 @@ struct HomeView: View {
                         
                         if isAnimating {
                             VStack {
-                                Text("Please confirm details below and click ‘Connect’ to make a call.")
-                                    .font(.system(size: 18, weight: .regular))
-                                    .foregroundColor(Color(hex: "1D1D1D"))
-                                    .padding(.top, 20)
-                                    .padding(20)
+                                if viewModel.socketState == .connected {
+                                    Text("Enter a destination (phone number or SIP user) to initiate your call.")
+                                        .font(.system(size: 18, weight: .regular))
+                                        .foregroundColor(Color(hex: "1D1D1D"))
+                                        .padding(20)
+                                } else {
+                                    Text("Please confirm details below and click ‘Connect’ to make a call.")
+                                        .font(.system(size: 18, weight: .regular))
+                                        .foregroundColor(Color(hex: "1D1D1D"))
+                                        .padding(20)
+                                }
                                 
                                 // Socket State
                                 VStack {
@@ -74,7 +80,7 @@ struct HomeView: View {
                                     Text(viewModel.sessionId)
                                         .font(.system(size: 15, weight: .regular))
                                         .foregroundColor(Color(hex: "1D1D1D"))
-                                        .padding(.top, 5)
+                                        .padding(.top, 2)
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                 }
                                 .padding(.leading, 30)
