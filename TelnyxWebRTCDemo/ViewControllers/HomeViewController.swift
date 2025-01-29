@@ -100,6 +100,7 @@ class HomeViewController: UIViewController {
         DispatchQueue.main.async {
             self.callViewModel.isMuted = self.appDelegate.currentCall?.isMuted ?? false
             self.callViewModel.isSpeakerOn = self.telnyxClient?.isSpeakerEnabled ?? false
+            self.profileViewModel.selectedProfile = SipCredentialsManager.shared.getSelectedCredential()
         }
     }
     
