@@ -47,22 +47,22 @@ class HomeViewController: UIViewController {
             onAnswerCall: { [weak self] in
                 self?.onAnswerButton()
             },
-            onMuteUnmuteSwitch: { mute in
-                guard let callId = self.appDelegate.currentCall?.callInfo?.callId else {
+            onMuteUnmuteSwitch: { [weak self] mute in
+                guard let callId = self?.appDelegate.currentCall?.callInfo?.callId else {
                     return
                 }
-                self.appDelegate.executeMuteUnmuteAction(uuid: callId, mute: mute)
+                self?.appDelegate.executeMuteUnmuteAction(uuid: callId, mute: mute)
             },
-            onToggleSpeaker: { isSpeakerActive in
-                if let isSpeakerEnabled = self.telnyxClient?.isSpeakerEnabled {
+            onToggleSpeaker: { [weak self] in
+                if let isSpeakerEnabled = self?.telnyxClient?.isSpeakerEnabled {
                     if isSpeakerEnabled {
-                        self.telnyxClient?.setEarpiece()
+                        self?.telnyxClient?.setEarpiece()
                     } else {
-                        self.telnyxClient?.setSpeaker()
+                        self?.telnyxClient?.setSpeaker()
                     }
                     
                     DispatchQueue.main.async {
-                        self.callViewModel.isSpeakerOn = isSpeakerEnabled
+                        self?.callViewModel.isSpeakerOn = self?.telnyxClient?.isSpeakerEnabled ?? false
                     }
                 }
                 
@@ -101,6 +101,22 @@ class HomeViewController: UIViewController {
         hostingController.didMove(toParent: self)
         
         self.initViews()
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(appWillEnterForeground),
+                                               name: UIApplication.willEnterForegroundNotification,
+                                               object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc func appWillEnterForeground() {
+        print("HomeViewController:: App is about to enter the foreground")
+        DispatchQueue.main.async {
+            self.callViewModel.isMuted = self.appDelegate.currentCall?.isMuted ?? false
+            self.callViewModel.isSpeakerOn = self.telnyxClient?.isSpeakerEnabled ?? false
+        }
     }
     
     private func handleAddProfile() {
@@ -153,6 +169,8 @@ extension HomeViewController {
             self.viewModel.isLoading = false
             self.viewModel.sessionId = sessionId.isEmpty ? "-" : sessionId
             self.callViewModel.callState = self.appDelegate.currentCall?.callState ?? .DONE
+            self.callViewModel.isMuted = self.appDelegate.currentCall?.isMuted ?? false
+            self.callViewModel.isSpeakerOn = self.telnyxClient?.isSpeakerEnabled ?? false
         }
         
 

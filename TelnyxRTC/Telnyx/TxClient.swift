@@ -146,14 +146,19 @@ public class TxClient {
     private var isCallFromPush: Bool = false
     private var currentCallId:UUID = UUID()
     private var pendingAnswerHeaders = [String:String]()
-    private var speakerOn:Bool = false
     internal var sendFileLogs:Bool = false
     private var attachCallId:String?
     private var pushMetaData:[String:Any]?
     private let AUTH_ERROR_CODE = "-32001"
     
-    func isSpeakerEnabled() -> Bool {
-        return speakerOn
+    private var _isSpeakerEnabled: Bool = false
+    public private(set) var isSpeakerEnabled: Bool {
+        get {
+            return _isSpeakerEnabled
+        }
+        set {
+            _isSpeakerEnabled = newValue
+        }
     }
 
     /// When implementing CallKit framework, audio has to be manually handled.
@@ -232,13 +237,16 @@ public class TxClient {
             case .categoryChange, .override, .routeConfigurationChange:
                 // Update speaker state based on current output
                 let isSpeaker = output.portType == .builtInSpeaker
-                speakerOn = isSpeaker
+                _isSpeakerEnabled = isSpeaker
                 
                 // Notify UI of the change
                 NotificationCenter.default.post(
                     name: NSNotification.Name("AudioRouteChanged"),
                     object: nil,
-                    userInfo: ["isSpeakerOn": isSpeaker]
+                    userInfo: [
+                        "isSpeakerEnabled": isSpeaker,
+                        "outputPortType": output.portType
+                    ]
                 )
             default:
                 break
@@ -679,7 +687,7 @@ extension TxClient {
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.overrideOutputAudioPort(.none)
-            speakerOn = false
+            _isSpeakerEnabled = false
         } catch let error {
             Logger.log.e(message: "Error setting Earpiece \(error)")
         }
@@ -690,7 +698,7 @@ extension TxClient {
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.overrideOutputAudioPort(.speaker)
-            speakerOn = true
+            _isSpeakerEnabled = true
         } catch let error {
             Logger.log.e(message: "Error setting Speaker \(error)")
         }
@@ -714,7 +722,7 @@ extension TxClient: CallProtocol {
             self.calls.removeValue(forKey: callId)
             //Forward call ended state
             self.delegate?.onRemoteCallEnded(callId: callId)
-            self.speakerOn = false
+            self._isSpeakerEnabled = false
         }
     }
 }

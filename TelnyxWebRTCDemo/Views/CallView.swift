@@ -9,7 +9,7 @@ struct CallView: View {
     let onRejectCall: () -> Void
     let onAnswerCall: () -> Void
     let onMuteUnmuteSwitch: (Bool) -> Void
-    let onToggleSpeaker: (Bool) -> Void
+    let onToggleSpeaker: () -> Void
     
     var body: some View {
         VStack {
@@ -85,10 +85,9 @@ struct CallView: View {
                 .padding()
                 
                 Button(action: {
-                    viewModel.isSpeakerOn.toggle()
-                    onToggleSpeaker(viewModel.isSpeakerOn)
+                    onToggleSpeaker()
                 }) {
-                    Image(systemName: viewModel.isSpeakerOn ? "speaker.wave.3.fill" : "speaker.wave.1.fill")
+                    Image(systemName: viewModel.isSpeakerOn ? "speaker.wave.3.fill" : "speaker.slash.fill")
                         .foregroundColor(Color(hex: "#1D1D1D"))
                         .frame(width: 60, height: 60)
                         .background(Color(hex: "#F5F3E4"))
@@ -144,6 +143,6 @@ struct CallView_Previews: PreviewProvider {
             onRejectCall: {},
             onAnswerCall: {},
             onMuteUnmuteSwitch: { _ in },
-            onToggleSpeaker: { _ in })
+            onToggleSpeaker: {})
     }
 }
