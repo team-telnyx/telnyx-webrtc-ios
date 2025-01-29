@@ -87,10 +87,15 @@ struct SipCredentialsView: View {
                                     onDelete: {
                                         withAnimation {
                                             if selectedCredential?.username == credential.username {
-                                                isSelectedCredentialChanged = true
+                                                SipCredentialsManager.shared.removeSelectedCredential()
+                                                selectedCredential = nil
+                                                tempSelectedCredential = nil
                                             }
                                             SipCredentialsManager.shared.removeCredential(username: credential.username)
                                             credentialsList = SipCredentialsManager.shared.getCredentials()
+                                            if !credentialsList.isEmpty {
+                                                tempSelectedCredential = credentialsList.first
+                                            }
                                         }
                                     }
                                 )

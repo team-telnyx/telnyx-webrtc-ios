@@ -271,7 +271,7 @@ extension AppDelegate : CXProviderDelegate {
         do {
             try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)
         } catch let error {
-            print("ViewController:: processVoIPNotification Error \(error)")
+            print("AppDelegate:: processVoIPNotification Error \(error)")
         }
     }
 }

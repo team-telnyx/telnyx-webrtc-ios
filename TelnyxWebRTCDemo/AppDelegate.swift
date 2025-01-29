@@ -144,8 +144,6 @@ extension AppDelegate: PKPushRegistryDelegate {
             completion()
         }
     }
-    
-    
 
     func handleVoIPPushNotification(payload: PKPushPayload) {
         if let metadata = payload.dictionaryPayload["metadata"] as? [String: Any] {
@@ -169,4 +167,3 @@ extension AppDelegate: PKPushRegistryDelegate {
         }
     }
 }
-
