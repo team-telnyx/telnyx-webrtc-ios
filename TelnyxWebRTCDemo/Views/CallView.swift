@@ -16,9 +16,9 @@ struct CallView: View {
             switch viewModel.callState {
                 case .DONE:
                     callView
-                case .NEW, .RINGING:
+                case .NEW:
                     incomingCallView
-                case .ACTIVE, .HELD, .CONNECTING:
+                case .ACTIVE, .HELD, .CONNECTING, .RINGING:
                     callingView
             }
         }
