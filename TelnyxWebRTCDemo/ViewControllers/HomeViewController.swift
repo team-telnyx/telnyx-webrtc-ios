@@ -47,7 +47,12 @@ class HomeViewController: UIViewController {
             onAnswerCall: { [weak self] in
                 self?.onAnswerButton()
             },
-            onMuteUnmuteSwitch: { _ in },
+            onMuteUnmuteSwitch: { mute in
+                guard let callId = self.appDelegate.currentCall?.callInfo?.callId else {
+                    return
+                }
+                self.appDelegate.executeMuteUnmuteAction(uuid: callId, mute: mute)
+            },
             onToggleSpeaker: { _ in })
         
         let homeView = HomeView(
