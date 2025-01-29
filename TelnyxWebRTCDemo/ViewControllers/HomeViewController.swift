@@ -48,26 +48,10 @@ class HomeViewController: UIViewController {
                 self?.onAnswerButton()
             },
             onMuteUnmuteSwitch: { [weak self] mute in
-                guard let callId = self?.appDelegate.currentCall?.callInfo?.callId else {
-                    return
-                }
-                self?.appDelegate.executeMuteUnmuteAction(uuid: callId, mute: mute)
+                self?.onMuteUnmuteSwitch(mute: mute)
             },
             onToggleSpeaker: { [weak self] in
-                if let isSpeakerEnabled = self?.telnyxClient?.isSpeakerEnabled {
-                    if isSpeakerEnabled {
-                        self?.telnyxClient?.setEarpiece()
-                    } else {
-                        self?.telnyxClient?.setSpeaker()
-                    }
-                    
-                    DispatchQueue.main.async {
-                        self?.callViewModel.isSpeakerOn = self?.telnyxClient?.isSpeakerEnabled ?? false
-                    }
-                }
-                
-               
-                
+                self?.onToggleSpeaker()
             })
         
         let homeView = HomeView(
@@ -361,20 +345,25 @@ extension HomeViewController {
         self.appDelegate.executeMuteUnmuteAction(uuid: callId, mute: mute)
     }
     
-    func onHoldUnholdSwitch(isOnHold: Bool) {
-        if (isOnHold) {
-            self.appDelegate.currentCall?.hold()
-        } else {
-            self.appDelegate.currentCall?.unhold()
+    func onToggleSpeaker() {
+        if let isSpeakerEnabled = self.telnyxClient?.isSpeakerEnabled {
+            if isSpeakerEnabled {
+                self.telnyxClient?.setEarpiece()
+            } else {
+                self.telnyxClient?.setSpeaker()
+            }
+            
+            DispatchQueue.main.async {
+                self.callViewModel.isSpeakerOn = self.telnyxClient?.isSpeakerEnabled ?? false
+            }
         }
     }
     
-    func onToggleSpeaker(isSpeakerActive: Bool) {
-        self.isSpeakerActive = isSpeakerActive
-        if (isSpeakerActive) {
-            self.telnyxClient?.setSpeaker()
+    func onHoldUnholdSwitch(isOnHold: Bool) {
+        if isOnHold {
+            self.appDelegate.currentCall?.hold()
         } else {
-            self.telnyxClient?.setEarpiece()
+            self.appDelegate.currentCall?.unhold()
         }
     }
 }
