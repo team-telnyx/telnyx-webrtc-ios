@@ -132,7 +132,11 @@ struct SipInputCredentialsView: View {
             
             HStack(spacing: 12) {
                 Button(action: {
-                    let credential = SipCredential(username: username, password: password)
+                    let credential = SipCredential(username: isTokenLogin ? tokenCallerId : username,
+                                                   password: isTokenLogin ? "" : password,
+                                                   isToken: isTokenLogin,
+                                                   callerName: callerName,
+                                                   callerNumber: callerIdNumber)
                     onSignIn(credential)
                 }) {
                     Text("Sign In")

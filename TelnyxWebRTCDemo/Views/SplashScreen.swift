@@ -5,7 +5,7 @@ struct SplashScreen: View {
     
     var body: some View {
         if isActive {
-            MainStoryboardView()
+            HomeViewControllerWrapper()
         } else {
             VStack {
                 Image("telnyx-logo")
@@ -26,14 +26,12 @@ struct SplashScreen: View {
     }
 }
 
-struct MainStoryboardView: UIViewControllerRepresentable {
-    func makeUIViewController(context: Context) -> UIViewController {
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let initialViewController = storyboard.instantiateInitialViewController()!
-        return initialViewController
+struct HomeViewControllerWrapper: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> HomeViewController {
+        return HomeViewController()
     }
     
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+    func updateUIViewController(_ uiViewController: HomeViewController, context: Context) {}
 }
 
 struct SplashScreen_Previews: PreviewProvider {
