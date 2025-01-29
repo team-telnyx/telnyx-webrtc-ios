@@ -53,7 +53,22 @@ class HomeViewController: UIViewController {
                 }
                 self.appDelegate.executeMuteUnmuteAction(uuid: callId, mute: mute)
             },
-            onToggleSpeaker: { _ in })
+            onToggleSpeaker: { isSpeakerActive in
+                if let isSpeakerEnabled = self.telnyxClient?.isSpeakerEnabled {
+                    if isSpeakerEnabled {
+                        self.telnyxClient?.setEarpiece()
+                    } else {
+                        self.telnyxClient?.setSpeaker()
+                    }
+                    
+                    DispatchQueue.main.async {
+                        self.callViewModel.isSpeakerOn = isSpeakerEnabled
+                    }
+                }
+                
+               
+                
+            })
         
         let homeView = HomeView(
             viewModel: viewModel,
@@ -86,7 +101,6 @@ class HomeViewController: UIViewController {
         hostingController.didMove(toParent: self)
         
         self.initViews()
-        self.initEnvironment()
     }
     
     private func handleAddProfile() {
@@ -131,6 +145,18 @@ extension HomeViewController {
                 print("Reachable via Cellular")
             }
         }
+        
+        DispatchQueue.main.async {
+            let sessionId = self.telnyxClient?.getSessionId() ?? ""
+            let isConnected = self.telnyxClient?.isConnected() ?? false
+            self.viewModel.socketState = !sessionId.isEmpty && isConnected ? .clientReady : isConnected ? .connected : .disconnected
+            self.viewModel.isLoading = false
+            self.viewModel.sessionId = sessionId.isEmpty ? "-" : sessionId
+            self.callViewModel.callState = self.appDelegate.currentCall?.callState ?? .DONE
+        }
+        
+
+        self.initEnvironment()
     }
 }
 
