@@ -14,9 +14,9 @@ struct CallView: View {
     var body: some View {
         VStack {
             switch viewModel.callState {
-                case .NEW, .DONE:
+                case .DONE:
                     callView
-                case .RINGING:
+                case .NEW, .RINGING:
                     incomingCallView
                 case .ACTIVE, .HELD, .CONNECTING:
                     callingView
