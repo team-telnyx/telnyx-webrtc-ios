@@ -1,4 +1,5 @@
 import WebRTC
+import Foundation
 
 extension RTCRtcpMuxPolicy {
     func telnyx_to_string() -> String {

@@ -1,3 +1,4 @@
+import Foundation
 
 class DebugReportStartMessage: StatsMessage  {
     init(reportID: String) {

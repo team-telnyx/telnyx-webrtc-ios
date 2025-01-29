@@ -5,6 +5,7 @@
 //  Created by Guillermo Battistel on 20/05/2021.
 //  Copyright © 2021 Telnyx LLC. All rights reserved.
 //
+import Foundation
 
 class InfoMessage : Message {
 

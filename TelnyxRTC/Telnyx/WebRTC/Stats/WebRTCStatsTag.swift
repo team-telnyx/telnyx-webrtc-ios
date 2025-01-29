@@ -1,3 +1,5 @@
+import Foundation
+
 enum WebRTCStatsTag: String {
     case peer = "peer"
     case stats = "stats"

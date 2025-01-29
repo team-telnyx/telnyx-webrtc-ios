@@ -1,4 +1,5 @@
 import WebRTC
+import Foundation
 
 extension RTCBundlePolicy {
     func telnyx_to_string() -> String {
