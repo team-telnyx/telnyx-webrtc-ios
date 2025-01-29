@@ -107,23 +107,23 @@ struct CallView: View {
             
             HStack {
                 Button(action: {
-                    onAnswerCall()
-                }) {
-                    Image(systemName: "phone.fill")
-                        .foregroundColor(Color(hex: "#1D1D1D"))
-                        .frame(width: 60, height: 60)
-                        .background(Color(hex: "#00E3AA"))
-                        .clipShape(Circle())
-                }
-                .padding()
-                
-                Button(action: {
                     onRejectCall()
                 }) {
                     Image(systemName: "phone.down.fill")
                         .foregroundColor(Color(hex: "#1D1D1D"))
                         .frame(width: 60, height: 60)
                         .background(Color(hex: "#EB0000"))
+                        .clipShape(Circle())
+                }
+                .padding()
+
+                Button(action: {
+                    onAnswerCall()
+                }) {
+                    Image(systemName: "phone.fill")
+                        .foregroundColor(Color(hex: "#1D1D1D"))
+                        .frame(width: 60, height: 60)
+                        .background(Color(hex: "#00E3AA"))
                         .clipShape(Circle())
                 }
                 .padding()
