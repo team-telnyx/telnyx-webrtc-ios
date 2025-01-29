@@ -6,6 +6,8 @@ struct CallView: View {
     
     let onStartCall: () -> Void
     let onEndCall: () -> Void
+    let onRejectCall: () -> Void
+    let onAnswerCall: () -> Void
     let onMuteUnmuteSwitch: (Bool) -> Void
     let onToggleSpeaker: (Bool) -> Void
     
@@ -34,7 +36,6 @@ struct CallView: View {
             
             Button(action: {
                 onStartCall()
-                viewModel.callState = .CONNECTING
             }) {
                 Image(systemName: "phone.fill")
                     .foregroundColor(Color(hex: "#1D1D1D"))
@@ -74,7 +75,6 @@ struct CallView: View {
                 
                 Button(action: {
                     onEndCall()
-                    viewModel.callState = .DONE
                 }) {
                     Image(systemName: "phone.down.fill")
                         .foregroundColor(Color(hex: "#1D1D1D"))
@@ -108,7 +108,7 @@ struct CallView: View {
             
             HStack {
                 Button(action: {
-                    viewModel.callState = .ACTIVE
+                    onAnswerCall()
                 }) {
                     Image(systemName: "phone.fill")
                         .foregroundColor(Color(hex: "#1D1D1D"))
@@ -119,7 +119,7 @@ struct CallView: View {
                 .padding()
                 
                 Button(action: {
-                    viewModel.callState = .DONE
+                    onRejectCall()
                 }) {
                     Image(systemName: "phone.down.fill")
                         .foregroundColor(Color(hex: "#1D1D1D"))
@@ -141,6 +141,8 @@ struct CallView_Previews: PreviewProvider {
             viewModel: CallViewModel(),
             onStartCall: {},
             onEndCall: {},
+            onRejectCall: {},
+            onAnswerCall: {},
             onMuteUnmuteSwitch: { _ in },
             onToggleSpeaker: { _ in })
     }

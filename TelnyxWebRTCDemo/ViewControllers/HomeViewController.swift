@@ -16,6 +16,7 @@ class HomeViewController: UIViewController {
     var serverConfig: TxServerConfiguration?
     
     var incomingCall: Bool = false
+    var isSpeakerActive : Bool = false
     let reachability = try! Reachability()
 
     override func viewDidLoad() {
@@ -34,8 +35,18 @@ class HomeViewController: UIViewController {
         
         let callView = CallView(
             viewModel: callViewModel,
-            onStartCall: {},
-            onEndCall: {},
+            onStartCall: { [weak self] in
+                self?.onCallButton()
+            },
+            onEndCall: { [weak self] in
+                self?.onEndCallButton()
+            },
+            onRejectCall: { [weak self] in
+                self?.onRejectButton()
+            },
+            onAnswerCall: { [weak self] in
+                self?.onAnswerButton()
+            },
             onMuteUnmuteSwitch: { _ in },
             onToggleSpeaker: { _ in })
         
@@ -259,5 +270,62 @@ extension HomeViewController {
         }
         
         return config
+    }
+}
+
+// MARK: - Handle incoming call
+extension HomeViewController {
+    func onAnswerButton() {
+        guard let callID = self.appDelegate.currentCall?.callInfo?.callId else { return }
+        self.appDelegate.executeAnswerCallAction(uuid: callID)
+    }
+    
+    func onRejectButton() {
+        guard let callID = self.appDelegate.currentCall?.callInfo?.callId else { return }
+        self.appDelegate.executeEndCallAction(uuid:callID)
+    }
+}
+// MARK: - Handle call
+extension HomeViewController {
+    
+    func onCallButton() {
+        guard !self.callViewModel.sipAddress.isEmpty else {
+            print("HomeViewController:: onCallButton() ERROR: destination number or SIP user should not be empty")
+            return
+        }
+        
+        let uuid = UUID()
+        let handle = "Telnyx"
+        
+        appDelegate.executeStartCallAction(uuid: uuid, handle: handle)
+    }
+    
+    func onEndCallButton() {
+        guard let uuid = self.appDelegate.currentCall?.callInfo?.callId else { return }
+        appDelegate.executeEndCallAction(uuid: uuid)
+    }
+    
+    func onMuteUnmuteSwitch(mute: Bool) {
+        guard let callId = self.appDelegate.currentCall?.callInfo?.callId else {
+            return
+        }
+        self.appDelegate.executeMuteUnmuteAction(uuid: callId, mute: mute)
+    }
+    
+    func onHoldUnholdSwitch(isOnHold: Bool) {
+        if (isOnHold) {
+            self.appDelegate.currentCall?.hold()
+        } else {
+            self.appDelegate.currentCall?.unhold()
+        }
+    }
+    
+    func onToggleSpeaker(isSpeakerActive: Bool) {
+        self.isSpeakerActive = isSpeakerActive
+        if (isSpeakerActive) {
+            self.telnyxClient?.setSpeaker()
+        } else {
+            self.telnyxClient?.setEarpiece()
+        }
     }
 }

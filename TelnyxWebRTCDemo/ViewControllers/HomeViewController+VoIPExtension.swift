@@ -81,11 +81,9 @@ extension HomeViewController : VoIPDelegate {
     func onIncomingCall(call: Call) {
         self.incomingCall = true
         DispatchQueue.main.async {
-//            self.updateButtonsState()
-//            self.incomingCallView.isHidden = false
-//            self.callView.isHidden = true
-//            //Hide the keyboard
-//            self.view.endEditing(true)
+            self.callViewModel.callState = call.callState
+            //Hide the keyboard
+            self.view.endEditing(true)
         }
     }
     
@@ -95,6 +93,8 @@ extension HomeViewController : VoIPDelegate {
     
     func onCallStateUpdated(callState: CallState, callId: UUID) {
         DispatchQueue.main.async {
+            self.callViewModel.callState = callState
+
             switch (callState) {
                 case .CONNECTING:
                     break
@@ -120,26 +120,26 @@ extension HomeViewController : VoIPDelegate {
     }
     
     func executeCall(callUUID: UUID, completionHandler: @escaping (Call?) -> Void) {
-//        do {
-//            guard let callerName = self.settingsView.callerIdNameLabel.text,
-//                  let callerNumber = self.settingsView.callerIdNumberLabel.text,
-//                  let destinationNumber = self.callView.destinationNumberOrSip.text else {
-//                print("ERROR: executeCall can't be performed. Check callerName - callerNumber and destinationNumber")
-//                return
-//            }
-//            let headers =  [
-//                "X-test1":"ios-test1",
-//                "X-test2":"ios-test2"
-//            ]
-//            
-//            let call = try telnyxClient?.newCall(callerName: callerName,
-//                                                 callerNumber: callerNumber,
-//                                                 destinationNumber: destinationNumber,
-//                                                 callId: callUUID,customHeaders: headers)
-//            completionHandler(call)
-//        } catch let error {
-//            print("ViewController:: executeCall Error \(error)")
-//            completionHandler(nil)
-//        }
+        do {
+            guard let sipCred = SipCredentialsManager.shared.getSelectedCredential() else {
+                print("ERROR: executeCall can't be performed. Check callerName - callerNumber and destinationNumber")
+                return
+            }
+            let headers =  [
+                "X-test1":"ios-test1",
+                "X-test2":"ios-test2"
+            ]
+            
+            let destinationNumber = self.callViewModel.sipAddress
+            
+            let call = try telnyxClient?.newCall(callerName: sipCred.callerName ?? "",
+                                                 callerNumber: sipCred.callerNumber ?? "",
+                                                 destinationNumber: destinationNumber,
+                                                 callId: callUUID,customHeaders: headers)
+            completionHandler(call)
+        } catch let error {
+            print("HomeViewController:: executeCall Error \(error)")
+            completionHandler(nil)
+        }
     }
 }

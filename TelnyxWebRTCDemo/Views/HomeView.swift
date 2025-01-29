@@ -196,6 +196,8 @@ struct HomeView_Previews: PreviewProvider {
                     viewModel: CallViewModel(),
                     onStartCall: {},
                     onEndCall: {},
+                    onRejectCall: {},
+                    onAnswerCall: {},
                     onMuteUnmuteSwitch: { _ in },
                     onToggleSpeaker: { _ in }))
         )
