@@ -59,9 +59,7 @@ struct CallView: View {
                 .padding()
                 .disabled(true)
                 .opacity(0.5)
-            
-            Spacer()
-            
+                        
             HStack {
                 Button(action: {
                     viewModel.isMuted.toggle()
@@ -72,24 +70,9 @@ struct CallView: View {
                         .frame(width: 60, height: 60)
                         .background(Color(hex: "#F5F3E4"))
                         .clipShape(Circle())
-                }
-                .padding()
-                
-                Spacer()
-                
-                Button(action: {
-                    onEndCall()
-                }) {
-                    Image(systemName: "phone.down.fill")
-                        .foregroundColor(Color(hex: "#1D1D1D"))
-                        .frame(width: 60, height: 60)
-                        .background(Color(hex: "#EB0000"))
-                        .clipShape(Circle())
-                }
-                .padding()
-                
-                Spacer()
-                
+                }.padding(.horizontal, 2)
+                                
+                                
                 Button(action: {
                     viewModel.isSpeakerOn.toggle()
                     onToggleSpeaker()
@@ -99,13 +82,8 @@ struct CallView: View {
                         .frame(width: 60, height: 60)
                         .background(Color(hex: "#F5F3E4"))
                         .clipShape(Circle())
-                }
-                .padding()
-            }
-            
-            Spacer()
-            
-            HStack {
+                }.padding(.horizontal, 2)
+
                 Button(action: {
                     viewModel.isOnHold.toggle()
                     onHold(viewModel.isOnHold)
@@ -115,10 +93,7 @@ struct CallView: View {
                         .frame(width: 60, height: 60)
                         .background(Color(hex: "#F5F3E4"))
                         .clipShape(Circle())
-                }
-                .padding()
-                
-                Spacer()
+                }.padding(.horizontal, 2)
 
                 Button(action: {
                     viewModel.showDTMFKeyboard.toggle()
@@ -137,11 +112,19 @@ struct CallView: View {
                             onDTMF(key)
                         }
                     )
-                }
-                
+                }.padding(.horizontal, 2)
             }
             
-            Spacer()
+            Button(action: {
+                onEndCall()
+            }) {
+                Image(systemName: "phone.down.fill")
+                    .foregroundColor(Color(hex: "#1D1D1D"))
+                    .frame(width: 60, height: 60)
+                    .background(Color(hex: "#EB0000"))
+                    .clipShape(Circle())
+            }
+            .padding()
         }
     }
     
