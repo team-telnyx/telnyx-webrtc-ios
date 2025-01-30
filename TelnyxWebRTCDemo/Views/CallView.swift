@@ -85,6 +85,24 @@ struct CallView: View {
                         .clipShape(Circle())
                 }
                 .padding()
+                
+                Button(action: {
+                    viewModel.showDTMFKeyboard.toggle()
+                }) {
+                    Image(systemName: "circle.grid.3x3.fill")
+                        .foregroundColor(Color(hex: "#1D1D1D"))
+                        .frame(width: 60, height: 60)
+                        .background(Color(hex: "#F5F3E4"))
+                        .clipShape(Circle())
+                }
+                .padding()
+                .sheet(isPresented: $viewModel.showDTMFKeyboard) {
+                    DTMFKeyboardView(
+                        viewModel: DTMFKeyboardViewModel(currentCall: viewModel.currentCall),
+                        onClose: { viewModel.showDTMFKeyboard = false }
+                    )
+                    .presentationDetents([.height(400)])
+                }
 
                 Button(action: {
                     viewModel.isOnHold.toggle()
