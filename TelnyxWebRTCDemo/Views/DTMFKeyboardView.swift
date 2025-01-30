@@ -3,6 +3,7 @@ import SwiftUI
 struct DTMFKeyboardView: View {
     @ObservedObject var viewModel: DTMFKeyboardViewModel
     let onClose: () -> Void
+    let onDTMF: (String) -> Void
     
     private let keypadButtons = [
         ["1", "2", "3"],
@@ -35,7 +36,7 @@ struct DTMFKeyboardView: View {
                     HStack(spacing: 12) {
                         ForEach(row, id: \.self) { key in
                             Button(action: {
-                                viewModel.sendDTMF(key)
+                                onDTMF(key)
                             }) {
                                 Text(key)
                                     .font(.title)
@@ -58,7 +59,10 @@ struct DTMFKeyboardView: View {
 
 struct DTMFKeyboardView_Previews: PreviewProvider {
     static var previews: some View {
-        DTMFKeyboardView(viewModel: DTMFKeyboardViewModel(), onClose: {})
+        DTMFKeyboardView(
+            viewModel: DTMFKeyboardViewModel(),
+            onClose: {},
+            onDTMF: { _ in })
             .padding()
     }
 }

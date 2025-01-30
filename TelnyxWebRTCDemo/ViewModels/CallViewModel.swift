@@ -7,11 +7,5 @@ class CallViewModel: ObservableObject {
     @Published var isSpeakerOn: Bool = false
     @Published var callState: CallState = .DONE
     @Published var isOnHold: Bool = false
-    @Published var showDTMFKeyboard: Bool = false
-    
-    var currentCall: Call?
-    
-    func setCurrentCall(_ call: Call?) {
-        currentCall = call
-    }
+    @Published var showDTMFKeyboard: Bool = false    
 }

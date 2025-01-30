@@ -11,6 +11,7 @@ struct CallView: View {
     let onMuteUnmuteSwitch: (Bool) -> Void
     let onToggleSpeaker: () -> Void
     let onHold: (Bool) -> Void
+    let onDTMF: (String) -> Void
 
     var body: some View {
         VStack {
@@ -72,10 +73,25 @@ struct CallView: View {
                         .background(Color(hex: "#F5F3E4"))
                         .clipShape(Circle())
                 }
-                .padding() 
-               
+                .padding()
+                
+                Spacer()
                 
                 Button(action: {
+                    onEndCall()
+                }) {
+                    Image(systemName: "phone.down.fill")
+                        .foregroundColor(Color(hex: "#1D1D1D"))
+                        .frame(width: 60, height: 60)
+                        .background(Color(hex: "#EB0000"))
+                        .clipShape(Circle())
+                }
+                .padding()
+                
+                Spacer()
+                
+                Button(action: {
+                    viewModel.isSpeakerOn.toggle()
                     onToggleSpeaker()
                 }) {
                     Image(systemName: viewModel.isSpeakerOn ? "speaker.wave.3.fill" : "speaker.slash.fill")
@@ -85,25 +101,11 @@ struct CallView: View {
                         .clipShape(Circle())
                 }
                 .padding()
-                
-                Button(action: {
-                    viewModel.showDTMFKeyboard.toggle()
-                }) {
-                    Image(systemName: "circle.grid.3x3.fill")
-                        .foregroundColor(Color(hex: "#1D1D1D"))
-                        .frame(width: 60, height: 60)
-                        .background(Color(hex: "#F5F3E4"))
-                        .clipShape(Circle())
-                }
-                .padding()
-                .sheet(isPresented: $viewModel.showDTMFKeyboard) {
-                    DTMFKeyboardView(
-                        viewModel: DTMFKeyboardViewModel(currentCall: viewModel.currentCall),
-                        onClose: { viewModel.showDTMFKeyboard = false }
-                    )
-                    .presentationDetents([.height(400)])
-                }
-
+            }
+            
+            Spacer()
+            
+            HStack {
                 Button(action: {
                     viewModel.isOnHold.toggle()
                     onHold(viewModel.isOnHold)
@@ -115,18 +117,29 @@ struct CallView: View {
                         .clipShape(Circle())
                 }
                 .padding()
-            }
+                
+                Spacer()
 
-             Button(action: {
-                    onEndCall()
+                Button(action: {
+                    viewModel.showDTMFKeyboard.toggle()
                 }) {
-                    Image(systemName: "phone.down.fill")
+                    Image(systemName: "circle.grid.3x3.fill")
                         .foregroundColor(Color(hex: "#1D1D1D"))
                         .frame(width: 60, height: 60)
-                        .background(Color(hex: "#EB0000"))
+                        .background(Color(hex: "#F5F3E4"))
                         .clipShape(Circle())
                 }
-                .padding()
+                .sheet(isPresented: $viewModel.showDTMFKeyboard) {
+                    DTMFKeyboardView(
+                        viewModel: DTMFKeyboardViewModel(),
+                        onClose: { viewModel.showDTMFKeyboard = false },
+                        onDTMF: { key in
+                            onDTMF(key)
+                        }
+                    )
+                }
+                
+            }
             
             Spacer()
         }
@@ -176,6 +189,8 @@ struct CallView_Previews: PreviewProvider {
             onAnswerCall: {},
             onMuteUnmuteSwitch: { _ in },
             onToggleSpeaker: {},
-            onHold: { _ in })
+            onHold: { _ in },
+            onDTMF: { _ in }
+        )
     }
 }

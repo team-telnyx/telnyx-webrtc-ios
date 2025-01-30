@@ -200,7 +200,10 @@ struct HomeView_Previews: PreviewProvider {
                     onAnswerCall: {},
                     onMuteUnmuteSwitch: { _ in },
                     onToggleSpeaker: {},
-                    onHold: { _ in }))
+                    onHold: { _ in },
+                    onDTMF: { _ in }
+                )
+            )
         )
     }
 }

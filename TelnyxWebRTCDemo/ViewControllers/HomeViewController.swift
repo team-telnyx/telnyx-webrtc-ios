@@ -55,7 +55,11 @@ class HomeViewController: UIViewController {
             },
             onHold: { [weak self] hold in
                 self?.onHoldUnholdSwitch(isOnHold: hold)
-            })
+            },
+            onDTMF: { [weak self] key in
+                self?.appDelegate.currentCall?.dtmf(dtmf: key)
+            }
+        )
         
         let homeView = HomeView(
             viewModel: viewModel,
