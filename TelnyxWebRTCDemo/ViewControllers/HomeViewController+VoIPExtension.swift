@@ -1,10 +1,3 @@
-//
-//  ViewControllerVoIPExtension.swift
-//  TelnyxWebRTCDemo
-//
-//  Created by Guillermo Battistel on 25/08/2021.
-//  Copyright © 2021 Telnyx LLC. All rights reserved.
-
 import Foundation
 import UIKit
 import AVFoundation
@@ -13,48 +6,38 @@ import TelnyxRTC
 import Network
 
 // MARK: - VoIPDelegate
-extension ViewController : VoIPDelegate {
-
+extension HomeViewController : VoIPDelegate {
+    
     func onSocketConnected() {
         print("ViewController:: TxClientDelegate onSocketConnected()")
         DispatchQueue.main.async {
-            self.socketStateLabel.text = "Connected"
-            self.connectButton.setTitle("Disconnect", for: .normal)
-            
+            self.viewModel.socketState = .connected
+            self.sipCredentialsVC.dismiss(animated: false)
         }
-        
     }
     
     func onSocketDisconnected() {
         print("ViewController:: TxClientDelegate onSocketDisconnected()")
         let noActiveCalls = self.telnyxClient?.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
         
-        if(noActiveCalls != true){
+        // Re-connection logic
+        if noActiveCalls != true {
             self.reachability.whenReachable = { reachability in
-                 if reachability.connection == .wifi {
-                     print("Reachable via WiFi")
-                     self.connectButtonTapped("")
-                 } else {
-                     print("Reachable via Cellular")
-                     self.connectButtonTapped("")
-                 }
-             } 
+                if reachability.connection == .wifi {
+                    print("Reachable via WiFi")
+                    self.handleConnect()
+                } else {
+                    print("Reachable via Cellular")
+                    self.handleConnect()
+                }
+            }
             return
         }
-
+        
         DispatchQueue.main.async {
-            self.removeLoadingView()
-            self.resetCallStates()
-            self.socketStateLabel.text = "Disconnected"
-            self.connectButton.setTitle("Connect", for: .normal)
-            self.sessionIdLabel.text = "-"
-            self.settingsView.isHidden = false
-            self.callView.isHidden = false
-            self.incomingCallView.isHidden = true
+            self.viewModel.isLoading = false
+            self.viewModel.socketState = .disconnected
         }
-        
-      
-        
     }
     
     func onClientError(error: Error) {
@@ -66,8 +49,8 @@ extension ViewController : VoIPDelegate {
         }
         
         DispatchQueue.main.async {
-            self.removeLoadingView()
-            self.incomingCallView.isHidden = true
+            self.viewModel.isLoading = false
+            self.viewModel.socketState = .disconnected
             self.appDelegate.executeEndCallAction(uuid: UUID());
             
             if error.self is NWError {
@@ -83,30 +66,22 @@ extension ViewController : VoIPDelegate {
     func onClientReady() {
         print("ViewController:: TxClientDelegate onClientReady()")
         DispatchQueue.main.async {
-            self.sipCredentialsVC.dismiss(animated: false)
-            self.removeLoadingView()
-            self.socketStateLabel.text = "Client ready"
-            self.settingsView.isHidden = true
-            self.callView.isHidden = false
-            if !self.incomingCall {
-                self.incomingCallView.isHidden = true
-            }
+            self.viewModel.isLoading = false
+            self.viewModel.socketState = .clientReady
         }
     }
     
     func onSessionUpdated(sessionId: String) {
         print("ViewController:: TxClientDelegate onSessionUpdated() sessionId: \(sessionId)")
         DispatchQueue.main.async {
-            self.sessionIdLabel.text = sessionId
+            self.viewModel.sessionId = sessionId
         }
     }
     
     func onIncomingCall(call: Call) {
         self.incomingCall = true
         DispatchQueue.main.async {
-            self.updateButtonsState()
-            self.incomingCallView.isHidden = false
-            self.callView.isHidden = true
+            self.callViewModel.callState = call.callState
             //Hide the keyboard
             self.view.endEditing(true)
         }
@@ -118,6 +93,8 @@ extension ViewController : VoIPDelegate {
     
     func onCallStateUpdated(callState: CallState, callId: UUID) {
         DispatchQueue.main.async {
+            self.callViewModel.callState = callState
+
             switch (callState) {
                 case .CONNECTING:
                     break
@@ -126,47 +103,42 @@ extension ViewController : VoIPDelegate {
                 case .NEW:
                     break
                 case .ACTIVE:
-                    self.incomingCallView.isHidden = true
-                    self.callView.isHidden = false
-                    if(self.isCallOutGoing()){
+//                    self.incomingCallView.isHidden = true
+//                    self.callView.isHidden = false
+                    if self.appDelegate.isCallOutGoing {
                         self.appDelegate.executeOutGoingCall()
                     }
                     break
                 case .DONE:
-                    self.resetCallStates()
+                    // self.resetCallStates()
                     break
                 case .HELD:
                     break
             }
-            self.updateButtonsState()
+//            self.updateButtonsState()
         }
     }
-    
-    func setCurrentAudioOutput(){
-        if(self.isSpeakerActive){
-            self.telnyxClient?.setSpeaker()
-        }
-    }
-    
     
     func executeCall(callUUID: UUID, completionHandler: @escaping (Call?) -> Void) {
         do {
-            guard let callerName = self.settingsView.callerIdNameLabel.text,
-                  let callerNumber = self.settingsView.callerIdNumberLabel.text,
-                  let destinationNumber = self.callView.destinationNumberOrSip.text else {
+            guard let sipCred = SipCredentialsManager.shared.getSelectedCredential() else {
                 print("ERROR: executeCall can't be performed. Check callerName - callerNumber and destinationNumber")
                 return
             }
-            let headers =  ["X-test1":"ios-test1",
-                            "X-test2":"ios-test2"]
+            let headers =  [
+                "X-test1":"ios-test1",
+                "X-test2":"ios-test2"
+            ]
             
-            let call = try telnyxClient?.newCall(callerName: callerName,
-                                                 callerNumber: callerNumber,
+            let destinationNumber = self.callViewModel.sipAddress
+            
+            let call = try telnyxClient?.newCall(callerName: sipCred.callerName ?? "",
+                                                 callerNumber: sipCred.callerNumber ?? "",
                                                  destinationNumber: destinationNumber,
                                                  callId: callUUID,customHeaders: headers)
             completionHandler(call)
         } catch let error {
-            print("ViewController:: executeCall Error \(error)")
+            print("HomeViewController:: executeCall Error \(error)")
             completionHandler(nil)
         }
     }

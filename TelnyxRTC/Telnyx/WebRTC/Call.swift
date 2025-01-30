@@ -711,7 +711,8 @@ extension Call {
             Logger.log.w(message: "TxClient:: SocketDelegate Default method")
             break
         }
-        if(txClient.isSpeakerEnabled()){
+        
+        if txClient.isSpeakerEnabled {
             Logger.log.w(message: "Speaker Enabled")
             txClient.setSpeaker()
         }

@@ -10,6 +10,7 @@ import UIKit
 import PushKit
 import CallKit
 import TelnyxRTC
+import SwiftUI
 
 protocol VoIPDelegate: AnyObject {
     func onSocketConnected()
@@ -41,10 +42,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     let callKitCallController = CXCallController()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-
-        // Set delegate
-        let viewController = UIApplication.shared.windows.first?.rootViewController as? ViewController
-        self.voipDelegate = viewController
+        // Create and set window
+        window = UIWindow(frame: UIScreen.main.bounds)
+        window?.rootViewController = UIHostingController(rootView: SplashScreen())
+        window?.makeKeyAndVisible()
 
         // Instantiate the Telnyx Client SDK
         self.telnyxClient = TxClient()
@@ -143,8 +144,6 @@ extension AppDelegate: PKPushRegistryDelegate {
             completion()
         }
     }
-    
-    
 
     func handleVoIPPushNotification(payload: PKPushPayload) {
         if let metadata = payload.dictionaryPayload["metadata"] as? [String: Any] {
@@ -168,4 +167,3 @@ extension AppDelegate: PKPushRegistryDelegate {
         }
     }
 }
-
