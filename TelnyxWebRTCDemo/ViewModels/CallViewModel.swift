@@ -6,4 +6,5 @@ class CallViewModel: ObservableObject {
     @Published var isMuted: Bool = false
     @Published var isSpeakerOn: Bool = false
     @Published var callState: CallState = .DONE
+    @Published var isOnHold: Bool = false
 }

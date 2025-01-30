@@ -52,6 +52,9 @@ class HomeViewController: UIViewController {
             },
             onToggleSpeaker: { [weak self] in
                 self?.onToggleSpeaker()
+            },
+            onHold: { [weak self] hold in
+                self?.onHoldUnholdSwitch(isOnHold: hold)
             })
         
         let homeView = HomeView(

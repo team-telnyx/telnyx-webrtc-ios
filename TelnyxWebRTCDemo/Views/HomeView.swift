@@ -199,7 +199,8 @@ struct HomeView_Previews: PreviewProvider {
                     onRejectCall: {},
                     onAnswerCall: {},
                     onMuteUnmuteSwitch: { _ in },
-                    onToggleSpeaker: {}))
+                    onToggleSpeaker: {},
+                    onHold: { _ in }))
         )
     }
 }

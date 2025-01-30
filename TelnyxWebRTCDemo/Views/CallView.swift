@@ -10,7 +10,8 @@ struct CallView: View {
     let onAnswerCall: () -> Void
     let onMuteUnmuteSwitch: (Bool) -> Void
     let onToggleSpeaker: () -> Void
-    
+    let onHold: (Bool) -> Void
+
     var body: some View {
         VStack {
             switch viewModel.callState {
@@ -71,18 +72,8 @@ struct CallView: View {
                         .background(Color(hex: "#F5F3E4"))
                         .clipShape(Circle())
                 }
-                .padding()
-                
-                Button(action: {
-                    onEndCall()
-                }) {
-                    Image(systemName: "phone.down.fill")
-                        .foregroundColor(Color(hex: "#1D1D1D"))
-                        .frame(width: 60, height: 60)
-                        .background(Color(hex: "#EB0000"))
-                        .clipShape(Circle())
-                }
-                .padding()
+                .padding() 
+               
                 
                 Button(action: {
                     onToggleSpeaker()
@@ -94,7 +85,30 @@ struct CallView: View {
                         .clipShape(Circle())
                 }
                 .padding()
+
+                Button(action: {
+                    viewModel.isOnHold.toggle()
+                    onHold(viewModel.isOnHold)
+                }) {
+                    Image(systemName: viewModel.isOnHold ? "play.fill" : "pause")
+                        .foregroundColor(Color(hex: "#1D1D1D"))
+                        .frame(width: 60, height: 60)
+                        .background(Color(hex: "#F5F3E4"))
+                        .clipShape(Circle())
+                }
+                .padding()
             }
+
+             Button(action: {
+                    onEndCall()
+                }) {
+                    Image(systemName: "phone.down.fill")
+                        .foregroundColor(Color(hex: "#1D1D1D"))
+                        .frame(width: 60, height: 60)
+                        .background(Color(hex: "#EB0000"))
+                        .clipShape(Circle())
+                }
+                .padding()
             
             Spacer()
         }
@@ -143,6 +157,7 @@ struct CallView_Previews: PreviewProvider {
             onRejectCall: {},
             onAnswerCall: {},
             onMuteUnmuteSwitch: { _ in },
-            onToggleSpeaker: {})
+            onToggleSpeaker: {},
+            onHold: { _ in })
     }
 }
