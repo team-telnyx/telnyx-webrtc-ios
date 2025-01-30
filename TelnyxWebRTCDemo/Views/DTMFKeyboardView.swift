@@ -37,6 +37,7 @@ struct DTMFKeyboardView: View {
                         ForEach(row, id: \.self) { key in
                             Button(action: {
                                 onDTMF(key)
+                                viewModel.displayText += key
                             }) {
                                 Text(key)
                                     .font(.title)
@@ -49,11 +50,9 @@ struct DTMFKeyboardView: View {
                     }
                 }
             }
-            .padding(.bottom)
         }
         .background(Color.white)
-        .cornerRadius(16)
-        .shadow(radius: 10)
+        Spacer()
     }
 }
 

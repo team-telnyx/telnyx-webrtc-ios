@@ -1,4 +1,5 @@
 import SwiftUI
+import TelnyxRTC
 
 enum SocketState {
     case clientReady
@@ -91,39 +92,42 @@ struct HomeView: View {
                                 profileOrCallView(for: viewModel.socketState)
                                 
                                 Spacer()
-                                
-                                if viewModel.socketState == .disconnected {
-                                    Button(action: onConnect) {
-                                        Text("Connect")
-                                            .font(.system(size: 16).bold())
-                                            .foregroundColor(.white)
-                                            .frame(maxWidth: 300)
-                                            .padding(.vertical, 12)
-                                            .background(Color(hex: "#1D1D1D"))
-                                            .cornerRadius(20)
+                                if viewModel.callState == .NEW ||
+                                   viewModel.callState == .DONE
+                                {
+                                    if viewModel.socketState == .disconnected {
+                                        Button(action: onConnect) {
+                                            Text("Connect")
+                                                .font(.system(size: 16).bold())
+                                                .foregroundColor(.white)
+                                                .frame(maxWidth: 300)
+                                                .padding(.vertical, 12)
+                                                .background(Color(hex: "#1D1D1D"))
+                                                .cornerRadius(20)
+                                        }
+                                        .padding(.horizontal, 60)
+                                        .padding(.bottom, 20)
+                                    } else {
+                                        Button(action: onDisconnect) {
+                                            Text("Disconnect")
+                                                .font(.system(size: 16).bold())
+                                                .foregroundColor(.white)
+                                                .frame(maxWidth: 300)
+                                                .padding(.vertical, 12)
+                                                .background(Color(hex: "#1D1D1D"))
+                                                .cornerRadius(20)
+                                        }
+                                        .padding(.horizontal, 60)
+                                        .padding(.bottom, 10)
                                     }
-                                    .padding(.horizontal, 60)
-                                    .padding(.bottom, 20)
-                                } else {
-                                    Button(action: onDisconnect) {
-                                        Text("Disconnect")
-                                            .font(.system(size: 16).bold())
-                                            .foregroundColor(.white)
-                                            .frame(maxWidth: 300)
-                                            .padding(.vertical, 12)
-                                            .background(Color(hex: "#1D1D1D"))
-                                            .cornerRadius(20)
-                                    }
-                                    .padding(.horizontal, 60)
-                                    .padding(.bottom, 10)
+                                    
+                                    
+                                    // Environment Text
+                                    Text(viewModel.environment)
+                                        .font(.system(size: 14, weight: .regular))
+                                        .foregroundColor(Color(hex: "1D1D1D"))
+                                        .padding(.bottom, 5)
                                 }
-                                
-                                
-                                // Environment Text
-                                Text(viewModel.environment)
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundColor(Color(hex: "1D1D1D"))
-                                    .padding(.bottom, 5)
                             }
                             .opacity(textOpacity)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -82,6 +82,7 @@ extension HomeViewController : VoIPDelegate {
         self.incomingCall = true
         DispatchQueue.main.async {
             self.callViewModel.callState = call.callState
+            self.viewModel.callState = call.callState
             //Hide the keyboard
             self.view.endEditing(true)
         }
@@ -94,6 +95,7 @@ extension HomeViewController : VoIPDelegate {
     func onCallStateUpdated(callState: CallState, callId: UUID) {
         DispatchQueue.main.async {
             self.callViewModel.callState = callState
+            self.viewModel.callState = callState
 
             switch (callState) {
                 case .CONNECTING:

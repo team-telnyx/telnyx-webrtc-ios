@@ -25,6 +25,19 @@ struct CallView: View {
             }
         }
         .padding()
+        .sheet(isPresented: $viewModel.showDTMFKeyboard) {
+            VStack {
+                DTMFKeyboardView(
+                    viewModel: DTMFKeyboardViewModel(),
+                    onClose: { viewModel.showDTMFKeyboard = false },
+                    onDTMF: { key in
+                        onDTMF(key)
+                    }
+                )
+                .background(Color.white)
+            }
+            .ignoresSafeArea(edges: .bottom)
+        }
     }
     
     @ViewBuilder
@@ -104,15 +117,7 @@ struct CallView: View {
                         .background(Color(hex: "#F5F3E4"))
                         .clipShape(Circle())
                 }
-                .sheet(isPresented: $viewModel.showDTMFKeyboard) {
-                    DTMFKeyboardView(
-                        viewModel: DTMFKeyboardViewModel(),
-                        onClose: { viewModel.showDTMFKeyboard = false },
-                        onDTMF: { key in
-                            onDTMF(key)
-                        }
-                    )
-                }.padding(.horizontal, 2)
+
             }
             
             Button(action: {
@@ -126,6 +131,7 @@ struct CallView: View {
             }
             .padding()
         }
+        Spacer()
     }
     
     @ViewBuilder
