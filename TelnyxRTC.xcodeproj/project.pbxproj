@@ -62,6 +62,8 @@
 		99B6E0012CF547680010CA96 /* DebugReportDataMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6E0002CF547680010CA96 /* DebugReportDataMessage.swift */; };
 		99CC5BAC2CF804A500EF43DC /* WebRTCStatsReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99CC5BAB2CF804A200EF43DC /* WebRTCStatsReporter.swift */; };
 		99CC5BAE2CF80D3A00EF43DC /* WebRTCEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99CC5BAD2CF80D3400EF43DC /* WebRTCEventHandler.swift */; };
+		99FF7B102D4BC4F700DB1408 /* DTMFKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FF7B0F2D4BC4F700DB1408 /* DTMFKeyboardView.swift */; };
+		99FF7B122D4BC71800DB1408 /* DTMFKeyboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FF7B112D4BC71800DB1408 /* DTMFKeyboardViewModel.swift */; };
 		B309D13D25EF119E00A2AADF /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B309D11125EF107F00A2AADF /* Starscream.framework */; };
 		B309D1D625F020B300A2AADF /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D1D525F020B300A2AADF /* Message.swift */; };
 		B309D1DB25F020D400A2AADF /* Method.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D1DA25F020D400A2AADF /* Method.swift */; };
@@ -201,6 +203,8 @@
 		99B6E0002CF547680010CA96 /* DebugReportDataMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugReportDataMessage.swift; sourceTree = "<group>"; };
 		99CC5BAB2CF804A200EF43DC /* WebRTCStatsReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCStatsReporter.swift; sourceTree = "<group>"; };
 		99CC5BAD2CF80D3400EF43DC /* WebRTCEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCEventHandler.swift; sourceTree = "<group>"; };
+		99FF7B0F2D4BC4F700DB1408 /* DTMFKeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTMFKeyboardView.swift; sourceTree = "<group>"; };
+		99FF7B112D4BC71800DB1408 /* DTMFKeyboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTMFKeyboardViewModel.swift; sourceTree = "<group>"; };
 		B309D11125EF107F00A2AADF /* Starscream.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Starscream.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B309D1D525F020B300A2AADF /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
 		B309D1DA25F020D400A2AADF /* Method.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Method.swift; sourceTree = "<group>"; };
@@ -372,6 +376,7 @@
 		99ADA94D2D47C9B6000C956A /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				99FF7B112D4BC71800DB1408 /* DTMFKeyboardViewModel.swift */,
 				99ADA9AF2D4886E3000C956A /* CallViewModel.swift */,
 				99ADA9AD2D487DE1000C956A /* ProfileViewModel.swift */,
 				99ADA94C2D47C9B6000C956A /* HomeViewModel.swift */,
@@ -427,6 +432,7 @@
 		B309D1FB25F028F100A2AADF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				99FF7B0F2D4BC4F700DB1408 /* DTMFKeyboardView.swift */,
 				99ADA9A92D487AC4000C956A /* CallView.swift */,
 				99ADA9A72D4878ED000C956A /* ProfileView.swift */,
 				998670412D4096A7001E1D01 /* HomeView.swift */,
@@ -966,6 +972,7 @@
 				B3B8F53726E7D4EF0007B583 /* AppDelegateTelnyxVoIPExtension.swift in Sources */,
 				9986703E2D3EC7A3001E1D01 /* View+Extensions.swift in Sources */,
 				9986703A2D3E9DCE001E1D01 /* SipInputCredentialsView.swift in Sources */,
+				99FF7B102D4BC4F700DB1408 /* DTMFKeyboardView.swift in Sources */,
 				991A6D442D3A96C100B29785 /* SplashScreen.swift in Sources */,
 				99ADA9A82D4878FA000C956A /* ProfileView.swift in Sources */,
 				998670402D40849C001E1D01 /* HomeViewController.swift in Sources */,
@@ -979,6 +986,7 @@
 				998670382D3E9506001E1D01 /* Color+Extensions.swift in Sources */,
 				B368BEEB25EDDD060032AE52 /* AppDelegate.swift in Sources */,
 				99ADA9B22D488D98000C956A /* HomeViewController+VoIPExtension.swift in Sources */,
+				99FF7B122D4BC71800DB1408 /* DTMFKeyboardViewModel.swift in Sources */,
 				99ADA94E2D47C9B6000C956A /* HomeViewModel.swift in Sources */,
 				9986703C2D3EAF64001E1D01 /* ErrorView.swift in Sources */,
 			);
