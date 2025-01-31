@@ -132,15 +132,37 @@ public weak var delegate: TxClientDelegate?
 
 Subscribe to TxClient delegate to receive Telnyx SDK events
 
+### `isSpeakerEnabled`
+
+```swift
+public private(set) var isSpeakerEnabled: Bool
+```
+
 ### `isAudioDeviceEnabled`
 
 ```swift
 public var isAudioDeviceEnabled : Bool
 ```
 
-When implementing CallKit framework, audio has to be manually handled.
-Set this property to TRUE when `provider(CXProvider, didActivate: AVAudioSession)` is called on your CallKit implementation
-Set this property to FALSE when `provider(CXProvider, didDeactivate: AVAudioSession)` is called on your CallKit implementation
+Controls the audio device state when using CallKit integration.
+This property manages the WebRTC audio session activation and deactivation.
+
+When implementing CallKit, you must manually handle the audio session state:
+- Set to `true` in `provider(_:didActivate:)` to enable audio
+- Set to `false` in `provider(_:didDeactivate:)` to disable audio
+
+Example usage with CallKit:
+```swift
+extension CallKitProvider: CXProviderDelegate {
+    func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
+        telnyxClient.isAudioDeviceEnabled = true
+    }
+
+    func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
+        telnyxClient.isAudioDeviceEnabled = false
+    }
+}
+```
 
 ### `isRegistered`
 
@@ -157,11 +179,53 @@ Client must be registered in order to receive or place calls.
 public func enableAudioSession(audioSession: AVAudioSession)
 ```
 
+Enables and configures the audio session for a call.
+This method sets up the appropriate audio configuration and activates the session.
+
+- Parameter audioSession: The AVAudioSession instance to configure
+- Important: This method MUST be called from the CXProviderDelegate's `provider(_:didActivate:)` callback
+            to properly handle audio routing when using CallKit integration.
+
+Example usage:
+```swift
+func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
+    print("provider:didActivateAudioSession:")
+    self.telnyxClient.enableAudioSession(audioSession: audioSession)
+}
+```
+
+#### Parameters
+
+| Name | Description |
+| ---- | ----------- |
+| audioSession | The AVAudioSession instance to configure |
+
 ### `disableAudioSession(audioSession:)`
 
 ```swift
 public func disableAudioSession(audioSession: AVAudioSession)
 ```
+
+Disables and resets the audio session.
+This method cleans up the audio configuration and deactivates the session.
+
+- Parameter audioSession: The AVAudioSession instance to reset
+- Important: This method MUST be called from the CXProviderDelegate's `provider(_:didDeactivate:)` callback
+            to properly clean up audio resources when using CallKit integration.
+
+Example usage:
+```swift
+func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
+    print("provider:didDeactivateAudioSession:")
+    self.telnyxClient.disableAudioSession(audioSession: audioSession)
+}
+```
+
+#### Parameters
+
+| Name | Description |
+| ---- | ----------- |
+| audioSession | The AVAudioSession instance to reset |
 
 ### `init()`
 

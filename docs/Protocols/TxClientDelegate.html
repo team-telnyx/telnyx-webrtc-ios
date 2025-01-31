@@ -17,7 +17,7 @@
     <a title="TxClientDelegate Protocol Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">TelnyxRTC 0.1.37 Docs</a> (75% documented)</p>
+        <p><a href="../index.html">TelnyxRTC 0.1.41 Docs</a> (78% documented)</p>
         <div class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -45,9 +45,6 @@
               </li>
               <li class="nav-group-task">
                 <a href="../Classes/FileLogger.html">FileLogger</a>
-              </li>
-              <li class="nav-group-task">
-                <a href="../Classes.html#/s:9TelnyxRTC12StatsMessageC">StatsMessage</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Classes/TxClient.html">TxClient</a>
@@ -127,8 +124,23 @@
 
                 </div>
               </div>
-            <p>Delegate protocol asociated with the TxClient
-Methods for receiving TxClient events.</p>
+            <p>The TxClientDelegate protocol defines methods for receiving events and updates from a TxClient instance.
+Implement this protocol to handle various states and events in your WebRTC-enabled application,
+including connection status, call state changes, and push notifications.</p>
+<h2 id='usage-example' class='heading'>Usage Example:</h2>
+<pre class="highlight swift"><code><span class="kd">class</span> <span class="kt">CallHandler</span><span class="p">:</span> <span class="kt">TxClientDelegate</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">onSocketConnected</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nf">print</span><span class="p">(</span><span class="s">"Connected to Telnyx backend"</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">onIncomingCall</span><span class="p">(</span><span class="nv">call</span><span class="p">:</span> <span class="kt">Call</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// Handle incoming call</span>
+        <span class="n">call</span><span class="o">.</span><span class="nf">answer</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Implement other required methods...</span>
+<span class="p">}</span>
+</code></pre>
 
           </section>
           <section class="section task-group-section">
@@ -147,7 +159,9 @@ Methods for receiving TxClient events.</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Tells the delegate when the Telnyx Client has successfully connected to the Telnyx Backend</p>
+                        <p>Called when the WebSocket connection to Telnyx&rsquo;s backend is established.
+This indicates a successful network connection, but the client may not be fully ready yet.
+Wait for <code>onClientReady</code> before initiating calls.</p>
 
                       </div>
                       <div class="declaration">
@@ -174,7 +188,8 @@ Methods for receiving TxClient events.</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Tells the delegate when the Telnyx Client has disconnected from the Telnyx Backend</p>
+                        <p>Called when the WebSocket connection to Telnyx&rsquo;s backend is lost or closed.
+The client will automatically attempt to reconnect unless explicitly disconnected.</p>
 
                       </div>
                       <div class="declaration">
@@ -201,7 +216,7 @@ Methods for receiving TxClient events.</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Tells the delegate when there&rsquo;s an error in the Telnyx Client</p>
+                        <p>Called when an error occurs in the TxClient.</p>
 
                       </div>
                       <div class="declaration">
@@ -224,7 +239,8 @@ Methods for receiving TxClient events.</p>
                               </td>
                               <td>
                                 <div>
-                                  <p>error occurred inside the Telnyx Client</p>
+                                  <p>The error that occurred. Check the error type and message for details.
+Common errors include authentication failures and network connectivity issues.</p>
                                 </div>
                               </td>
                             </tr>
@@ -247,8 +263,9 @@ Methods for receiving TxClient events.</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Tells the delegate that the The Telnyx Client is ready to be used.
-Has successfully connected and logged in</p>
+                        <p>Called when the client has successfully connected AND authenticated.
+The client is now ready to make and receive calls.
+This is the appropriate time to enable UI elements for calling functionality.</p>
 
                       </div>
                       <div class="declaration">
@@ -275,7 +292,7 @@ Has successfully connected and logged in</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Push notification is disabled for the current user</p>
+                        <p>Called when push notification status changes for the current user.</p>
 
                       </div>
                       <div class="declaration">
@@ -285,6 +302,37 @@ Has successfully connected and logged in</p>
                           <pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">onPushDisabled</span><span class="p">(</span><span class="nv">success</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">,</span> <span class="nv">message</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>success</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Whether the push notification operation succeeded</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>message</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Descriptive message about the operation result</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </section>
                   </div>
@@ -302,7 +350,7 @@ Has successfully connected and logged in</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Tells the delegate that the Telnyx Client session has been updated.</p>
+                        <p>Called when the client&rsquo;s session is updated, typically after a reconnection.</p>
 
                       </div>
                       <div class="declaration">
@@ -325,7 +373,8 @@ Has successfully connected and logged in</p>
                               </td>
                               <td>
                                 <div>
-                                  <p>The new sessionId assigned to the client connection.</p>
+                                  <p>The new session identifier for the connection.
+Store this ID if you need to track or debug connection issues.</p>
                                 </div>
                               </td>
                             </tr>
@@ -348,7 +397,7 @@ Has successfully connected and logged in</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Tells the delegate that a call has been updated.</p>
+                        <p>Called whenever a call&rsquo;s state changes (e.g., ringing, answered, ended).</p>
 
                       </div>
                       <div class="declaration">
@@ -371,7 +420,7 @@ Has successfully connected and logged in</p>
                               </td>
                               <td>
                                 <div>
-                                  <p>The new call state</p>
+                                  <p>The new state of the call (NEW, CONNECTING, RINGING, ACTIVE, HELD, DONE)</p>
                                 </div>
                               </td>
                             </tr>
@@ -383,7 +432,8 @@ Has successfully connected and logged in</p>
                               </td>
                               <td>
                                 <div>
-                                  <p>The UUID of the affected call</p>
+                                  <p>The unique identifier of the affected call
+Use this to update your UI to reflect the current call state.</p>
                                 </div>
                               </td>
                             </tr>
@@ -406,7 +456,7 @@ Has successfully connected and logged in</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Tells the delegate that someone is calling</p>
+                        <p>Called when a new incoming call is received.</p>
 
                       </div>
                       <div class="declaration">
@@ -429,7 +479,8 @@ Has successfully connected and logged in</p>
                               </td>
                               <td>
                                 <div>
-                                  <p>The call object of the incoming call.</p>
+                                  <p>The Call object representing the incoming call.
+You can use this object to answer or reject the call.</p>
                                 </div>
                               </td>
                             </tr>
@@ -452,7 +503,7 @@ Has successfully connected and logged in</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Tells the delegate that a call has ended</p>
+                        <p>Called when a remote party ends the call.</p>
 
                       </div>
                       <div class="declaration">
@@ -475,7 +526,8 @@ Has successfully connected and logged in</p>
                               </td>
                               <td>
                                 <div>
-                                  <p>the UUID of the call that has ended.</p>
+                                  <p>The unique identifier of the ended call.
+Use this to clean up any call-related UI elements or state.</p>
                                 </div>
                               </td>
                             </tr>
@@ -498,7 +550,7 @@ Has successfully connected and logged in</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Tells the delegate that an INVITE has been received for the incoming push</p>
+                        <p>Called when a push notification triggers an incoming call.</p>
 
                       </div>
                       <div class="declaration">
@@ -521,7 +573,9 @@ Has successfully connected and logged in</p>
                               </td>
                               <td>
                                 <div>
-                                  <p>The call object of the incoming call.</p>
+                                  <p>The Call object created from the push notification data.
+This is specifically for handling calls that arrive via push notifications
+when the app is in the background.</p>
                                 </div>
                               </td>
                             </tr>
@@ -536,7 +590,7 @@ Has successfully connected and logged in</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2024 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2024-11-15)</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-01-31)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>

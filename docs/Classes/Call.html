@@ -17,7 +17,7 @@
     <a title="Call Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">TelnyxRTC 0.1.37 Docs</a> (75% documented)</p>
+        <p><a href="../index.html">TelnyxRTC 0.1.41 Docs</a> (78% documented)</p>
         <div class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -45,9 +45,6 @@
               </li>
               <li class="nav-group-task">
                 <a href="../Classes/FileLogger.html">FileLogger</a>
-              </li>
-              <li class="nav-group-task">
-                <a href="../Classes.html#/s:9TelnyxRTC12StatsMessageC">StatsMessage</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Classes/TxClient.html">TxClient</a>
@@ -127,46 +124,66 @@
 
                 </div>
               </div>
-            <p>A Call is the representation of an audio or video call between two WebRTC Clients, SIP clients or phone numbers.
-The call object is created whenever a new call is initiated, either by you or the remote caller.
-You can access and act upon calls initiated by a remote caller by registering to TxClientDelegate of the TxClient</p>
-<h2 id='examples' class='heading'>Examples:</h2>
-<h3 id='create-a-call' class='heading'>Create a call:</h3>
-<pre class="highlight swift"><code>   <span class="c1">// Create a client instance</span>
-   <span class="k">self</span><span class="o">.</span><span class="n">telnyxClient</span> <span class="o">=</span> <span class="kt">TxClient</span><span class="p">()</span>
+            <p>A Call represents an audio or video communication session between two endpoints: WebRTC Clients, SIP clients, or phone numbers.
+The Call object manages the entire lifecycle of a call, from initiation to termination, handling both outbound and inbound calls.</p>
 
-   <span class="c1">// Asign the delegate to get SDK events</span>
+<p>A Call object is created in two scenarios:</p>
+
+<ol>
+<li>When you initiate a new outbound call using TxClient&rsquo;s newCall method</li>
+<li>When you receive an inbound call through the TxClientDelegate&rsquo;s onIncomingCall callback</li>
+</ol>
+<h2 id='key-features' class='heading'>Key Features</h2>
+
+<ul>
+<li>Audio and video call support</li>
+<li>Call state management (NEW, CONNECTING, RINGING, ACTIVE, HELD, DONE)</li>
+<li>Mute/unmute functionality</li>
+<li>DTMF tone sending</li>
+<li>Custom headers support for both INVITE and ANSWER messages</li>
+<li>Call statistics reporting when debug mode is enabled</li>
+</ul>
+<h2 id='examples' class='heading'>Examples</h2>
+<h3 id='creating-an-outbound-call' class='heading'>Creating an Outbound Call:</h3>
+<pre class="highlight swift"><code>   <span class="c1">// Initialize the client</span>
+   <span class="k">self</span><span class="o">.</span><span class="n">telnyxClient</span> <span class="o">=</span> <span class="kt">TxClient</span><span class="p">()</span>
    <span class="k">self</span><span class="o">.</span><span class="n">telnyxClient</span><span class="p">?</span><span class="o">.</span><span class="n">delegate</span> <span class="o">=</span> <span class="k">self</span>
 
-   <span class="c1">// Connect the client (Check TxClient class for more info)</span>
+   <span class="c1">// Connect the client (see TxClient documentation for connection options)</span>
    <span class="k">self</span><span class="o">.</span><span class="n">telnyxClient</span><span class="p">?</span><span class="o">.</span><span class="nf">connect</span><span class="p">(</span><span class="o">....</span><span class="p">)</span>
 
-   <span class="c1">// Create the call and start calling</span>
-   <span class="k">self</span><span class="o">.</span><span class="n">currentCall</span> <span class="o">=</span> <span class="k">try</span> <span class="k">self</span><span class="o">.</span><span class="n">telnyxClient</span><span class="p">?</span><span class="o">.</span><span class="nf">newCall</span><span class="p">(</span><span class="nv">callerName</span><span class="p">:</span> <span class="s">"Caller name"</span><span class="p">,</span>
-                                                     <span class="nv">callerNumber</span><span class="p">:</span> <span class="s">"155531234567"</span><span class="p">,</span>
-                                                     <span class="c1">// Destination is required and can be a phone number or SIP URI</span>
-                                                     <span class="nv">destinationNumber</span><span class="p">:</span> <span class="s">"18004377950"</span><span class="p">,</span>
-                                                     <span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="o">.</span><span class="nf">init</span><span class="p">())</span>
+   <span class="c1">// Create and initiate a call</span>
+   <span class="k">self</span><span class="o">.</span><span class="n">currentCall</span> <span class="o">=</span> <span class="k">try</span> <span class="k">self</span><span class="o">.</span><span class="n">telnyxClient</span><span class="p">?</span><span class="o">.</span><span class="nf">newCall</span><span class="p">(</span>
+       <span class="nv">callerName</span><span class="p">:</span> <span class="s">"John Doe"</span><span class="p">,</span>           <span class="c1">// The name to display for the caller</span>
+       <span class="nv">callerNumber</span><span class="p">:</span> <span class="s">"155531234567"</span><span class="p">,</span>     <span class="c1">// The caller's phone number</span>
+       <span class="nv">destinationNumber</span><span class="p">:</span> <span class="s">"18004377950"</span><span class="p">,</span> <span class="c1">// The target phone number or SIP URI</span>
+       <span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="o">.</span><span class="nf">init</span><span class="p">(),</span>              <span class="c1">// Unique identifier for the call</span>
+       <span class="nv">clientState</span><span class="p">:</span> <span class="kc">nil</span><span class="p">,</span>                 <span class="c1">// Optional client state information</span>
+       <span class="nv">customHeaders</span><span class="p">:</span> <span class="p">[:]</span>                <span class="c1">// Optional custom SIP headers</span>
+   <span class="p">)</span>
 </code></pre>
-<h3 id='answer-an-incoming-call' class='heading'>Answer an incoming call:</h3>
-<pre class="highlight swift"><code><span class="c1">//Init your client</span>
-<span class="kd">func</span> <span class="nf">initTelnyxClient</span><span class="p">()</span> <span class="p">{</span>
-   <span class="c1">//</span>
-   <span class="k">self</span><span class="o">.</span><span class="n">telnyxClient</span> <span class="o">=</span> <span class="kt">TxClient</span><span class="p">()</span>
+<h3 id='handling-an-incoming-call' class='heading'>Handling an Incoming Call:</h3>
+<pre class="highlight swift"><code><span class="kd">class</span> <span class="kt">CallHandler</span><span class="p">:</span> <span class="kt">TxClientDelegate</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">activeCall</span><span class="p">:</span> <span class="kt">Call</span><span class="p">?</span>
 
-   <span class="c1">// Asign the delegate to get SDK events</span>
-   <span class="k">self</span><span class="o">.</span><span class="n">telnyxClient</span><span class="p">?</span><span class="o">.</span><span class="n">delegate</span> <span class="o">=</span> <span class="k">self</span>
+    <span class="kd">func</span> <span class="nf">initTelnyxClient</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="nv">client</span> <span class="o">=</span> <span class="kt">TxClient</span><span class="p">()</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">delegate</span> <span class="o">=</span> <span class="k">self</span>
+        <span class="n">client</span><span class="o">.</span><span class="nf">connect</span><span class="p">(</span><span class="o">....</span><span class="p">)</span>
+    <span class="p">}</span>
 
-   <span class="c1">// Connect the client (Check TxClient class for more info)</span>
-   <span class="k">self</span><span class="o">.</span><span class="n">telnyxClient</span><span class="p">?</span><span class="o">.</span><span class="nf">connect</span><span class="p">(</span><span class="o">....</span><span class="p">)</span>
-<span class="p">}</span>
-
-<span class="kd">extension</span> <span class="kt">ViewController</span><span class="p">:</span> <span class="kt">TxClientDelegate</span> <span class="p">{</span>
-    <span class="c1">//....</span>
     <span class="kd">func</span> <span class="nf">onIncomingCall</span><span class="p">(</span><span class="nv">call</span><span class="p">:</span> <span class="kt">Call</span><span class="p">)</span> <span class="p">{</span>
-        <span class="c1">//We are automatically answering any incoming call as an example, but</span>
-        <span class="c1">//maybe you want to store a reference of the call, and answer the call after a button press.</span>
-        <span class="k">self</span><span class="o">.</span><span class="n">myCall</span> <span class="o">=</span> <span class="n">call</span><span class="o">.</span><span class="nf">answer</span><span class="p">()</span>
+        <span class="c1">// Store the call reference</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">activeCall</span> <span class="o">=</span> <span class="n">call</span>
+
+        <span class="c1">// Option 1: Auto-answer the call</span>
+        <span class="n">call</span><span class="o">.</span><span class="nf">answer</span><span class="p">()</span>
+
+        <span class="c1">// Option 2: Answer with custom headers</span>
+        <span class="n">call</span><span class="o">.</span><span class="nf">answer</span><span class="p">(</span><span class="nv">customHeaders</span><span class="p">:</span> <span class="p">[</span><span class="s">"X-Custom-Header"</span><span class="p">:</span> <span class="s">"Value"</span><span class="p">])</span>
+
+        <span class="c1">// Option 3: Reject the call</span>
+        <span class="c1">// call.hangup()</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </code></pre>
@@ -188,7 +205,9 @@ You can access and act upon calls initiated by a remote caller by registering to
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Custum headers pased /from webrtc telnyx_rtc.INVITE Messages</p>
+                        <p>Custom headers received from the WebRTC INVITE message.
+These headers are passed during call initiation and can contain application-specific information.
+Format should be [&ldquo;X-Header-Name&rdquo;: &ldquo;Value&rdquo;] where header names must start with &ldquo;X-&rdquo;.</p>
 
                       </div>
                       <div class="declaration">
@@ -215,7 +234,9 @@ You can access and act upon calls initiated by a remote caller by registering to
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Custum headers pased tfrom telnyx_rtc.ANSWER webrtcMessages</p>
+                        <p>Custom headers received from the WebRTC ANSWER message.
+These headers are passed during call acceptance and can contain application-specific information.
+Format should be [&ldquo;X-Header-Name&rdquo;: &ldquo;Value&rdquo;] where header names must start with &ldquo;X-&rdquo;.</p>
 
                       </div>
                       <div class="declaration">
@@ -242,7 +263,8 @@ You can access and act upon calls initiated by a remote caller by registering to
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>The Session ID of the current connection</p>
+                        <p>The unique session identifier for the current WebRTC connection.
+This ID is established during client connection and remains constant for the session duration.</p>
 
                       </div>
                       <div class="declaration">
@@ -269,7 +291,8 @@ You can access and act upon calls initiated by a remote caller by registering to
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Telnyx call session ID.</p>
+                        <p>The unique Telnyx session identifier for this call.
+This ID can be used to track the call in Telnyx&rsquo;s systems and logs.</p>
 
                       </div>
                       <div class="declaration">
@@ -296,7 +319,8 @@ You can access and act upon calls initiated by a remote caller by registering to
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Telnyx call leg ID</p>
+                        <p>The unique Telnyx leg identifier for this call.
+A call can have multiple legs (e.g., in call transfers). This ID identifies this specific leg.</p>
 
                       </div>
                       <div class="declaration">
@@ -304,6 +328,35 @@ You can access and act upon calls initiated by a remote caller by registering to
                         <div class="language">
                           <p class="aside-title">Swift</p>
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">internal(set)</span> <span class="k">var</span> <span class="nv">telnyxLegId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC4CallC5debugSbvp"></a>
+                    <a name="//apple_ref/swift/Property/debug" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC4CallC5debugSbvp">debug</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Enables WebRTC statistics reporting for debugging purposes.
+When true, the SDK will collect and send WebRTC statistics to Telnyx servers.
+This is useful for troubleshooting call quality issues.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">internal(set)</span> <span class="k">var</span> <span class="nv">debug</span><span class="p">:</span> <span class="kt">Bool</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
 
                         </div>
                       </div>
@@ -336,7 +389,14 @@ You can access and act upon calls initiated by a remote caller by registering to
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p><code><a href="../Structs/TxCallInfo.html">TxCallInfo</a></code> Contains the required information of the current Call.</p>
+                        <p>Contains essential information about the current call including:</p>
+
+<ul>
+<li>callId: Unique identifier for this call</li>
+<li>callerName: Display name of the caller</li>
+<li>callerNumber: Phone number or SIP URI of the caller
+See <code><a href="../Structs/TxCallInfo.html">TxCallInfo</a></code> for complete details.</li>
+</ul>
 
                       </div>
                       <div class="declaration">
@@ -363,7 +423,18 @@ You can access and act upon calls initiated by a remote caller by registering to
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p><code><a href="../Enums/CallState.html">CallState</a></code> The actual state of the Call.</p>
+                        <p>The current state of the call. Possible values:</p>
+
+<ul>
+<li>NEW: Call object created but not yet initiated</li>
+<li>CONNECTING: Outbound call is being established</li>
+<li>RINGING: Incoming call waiting to be answered</li>
+<li>ACTIVE: Call is connected and media is flowing</li>
+<li>HELD: Call is temporarily suspended</li>
+<li>DONE: Call has ended</li>
+</ul>
+
+<p>The state changes are notified through the <code>CallProtocol</code> delegate.</p>
 
                       </div>
                       <div class="declaration">
@@ -377,25 +448,12 @@ You can access and act upon calls initiated by a remote caller by registering to
                     </section>
                   </div>
                 </li>
-              </ul>
-            </div>
-            <div class="task-group">
-              <div class="task-name-container">
-                <a name="/Initializers"></a>
-                <a name="//apple_ref/swift/Section/Initializers" class="dashAnchor"></a>
-                <div class="section-name-container">
-                  <a class="section-name-link" href="#/Initializers"></a>
-                  <h3 class="section-name"><span>Initializers</span>
-</h3>
-                </div>
-              </div>
-              <ul>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC4CallC15startDebugStatsyyF"></a>
-                    <a name="//apple_ref/swift/Method/startDebugStats()" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC4CallC15startDebugStatsyyF">startDebugStats()</a>
+                    <a name="/s:9TelnyxRTC4CallC7isMutedSbvp"></a>
+                    <a name="//apple_ref/swift/Property/isMuted" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC4CallC7isMutedSbvp">isMuted</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -403,16 +461,22 @@ You can access and act upon calls initiated by a remote caller by registering to
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Indicates whether the local audio is currently muted.</p>
+
+<p>Use <code><a href="../Classes/Call.html#/s:9TelnyxRTC4CallC9muteAudioyyF">muteAudio()</a></code> and <code><a href="../Classes/Call.html#/s:9TelnyxRTC4CallC11unmuteAudioyyF">unmuteAudio()</a></code> to change the mute state.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">startDebugStats</span><span class="p">()</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">isMuted</span><span class="p">:</span> <span class="kt">Bool</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p><code>false</code> if the call is not muted (audio track enabled)</p>
                       </div>
                     </section>
                   </div>
@@ -516,12 +580,22 @@ You can access and act upon calls initiated by a remote caller by registering to
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Sends dual-tone multi-frequency (DTMF) signal</p>
-<pre class="highlight swift"><code>   <span class="n">currentCall</span><span class="p">?</span><span class="o">.</span><span class="nf">dtmf</span><span class="p">(</span><span class="s">"0"</span><span class="p">)</span>
-   <span class="n">currentCall</span><span class="p">?</span><span class="o">.</span><span class="nf">dtmf</span><span class="p">(</span><span class="s">"1"</span><span class="p">)</span>
-   <span class="n">currentCall</span><span class="p">?</span><span class="o">.</span><span class="nf">dtmf</span><span class="p">(</span><span class="s">"*"</span><span class="p">)</span>
-   <span class="n">currentCall</span><span class="p">?</span><span class="o">.</span><span class="nf">dtmf</span><span class="p">(</span><span class="s">"#"</span><span class="p">)</span>
+                        <p>Sends a DTMF (Dual-Tone Multi-Frequency) signal during an active call.
+DTMF signals are used to send digits and symbols over a phone line, typically
+for interacting with automated systems, voicemail, or IVR menus.</p>
+<h2 id='examples' class='heading'>Examples:</h2>
+<pre class="highlight swift"><code><span class="c1">// Navigate an IVR menu</span>
+<span class="n">currentCall</span><span class="p">?</span><span class="o">.</span><span class="nf">dtmf</span><span class="p">(</span><span class="s">"1"</span><span class="p">)</span>    <span class="c1">// Select option 1</span>
+<span class="n">currentCall</span><span class="p">?</span><span class="o">.</span><span class="nf">dtmf</span><span class="p">(</span><span class="s">"0"</span><span class="p">)</span>    <span class="c1">// Select option 0</span>
+
+<span class="c1">// Special characters</span>
+<span class="n">currentCall</span><span class="p">?</span><span class="o">.</span><span class="nf">dtmf</span><span class="p">(</span><span class="s">"*"</span><span class="p">)</span>    <span class="c1">// Send asterisk</span>
+<span class="n">currentCall</span><span class="p">?</span><span class="o">.</span><span class="nf">dtmf</span><span class="p">(</span><span class="s">"#"</span><span class="p">)</span>    <span class="c1">// Send pound/hash</span>
 </code></pre>
+
+<p>Note: The call must be in ACTIVE state for DTMF signals to be sent successfully.
+Each DTMF tone should be sent individually with appropriate timing between tones
+when sending multiple digits.</p>
 
                       </div>
                       <div class="declaration">
@@ -544,9 +618,13 @@ You can access and act upon calls initiated by a remote caller by registering to
                               </td>
                               <td>
                                 <div>
-                                  <p>Single DTMF key
-## Examples:
-### Send DTMF signals:</p>
+                                  <p>A string containing a single DTMF character. Valid characters are:
+
+<ul>
+<li>Digits: 0-9</li>
+<li>Special characters: * (asterisk), # (pound)</li>
+<li>Letters: A-D (less commonly used)</li>
+</ul></p>
                                 </div>
                               </td>
                             </tr>
@@ -737,7 +815,7 @@ You can access and act upon calls initiated by a remote caller by registering to
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2024 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2024-11-15)</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-01-31)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>

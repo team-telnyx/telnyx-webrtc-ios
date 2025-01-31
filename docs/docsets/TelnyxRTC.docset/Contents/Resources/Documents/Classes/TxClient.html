@@ -17,7 +17,7 @@
     <a title="TxClient Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">TelnyxRTC 0.1.37 Docs</a> (75% documented)</p>
+        <p><a href="../index.html">TelnyxRTC 0.1.41 Docs</a> (78% documented)</p>
         <div class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -45,9 +45,6 @@
               </li>
               <li class="nav-group-task">
                 <a href="../Classes/FileLogger.html">FileLogger</a>
-              </li>
-              <li class="nav-group-task">
-                <a href="../Classes.html#/s:9TelnyxRTC12StatsMessageC">StatsMessage</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Classes/TxClient.html">TxClient</a>
@@ -210,7 +207,7 @@ enabling you to make outgoing calls and handle incoming calls.</p>
     <span class="c1">// You can update your UI from here base on the call states.</span>
     <span class="c1">// Check that the callId is the same as your current call.</span>
     <span class="kd">func</span> <span class="nf">onCallStateUpdated</span><span class="p">(</span><span class="nv">callState</span><span class="p">:</span> <span class="kt">CallState</span><span class="p">,</span> <span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">)</span> <span class="p">{</span>
-        <span class="kt">DispatchQueue</span><span class="o">.</span><span class="n">main</span><span class="o">.</span><span class="n">async</span> <span class="p">{</span>
+        <span class="kt">DispatchQueue</span><span class="o">.</span><span class="n">main</span><span class="o">.</span><span class="k">async</span> <span class="p">{</span>
             <span class="k">switch</span> <span class="p">(</span><span class="n">callState</span><span class="p">)</span> <span class="p">{</span>
             <span class="k">case</span> <span class="o">.</span><span class="kt">CONNECTING</span><span class="p">:</span>
                 <span class="k">break</span>
@@ -300,6 +297,33 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                 <li class="item">
                   <div>
                     <code>
+                    <a name="/s:9TelnyxRTC8TxClientC16isSpeakerEnabledSbvp"></a>
+                    <a name="//apple_ref/swift/Property/isSpeakerEnabled" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxClientC16isSpeakerEnabledSbvp">isSpeakerEnabled</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">private(set)</span> <span class="k">var</span> <span class="nv">isSpeakerEnabled</span><span class="p">:</span> <span class="kt">Bool</span> <span class="p">{</span> <span class="k">get</span> <span class="k">set</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
                     <a name="/s:9TelnyxRTC8TxClientC20isAudioDeviceEnabledSbvp"></a>
                     <a name="//apple_ref/swift/Property/isAudioDeviceEnabled" class="dashAnchor"></a>
                     <a class="token" href="#/s:9TelnyxRTC8TxClientC20isAudioDeviceEnabledSbvp">isAudioDeviceEnabled</a>
@@ -310,9 +334,27 @@ enabling you to make outgoing calls and handle incoming calls.</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>When implementing CallKit framework, audio has to be manually handled.
-Set this property to TRUE when <code>provider(CXProvider, didActivate: AVAudioSession)</code> is called on your CallKit implementation
-Set this property to FALSE when <code>provider(CXProvider, didDeactivate: AVAudioSession)</code> is called on your CallKit implementation</p>
+                        <p>Controls the audio device state when using CallKit integration.
+This property manages the WebRTC audio session activation and deactivation.</p>
+
+<p>When implementing CallKit, you must manually handle the audio session state:</p>
+
+<ul>
+<li>Set to <code>true</code> in <code>provider(_:didActivate:)</code> to enable audio</li>
+<li>Set to <code>false</code> in <code>provider(_:didDeactivate:)</code> to disable audio</li>
+</ul>
+
+<p>Example usage with CallKit:</p>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">CallKitProvider</span><span class="p">:</span> <span class="kt">CXProviderDelegate</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">provider</span><span class="p">(</span><span class="n">_</span> <span class="nv">provider</span><span class="p">:</span> <span class="kt">CXProvider</span><span class="p">,</span> <span class="n">didActivate</span> <span class="nv">audioSession</span><span class="p">:</span> <span class="kt">AVAudioSession</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">telnyxClient</span><span class="o">.</span><span class="n">isAudioDeviceEnabled</span> <span class="o">=</span> <span class="kc">true</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">provider</span><span class="p">(</span><span class="n">_</span> <span class="nv">provider</span><span class="p">:</span> <span class="kt">CXProvider</span><span class="p">,</span> <span class="n">didDeactivate</span> <span class="nv">audioSession</span><span class="p">:</span> <span class="kt">AVAudioSession</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">telnyxClient</span><span class="o">.</span><span class="n">isAudioDeviceEnabled</span> <span class="o">=</span> <span class="kc">false</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
 
                       </div>
                       <div class="declaration">
@@ -339,7 +381,21 @@ Set this property to FALSE when <code>provider(CXProvider, didDeactivate: AVAudi
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Enables and configures the audio session for a call.
+This method sets up the appropriate audio configuration and activates the session.</p>
+<div class="aside aside-important">
+    <p class="aside-title">Important</p>
+    This method MUST be called from the CXProviderDelegate&rsquo;s <code>provider(_:didActivate:)</code> callback
+        to properly handle audio routing when using CallKit integration.
+
+</div>
+
+<p>Example usage:</p>
+<pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">provider</span><span class="p">(</span><span class="n">_</span> <span class="nv">provider</span><span class="p">:</span> <span class="kt">CXProvider</span><span class="p">,</span> <span class="n">didActivate</span> <span class="nv">audioSession</span><span class="p">:</span> <span class="kt">AVAudioSession</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nf">print</span><span class="p">(</span><span class="s">"provider:didActivateAudioSession:"</span><span class="p">)</span>
+    <span class="k">self</span><span class="o">.</span><span class="n">telnyxClient</span><span class="o">.</span><span class="nf">enableAudioSession</span><span class="p">(</span><span class="nv">audioSession</span><span class="p">:</span> <span class="n">audioSession</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
 
                       </div>
                       <div class="declaration">
@@ -349,6 +405,25 @@ Set this property to FALSE when <code>provider(CXProvider, didDeactivate: AVAudi
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">enableAudioSession</span><span class="p">(</span><span class="nv">audioSession</span><span class="p">:</span> <span class="kt">AVAudioSession</span><span class="p">)</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>audioSession</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The AVAudioSession instance to configure</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </section>
                   </div>
@@ -366,7 +441,21 @@ Set this property to FALSE when <code>provider(CXProvider, didDeactivate: AVAudi
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Disables and resets the audio session.
+This method cleans up the audio configuration and deactivates the session.</p>
+<div class="aside aside-important">
+    <p class="aside-title">Important</p>
+    This method MUST be called from the CXProviderDelegate&rsquo;s <code>provider(_:didDeactivate:)</code> callback
+        to properly clean up audio resources when using CallKit integration.
+
+</div>
+
+<p>Example usage:</p>
+<pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">provider</span><span class="p">(</span><span class="n">_</span> <span class="nv">provider</span><span class="p">:</span> <span class="kt">CXProvider</span><span class="p">,</span> <span class="n">didDeactivate</span> <span class="nv">audioSession</span><span class="p">:</span> <span class="kt">AVAudioSession</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nf">print</span><span class="p">(</span><span class="s">"provider:didDeactivateAudioSession:"</span><span class="p">)</span>
+    <span class="k">self</span><span class="o">.</span><span class="n">telnyxClient</span><span class="o">.</span><span class="nf">disableAudioSession</span><span class="p">(</span><span class="nv">audioSession</span><span class="p">:</span> <span class="n">audioSession</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
 
                       </div>
                       <div class="declaration">
@@ -376,6 +465,25 @@ Set this property to FALSE when <code>provider(CXProvider, didDeactivate: AVAudi
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">disableAudioSession</span><span class="p">(</span><span class="nv">audioSession</span><span class="p">:</span> <span class="kt">AVAudioSession</span><span class="p">)</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>audioSession</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The AVAudioSession instance to reset</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </section>
                   </div>
@@ -1077,7 +1185,7 @@ This function will be executed when the app was closed and the user executes an 
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2024 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2024-11-15)</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-01-31)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>

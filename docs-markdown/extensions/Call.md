@@ -35,23 +35,35 @@ Starts the process to answer the incoming call.
 public func dtmf(dtmf: String)
 ```
 
-Sends dual-tone multi-frequency (DTMF) signal
-- Parameter dtmf: Single DTMF key
-## Examples:
-### Send DTMF signals:
+Sends a DTMF (Dual-Tone Multi-Frequency) signal during an active call.
+DTMF signals are used to send digits and symbols over a phone line, typically
+for interacting with automated systems, voicemail, or IVR menus.
 
+- Parameter dtmf: A string containing a single DTMF character. Valid characters are:
+  - Digits: 0-9
+  - Special characters: * (asterisk), # (pound)
+  - Letters: A-D (less commonly used)
+
+## Examples:
+```swift
+// Navigate an IVR menu
+currentCall?.dtmf("1")    // Select option 1
+currentCall?.dtmf("0")    // Select option 0
+
+// Special characters
+currentCall?.dtmf("*")    // Send asterisk
+currentCall?.dtmf("#")    // Send pound/hash
 ```
-   currentCall?.dtmf("0")
-   currentCall?.dtmf("1")
-   currentCall?.dtmf("*")
-   currentCall?.dtmf("#")
-```
+
+Note: The call must be in ACTIVE state for DTMF signals to be sent successfully.
+Each DTMF tone should be sent individually with appropriate timing between tones
+when sending multiple digits.
 
 #### Parameters
 
 | Name | Description |
 | ---- | ----------- |
-| dtmf | Single DTMF key |
+| dtmf | A string containing a single DTMF character. Valid characters are: |
 
 ### `muteAudio()`
 

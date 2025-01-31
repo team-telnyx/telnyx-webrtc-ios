@@ -16,7 +16,7 @@
     <a title="TelnyxRTC  Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="index.html">TelnyxRTC 0.1.37 Docs</a> (75% documented)</p>
+        <p><a href="index.html">TelnyxRTC 0.1.41 Docs</a> (78% documented)</p>
         <div class="header-right">
           <form role="search" action="search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -40,9 +40,6 @@
               </li>
               <li class="nav-group-task">
                 <a href="Classes/FileLogger.html">FileLogger</a>
-              </li>
-              <li class="nav-group-task">
-                <a href="Classes.html#/s:9TelnyxRTC12StatsMessageC">StatsMessage</a>
               </li>
               <li class="nav-group-task">
                 <a href="Classes/TxClient.html">TxClient</a>
@@ -129,7 +126,7 @@
 
 <ol>
 <li>Clone the repository</li>
-<li>Run the command <code>pod install</code> to install de dependencies inside the project root folder.</li>
+<li>Run the command <code>pod install</code> to install the dependencies inside the project root folder.</li>
 <li>Open the Workspace : <code>TelnyxRTC.xcworkspace</code></li>
 <li>You will find 3 targets to build: 
 
@@ -161,7 +158,7 @@
 </p>
 
 <ol>
-<li><p>Select target <code>TelnyxWebRTCDemo</code> to run the demo app. The SDK should be manually builded in order to get the app running (Step 5)</p></li>
+<li><p>Select target <code>TelnyxWebRTCDemo</code> to run the demo app. The SDK should be manually built in order to get the app running (Step 5)</p></li>
 <li><p>Enjoy 😎
 </br>
 </br></p>
@@ -295,7 +292,7 @@ do {
 }
 
 // You can call client.disconnect() when you're done.
-Note: you need to relese the delegate manually when you are done.
+Note: you need to release the delegate manually when you are done.
 
 // Disconnecting and Removing listeners.
 telnyxClient.disconnect();
@@ -422,6 +419,56 @@ extension ViewController: TxClientDelegate {
 </code></pre>
 
 <p>This is a general example: In order to fully support inbound calls you will need to implement PushKit + CallKit. For more information check <code>Setting up VoIP push notifications</code> section.</p>
+
+<hr>
+
+<p></br></p>
+<h2 id='webrtc-statistics' class='heading'>WebRTC Statistics</h2>
+
+<p>The SDK provides WebRTC statistics functionality to assist with troubleshooting and monitoring call quality. This feature is controlled through the <code>debug</code> flag in the <code><a href="Classes/TxClient.html">TxClient</a></code> configuration.</p>
+<h3 id='enabling-webrtc-statistics' class='heading'>Enabling WebRTC Statistics</h3>
+
+<p>To enable WebRTC statistics logging:</p>
+<pre class="highlight plaintext"><code>let txConfig = TxConfig(sipUser: sipUser,
+                       password: password,
+                       pushDeviceToken: "DEVICE_APNS_TOKEN",
+                       debug: true) // Enable WebRTC statistics
+</code></pre>
+<h3 id='understanding-webrtc-statistics' class='heading'>Understanding WebRTC Statistics</h3>
+
+<p>When <code>debug: true</code> is configured:</p>
+
+<ul>
+<li>WebRTC statistics logs are automatically collected during calls</li>
+<li>Logs are sent to the Telnyx portal and are accessible in the Object Storage section</li>
+<li>Statistics are linked to the SIP credential used for testing</li>
+<li>The logs help the Telnyx support team diagnose issues and optimize call quality</li>
+</ul>
+<h3 id='important-notes' class='heading'>Important Notes</h3>
+
+<ol>
+<li><p><strong>Log Access</strong>: </p>
+
+<ul>
+<li>If you run the app using SIP credential A with <code>debug: true</code>, the WebRTC logs will be available in the Telnyx portal account associated with credential A</li>
+<li>Logs are stored in the Object Storage section of your Telnyx portal</li>
+</ul></li>
+<li><p><strong>Troubleshooting Support</strong>:</p>
+
+<ul>
+<li>WebRTC statistics are primarily intended to assist the Telnyx support team</li>
+<li>When requesting support, enable <code>debug: true</code> in <code><a href="Classes/TxClient.html">TxClient</a></code> for all instances</li>
+<li>Provide the <code>debug ID</code> or <code>callId</code> when contacting support</li>
+<li>Statistics logging is disabled by default to optimize performance</li>
+</ul></li>
+<li><p><strong>Best Practices</strong>:</p>
+
+<ul>
+<li>Enable <code>debug: true</code> only when troubleshooting is needed</li>
+<li>Remember to provide the <code>debug ID</code> or <code>callId</code> in support requests</li>
+<li>Consider disabling debug mode in production unless actively investigating issues</li>
+</ul></li>
+</ol>
 
 <hr>
 
@@ -845,13 +892,6 @@ user interface until there are no more active sessions.</p>
 <h3 id='privacy-manifest' class='heading'>Privacy Manifest</h3>
 
 <p>Support for privacy manifest is added from version 0.1.26</p>
-<h3 id='sending-debug-stats' class='heading'>Sending Debug Stats</h3>
-
-<p>In case of any need to investigate any issue by Telnyx, please enable the debug stats that will be sent to Telnyx for analysis.</p>
-<pre class="highlight plaintext"><code>currentCall?.startDebugStats()
-</code></pre>
-
-<p>Please store the <strong>debug_stats_id</strong> that would be used for investigation</p>
 <h3 id='documentation' class='heading'>Documentation:</h3>
 
 <p>For more information you can:</p>
@@ -871,7 +911,7 @@ user interface until there are no more active sessions.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2024 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2024-11-15)</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-01-31)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>
