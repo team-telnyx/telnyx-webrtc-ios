@@ -28,7 +28,12 @@ public struct TxConfig {
     public internal(set) var reconnectClient: Bool = true
     public internal(set) var pushEnvironment: PushEnvironment?
     
-    // To enable stats debuggin
+    /// Enables WebRTC communication statistics reporting to Telnyx servers.
+    /// - Note: This flag is different from `logLevel`:
+    ///   - `debug`: When enabled, sends WebRTC communication statistics to Telnyx servers for monitoring and debugging purposes.
+    ///     See `WebRTCStatsReporter` class for details on the statistics collected.
+    ///   - `logLevel`: Controls console log output in Xcode when running the app in debug mode.
+    /// - Important: The `debug` flag is disabled by default to minimize data usage.
     public internal(set) var debug: Bool = false
 
     // MARK: - Initializers
