@@ -13,15 +13,34 @@ protocol PeerDelegate: AnyObject {
     func onNegotiationEnded(sdp: RTCSessionDescription?)
 }
 
+/// The Peer class manages WebRTC peer connections, handling audio/video streams and ICE negotiation.
+/// It provides functionality for:
+/// - Setting up and managing WebRTC peer connections
+/// - Handling audio and video tracks
+/// - Managing ICE candidates and negotiation
+/// - Controlling media state (mute/unmute)
+/// - Monitoring connection state changes
 class Peer : NSObject, WebRTCEventHandler {
 
+    /// Queue for handling audio operations to ensure thread safety
     private let audioQueue = DispatchQueue(label: "audio")
-    private let NEGOTIATION_TIMOUT = 0.3 //time in milliseconds
+    
+    /// Timeout duration for ICE negotiation in milliseconds
+    private let NEGOTIATION_TIMOUT = 0.3
+    
+    /// Identifier for the audio track in WebRTC connection
     private let AUDIO_TRACK_ID = "audio0"
+    
+    /// Identifier for the video track in WebRTC connection
     private let VIDEO_TRACK_ID = "video0"
-    //TODO: REMOVE THIS FOR V1
+    
+    /// Local video file used for testing in simulator environment
     private let VIDEO_DEMO_LOCAL_VIDEO = "local_video_streaming.mp4"
+    
+    /// Collection of gathered ICE candidates during connection setup
     private var gatheredICECandidates: [String] = []
+    
+    /// Socket connection for signaling with the WebRTC server
     var socket: Socket?
 
 
@@ -123,9 +142,22 @@ class Peer : NSObject, WebRTCEventHandler {
         self.muteUnmuteAudio(mute: false)
     }
 
-    /**
-     iOS specific: we need to configure the device AudioSession.
-     */
+    /// Configures the iOS device's audio session for optimal WebRTC call handling.
+    /// This setup is crucial for proper audio routing and behavior during calls.
+    ///
+    /// The configuration includes:
+    /// - Setting up manual audio control for precise handling
+    /// - Configuring the audio session for VoIP calls
+    /// - Enabling Bluetooth device support
+    /// - Setting up audio mixing behavior with other apps
+    ///
+    /// Audio session options:
+    /// - `.allowBluetoothA2DP`: Enables high-quality Bluetooth audio
+    /// - `.duckOthers`: Reduces other apps' audio volume during calls
+    /// - `.allowBluetooth`: Enables classic Bluetooth headset support
+    /// - `.mixWithOthers`: Allows mixing with audio from other apps
+    ///
+    /// This method runs asynchronously on a dedicated audio queue to prevent blocking.
     internal func configureAudioSession() {
         self.audioQueue.async { [weak self] in
             guard let self = self else {
@@ -139,13 +171,13 @@ class Peer : NSObject, WebRTCEventHandler {
                 try rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord,
                                                 mode: AVAudioSession.Mode.voiceChat,
                                                 options: [
-                                                    .allowBluetoothA2DP,
-                                                    .duckOthers,
-                                                    .allowBluetooth,
-                                                    .mixWithOthers
+                                                    .allowBluetoothA2DP,  // Enable high-quality Bluetooth audio
+                                                    .duckOthers,          // Reduce other apps' volume
+                                                    .allowBluetooth,      // Enable Bluetooth headsets
+                                                    .mixWithOthers        // Allow mixing with other audio
                                                 ])
 
-                Logger.log.i(message: "Peer:: Configuring AVAudioSession configured")
+                Logger.log.i(message: "Peer:: AVAudioSession configured successfully")
             } catch let error {
                 Logger.log.e(message: "Peer:: Error changing AVAudioSession category: \(error.localizedDescription)")
             }
@@ -319,14 +351,30 @@ extension Peer {
 
 // MARK: - Audio handling
 extension Peer {
+    /// Controls the mute state of the local audio track in the WebRTC connection.
+    ///
+    /// This method handles audio track state changes for both legacy (Plan B) and modern (Unified Plan)
+    /// WebRTC implementations. It properly manages the audio track state based on the connection's
+    /// SDP semantics.
+    ///
+    /// - Parameter mute: Boolean flag to control audio state
+    ///   - `true`: Mutes the local audio (disables the audio track)
+    ///   - `false`: Unmutes the local audio (enables the audio track)
+    ///
+    /// Implementation details:
+    /// - For Plan B semantics: Uses the connection's senders to find and modify the audio track
+    /// - For Unified Plan: Uses transceivers to manage the audio track state
+    ///
+    /// Note: This method is used internally by the Call class through its public `muteAudio()`
+    /// and `unmuteAudio()` methods.
     func muteUnmuteAudio(mute: Bool) {
-        //GetTransceivers is only supported with Unified Plan SdpSemantics.
-        //PlanB doesn't have support to access transeivers, so we need to use the storedAudio track
+        // GetTransceivers is only supported with Unified Plan SdpSemantics.
+        // PlanB doesn't have support to access transeivers, so we need to use the stored audio track
         if self.connection?.configuration.sdpSemantics == .planB {
             self.connection?.senders
                 .compactMap { return $0.track as? RTCAudioTrack } // Search for Audio track
                 .forEach {
-                    $0.isEnabled = !mute // disable RTCAudioTrack
+                    $0.isEnabled = !mute // disable/enable RTCAudioTrack
                 }
         } else {
             self.setTrackEnabled(RTCAudioTrack.self, isEnabled: !mute)
