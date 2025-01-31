@@ -64,6 +64,14 @@ case verto
 
 Print `verto` messages. Incoming and outgoing verto messages are printed.
 
+### `stats`
+
+```swift
+case stats
+```
+
+Print `Debug Report` messages. Statistics of the RTCP connection
+
 ### `all`
 
 ```swift

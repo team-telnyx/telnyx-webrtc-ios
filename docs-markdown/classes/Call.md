@@ -6,51 +6,65 @@
 public class Call
 ```
 
-A Call is the representation of an audio or video call between two WebRTC Clients, SIP clients or phone numbers.
-The call object is created whenever a new call is initiated, either by you or the remote caller.
-You can access and act upon calls initiated by a remote caller by registering to TxClientDelegate of the TxClient
+A Call represents an audio or video communication session between two endpoints: WebRTC Clients, SIP clients, or phone numbers.
+The Call object manages the entire lifecycle of a call, from initiation to termination, handling both outbound and inbound calls.
 
-## Examples:
-### Create a call:
+A Call object is created in two scenarios:
+1. When you initiate a new outbound call using TxClient's newCall method
+2. When you receive an inbound call through the TxClientDelegate's onIncomingCall callback
 
-```
-   // Create a client instance
+## Key Features
+- Audio and video call support
+- Call state management (NEW, CONNECTING, RINGING, ACTIVE, HELD, DONE)
+- Mute/unmute functionality
+- DTMF tone sending
+- Custom headers support for both INVITE and ANSWER messages
+- Call statistics reporting when debug mode is enabled
+
+## Examples
+### Creating an Outbound Call:
+```swift
+   // Initialize the client
    self.telnyxClient = TxClient()
-
-   // Asign the delegate to get SDK events
    self.telnyxClient?.delegate = self
 
-   // Connect the client (Check TxClient class for more info)
+   // Connect the client (see TxClient documentation for connection options)
    self.telnyxClient?.connect(....)
 
-   // Create the call and start calling
-   self.currentCall = try self.telnyxClient?.newCall(callerName: "Caller name",
-                                                     callerNumber: "155531234567",
-                                                     // Destination is required and can be a phone number or SIP URI
-                                                     destinationNumber: "18004377950",
-                                                     callId: UUID.init())
+   // Create and initiate a call
+   self.currentCall = try self.telnyxClient?.newCall(
+       callerName: "John Doe",           // The name to display for the caller
+       callerNumber: "155531234567",     // The caller's phone number
+       destinationNumber: "18004377950", // The target phone number or SIP URI
+       callId: UUID.init(),              // Unique identifier for the call
+       clientState: nil,                 // Optional client state information
+       customHeaders: [:]                // Optional custom SIP headers
+   )
 ```
 
-### Answer an incoming call:
-```
-//Init your client
-func initTelnyxClient() {
-   //
-   self.telnyxClient = TxClient()
+### Handling an Incoming Call:
+```swift
+class CallHandler: TxClientDelegate {
+    var activeCall: Call?
 
-   // Asign the delegate to get SDK events
-   self.telnyxClient?.delegate = self
+    func initTelnyxClient() {
+        let client = TxClient()
+        client.delegate = self
+        client.connect(....)
+    }
 
-   // Connect the client (Check TxClient class for more info)
-   self.telnyxClient?.connect(....)
-}
-
-extension ViewController: TxClientDelegate {
-    //....
     func onIncomingCall(call: Call) {
-        //We are automatically answering any incoming call as an example, but
-        //maybe you want to store a reference of the call, and answer the call after a button press.
-        self.myCall = call.answer()
+        // Store the call reference
+        self.activeCall = call
+
+        // Option 1: Auto-answer the call
+        call.answer()
+
+        // Option 2: Answer with custom headers
+        call.answer(customHeaders: ["X-Custom-Header": "Value"])
+
+        // Option 3: Reject the call
+        // call.hangup()
     }
 }
 ```
@@ -62,7 +76,9 @@ extension ViewController: TxClientDelegate {
 public internal(set) var inviteCustomHeaders: [String:String]?
 ```
 
-Custum headers pased /from webrtc telnyx_rtc.INVITE Messages
+Custom headers received from the WebRTC INVITE message.
+These headers are passed during call initiation and can contain application-specific information.
+Format should be ["X-Header-Name": "Value"] where header names must start with "X-".
 
 ### `answerCustomHeaders`
 
@@ -70,7 +86,9 @@ Custum headers pased /from webrtc telnyx_rtc.INVITE Messages
 public internal(set) var answerCustomHeaders: [String:String]?
 ```
 
-Custum headers pased tfrom telnyx_rtc.ANSWER webrtcMessages
+Custom headers received from the WebRTC ANSWER message.
+These headers are passed during call acceptance and can contain application-specific information.
+Format should be ["X-Header-Name": "Value"] where header names must start with "X-".
 
 ### `sessionId`
 
@@ -78,7 +96,8 @@ Custum headers pased tfrom telnyx_rtc.ANSWER webrtcMessages
 public internal(set) var sessionId: String?
 ```
 
-The Session ID of the current connection
+The unique session identifier for the current WebRTC connection.
+This ID is established during client connection and remains constant for the session duration.
 
 ### `telnyxSessionId`
 
@@ -86,7 +105,8 @@ The Session ID of the current connection
 public internal(set) var telnyxSessionId: UUID?
 ```
 
-Telnyx call session ID.
+The unique Telnyx session identifier for this call.
+This ID can be used to track the call in Telnyx's systems and logs.
 
 ### `telnyxLegId`
 
@@ -94,7 +114,18 @@ Telnyx call session ID.
 public internal(set) var telnyxLegId: UUID?
 ```
 
-Telnyx call leg ID
+The unique Telnyx leg identifier for this call.
+A call can have multiple legs (e.g., in call transfers). This ID identifies this specific leg.
+
+### `debug`
+
+```swift
+public internal(set) var debug: Bool = false
+```
+
+Enables WebRTC statistics reporting for debugging purposes.
+When true, the SDK will collect and send WebRTC statistics to Telnyx servers.
+This is useful for troubleshooting call quality issues.
 
 ### `callInfo`
 
@@ -102,7 +133,11 @@ Telnyx call leg ID
 public var callInfo: TxCallInfo?
 ```
 
-`TxCallInfo` Contains the required information of the current Call.
+Contains essential information about the current call including:
+- callId: Unique identifier for this call
+- callerName: Display name of the caller
+- callerNumber: Phone number or SIP URI of the caller
+See `TxCallInfo` for complete details.
 
 ### `callState`
 
@@ -110,11 +145,24 @@ public var callInfo: TxCallInfo?
 public var callState: CallState = .NEW
 ```
 
-`CallState` The actual state of the Call.
+The current state of the call. Possible values:
+- NEW: Call object created but not yet initiated
+- CONNECTING: Outbound call is being established
+- RINGING: Incoming call waiting to be answered
+- ACTIVE: Call is connected and media is flowing
+- HELD: Call is temporarily suspended
+- DONE: Call has ended
 
-## Methods
-### `startDebugStats()`
+The state changes are notified through the `CallProtocol` delegate.
+
+### `isMuted`
 
 ```swift
-public func startDebugStats()
+public var isMuted: Bool
 ```
+
+Indicates whether the local audio is currently muted.
+- Returns: `true` if the call is muted (audio track disabled)
+- Returns: `false` if the call is not muted (audio track enabled)
+
+Use `muteAudio()` and `unmuteAudio()` to change the mute state.

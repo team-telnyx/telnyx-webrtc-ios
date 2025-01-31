@@ -57,8 +57,21 @@ public internal(set) var reconnectClient: Bool = true
 public internal(set) var pushEnvironment: PushEnvironment?
 ```
 
+### `debug`
+
+```swift
+public internal(set) var debug: Bool = false
+```
+
+Enables WebRTC communication statistics reporting to Telnyx servers.
+- Note: This flag is different from `logLevel`:
+  - `debug`: When enabled, sends WebRTC communication statistics to Telnyx servers for monitoring and debugging purposes.
+    See `WebRTCStatsReporter` class for details on the statistics collected.
+  - `logLevel`: Controls console log output in Xcode when running the app in debug mode.
+- Important: The `debug` flag is disabled by default to minimize data usage.
+
 ## Methods
-### `init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:reconnectClient:)`
+### `init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:reconnectClient:debug:)`
 
 ```swift
 public init(sipUser: String, password: String,
@@ -67,31 +80,32 @@ public init(sipUser: String, password: String,
             ringBackTone: String? = nil,
             pushEnvironment: PushEnvironment? = nil,
             logLevel: LogLevel = .none,
-            reconnectClient:Bool = true
+            reconnectClient: Bool = true,
+            debug: Bool = false
 )
 ```
 
-Constructor of the Telnyx SDK configuration: Login using sip user  and password.
+Constructor for the Telnyx SDK configuration using SIP credentials.
 - Parameters:
-  - sipUser: sipUser the SIP user
-  - password: password the password of the SIP user.
-  - pushDeviceToken: (Optional) the device push notification token. This is required to receive Inbound calls notifications.
-  - ringtone: (Optional) The audio file name to be played when receiving an incoming call. e.g.: "my-ringtone.mp3"
-  - ringBackTone: (Optional) The audio file to be played when calling. e.g.: "my-ringbacktone.mp3"
-  - logLevel: (Optional) Can select the verbosity level of the SDK logs. Is set to `.none` as default
+  - sipUser: The SIP username for authentication
+  - password: The password associated with the SIP user
+  - pushDeviceToken: (Optional) The device's push notification token, required for receiving inbound call notifications
+  - ringtone: (Optional) The audio file name to play for incoming calls (e.g., "my-ringtone.mp3")
+  - ringBackTone: (Optional) The audio file name to play while making outbound calls (e.g., "my-ringbacktone.mp3")
+  - logLevel: (Optional) The verbosity level for SDK logs (defaults to `.none`)
 
 #### Parameters
 
 | Name | Description |
 | ---- | ----------- |
-| sipUser | sipUser the SIP user |
-| password | password the password of the SIP user. |
-| pushDeviceToken | (Optional) the device push notification token. This is required to receive Inbound calls notifications. |
-| ringtone | (Optional) The audio file name to be played when receiving an incoming call. e.g.: “my-ringtone.mp3” |
-| ringBackTone | (Optional) The audio file to be played when calling. e.g.: “my-ringbacktone.mp3” |
-| logLevel | (Optional) Can select the verbosity level of the SDK logs. Is set to `.none` as default |
+| sipUser | The SIP username for authentication |
+| password | The password associated with the SIP user |
+| pushDeviceToken | (Optional) The device’s push notification token, required for receiving inbound call notifications |
+| ringtone | (Optional) The audio file name to play for incoming calls (e.g., “my-ringtone.mp3”) |
+| ringBackTone | (Optional) The audio file name to play while making outbound calls (e.g., “my-ringbacktone.mp3”) |
+| logLevel | (Optional) The verbosity level for SDK logs (defaults to `.none`) |
 
-### `init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:)`
+### `init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:debug:)`
 
 ```swift
 public init(token: String,
@@ -99,28 +113,29 @@ public init(token: String,
             ringtone: String? = nil,
             ringBackTone: String? = nil,
             pushEnvironment: PushEnvironment? = nil,
-            logLevel: LogLevel = .none)
+            logLevel: LogLevel = .none,
+            debug: Bool = false)
 ```
 
-Constructor of the Telnyx SDK configuration: Login using a token.
+Constructor for the Telnyx SDK configuration using JWT token authentication.
 - Parameters:
-  - token: Token generated from https://developers.telnyx.com/docs/v2/webrtc/quickstart
-  - pushDeviceToken: (Optional) the device push notification token. This is required to receive Inbound calls notifications.
-  - ringtone: (Optional) The audio file name to be played when receiving an incoming call. e.g.: "my-ringtone.mp3"
-  - ringBackTone: (Optional) The audio file name to be played when calling. e.g.: "my-ringbacktone.mp3"
-  - logLevel: (Optional) Can select the verbosity level of the SDK logs. Is set to `.none` as default
-  - serverConfiguration: (Optional) To define a custom `signaling server` and `TURN/ STUN servers`. As default we use the internal Telnyx Production servers.
+  - token: JWT token generated from https://developers.telnyx.com/docs/v2/webrtc/quickstart
+  - pushDeviceToken: (Optional) The device's push notification token, required for receiving inbound call notifications
+  - ringtone: (Optional) The audio file name to play for incoming calls (e.g., "my-ringtone.mp3")
+  - ringBackTone: (Optional) The audio file name to play while making outbound calls (e.g., "my-ringbacktone.mp3")
+  - logLevel: (Optional) The verbosity level for SDK logs (defaults to `.none`)
+  - serverConfiguration: (Optional) Custom configuration for signaling server and TURN/STUN servers (defaults to Telnyx Production servers)
 
 #### Parameters
 
 | Name | Description |
 | ---- | ----------- |
-| token | Token generated from https://developers.telnyx.com/docs/v2/webrtc/quickstart |
-| pushDeviceToken | (Optional) the device push notification token. This is required to receive Inbound calls notifications. |
-| ringtone | (Optional) The audio file name to be played when receiving an incoming call. e.g.: “my-ringtone.mp3” |
-| ringBackTone | (Optional) The audio file name to be played when calling. e.g.: “my-ringbacktone.mp3” |
-| logLevel | (Optional) Can select the verbosity level of the SDK logs. Is set to `.none` as default |
-| serverConfiguration | (Optional) To define a custom `signaling server` and `TURN/ STUN servers`. As default we use the internal Telnyx Production servers. |
+| token | JWT token generated from https://developers.telnyx.com/docs/v2/webrtc/quickstart |
+| pushDeviceToken | (Optional) The device’s push notification token, required for receiving inbound call notifications |
+| ringtone | (Optional) The audio file name to play for incoming calls (e.g., “my-ringtone.mp3”) |
+| ringBackTone | (Optional) The audio file name to play while making outbound calls (e.g., “my-ringbacktone.mp3”) |
+| logLevel | (Optional) The verbosity level for SDK logs (defaults to `.none`) |
+| serverConfiguration | (Optional) Custom configuration for signaling server and TURN/STUN servers (defaults to Telnyx Production servers) |
 
 ### `validateParams()`
 

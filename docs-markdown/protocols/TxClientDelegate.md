@@ -6,8 +6,25 @@
 public protocol TxClientDelegate: AnyObject
 ```
 
-Delegate protocol asociated with the TxClient
-Methods for receiving TxClient events.
+The TxClientDelegate protocol defines methods for receiving events and updates from a TxClient instance.
+Implement this protocol to handle various states and events in your WebRTC-enabled application,
+including connection status, call state changes, and push notifications.
+
+## Usage Example:
+```swift
+class CallHandler: TxClientDelegate {
+    func onSocketConnected() {
+        print("Connected to Telnyx backend")
+    }
+
+    func onIncomingCall(call: Call) {
+        // Handle incoming call
+        call.answer()
+    }
+
+    // Implement other required methods...
+}
+```
 
 ## Methods
 ### `onSocketConnected()`
@@ -16,7 +33,9 @@ Methods for receiving TxClient events.
 func onSocketConnected()
 ```
 
-Tells the delegate when the Telnyx Client has successfully connected to the Telnyx Backend
+Called when the WebSocket connection to Telnyx's backend is established.
+This indicates a successful network connection, but the client may not be fully ready yet.
+Wait for `onClientReady` before initiating calls.
 
 ### `onSocketDisconnected()`
 
@@ -24,7 +43,8 @@ Tells the delegate when the Telnyx Client has successfully connected to the Teln
 func onSocketDisconnected()
 ```
 
-Tells the delegate when the Telnyx Client has disconnected from the Telnyx Backend
+Called when the WebSocket connection to Telnyx's backend is lost or closed.
+The client will automatically attempt to reconnect unless explicitly disconnected.
 
 ### `onClientError(error:)`
 
@@ -32,14 +52,15 @@ Tells the delegate when the Telnyx Client has disconnected from the Telnyx Backe
 func onClientError(error: Error)
 ```
 
-Tells the delegate when there's an error in the Telnyx Client
-- Parameter error: error occurred inside the Telnyx Client
+Called when an error occurs in the TxClient.
+- Parameter error: The error that occurred. Check the error type and message for details.
+Common errors include authentication failures and network connectivity issues.
 
 #### Parameters
 
 | Name | Description |
 | ---- | ----------- |
-| error | error occurred inside the Telnyx Client |
+| error | The error that occurred. Check the error type and message for details. Common errors include authentication failures and network connectivity issues. |
 
 ### `onClientReady()`
 
@@ -47,16 +68,27 @@ Tells the delegate when there's an error in the Telnyx Client
 func onClientReady()
 ```
 
-Tells the delegate that the The Telnyx Client is ready to be used.
-Has successfully connected and logged in
+Called when the client has successfully connected AND authenticated.
+The client is now ready to make and receive calls.
+This is the appropriate time to enable UI elements for calling functionality.
 
 ### `onPushDisabled(success:message:)`
 
 ```swift
-func onPushDisabled(success:Bool,message:String)
+func onPushDisabled(success: Bool, message: String)
 ```
 
-Push notification is disabled for the current user
+Called when push notification status changes for the current user.
+- Parameters:
+  - success: Whether the push notification operation succeeded
+  - message: Descriptive message about the operation result
+
+#### Parameters
+
+| Name | Description |
+| ---- | ----------- |
+| success | Whether the push notification operation succeeded |
+| message | Descriptive message about the operation result |
 
 ### `onSessionUpdated(sessionId:)`
 
@@ -64,14 +96,15 @@ Push notification is disabled for the current user
 func onSessionUpdated(sessionId: String)
 ```
 
-Tells the delegate that the Telnyx Client session has been updated.
-- Parameter sessionId: The new sessionId assigned to the client connection.
+Called when the client's session is updated, typically after a reconnection.
+- Parameter sessionId: The new session identifier for the connection.
+Store this ID if you need to track or debug connection issues.
 
 #### Parameters
 
 | Name | Description |
 | ---- | ----------- |
-| sessionId | The new sessionId assigned to the client connection. |
+| sessionId | The new session identifier for the connection. Store this ID if you need to track or debug connection issues. |
 
 ### `onCallStateUpdated(callState:callId:)`
 
@@ -79,17 +112,18 @@ Tells the delegate that the Telnyx Client session has been updated.
 func onCallStateUpdated(callState: CallState, callId: UUID)
 ```
 
-Tells the delegate that a call has been updated.
+Called whenever a call's state changes (e.g., ringing, answered, ended).
 - Parameters:
-  - callState: The new call state
-  - callId: The UUID of the affected call
+  - callState: The new state of the call (NEW, CONNECTING, RINGING, ACTIVE, HELD, DONE)
+  - callId: The unique identifier of the affected call
+Use this to update your UI to reflect the current call state.
 
 #### Parameters
 
 | Name | Description |
 | ---- | ----------- |
-| callState | The new call state |
-| callId | The UUID of the affected call |
+| callState | The new state of the call (NEW, CONNECTING, RINGING, ACTIVE, HELD, DONE) |
+| callId | The unique identifier of the affected call Use this to update your UI to reflect the current call state. |
 
 ### `onIncomingCall(call:)`
 
@@ -97,14 +131,15 @@ Tells the delegate that a call has been updated.
 func onIncomingCall(call: Call)
 ```
 
-Tells the delegate that someone is calling
-- Parameter call: The call object of the incoming call.
+Called when a new incoming call is received.
+- Parameter call: The Call object representing the incoming call.
+You can use this object to answer or reject the call.
 
 #### Parameters
 
 | Name | Description |
 | ---- | ----------- |
-| call | The call object of the incoming call. |
+| call | The Call object representing the incoming call. You can use this object to answer or reject the call. |
 
 ### `onRemoteCallEnded(callId:)`
 
@@ -112,14 +147,15 @@ Tells the delegate that someone is calling
 func onRemoteCallEnded(callId: UUID)
 ```
 
-Tells the delegate that a call has ended
-- Parameter callId: the UUID of the call that has ended.
+Called when a remote party ends the call.
+- Parameter callId: The unique identifier of the ended call.
+Use this to clean up any call-related UI elements or state.
 
 #### Parameters
 
 | Name | Description |
 | ---- | ----------- |
-| callId | the UUID of the call that has ended. |
+| callId | The unique identifier of the ended call. Use this to clean up any call-related UI elements or state. |
 
 ### `onPushCall(call:)`
 
@@ -127,11 +163,13 @@ Tells the delegate that a call has ended
 func onPushCall(call: Call)
 ```
 
-Tells the delegate that an INVITE has been received for the incoming push
-- Parameter call: The call object of the incoming call.
+Called when a push notification triggers an incoming call.
+- Parameter call: The Call object created from the push notification data.
+This is specifically for handling calls that arrive via push notifications
+when the app is in the background.
 
 #### Parameters
 
 | Name | Description |
 | ---- | ----------- |
-| call | The call object of the incoming call. |
+| call | The Call object created from the push notification data. This is specifically for handling calls that arrive via push notifications when the app is in the background. |

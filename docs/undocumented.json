@@ -149,65 +149,58 @@
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxServerConfiguration.swift",
-      "line": 11,
+      "line": 12,
       "symbol": "WebRTCEnvironment",
       "symbol_kind": "source.lang.swift.decl.enum",
       "warning": "undocumented"
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxServerConfiguration.swift",
-      "line": 12,
+      "line": 13,
       "symbol": "WebRTCEnvironment.development",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxServerConfiguration.swift",
-      "line": 13,
+      "line": 14,
       "symbol": "WebRTCEnvironment.production",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxServerConfiguration.swift",
-      "line": 18,
+      "line": 19,
       "symbol": "TxServerConfiguration.environment",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxServerConfiguration.swift",
-      "line": 19,
+      "line": 20,
       "symbol": "TxServerConfiguration.signalingServer",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxServerConfiguration.swift",
-      "line": 20,
+      "line": 21,
       "symbol": "TxServerConfiguration.pushMetaData",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxServerConfiguration.swift",
-      "line": 21,
+      "line": 22,
       "symbol": "TxServerConfiguration.webRTCIceServers",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/TxClient.swift",
-      "line": 177,
-      "symbol": "TxClient.enableAudioSession(audioSession:)",
-      "symbol_kind": "source.lang.swift.decl.function.method.instance",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/TxClient.swift",
-      "line": 182,
-      "symbol": "TxClient.disableAudioSession(audioSession:)",
-      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "line": 155,
+      "symbol": "TxClient.isSpeakerEnabled",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
@@ -232,16 +225,9 @@
       "warning": "undocumented"
     },
     {
-      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/StatsMessage.swift",
-      "line": 12,
-      "symbol": "StatsMessage",
-      "symbol_kind": "source.lang.swift.decl.class",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Call.swift",
-      "line": 225,
-      "symbol": "Call.startDebugStats()",
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Stats/WebRTCStatsReporter.swift",
+      "line": 260,
+      "symbol": "WebRTCStatsReporter.dispose()",
       "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"
     }
