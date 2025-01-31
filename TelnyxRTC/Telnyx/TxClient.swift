@@ -198,7 +198,16 @@ public class TxClient {
     /// This method sets up the appropriate audio configuration and activates the session.
     ///
     /// - Parameter audioSession: The AVAudioSession instance to configure
-    /// - Important: This method should be called when starting a call or when audio is needed
+    /// - Important: This method MUST be called from the CXProviderDelegate's `provider(_:didActivate:)` callback
+    ///             to properly handle audio routing when using CallKit integration.
+    ///
+    /// Example usage:
+    /// ```swift
+    /// func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
+    ///     print("provider:didActivateAudioSession:")
+    ///     self.telnyxClient.enableAudioSession(audioSession: audioSession)
+    /// }
+    /// ```
     public func enableAudioSession(audioSession: AVAudioSession) {
         setupCorrectAudioConfiguration()
         setAudioSessionActive(true)
@@ -208,7 +217,16 @@ public class TxClient {
     /// This method cleans up the audio configuration and deactivates the session.
     ///
     /// - Parameter audioSession: The AVAudioSession instance to reset
-    /// - Important: This method should be called when ending a call or when audio is no longer needed
+    /// - Important: This method MUST be called from the CXProviderDelegate's `provider(_:didDeactivate:)` callback
+    ///             to properly clean up audio resources when using CallKit integration.
+    ///
+    /// Example usage:
+    /// ```swift
+    /// func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
+    ///     print("provider:didDeactivateAudioSession:")
+    ///     self.telnyxClient.disableAudioSession(audioSession: audioSession)
+    /// }
+    /// ```
     public func disableAudioSession(audioSession: AVAudioSession) {
         resetAudioConfiguration()
         setAudioSessionActive(false)
