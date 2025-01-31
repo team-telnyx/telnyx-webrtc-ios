@@ -310,6 +310,49 @@ This is a general example: In order to fully support inbound calls you will need
 ---
 </br>
 
+## WebRTC Statistics
+
+The SDK provides WebRTC statistics functionality to assist with troubleshooting and monitoring call quality. This feature is controlled through the `debug` flag in the `TxClient` configuration.
+
+### Enabling WebRTC Statistics
+
+To enable WebRTC statistics logging:
+
+```Swift
+let txConfig = TxConfig(sipUser: sipUser,
+                       password: password,
+                       pushDeviceToken: "DEVICE_APNS_TOKEN",
+                       debug: true) // Enable WebRTC statistics
+```
+
+### Understanding WebRTC Statistics
+
+When `debug: true` is configured:
+- WebRTC statistics logs are automatically collected during calls
+- Logs are sent to the Telnyx portal and are accessible in the Object Storage section
+- Statistics are linked to the SIP credential used for testing
+- The logs help the Telnyx support team diagnose issues and optimize call quality
+
+### Important Notes
+
+1. **Log Access**: 
+   - If you run the app using SIP credential A with `debug: true`, the WebRTC logs will be available in the Telnyx portal account associated with credential A
+   - Logs are stored in the Object Storage section of your Telnyx portal
+
+2. **Troubleshooting Support**:
+   - WebRTC statistics are primarily intended to assist the Telnyx support team
+   - When requesting support, enable `debug: true` in `TxClient` for all instances
+   - Provide the `debug ID` or `callId` when contacting support
+   - Statistics logging is disabled by default to optimize performance
+
+3. **Best Practices**:
+   - Enable `debug: true` only when troubleshooting is needed
+   - Remember to provide the `debug ID` or `callId` in support requests
+   - Consider disabling debug mode in production unless actively investigating issues
+
+---
+</br>
+
 ## Setting up VoIP push notifications: 
 
 In order to receive incoming calls while the app is running in background or closed, you will need to perform a set of configurations over your Mission Control Portal Account and your application. 
