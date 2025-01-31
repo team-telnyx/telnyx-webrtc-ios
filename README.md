@@ -12,7 +12,7 @@ Enable Telnyx real-time communication services on iOS. :telephone_receiver: :fir
 ## Project Setup:
 
 1. Clone the repository
-2. Run the command `pod install` to install de dependencies inside the project root folder. 
+2. Run the command `pod install` to install the dependencies inside the project root folder.
 3. Open the Workspace : `TelnyxRTC.xcworkspace`
 4. You will find 3 targets to build: 
       - The SDK
@@ -34,7 +34,7 @@ Enable Telnyx real-time communication services on iOS. :telephone_receiver: :fir
 <img width="153" align="center" alt="Screen Shot 2021-03-03 at 10 04 05" src="https://user-images.githubusercontent.com/75636882/109810077-d4b24400-7c07-11eb-91ec-d81e72ae9069.png">
 </p>
 
-7.  Select target `TelnyxWebRTCDemo` to run the demo app. The SDK should be manually builded in order to get the app running (Step 5)
+7.  Select target `TelnyxWebRTCDemo` to run the demo app. The SDK should be manually built in order to get the app running (Step 5)
 
 8. Enjoy 😎
 </br>
@@ -166,7 +166,7 @@ do {
 }
 
 // You can call client.disconnect() when you're done.
-Note: you need to relese the delegate manually when you are done.
+Note: you need to release the delegate manually when you are done.
 
 // Disconnecting and Removing listeners.
 telnyxClient.disconnect();
@@ -306,6 +306,49 @@ extension ViewController: TxClientDelegate {
 ```
 
 This is a general example: In order to fully support inbound calls you will need to implement PushKit + CallKit. For more information check `Setting up VoIP push notifications` section.
+
+---
+</br>
+
+## WebRTC Statistics
+
+The SDK provides WebRTC statistics functionality to assist with troubleshooting and monitoring call quality. This feature is controlled through the `debug` flag in the `TxClient` configuration.
+
+### Enabling WebRTC Statistics
+
+To enable WebRTC statistics logging:
+
+```Swift
+let txConfig = TxConfig(sipUser: sipUser,
+                       password: password,
+                       pushDeviceToken: "DEVICE_APNS_TOKEN",
+                       debug: true) // Enable WebRTC statistics
+```
+
+### Understanding WebRTC Statistics
+
+When `debug: true` is configured:
+- WebRTC statistics logs are automatically collected during calls
+- Logs are sent to the Telnyx portal and are accessible in the Object Storage section
+- Statistics are linked to the SIP credential used for testing
+- The logs help the Telnyx support team diagnose issues and optimize call quality
+
+### Important Notes
+
+1. **Log Access**: 
+   - If you run the app using SIP credential A with `debug: true`, the WebRTC logs will be available in the Telnyx portal account associated with credential A
+   - Logs are stored in the Object Storage section of your Telnyx portal
+
+2. **Troubleshooting Support**:
+   - WebRTC statistics are primarily intended to assist the Telnyx support team
+   - When requesting support, enable `debug: true` in `TxClient` for all instances
+   - Provide the `debug ID` or `callId` when contacting support
+   - Statistics logging is disabled by default to optimize performance
+
+3. **Best Practices**:
+   - Enable `debug: true` only when troubleshooting is needed
+   - Remember to provide the `debug ID` or `callId` in support requests
+   - Consider disabling debug mode in production unless actively investigating issues
 
 ---
 </br>
@@ -725,14 +768,6 @@ Note : Signing back in, using same credentials will re-enable push notifications
 
 ### Privacy Manifest
 Support for privacy manifest is added from version 0.1.26
-
-### Sending Debug Stats
-In case of any need to investigate any issue by Telnyx, please enable the debug stats that will be sent to Telnyx for analysis.
-
-```Swift
-currentCall?.startDebugStats()
-``` 
-Please store the **debug_stats_id** that would be used for investigation
 
 ### Documentation:
 For more information you can:

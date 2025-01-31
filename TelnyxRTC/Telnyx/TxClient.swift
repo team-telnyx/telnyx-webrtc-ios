@@ -161,9 +161,25 @@ public class TxClient {
         }
     }
 
-    /// When implementing CallKit framework, audio has to be manually handled.
-    /// Set this property to TRUE when `provider(CXProvider, didActivate: AVAudioSession)` is called on your CallKit implementation
-    /// Set this property to FALSE when `provider(CXProvider, didDeactivate: AVAudioSession)` is called on your CallKit implementation
+    /// Controls the audio device state when using CallKit integration.
+    /// This property manages the WebRTC audio session activation and deactivation.
+    ///
+    /// When implementing CallKit, you must manually handle the audio session state:
+    /// - Set to `true` in `provider(_:didActivate:)` to enable audio
+    /// - Set to `false` in `provider(_:didDeactivate:)` to disable audio
+    ///
+    /// Example usage with CallKit:
+    /// ```swift
+    /// extension CallKitProvider: CXProviderDelegate {
+    ///     func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
+    ///         telnyxClient.isAudioDeviceEnabled = true
+    ///     }
+    ///
+    ///     func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
+    ///         telnyxClient.isAudioDeviceEnabled = false
+    ///     }
+    /// }
+    /// ```
     public var isAudioDeviceEnabled : Bool {
         get {
             return RTCAudioSession.sharedInstance().isAudioEnabled
@@ -178,17 +194,46 @@ public class TxClient {
         }
     }
     
-    
-    public func enableAudioSession(audioSession: AVAudioSession){
+    /// Enables and configures the audio session for a call.
+    /// This method sets up the appropriate audio configuration and activates the session.
+    ///
+    /// - Parameter audioSession: The AVAudioSession instance to configure
+    /// - Important: This method MUST be called from the CXProviderDelegate's `provider(_:didActivate:)` callback
+    ///             to properly handle audio routing when using CallKit integration.
+    ///
+    /// Example usage:
+    /// ```swift
+    /// func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
+    ///     print("provider:didActivateAudioSession:")
+    ///     self.telnyxClient.enableAudioSession(audioSession: audioSession)
+    /// }
+    /// ```
+    public func enableAudioSession(audioSession: AVAudioSession) {
         setupCorrectAudioConfiguration()
         setAudioSessionActive(true)
     }
     
-    public func disableAudioSession(audioSession: AVAudioSession){
+    /// Disables and resets the audio session.
+    /// This method cleans up the audio configuration and deactivates the session.
+    ///
+    /// - Parameter audioSession: The AVAudioSession instance to reset
+    /// - Important: This method MUST be called from the CXProviderDelegate's `provider(_:didDeactivate:)` callback
+    ///             to properly clean up audio resources when using CallKit integration.
+    ///
+    /// Example usage:
+    /// ```swift
+    /// func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
+    ///     print("provider:didDeactivateAudioSession:")
+    ///     self.telnyxClient.disableAudioSession(audioSession: audioSession)
+    /// }
+    /// ```
+    public func disableAudioSession(audioSession: AVAudioSession) {
         resetAudioConfiguration()
         setAudioSessionActive(false)
     }
     
+    /// The current audio route configuration.
+    /// This provides information about the active input and output ports.
     let currentRoute = AVAudioSession.sharedInstance().currentRoute
     
     /// Client must be registered in order to receive or place calls.
@@ -208,6 +253,13 @@ public class TxClient {
         setupAudioRouteChangeMonitoring()
     }
     
+    /// Sets up monitoring for audio route changes (e.g., headphones connected/disconnected, 
+    /// Bluetooth device connected/disconnected).
+    ///
+    /// This method registers for AVAudioSession route change notifications to:
+    /// - Track when audio devices are connected or disconnected
+    /// - Monitor changes in the active audio output
+    /// - Update the speaker state accordingly
     private func setupAudioRouteChangeMonitoring() {
         NotificationCenter.default.addObserver(
             self,
@@ -216,6 +268,23 @@ public class TxClient {
             object: nil)
     }
     
+    /// Handles audio route change notifications from the system.
+    ///
+    /// This method processes audio route changes and:
+    /// - Updates the internal speaker state
+    /// - Notifies observers about audio route changes
+    /// - Manages audio routing between available outputs
+    ///
+    /// The method posts an "AudioRouteChanged" notification with:
+    /// - isSpeakerEnabled: Whether the built-in speaker is active
+    /// - outputPortType: The type of the current audio output port
+    ///
+    /// Common route change reasons handled:
+    /// - .categoryChange: Audio session category was changed
+    /// - .override: Route was overridden by the system or user
+    /// - .routeConfigurationChange: Available routes were changed
+    ///
+    /// @objc attribute is required for NotificationCenter selector
     @objc private func handleAudioRouteChange(notification: Notification) {
         guard let userInfo = notification.userInfo,
               let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
@@ -226,7 +295,7 @@ public class TxClient {
         let session = AVAudioSession.sharedInstance()
         let currentRoute = session.currentRoute
         
-        // Check if we have any output ports
+        // Ensure we have at least one output port
         guard let output = currentRoute.outputs.first else {
             return
         }
@@ -235,11 +304,11 @@ public class TxClient {
         
         switch reason {
             case .categoryChange, .override, .routeConfigurationChange:
-                // Update speaker state based on current output
+                // Update internal speaker state based on current output
                 let isSpeaker = output.portType == .builtInSpeaker
                 _isSpeakerEnabled = isSpeaker
                 
-                // Notify UI of the change
+                // Notify observers about the route change
                 NotificationCenter.default.post(
                     name: NSNotification.Name("AudioRouteChanged"),
                     object: nil,
