@@ -1,13 +1,48 @@
 import WebRTC
 import Foundation
 
+/// The WebRTCStatsReporter class collects and reports WebRTC statistics and events
+/// to Telnyx's servers for debugging and quality monitoring purposes.
+///
+/// This reporter tracks various aspects of the WebRTC connection including:
+/// - Audio statistics (inbound and outbound)
+/// - ICE candidate information
+/// - Connection state changes
+/// - Media track events
+/// - Network statistics
+///
+/// The reporter is enabled when the `debug` flag is set to true in the Call configuration.
+/// Statistics are collected every 2 seconds and sent to Telnyx's servers for analysis.
+///
+/// ## Usage
+/// ```swift
+/// // Create a reporter instance
+/// let reporter = WebRTCStatsReporter(socket: socket)
+///
+/// // Start reporting for a specific peer
+/// reporter.startDebugReport(peerId: callId, peer: peerConnection)
+///
+/// // Stop reporting when done
+/// reporter.dispose()
+/// ```
 class WebRTCStatsReporter {
     // MARK: - Properties
+    /// Timer for periodic stats collection
     private var timer: DispatchSourceTimer?
+    
+    /// Unique identifier for the peer connection being monitored
     private var peerId: UUID?
+    
+    /// Unique identifier for this reporting session
     private var reportId: UUID = UUID.init()
+    
+    /// Reference to the peer connection being monitored
     private weak var peer: Peer?
+    
+    /// Socket connection for sending stats to Telnyx servers
     weak var socket: Socket?
+    
+    /// Queue for handling message sending to avoid blocking the main thread
     private let messageQueue = DispatchQueue(label: "WebRTCStatsReporter.MessageQueue")
     
     // MARK: - Initializer
@@ -236,8 +271,19 @@ extension WebRTCStatsReporter {
 
 // MARK: - Peer Event Handling
 extension WebRTCStatsReporter {
-
+    /// Sets up handlers for various WebRTC events to collect debugging information.
+    /// This method configures callbacks for:
+    /// - Media stream and track events
+    /// - ICE candidate gathering and selection
+    /// - Signaling state changes
+    /// - Connection state changes
+    /// - ICE gathering state changes
+    /// - Negotiation events
+    ///
+    /// Each event handler collects relevant data and sends it to Telnyx's servers
+    /// for analysis and debugging purposes.
     public func setupEventHandler() {
+        // Handle new media streams being added to the connection
         self.peer?.onAddStream = { [weak self] stream in
             guard let self = self else { return }
             var debugData = [String: Any]()
@@ -249,6 +295,7 @@ extension WebRTCStatsReporter {
             self.sendWebRTCStatsEvent(event: .onTrack, tag: .track, data: debugData)
         }
         
+        // Handle new ICE candidates being discovered
         self.peer?.onIceCandidate = { [weak self] candidate in
             guard let self = self else { return }
             var debugCandidate = [String: Any]()
@@ -259,6 +306,7 @@ extension WebRTCStatsReporter {
             self.sendWebRTCStatsEvent(event: .onIceCandidate, tag: .connection, data: debugCandidate)
         }
         
+        // Handle changes in the WebRTC signaling state
         self.peer?.onSignalingStateChange = { [weak self] state, connection in
             guard let self = self else { return }
             var debugData = [String: Any]()
@@ -268,16 +316,19 @@ extension WebRTCStatsReporter {
             self.sendWebRTCStatsEvent(event: .onSignalingStateChange, tag: .connection, data: debugData)
         }
         
+        // Handle changes in the ICE connection state
         self.peer?.onIceConnectionChange = { [weak self] state in
             guard let self = self else { return }
             self.sendWebRTCStatsEvent(event: .onIceConnectionStateChange, tag: .connection, data: ["data": state.telnyx_to_string()])
         }
         
+        // Handle changes in the ICE gathering state
         self.peer?.onIceGatheringChange = { [weak self] state in
             guard let self = self else { return }
             self.sendWebRTCStatsEvent(event: .onIceGatheringStateChange, tag: .connection, data: ["data": state.telnyx_to_string()])
         }
         
+        // Handle WebRTC negotiation needed events
         self.peer?.onNegotiationNeeded = { [weak self] in
             guard let self = self else { return }
             self.sendWebRTCStatsEvent(event: .onNegotiationNeeded, tag: .connection, data: [:])
