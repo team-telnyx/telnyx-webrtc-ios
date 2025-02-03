@@ -23,7 +23,6 @@ fileprivate let defaultSignalingServerUrl = URL(string: PROD_HOST)!
 fileprivate let defaultIceServers = [DEFAULT_TURN, DEFAULT_STUN]
 
 struct InternalConfig {
-    let bugsnagKey = "046a0602ac5080aee24906a0191f867d"
     let prodSignalingServer: URL
     let developmentSignalingServer: URL
     let webRTCIceServers: [RTCIceServer]

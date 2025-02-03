@@ -17,7 +17,6 @@ target 'TelnyxRTC' do
   use_frameworks!
 
   # Pods for TelnyxRTC
-  pod 'Bugsnag', '~> 6.28.1'
   pod 'Starscream', '~> 4.0.6'
   pod 'WebRTC-lib', "~> 124.0.0"
 
