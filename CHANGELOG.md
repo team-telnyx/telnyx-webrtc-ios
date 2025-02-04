@@ -1,3 +1,26 @@
+# CHANGELOG
+
+## [0.1.42](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/0.1.42) (2025-02-04)
+
+### Bug Fixes
+- Removed Bugsnag dependency
+
+## [0.1.41](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/0.1.41) (2025-01-27)
+
+### Bug Fixes
+- Improved the CallKit speaker button behavior to ensure consistent functionality. The button now accurately reflects the current audio output state. Adjustments were made to the RTCAudioSession handling to resolve the issue.
+
+## [0.1.40](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/0.1.40) (2025-01-22)
+
+### Bug Fixes
+- Fix build on SPM: Added Foundation imports.
+
+## [0.1.39](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/0.1.39) (2025-01-10)
+
+### Enhacement
+- Enable/Disable WebRTC Statistics: You can now toggle WebRTC Statistics. When enabled, all WebRTC stats are uploaded to our servers. These statistics can be accessed via the Telnyx Portal under the Object Storage section associated with the account used to generate the credentials for the SDK login.
+
+
 ## [0.1.38](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/0.1.38) (2024-11-13)
 
 ### Bug Fixes

@@ -8,7 +8,6 @@
 
 import Foundation
 import AVFoundation
-import Bugsnag
 import WebRTC
 import CallKit
 
@@ -530,18 +529,7 @@ extension TxClient {
 
     /// This function is called when the TxClient is instantiated. This funciton is intended to be used to initialize any
     /// required tool.
-    private func configure() {
-        self.setupBugsnag()
-    }
-
-    /// Initialize Bugsnag
-    private func setupBugsnag() {
-        let config = BugsnagConfiguration.loadConfig()
-        config.apiKey = InternalConfig.default.bugsnagKey
-        config.context = "TelnyxRTC"
-        //TODO: check extra configurations.
-        Bugsnag.start(with: config)
-    }
+    private func configure() {}
 } //END SDK initializations
 
 // MARK: - Call handling
