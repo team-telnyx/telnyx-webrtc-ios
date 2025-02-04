@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [0.1.42](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/0.1.42) (2025-01-04)
+## [0.1.42](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/0.1.42) (2025-02-04)
 
 ### Bug Fixes
 - Removed Bugsnag dependency
