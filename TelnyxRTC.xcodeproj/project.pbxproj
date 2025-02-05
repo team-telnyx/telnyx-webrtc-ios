@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -120,6 +120,13 @@
 			remoteGlobalIDString = B368BEBF25EDDB610032AE52;
 			remoteInfo = TelnyxRTC;
 		};
+		993CA9CE2D530F6800872588 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B368BEB725EDDB610032AE52 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B368BEE725EDDD060032AE52;
+			remoteInfo = TelnyxWebRTCDemo;
+		};
 		B368BED725EDDBC90032AE52 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = B368BEB725EDDB610032AE52 /* Project object */;
@@ -165,6 +172,7 @@
 		991A6D462D3AB36E00B29785 /* SipCredentialHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialHeader.swift; sourceTree = "<group>"; };
 		991A6D472D3AB36E00B29785 /* SipCredentialRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialRow.swift; sourceTree = "<group>"; };
 		991A6D482D3AB36E00B29785 /* SipCredentialsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialsView.swift; sourceTree = "<group>"; };
+		993CA9C82D530F6700872588 /* TelnyxWebRTCDemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TelnyxWebRTCDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		995BF7122CE7E8EB00454076 /* WebRTCEnvironmentExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCEnvironmentExtension.swift; sourceTree = "<group>"; };
 		995BF7152CE7EB2200454076 /* SipUserCredential.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipUserCredential.swift; sourceTree = "<group>"; };
 		995BF71A2CE7EBF800454076 /* SipCredentialsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialsManager.swift; sourceTree = "<group>"; };
@@ -260,7 +268,18 @@
 		B3E1033125F7F94900227DCE /* ringback_tone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = ringback_tone.mp3; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		993CA9C92D530F6700872588 /* TelnyxWebRTCDemoUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = TelnyxWebRTCDemoUITests; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
+		993CA9C52D530F6700872588 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B368BEBD25EDDB610032AE52 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -471,6 +490,7 @@
 				B368BEC225EDDB610032AE52 /* TelnyxRTC */,
 				B368BED225EDDBC90032AE52 /* TelnyxRTCTests */,
 				B368BEE925EDDD060032AE52 /* TelnyxWebRTCDemo */,
+				993CA9C92D530F6700872588 /* TelnyxWebRTCDemoUITests */,
 				B368BEC125EDDB610032AE52 /* Products */,
 				8AB3A6A2ADA6A9FAC6C77491 /* Pods */,
 				EA45B40E24738E41F9F44AA0 /* Frameworks */,
@@ -483,6 +503,7 @@
 				B368BEC025EDDB610032AE52 /* TelnyxRTC.framework */,
 				B368BED125EDDBC90032AE52 /* TelnyxRTCTests.xctest */,
 				B368BEE825EDDD060032AE52 /* TelnyxWebRTCDemo.app */,
+				993CA9C82D530F6700872588 /* TelnyxWebRTCDemoUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -642,6 +663,29 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		993CA9C72D530F6700872588 /* TelnyxWebRTCDemoUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 993CA9D22D530F6800872588 /* Build configuration list for PBXNativeTarget "TelnyxWebRTCDemoUITests" */;
+			buildPhases = (
+				993CA9C42D530F6700872588 /* Sources */,
+				993CA9C52D530F6700872588 /* Frameworks */,
+				993CA9C62D530F6700872588 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				993CA9CF2D530F6800872588 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				993CA9C92D530F6700872588 /* TelnyxWebRTCDemoUITests */,
+			);
+			name = TelnyxWebRTCDemoUITests;
+			packageProductDependencies = (
+			);
+			productName = TelnyxWebRTCDemoUITests;
+			productReference = 993CA9C82D530F6700872588 /* TelnyxWebRTCDemoUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		B368BEBF25EDDB610032AE52 /* TelnyxRTC */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = B368BEC825EDDB610032AE52 /* Build configuration list for PBXNativeTarget "TelnyxRTC" */;
@@ -708,9 +752,13 @@
 		B368BEB725EDDB610032AE52 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1220;
+				LastSwiftUpdateCheck = 1600;
 				LastUpgradeCheck = 1220;
 				TargetAttributes = {
+					993CA9C72D530F6700872588 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = B368BEE725EDDD060032AE52;
+					};
 					B368BEBF25EDDB610032AE52 = {
 						CreatedOnToolsVersion = 12.2;
 						LastSwiftMigration = 1220;
@@ -739,11 +787,19 @@
 				B368BEBF25EDDB610032AE52 /* TelnyxRTC */,
 				B368BED025EDDBC90032AE52 /* TelnyxRTCTests */,
 				B368BEE725EDDD060032AE52 /* TelnyxWebRTCDemo */,
+				993CA9C72D530F6700872588 /* TelnyxWebRTCDemoUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		993CA9C62D530F6700872588 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B368BEBE25EDDB610032AE52 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -880,6 +936,13 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		993CA9C42D530F6700872588 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B368BEBC25EDDB610032AE52 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -996,6 +1059,11 @@
 			target = B368BEBF25EDDB610032AE52 /* TelnyxRTC */;
 			targetProxy = 3BC03B5B2CC2653700FD2B29 /* PBXContainerItemProxy */;
 		};
+		993CA9CF2D530F6800872588 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B368BEE725EDDD060032AE52 /* TelnyxWebRTCDemo */;
+			targetProxy = 993CA9CE2D530F6800872588 /* PBXContainerItemProxy */;
+		};
 		B368BED825EDDBC90032AE52 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = B368BEBF25EDDB610032AE52 /* TelnyxRTC */;
@@ -1023,6 +1091,53 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		993CA9D02D530F6800872588 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YKUVNPU9FS;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.ios.TelnyxWebRTCDemoUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = TelnyxWebRTCDemo;
+			};
+			name = Debug;
+		};
+		993CA9D12D530F6800872588 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YKUVNPU9FS;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.ios.TelnyxWebRTCDemoUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = TelnyxWebRTCDemo;
+			};
+			name = Release;
+		};
 		B368BEC625EDDB610032AE52 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1307,6 +1422,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		993CA9D22D530F6800872588 /* Build configuration list for PBXNativeTarget "TelnyxWebRTCDemoUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				993CA9D02D530F6800872588 /* Debug */,
+				993CA9D12D530F6800872588 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		B368BEBA25EDDB610032AE52 /* Build configuration list for PBXProject "TelnyxRTC" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
