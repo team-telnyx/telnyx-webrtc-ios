@@ -21,6 +21,8 @@ class HomeViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.view.accessibilityIdentifier = "HomeViewController"
+
         self.appDelegate.voipDelegate = self
         self.telnyxClient = self.appDelegate.telnyxClient
         

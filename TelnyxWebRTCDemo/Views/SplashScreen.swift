@@ -15,6 +15,7 @@ struct SplashScreen: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.white)
+            .accessibilityIdentifier("SplashScreen")
             .onAppear {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                     withAnimation {
