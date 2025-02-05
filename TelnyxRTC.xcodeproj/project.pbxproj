@@ -43,6 +43,8 @@
 		996C67D42CFEA72C0056E508 /* RTCMediaStreamTrack+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C67D32CFEA7270056E508 /* RTCMediaStreamTrack+Extension.swift */; };
 		996C67D72CFEA96B0056E508 /* RTCIceCandidate+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C67D62CFEA9670056E508 /* RTCIceCandidate+Extension.swift */; };
 		996C67D92CFEB7E10056E508 /* RTCConfiguration+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C67D82CFEB7D30056E508 /* RTCConfiguration+Extension.swift */; };
+		9982C0412D53977B00FA91B4 /* TestConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9982C03F2D53977B00FA91B4 /* TestConfiguration.swift */; };
+		9982C0422D53977B00FA91B4 /* AccessibilityIdentifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9982C03E2D53977B00FA91B4 /* AccessibilityIdentifiers.swift */; };
 		998670382D3E9506001E1D01 /* Color+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998670372D3E94FA001E1D01 /* Color+Extensions.swift */; };
 		9986703A2D3E9DCE001E1D01 /* SipInputCredentialsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998670392D3E9DC3001E1D01 /* SipInputCredentialsView.swift */; };
 		9986703C2D3EAF64001E1D01 /* ErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9986703B2D3EAF62001E1D01 /* ErrorView.swift */; };
@@ -191,6 +193,8 @@
 		996C67D32CFEA7270056E508 /* RTCMediaStreamTrack+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RTCMediaStreamTrack+Extension.swift"; sourceTree = "<group>"; };
 		996C67D62CFEA9670056E508 /* RTCIceCandidate+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RTCIceCandidate+Extension.swift"; sourceTree = "<group>"; };
 		996C67D82CFEB7D30056E508 /* RTCConfiguration+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RTCConfiguration+Extension.swift"; sourceTree = "<group>"; };
+		9982C03E2D53977B00FA91B4 /* AccessibilityIdentifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityIdentifiers.swift; sourceTree = "<group>"; };
+		9982C03F2D53977B00FA91B4 /* TestConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConfiguration.swift; sourceTree = "<group>"; };
 		998670372D3E94FA001E1D01 /* Color+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extensions.swift"; sourceTree = "<group>"; };
 		998670392D3E9DC3001E1D01 /* SipInputCredentialsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipInputCredentialsView.swift; sourceTree = "<group>"; };
 		9986703B2D3EAF62001E1D01 /* ErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorView.swift; sourceTree = "<group>"; };
@@ -389,6 +393,15 @@
 			path = Extensions;
 			sourceTree = "<group>";
 		};
+		9982C0402D53977B00FA91B4 /* Accessibility */ = {
+			isa = PBXGroup;
+			children = (
+				9982C03E2D53977B00FA91B4 /* AccessibilityIdentifiers.swift */,
+				9982C03F2D53977B00FA91B4 /* TestConfiguration.swift */,
+			);
+			path = Accessibility;
+			sourceTree = "<group>";
+		};
 		99ADA94D2D47C9B6000C956A /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
@@ -538,6 +551,7 @@
 			isa = PBXGroup;
 			children = (
 				B3B1D9A22654546E008D28C9 /* TelnyxWebRTCDemo.entitlements */,
+				9982C0402D53977B00FA91B4 /* Accessibility */,
 				995BF71D2CE7EC5000454076 /* Managers */,
 				995BF7142CE7EB0B00454076 /* Models */,
 				B3E1032F25F7F93000227DCE /* Resources */,
@@ -1038,6 +1052,8 @@
 				995BF7162CE7EB2600454076 /* SipUserCredential.swift in Sources */,
 				99ADA9AA2D487ACC000C956A /* CallView.swift in Sources */,
 				99ADA9B02D4886E7000C956A /* CallViewModel.swift in Sources */,
+				9982C0412D53977B00FA91B4 /* TestConfiguration.swift in Sources */,
+				9982C0422D53977B00FA91B4 /* AccessibilityIdentifiers.swift in Sources */,
 				991A6D492D3AB36E00B29785 /* SipCredentialsView.swift in Sources */,
 				991A6D4A2D3AB36E00B29785 /* SipCredentialHeader.swift in Sources */,
 				991A6D4B2D3AB36E00B29785 /* SipCredentialRow.swift in Sources */,
