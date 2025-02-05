@@ -45,6 +45,7 @@ struct CallView: View {
         VStack {
             TextField("Enter sip address or phone number", text: $viewModel.sipAddress)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                .accessibilityIdentifier(AccessibilityIdentifiers.numberToCallTextField)
                 .padding()
             
             Spacer()
@@ -58,6 +59,7 @@ struct CallView: View {
                     .background(Color(hex: "#00E3AA"))
                     .clipShape(Circle())
             }
+            .accessibilityIdentifier(AccessibilityIdentifiers.callButton)
             .padding()
             
             Spacer()
@@ -83,7 +85,9 @@ struct CallView: View {
                         .frame(width: 60, height: 60)
                         .background(Color(hex: "#F5F3E4"))
                         .clipShape(Circle())
-                }.padding(.horizontal, 2)
+                }
+                .accessibilityIdentifier(AccessibilityIdentifiers.muteButton)
+                .padding(.horizontal, 2)
                                 
                                 
                 Button(action: {
@@ -95,7 +99,9 @@ struct CallView: View {
                         .frame(width: 60, height: 60)
                         .background(Color(hex: "#F5F3E4"))
                         .clipShape(Circle())
-                }.padding(.horizontal, 2)
+                }
+                .accessibilityIdentifier("speakerButton")
+                .padding(.horizontal, 2)
 
                 Button(action: {
                     viewModel.isOnHold.toggle()
@@ -106,7 +112,9 @@ struct CallView: View {
                         .frame(width: 60, height: 60)
                         .background(Color(hex: "#F5F3E4"))
                         .clipShape(Circle())
-                }.padding(.horizontal, 2)
+                }
+                .accessibilityIdentifier("holdButton")
+                .padding(.horizontal, 2)
 
                 Button(action: {
                     viewModel.showDTMFKeyboard.toggle()
@@ -117,6 +125,7 @@ struct CallView: View {
                         .background(Color(hex: "#F5F3E4"))
                         .clipShape(Circle())
                 }
+                .accessibilityIdentifier(AccessibilityIdentifiers.dtmfButton)
 
             }
             
@@ -129,6 +138,7 @@ struct CallView: View {
                     .background(Color(hex: "#EB0000"))
                     .clipShape(Circle())
             }
+            .accessibilityIdentifier(AccessibilityIdentifiers.hangupButton)
             .padding()
         }
         Spacer()
@@ -149,6 +159,7 @@ struct CallView: View {
                         .background(Color(hex: "#EB0000"))
                         .clipShape(Circle())
                 }
+                .accessibilityIdentifier(AccessibilityIdentifiers.rejectButton)
                 .padding()
 
                 Button(action: {
@@ -160,6 +171,7 @@ struct CallView: View {
                         .background(Color(hex: "#00E3AA"))
                         .clipShape(Circle())
                 }
+                .accessibilityIdentifier(AccessibilityIdentifiers.answerButton)
                 .padding()
             }
             

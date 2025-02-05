@@ -29,6 +29,7 @@ struct DTMFKeyboardView: View {
             TextField("", text: .constant(viewModel.displayText))
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .disabled(true)
+                .accessibilityIdentifier(AccessibilityIdentifiers.dtmfPad)
                 .padding(.horizontal)
             
             VStack(spacing: 12) {
@@ -46,6 +47,7 @@ struct DTMFKeyboardView: View {
                                     .background(Color(hex: "#F5F3E4"))
                                     .clipShape(Circle())
                             }
+                            .accessibilityIdentifier(AccessibilityIdentifiers.dtmfKey(key))
                         }
                     }
                 }

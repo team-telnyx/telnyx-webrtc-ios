@@ -25,6 +25,7 @@ struct ProfileView: View {
                             .background(Color(hex: "#F5F3E4"))
                             .cornerRadius(16)
                     }
+                    .accessibilityIdentifier(AccessibilityIdentifiers.createUserButton)
                 } else {
                     HStack {
                         Text(viewModel.selectedProfile?.username ?? "")
@@ -42,6 +43,7 @@ struct ProfileView: View {
                                 .background(Color(hex: "#EBEBEB"))
                                 .cornerRadius(16)
                         }
+                        .accessibilityIdentifier(AccessibilityIdentifiers.userSelectionBottomSheet)
                         
                         Spacer()
                     }

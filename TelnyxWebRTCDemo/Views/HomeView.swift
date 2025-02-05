@@ -33,6 +33,7 @@ struct HomeView: View {
                             .onLongPressGesture {
                                 onLongPressLogo()
                             }
+                            .accessibilityIdentifier(AccessibilityIdentifiers.mainView)
                         Spacer().frame(height: isAnimating ? 0 : (geometry.size.height / 2 - 100))
                         
                         if isAnimating {
@@ -105,6 +106,7 @@ struct HomeView: View {
                                                 .background(Color(hex: "#1D1D1D"))
                                                 .cornerRadius(20)
                                         }
+                                        .accessibilityIdentifier(AccessibilityIdentifiers.connectButton)
                                         .padding(.horizontal, 60)
                                         .padding(.bottom, 20)
                                     } else {
@@ -117,6 +119,7 @@ struct HomeView: View {
                                                 .background(Color(hex: "#1D1D1D"))
                                                 .cornerRadius(20)
                                         }
+                                        .accessibilityIdentifier(AccessibilityIdentifiers.connectButton)
                                         .padding(.horizontal, 60)
                                         .padding(.bottom, 10)
                                     }
