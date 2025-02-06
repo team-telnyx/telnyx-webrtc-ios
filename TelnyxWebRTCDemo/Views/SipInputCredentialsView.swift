@@ -78,6 +78,7 @@ struct SipInputCredentialsView: View {
                     TextField("Enter username", text: $username)
                         .padding(.horizontal, 10)
                         .frame(height: 40)
+                        .accessibilityIdentifier(AccessibilityIdentifiers.usernameTextField)
                 }
                 .background(RoundedRectangle(cornerRadius: 4)
                     .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
@@ -90,10 +91,12 @@ struct SipInputCredentialsView: View {
                         TextField("Enter password", text: $password)
                             .padding(.horizontal, 10)
                             .frame(height: 40)
+                            .accessibilityIdentifier(AccessibilityIdentifiers.passwordTextField)
                     } else {
                         SecureField("Enter password", text: $password)
                             .padding(.horizontal, 10)
                             .frame(height: 40)
+                            .accessibilityIdentifier(AccessibilityIdentifiers.passwordTextField)
                     }
                     
                     Button(action: {
@@ -114,6 +117,7 @@ struct SipInputCredentialsView: View {
                     TextField("Enter caller number", text: $callerIdNumber)
                         .padding(.horizontal, 10)
                         .frame(height: 40)
+                        .accessibilityIdentifier(AccessibilityIdentifiers.callerNumberTextField)
                 }
                 .background(RoundedRectangle(cornerRadius: 4)
                     .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
@@ -125,6 +129,7 @@ struct SipInputCredentialsView: View {
                     TextField("Enter caller name", text: $callerName)
                         .padding(.horizontal, 10)
                         .frame(height: 40)
+                        .accessibilityIdentifier(AccessibilityIdentifiers.callerNameTextField)
                 }
                 .background(RoundedRectangle(cornerRadius: 4)
                     .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
@@ -146,6 +151,7 @@ struct SipInputCredentialsView: View {
                         .padding(.vertical, 12)
                         .background(Color(hex: "#F5F3E4"))
                         .cornerRadius(20)
+                        .accessibilityIdentifier(AccessibilityIdentifiers.signInButton)
                 }
                 
                 Button(action: { onCancel() }) {

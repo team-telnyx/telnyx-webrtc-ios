@@ -1,10 +1,3 @@
-//
-//  TelnyxWebRTCDemoUITests.swift
-//  TelnyxWebRTCDemoUITests
-//
-//  Created by Guillermo Battistel on 05-02-25.
-//
-
 import XCTest
 
 final class TelnyxWebRTCDemoUITests: XCTestCase {
@@ -15,6 +8,7 @@ final class TelnyxWebRTCDemoUITests: XCTestCase {
         super.setUp()
         continueAfterFailure = false
         app = XCUIApplication()
+        app.launchArguments.append("UI_TESTING")
         app.launch()
     }
     
@@ -23,21 +17,33 @@ final class TelnyxWebRTCDemoUITests: XCTestCase {
         app.terminate()
     }
     
-    func testAppLaunchAndUserCreation() {
+    func testAppLaunch() {
         // Test app launch and bottom sheet appearance
         XCTAssertTrue(app.exists)
-        app.launchArguments.append("UIViewAnimationEnabled=YES")
-
+        let homeView = app.images[AccessibilityIdentifiers.homeViewLogo]
+        XCTAssertTrue(homeView.waitForExistence(timeout: 5), "Home View is not visible")
+    }
+    
+    func testUserCreation() {
         // Create user with hardcoded values
-        let createUserButton = app.buttons["Create User"]
+        let createUserButton = app.buttons[AccessibilityIdentifiers.createUserButton]
         XCTAssertTrue(createUserButton.waitForExistence(timeout: 5))
         createUserButton.tap()
         
+        // Wait to bottomsheet to be displayed and check for add profile buttob
+        let addProfileButton = app.buttons[AccessibilityIdentifiers.addProfileButton]
+        XCTAssertTrue(addProfileButton.waitForExistence(timeout: 5))
+        addProfileButton.tap()
+
         // Fill user details
-        let usernameField = app.textFields["Username"]
-        let passwordField = app.secureTextFields["Password"]
-        let callerNameField = app.textFields["Caller Name"]
-        let callerNumberField = app.textFields["Caller Number"]
+        let usernameField = app.textFields[AccessibilityIdentifiers.usernameTextField]
+        let passwordField = app.secureTextFields[AccessibilityIdentifiers.passwordTextField]
+        let callerNameField = app.textFields[AccessibilityIdentifiers.callerNameTextField]
+        let callerNumberField = app.textFields[AccessibilityIdentifiers.callerNumberTextField]
+        
+        let userNameFieldExists = NSPredicate(format: "exists == true && hittable == true")
+        expectation(for: userNameFieldExists, evaluatedWith: usernameField, handler: nil)
+        waitForExpectations(timeout: 5, handler: nil)
         
         usernameField.tap()
         usernameField.typeText("testuser")
@@ -45,13 +51,13 @@ final class TelnyxWebRTCDemoUITests: XCTestCase {
         passwordField.tap()
         passwordField.typeText("testpassword")
         
-        callerNameField.tap()
-        callerNameField.typeText("Test User")
-        
         callerNumberField.tap()
         callerNumberField.typeText("+1234567890")
         
-        app.buttons["Save"].tap()
+        callerNameField.tap()
+        callerNameField.typeText("Test User")
+        
+        app.buttons[AccessibilityIdentifiers.signInButton].tap()
     }
     
     func testUserSelectionAndConnection() {

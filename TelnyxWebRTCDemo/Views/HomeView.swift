@@ -24,8 +24,10 @@ struct HomeView: View {
         ZStack {
             VStack {
                 GeometryReader { geometry in
+                    let safeHeight = max(geometry.size.height / 2 - 100, 0)
+
                     VStack {
-                        Spacer().frame(height: isAnimating ? 50 : (geometry.size.height / 2 - 100))
+                        Spacer().frame(height: isAnimating ? 50 : safeHeight)
                         Image("telnyx-logo")
                             .resizable()
                             .scaledToFit()
@@ -33,8 +35,8 @@ struct HomeView: View {
                             .onLongPressGesture {
                                 onLongPressLogo()
                             }
-                            .accessibilityIdentifier(AccessibilityIdentifiers.mainView)
-                        Spacer().frame(height: isAnimating ? 0 : (geometry.size.height / 2 - 100))
+                            .accessibilityIdentifier(AccessibilityIdentifiers.homeViewLogo)
+                        Spacer().frame(height: isAnimating ? 0 : safeHeight)
                         
                         if isAnimating {
                             VStack {
@@ -139,10 +141,10 @@ struct HomeView: View {
                     .frame(maxWidth: .infinity)
                     .background(Color.white)
                     .onAppear {
-                        withAnimation(.easeInOut(duration: 1.0)) {
+                        withAnimation(nil) {
                             isAnimating = true
                         }
-                        withAnimation(.easeInOut(duration: 1.0).delay(1.0)) {
+                        withAnimation(nil) {
                             textOpacity = 1.0
                         }
                     }

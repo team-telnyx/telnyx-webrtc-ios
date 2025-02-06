@@ -62,6 +62,7 @@
 		99B6DFFD2CF546310010CA96 /* DebugReportStartMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFFC2CF546220010CA96 /* DebugReportStartMessage.swift */; };
 		99B6DFFF2CF547470010CA96 /* DebugReportStopMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFFE2CF547470010CA96 /* DebugReportStopMessage.swift */; };
 		99B6E0012CF547680010CA96 /* DebugReportDataMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6E0002CF547680010CA96 /* DebugReportDataMessage.swift */; };
+		99C6FD7B2D5458D00017AE4B /* AccessibilityIdentifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9982C03E2D53977B00FA91B4 /* AccessibilityIdentifiers.swift */; };
 		99CC5BAC2CF804A500EF43DC /* WebRTCStatsReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99CC5BAB2CF804A200EF43DC /* WebRTCStatsReporter.swift */; };
 		99CC5BAE2CF80D3A00EF43DC /* WebRTCEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99CC5BAD2CF80D3400EF43DC /* WebRTCEventHandler.swift */; };
 		99FF7B102D4BC4F700DB1408 /* DTMFKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FF7B0F2D4BC4F700DB1408 /* DTMFKeyboardView.swift */; };
@@ -954,6 +955,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				99C6FD7B2D5458D00017AE4B /* AccessibilityIdentifiers.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

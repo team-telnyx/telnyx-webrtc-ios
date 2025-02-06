@@ -1,16 +1,20 @@
 import Foundation
 
 enum AccessibilityIdentifiers {
-    // Main View
-    static let mainView = "mainView"
+    // SplashScreen
+    static let splashLogo = "splashLogo"
     
+    // HomeView
+    static let homeViewLogo = "homeViewLogo"
+
     // User Creation
-    static let createUserBottomSheet = "createUserBottomSheet"
     static let usernameTextField = "usernameTextField"
     static let passwordTextField = "passwordTextField"
     static let callerNameTextField = "callerNameTextField"
     static let callerNumberTextField = "callerNumberTextField"
     static let createUserButton = "createUserButton"
+    static let addProfileButton = "addProfileButton"
+    static let signInButton = "signInButton"
     
     // User Selection
     static let userSelectionBottomSheet = "userSelectionBottomSheet"

@@ -26,18 +26,18 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      shouldUseLaunchSchemeArgsEnv = "YES">
+      shouldUseLaunchSchemeArgsEnv = "NO">
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "UIViewAnimationEnabled=YES"
+            argument = "UI_TESTING"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
       <EnvironmentVariables>
          <EnvironmentVariable
-            key = "UIViewAnimationEnabled"
+            key = ""
             value = "YES"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </EnvironmentVariable>
       </EnvironmentVariables>
       <Testables>
@@ -74,19 +74,6 @@
             ReferencedContainer = "container:TelnyxRTC.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <CommandLineArguments>
-         <CommandLineArgument
-            argument = "UIViewAnimationEnabled=YES"
-            isEnabled = "YES">
-         </CommandLineArgument>
-      </CommandLineArguments>
-      <EnvironmentVariables>
-         <EnvironmentVariable
-            key = "UIViewAnimationEnabled"
-            value = "YES"
-            isEnabled = "YES">
-         </EnvironmentVariable>
-      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
