@@ -306,6 +306,8 @@ extension HomeViewController {
             // Store user / password in user defaults
             SipCredentialsManager.shared.addOrUpdateCredential(credential)
             SipCredentialsManager.shared.saveSelectedCredential(credential)
+            // Update UI
+            self.onSipCredentialSelected(credential: credential)
         }
         
         guard let config = txConfig else {
