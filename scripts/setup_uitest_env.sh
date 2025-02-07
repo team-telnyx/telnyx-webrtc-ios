@@ -20,4 +20,3 @@ sed -i '' 's/<DESTINATION_NUMBER>/'"$destination"'/g' TelnyxWebRTCDemoUITests/Te
 
 # EXAMPLE
 # sh scripts/setup_uitest_env.sh -u exampleUser -p examplePassword -t exampleToken -d exampleDestination
-#  sh scripts/setup_uitest_env.sh -u guillermo5896 -p hRIKhU7y -t token -d 18004377950
