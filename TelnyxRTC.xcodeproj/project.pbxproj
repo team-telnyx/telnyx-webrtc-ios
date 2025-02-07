@@ -66,6 +66,7 @@
 		99CC5BAC2CF804A500EF43DC /* WebRTCStatsReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99CC5BAB2CF804A200EF43DC /* WebRTCStatsReporter.swift */; };
 		99CC5BAE2CF80D3A00EF43DC /* WebRTCEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99CC5BAD2CF80D3400EF43DC /* WebRTCEventHandler.swift */; };
 		99D498D32D565D1F00A7B38F /* TelnyxWebRTCDemoUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D498D12D565D1F00A7B38F /* TelnyxWebRTCDemoUITests.swift */; };
+		99D498D52D567A2C00A7B38F /* TestConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D498D42D567A2C00A7B38F /* TestConstants.swift */; };
 		99FF7B102D4BC4F700DB1408 /* DTMFKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FF7B0F2D4BC4F700DB1408 /* DTMFKeyboardView.swift */; };
 		99FF7B122D4BC71800DB1408 /* DTMFKeyboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FF7B112D4BC71800DB1408 /* DTMFKeyboardViewModel.swift */; };
 		B309D13D25EF119E00A2AADF /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B309D11125EF107F00A2AADF /* Starscream.framework */; };
@@ -216,6 +217,7 @@
 		99CC5BAB2CF804A200EF43DC /* WebRTCStatsReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCStatsReporter.swift; sourceTree = "<group>"; };
 		99CC5BAD2CF80D3400EF43DC /* WebRTCEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCEventHandler.swift; sourceTree = "<group>"; };
 		99D498D12D565D1F00A7B38F /* TelnyxWebRTCDemoUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnyxWebRTCDemoUITests.swift; sourceTree = "<group>"; };
+		99D498D42D567A2C00A7B38F /* TestConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConstants.swift; sourceTree = "<group>"; };
 		99FF7B0F2D4BC4F700DB1408 /* DTMFKeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTMFKeyboardView.swift; sourceTree = "<group>"; };
 		99FF7B112D4BC71800DB1408 /* DTMFKeyboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTMFKeyboardViewModel.swift; sourceTree = "<group>"; };
 		9E63E27032ABD86417C9D6C0 /* Pods_TelnyxRTC_TelnyxRTCTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxRTC_TelnyxRTCTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -428,6 +430,7 @@
 		99D498D22D565D1F00A7B38F /* TelnyxWebRTCDemoUITests */ = {
 			isa = PBXGroup;
 			children = (
+				99D498D42D567A2C00A7B38F /* TestConstants.swift */,
 				99D498D12D565D1F00A7B38F /* TelnyxWebRTCDemoUITests.swift */,
 			);
 			path = TelnyxWebRTCDemoUITests;
@@ -959,6 +962,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				99C6FD7B2D5458D00017AE4B /* AccessibilityIdentifiers.swift in Sources */,
+				99D498D52D567A2C00A7B38F /* TestConstants.swift in Sources */,
 				99D498D32D565D1F00A7B38F /* TelnyxWebRTCDemoUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

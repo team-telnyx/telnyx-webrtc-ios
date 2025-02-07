@@ -23,6 +23,7 @@ enum AccessibilityIdentifiers {
     
     // Connection
     static let connectButton = "connectButton"
+    static let disconnectButton = "disconnectButton"
     static let connectionStatusLabel = "connectionStatusLabel"
     
     // Call Controls

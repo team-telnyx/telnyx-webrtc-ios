@@ -24,56 +24,70 @@ final class TelnyxWebRTCDemoUITests: XCTestCase {
         XCTAssertTrue(homeView.waitForExistence(timeout: 5), "Home View is not visible")
     }
     
-    func testUserCreation() {
-        // Create user with hardcoded values
-        let createUserButton = app.buttons[AccessibilityIdentifiers.createUserButton]
-        XCTAssertTrue(createUserButton.waitForExistence(timeout: 5))
-        createUserButton.tap()
-        
-        // Wait to bottomsheet to be displayed and check for add profile buttob
-        let addProfileButton = app.buttons[AccessibilityIdentifiers.addProfileButton]
-        XCTAssertTrue(addProfileButton.waitForExistence(timeout: 5))
-        addProfileButton.tap()
-
-        // Fill user details
-        let usernameField = app.textFields[AccessibilityIdentifiers.usernameTextField]
-        let passwordField = app.secureTextFields[AccessibilityIdentifiers.passwordTextField]
-        let callerNameField = app.textFields[AccessibilityIdentifiers.callerNameTextField]
-        let callerNumberField = app.textFields[AccessibilityIdentifiers.callerNumberTextField]
-        
-        let userNameFieldExists = NSPredicate(format: "exists == true && hittable == true")
-        expectation(for: userNameFieldExists, evaluatedWith: usernameField, handler: nil)
-        waitForExpectations(timeout: 5, handler: nil)
-        
-        usernameField.tap()
-        usernameField.typeText("testuser")
-        
-        passwordField.tap()
-        passwordField.typeText("testpassword")
-        
-        callerNumberField.tap()
-        callerNumberField.typeText("+1234567890")
-        
-        callerNameField.tap()
-        callerNameField.typeText("Test User")
-        
-        app.buttons[AccessibilityIdentifiers.signInButton].tap()
-    }
     
-    func testUserSelectionAndConnection() {
-        // Select user from bottom sheet
-        let userCell = app.cells["testuser"]
-        XCTAssertTrue(userCell.waitForExistence(timeout: 5))
-        userCell.tap()
+    func testUserCreation() throws {
+        // Test app launch and bottom sheet appearance
+        sleep(1)
+        XCTAssertTrue(app.exists)
+        let homeView = app.images[AccessibilityIdentifiers.homeViewLogo]
+        XCTAssertTrue(homeView.waitForExistence(timeout: 5), "Home View is not visible")
         
-        // Connect
-        let connectButton = app.buttons["Connect"]
-        XCTAssertTrue(connectButton.waitForExistence(timeout: 5))
-        connectButton.tap()
+        sleep(1)
+        // Verificar si existe el botón de createUser
+        let createUserButton = app.buttons[AccessibilityIdentifiers.createUserButton]
+        let switchProfileButton = app.buttons[AccessibilityIdentifiers.userSelectionBottomSheet]
         
-        // Wait for connection
-        let connectedStatus = app.staticTexts["Connected"]
-        XCTAssertTrue(connectedStatus.waitForExistence(timeout: 10))
+        if createUserButton.exists {
+            app.scrollToElement(createUserButton)
+            createUserButton.tap()
+        } else if switchProfileButton.exists {
+            app.scrollToElement(switchProfileButton)
+            switchProfileButton.tap()
+        } else {
+            XCTFail("Neither createUserButton nor switchProfileButton exists")
+        }
+        
+        sleep(2)
+        // Wait to bottomsheet to be displayed and check for add profile button
+        let addProfileButton = app.buttons[AccessibilityIdentifiers.addProfileButton]
+        XCTAssertTrue(addProfileButton.waitForExistence(timeout: 10))
+        addProfileButton.tap()
+        
+        let usernameTextField = app.textFields[AccessibilityIdentifiers.usernameTextField]
+        let passwordTextField = app.secureTextFields[AccessibilityIdentifiers.passwordTextField]
+        let callerNameTextField = app.textFields[AccessibilityIdentifiers.callerNameTextField]
+        let callerNumberTextField = app.textFields[AccessibilityIdentifiers.callerNumberTextField]
+        
+        let signInButton = app.buttons[AccessibilityIdentifiers.signInButton]
+        
+        XCTAssertTrue(usernameTextField.exists, "Username text field does not exist")
+        XCTAssertTrue(passwordTextField.exists, "Password text field does not exist")
+        XCTAssertTrue(signInButton.exists, "Sign In button does not exist")
+    
+        
+        usernameTextField.tap()
+        usernameTextField.typeText(TestConstants.sipUser)
+        
+        passwordTextField.tap()
+        passwordTextField.typeText(TestConstants.sipPassword)
+        
+        callerNumberTextField.tap()
+        callerNumberTextField.typeText("+1234567890")
+        
+        callerNameTextField.tap()
+        callerNameTextField.typeText("Test User")
+        
+        signInButton.tap()
+        
+        // Verificar que el usuario fue creado correctamente
+        let homeViewLogo = app.images[AccessibilityIdentifiers.homeViewLogo]
+        XCTAssertTrue(homeViewLogo.waitForExistence(timeout: 10), "HomeView did not appear after signing in")
+        sleep(5)
+        
+        let disconnectButton = app.buttons[AccessibilityIdentifiers.disconnectButton]
+        XCTAssertTrue(homeViewLogo.waitForExistence(timeout: 5))
+        disconnectButton.tap()
+        sleep(5)
     }
     
     func testCallFlow() {
@@ -120,5 +134,20 @@ final class TelnyxWebRTCDemoUITests: XCTestCase {
         // Verify call ended
         let callEndedStatus = app.staticTexts["Call Ended"]
         XCTAssertTrue(callEndedStatus.waitForExistence(timeout: 5))
+    }
+}
+
+extension XCUIApplication {
+    func scrollToElement(_ element: XCUIElement, maxRetries: Int = 5) {
+        var attempts = 0
+        while !element.isHittable && attempts < maxRetries {
+            swipeUp()
+            sleep(1)
+            attempts += 1
+        }
+        
+        if !element.isHittable {
+            XCTFail("Element not found after \(maxRetries) scroll attempts")
+        }
     }
 }

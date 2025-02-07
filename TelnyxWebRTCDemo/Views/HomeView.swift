@@ -121,7 +121,7 @@ struct HomeView: View {
                                                 .background(Color(hex: "#1D1D1D"))
                                                 .cornerRadius(20)
                                         }
-                                        .accessibilityIdentifier(AccessibilityIdentifiers.connectButton)
+                                        .accessibilityIdentifier(AccessibilityIdentifiers.disconnectButton)
                                         .padding(.horizontal, 60)
                                         .padding(.bottom, 10)
                                     }
