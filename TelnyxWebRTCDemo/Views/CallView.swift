@@ -100,7 +100,7 @@ struct CallView: View {
                         .background(Color(hex: "#F5F3E4"))
                         .clipShape(Circle())
                 }
-                .accessibilityIdentifier("speakerButton")
+                .accessibilityIdentifier(AccessibilityIdentifiers.speakerButton)
                 .padding(.horizontal, 2)
 
                 Button(action: {
@@ -113,7 +113,7 @@ struct CallView: View {
                         .background(Color(hex: "#F5F3E4"))
                         .clipShape(Circle())
                 }
-                .accessibilityIdentifier("holdButton")
+                .accessibilityIdentifier(AccessibilityIdentifiers.holdButton)
                 .padding(.horizontal, 2)
 
                 Button(action: {

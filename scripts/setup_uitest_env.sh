@@ -1,5 +1,5 @@
 #!/bin/bash
-while getopts u:p:t: flag
+while getopts u:p:t:d: flag
 do
     case "${flag}" in
         u) user=${OPTARG};;
@@ -17,3 +17,7 @@ sed -i '' 's/<SIP_USER>/'"$user"'/g' TelnyxWebRTCDemoUITests/TestConstants.swift
 sed -i '' 's/<SIP_PASSWORD>/'"$password"'/g' TelnyxWebRTCDemoUITests/TestConstants.swift
 sed -i '' 's/<SIP_TOKEN>/'"$token"'/g' TelnyxWebRTCDemoUITests/TestConstants.swift
 sed -i '' 's/<DESTINATION_NUMBER>/'"$destination"'/g' TelnyxWebRTCDemoUITests/TestConstants.swift
+
+# EXAMPLE
+# sh scripts/setup_uitest_env.sh -u exampleUser -p examplePassword -t exampleToken -d exampleDestination
+#  sh scripts/setup_uitest_env.sh -u guillermo5896 -p hRIKhU7y -t token -d 18004377950

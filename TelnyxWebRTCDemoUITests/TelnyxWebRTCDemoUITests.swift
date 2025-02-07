@@ -72,10 +72,10 @@ final class TelnyxWebRTCDemoUITests: XCTestCase {
         passwordTextField.typeText(TestConstants.sipPassword)
         
         callerNumberTextField.tap()
-        callerNumberTextField.typeText("+1234567890")
+        callerNumberTextField.typeText(TestConstants.callerNumber)
         
         callerNameTextField.tap()
-        callerNameTextField.typeText("Test User")
+        callerNameTextField.typeText(TestConstants.callerName)
         
         signInButton.tap()
         
@@ -85,55 +85,92 @@ final class TelnyxWebRTCDemoUITests: XCTestCase {
         sleep(5)
         
         let disconnectButton = app.buttons[AccessibilityIdentifiers.disconnectButton]
-        XCTAssertTrue(homeViewLogo.waitForExistence(timeout: 5))
+        XCTAssertTrue(disconnectButton.waitForExistence(timeout: 5))
         disconnectButton.tap()
         sleep(5)
     }
     
     func testCallFlow() {
+        
+        sleep(1)
+        let homeViewLogo = app.images[AccessibilityIdentifiers.homeViewLogo]
+        XCTAssertTrue(homeViewLogo.waitForExistence(timeout: 5), "HomeView did not appear after signing in")
+        sleep(1)
+
+        let connectButton = app.buttons[AccessibilityIdentifiers.connectButton]
+        XCTAssertTrue(connectButton.waitForExistence(timeout: 5))
+        connectButton.tap()
+        sleep(1)
+        
         // Enter number to call
-        let numberField = app.textFields["Phone Number"]
+        let numberField = app.textFields[AccessibilityIdentifiers.numberToCallTextField]
         XCTAssertTrue(numberField.waitForExistence(timeout: 5))
         numberField.tap()
-        numberField.typeText("18004377950")
+        numberField.typeText(TestConstants.destinationNumber)
         
+        // Tap logo to hide keyboard
+        homeViewLogo.tap()
+
         // Initiate call
-        let callButton = app.buttons["Call"]
+        let callButton = app.buttons[AccessibilityIdentifiers.callButton]
+        app.scrollToElement(callButton)
         callButton.tap()
         
-        // Wait for call invitation
-        let answerButton = app.buttons["Answer"]
-        XCTAssertTrue(answerButton.waitForExistence(timeout: 10))
-        answerButton.tap()
-        
+        sleep(5)
         // Test mute functionality
-        let muteButton = app.buttons["Mute"]
+        let muteButton = app.buttons[AccessibilityIdentifiers.muteButton]
         XCTAssertTrue(muteButton.waitForExistence(timeout: 5))
         muteButton.tap() // Mute
+        sleep(2)
         muteButton.tap() // Unmute
         
+        // Test speaker functionality
+        let speakerButton = app.buttons[AccessibilityIdentifiers.speakerButton]
+        XCTAssertTrue(speakerButton.waitForExistence(timeout: 5))
+        speakerButton.tap() // toggle speaker
+        sleep(2)
+        speakerButton.tap() // toggle speaker
+        
+        // Test hold functionality
+        let holdButton = app.buttons[AccessibilityIdentifiers.holdButton]
+        XCTAssertTrue(holdButton.waitForExistence(timeout: 5))
+        holdButton.tap() // hold call
+        sleep(2)
+        holdButton.tap() // resume call
+        
+        sleep(1)
         // Test DTMF
-        let dtmfButton = app.buttons["Keypad"]
+        let dtmfButton = app.buttons[AccessibilityIdentifiers.dtmfButton]
         XCTAssertTrue(dtmfButton.waitForExistence(timeout: 5))
         dtmfButton.tap()
         
         // Press some DTMF keys
-        let keys = ["1", "2", "3", "4"]
-        for key in keys {
-            app.buttons[key].tap()
+        let keypadButtons = [
+            "1", "2", "3",
+            "4", "5", "6",
+            "7", "8", "9",
+            "*", "0", "#"
+        ]
+        for key in keypadButtons {
+            app.buttons[AccessibilityIdentifiers.dtmfKey(key)].tap()
         }
         
         // Close DTMF pad
-        app.buttons["Close"].tap()
+        app.buttons[AccessibilityIdentifiers.dtmfClose].tap()
         
         // End call
-        let endCallButton = app.buttons["End Call"]
+        let endCallButton = app.buttons[AccessibilityIdentifiers.hangupButton]
         XCTAssertTrue(endCallButton.waitForExistence(timeout: 5))
         endCallButton.tap()
+        sleep(2)
+
         
-        // Verify call ended
-        let callEndedStatus = app.staticTexts["Call Ended"]
-        XCTAssertTrue(callEndedStatus.waitForExistence(timeout: 5))
+        // disconnect
+        let disconnectButton = app.buttons[AccessibilityIdentifiers.disconnectButton]
+        XCTAssertTrue(disconnectButton.waitForExistence(timeout: 5))
+        disconnectButton.tap()
+        sleep(2)
+        
     }
 }
 

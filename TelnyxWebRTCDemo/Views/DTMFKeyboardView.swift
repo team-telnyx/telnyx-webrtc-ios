@@ -22,6 +22,7 @@ struct DTMFKeyboardView: View {
                     Image(systemName: "xmark")
                         .foregroundColor(Color(hex: "#1D1D1D"))
                 }
+                .accessibilityIdentifier(AccessibilityIdentifiers.dtmfClose)
             }
             .padding(.horizontal)
             .padding(.top)

@@ -33,10 +33,13 @@ enum AccessibilityIdentifiers {
     static let rejectButton = "rejectButton"
     static let hangupButton = "hangupButton"
     static let muteButton = "muteButton"
+    static let speakerButton = "speakerButton"
+    static let holdButton = "holdButton"
     static let dtmfButton = "dtmfButton"
     
     // DTMF Pad
     static let dtmfPad = "dtmfPad"
+    static let dtmfClose = "dtmfClose"
     static func dtmfKey(_ key: String) -> String {
         return "dtmfKey\(key)"
     }
