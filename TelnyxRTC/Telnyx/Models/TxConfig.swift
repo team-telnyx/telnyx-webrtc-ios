@@ -35,6 +35,13 @@ public struct TxConfig {
     ///   - `logLevel`: Controls console log output in Xcode when running the app in debug mode.
     /// - Important: The `debug` flag is disabled by default to minimize data usage.
     public internal(set) var debug: Bool = false
+    
+    /// Controls whether the SDK should request local network access for peer connections.
+    /// When disabled, the SDK will not use local network for ICE candidate gathering,
+    /// which prevents the "local network access" permission popup from appearing.
+    /// - Note: Disabling this may affect the quality of calls when devices are on the same local network.
+    /// - Important: This setting is enabled by default to maintain optimal call quality.
+    public internal(set) var enableLocalNetworkAccess: Bool = true
 
     // MARK: - Initializers
 
@@ -53,7 +60,8 @@ public struct TxConfig {
                 pushEnvironment: PushEnvironment? = nil,
                 logLevel: LogLevel = .none,
                 reconnectClient: Bool = true,
-                debug: Bool = false
+                debug: Bool = false,
+                enableLocalNetworkAccess: Bool = true
     ) {
         self.sipUser = sipUser
         self.password = password
@@ -66,6 +74,7 @@ public struct TxConfig {
         self.reconnectClient = reconnectClient
         self.pushEnvironment = pushEnvironment
         self.debug = debug
+        self.enableLocalNetworkAccess = enableLocalNetworkAccess
         Logger.log.verboseLevel = logLevel
     }
 
@@ -83,7 +92,8 @@ public struct TxConfig {
                 ringBackTone: String? = nil,
                 pushEnvironment: PushEnvironment? = nil,
                 logLevel: LogLevel = .none,
-                debug: Bool = false) {
+                debug: Bool = false,
+                enableLocalNetworkAccess: Bool = true) {
         self.token = token
         if let pushToken = pushDeviceToken {
             //Create a notification configuration if there's an available a device push notification token
@@ -93,6 +103,7 @@ public struct TxConfig {
         self.ringtone = ringtone
         self.pushEnvironment = pushEnvironment
         self.debug = debug
+        self.enableLocalNetworkAccess = enableLocalNetworkAccess
         Logger.log.verboseLevel = logLevel
     }
 
