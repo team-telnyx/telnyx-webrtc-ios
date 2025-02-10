@@ -108,7 +108,7 @@ class Peer : NSObject, WebRTCEventHandler {
 
     required init(iceServers: [RTCIceServer],
                   isAttach: Bool = false,
-                  enableLocalNetworkAccess: Bool = true) {
+                  forceRelayCandidate: Bool = false) {
         let config = RTCConfiguration()
         config.iceServers = iceServers
 
@@ -117,7 +117,7 @@ class Peer : NSObject, WebRTCEventHandler {
         config.bundlePolicy = .maxCompat
 
         // Control local network access for ICE candidate gathering
-        if !enableLocalNetworkAccess {
+        if forceRelayCandidate {
             config.iceTransportPolicy = .relay // Force TURN relay to avoid local network access
         }
 
