@@ -20,7 +20,7 @@ struct CallView: View {
                     callView
                 case .NEW:
                     incomingCallView
-                case .ACTIVE, .HELD, .CONNECTING, .RINGING:
+                case .ACTIVE, .HELD, .CONNECTING, .RINGING, .RECONNECTING:
                     callingView
             }
         }
