@@ -17,6 +17,6 @@ Pod::Spec.new do |spec|
   spec.exclude_files = "TelnyxRTC/Exclude"
   spec.resource_bundles = {"TelnyxRTC" => ["TelnyxRTC/PrivacyInfo.xcprivacy"]}
 
-  spec.dependency  "Starscream", "~> 4.0.6"
+  spec.dependency  "Starscream", "~> 4.0.8"
   spec.dependency  "WebRTC-lib", "~> 124.0.0"
 end
