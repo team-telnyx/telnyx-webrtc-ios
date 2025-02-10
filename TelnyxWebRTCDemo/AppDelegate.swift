@@ -42,6 +42,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     let callKitCallController = CXCallController()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        // Configure for UI testing if needed
+        TestConfiguration.configureForTesting()
+        
         // Create and set window
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = UIHostingController(rootView: SplashScreen())

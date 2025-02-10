@@ -21,6 +21,7 @@ class HomeViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
         self.appDelegate.voipDelegate = self
         self.telnyxClient = self.appDelegate.telnyxClient
         
@@ -175,11 +176,13 @@ extension HomeViewController {
 extension HomeViewController: SipCredentialsViewControllerDelegate {
     func onNewSipCredential(credential: SipCredential?) {
         let deviceToken = userDefaults.getPushToken()
-        guard let sipCredential = credential else {
-            print("HomeVeiwController :: connectButtonTapped() ERROR: SIP User and Password should not be empty.")
-            return
+        if let newProfile = credential {
+            if newProfile.isToken ?? false {
+                connectToTelnyx(telnyxToken: newProfile.username, sipCredential: nil, deviceToken: deviceToken)
+            } else {
+                connectToTelnyx(telnyxToken: nil, sipCredential: newProfile, deviceToken: deviceToken)
+            }
         }
-        connectToTelnyx(telnyxToken: nil, sipCredential: sipCredential, deviceToken: deviceToken)
     }
     
     func onSipCredentialSelected(credential: SipCredential?) {
@@ -305,6 +308,8 @@ extension HomeViewController {
             // Store user / password in user defaults
             SipCredentialsManager.shared.addOrUpdateCredential(credential)
             SipCredentialsManager.shared.saveSelectedCredential(credential)
+            // Update UI
+            self.onSipCredentialSelected(credential: credential)
         }
         
         guard let config = txConfig else {
