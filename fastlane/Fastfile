@@ -58,7 +58,7 @@ lane :generate_docs_markdown do
                               -- \
                               -workspace TelnyxRTC.xcworkspace \
                               -scheme TelnyxRTC \
-                              -destination 'generic/platform=iOS'
+                              -destination 'platform=iOS Simulator,OS=17.5,name=iPhone 15'
 
 
   SHELL
