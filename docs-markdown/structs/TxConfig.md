@@ -76,13 +76,12 @@ Enables WebRTC communication statistics reporting to Telnyx servers.
 public internal(set) var forceRelayCandidate: Bool = false
 ```
 
-Forces the WebRTC connection to use TURN relay candidates only.
-- When enabled, all WebRTC traffic is routed through TURN servers, avoiding direct peer-to-peer connections.
-- This setting is useful when:
-  - You need to bypass local network access restrictions
-  - You want to ensure consistent network behavior across different environments
-  - Privacy or security requirements mandate avoiding direct connections
-- Important: Enabling this flag may slightly increase latency but provides more predictable connectivity.
+Controls whether the SDK should force TURN relay for peer connections.
+When enabled, the SDK will only use TURN relay candidates for ICE gathering,
+which prevents the "local network access" permission popup from appearing.
+- Note: Enabling this may affect the quality of calls when devices are on the same local network,
+        as all media will be relayed through TURN servers.
+- Important: This setting is disabled by default to maintain optimal call quality.
 
 ## Methods
 ### `init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:reconnectClient:debug:forceRelayCandidate:)`
@@ -107,11 +106,7 @@ Constructor for the Telnyx SDK configuration using SIP credentials.
   - pushDeviceToken: (Optional) The device's push notification token, required for receiving inbound call notifications
   - ringtone: (Optional) The audio file name to play for incoming calls (e.g., "my-ringtone.mp3")
   - ringBackTone: (Optional) The audio file name to play while making outbound calls (e.g., "my-ringbacktone.mp3")
-  - pushEnvironment: (Optional) The environment for push notifications (development or production)
   - logLevel: (Optional) The verbosity level for SDK logs (defaults to `.none`)
-  - reconnectClient: (Optional) Whether to automatically reconnect when connection is lost (defaults to `true`)
-  - debug: (Optional) Enable WebRTC statistics reporting (defaults to `false`)
-  - forceRelayCandidate: (Optional) Force WebRTC to use TURN relay candidates only (defaults to `false`)
 
 #### Parameters
 
@@ -119,14 +114,10 @@ Constructor for the Telnyx SDK configuration using SIP credentials.
 | ---- | ----------- |
 | sipUser | The SIP username for authentication |
 | password | The password associated with the SIP user |
-| pushDeviceToken | (Optional) The device's push notification token, required for receiving inbound call notifications |
-| ringtone | (Optional) The audio file name to play for incoming calls (e.g., "my-ringtone.mp3") |
-| ringBackTone | (Optional) The audio file name to play while making outbound calls (e.g., "my-ringbacktone.mp3") |
-| pushEnvironment | (Optional) The environment for push notifications (development or production) |
+| pushDeviceToken | (Optional) The device’s push notification token, required for receiving inbound call notifications |
+| ringtone | (Optional) The audio file name to play for incoming calls (e.g., “my-ringtone.mp3”) |
+| ringBackTone | (Optional) The audio file name to play while making outbound calls (e.g., “my-ringbacktone.mp3”) |
 | logLevel | (Optional) The verbosity level for SDK logs (defaults to `.none`) |
-| reconnectClient | (Optional) Whether to automatically reconnect when connection is lost (defaults to `true`) |
-| debug | (Optional) Enable WebRTC statistics reporting (defaults to `false`) |
-| forceRelayCandidate | (Optional) Force WebRTC to use TURN relay candidates only (defaults to `false`) |
 
 ### `init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:debug:forceRelayCandidate:)`
 
@@ -147,23 +138,19 @@ Constructor for the Telnyx SDK configuration using JWT token authentication.
   - pushDeviceToken: (Optional) The device's push notification token, required for receiving inbound call notifications
   - ringtone: (Optional) The audio file name to play for incoming calls (e.g., "my-ringtone.mp3")
   - ringBackTone: (Optional) The audio file name to play while making outbound calls (e.g., "my-ringbacktone.mp3")
-  - pushEnvironment: (Optional) The environment for push notifications (development or production)
   - logLevel: (Optional) The verbosity level for SDK logs (defaults to `.none`)
-  - debug: (Optional) Enable WebRTC statistics reporting (defaults to `false`)
-  - forceRelayCandidate: (Optional) Force WebRTC to use TURN relay candidates only (defaults to `false`)
+  - serverConfiguration: (Optional) Custom configuration for signaling server and TURN/STUN servers (defaults to Telnyx Production servers)
 
 #### Parameters
 
 | Name | Description |
 | ---- | ----------- |
 | token | JWT token generated from https://developers.telnyx.com/docs/v2/webrtc/quickstart |
-| pushDeviceToken | (Optional) The device's push notification token, required for receiving inbound call notifications |
-| ringtone | (Optional) The audio file name to play for incoming calls (e.g., "my-ringtone.mp3") |
-| ringBackTone | (Optional) The audio file name to play while making outbound calls (e.g., "my-ringbacktone.mp3") |
-| pushEnvironment | (Optional) The environment for push notifications (development or production) |
+| pushDeviceToken | (Optional) The device’s push notification token, required for receiving inbound call notifications |
+| ringtone | (Optional) The audio file name to play for incoming calls (e.g., “my-ringtone.mp3”) |
+| ringBackTone | (Optional) The audio file name to play while making outbound calls (e.g., “my-ringbacktone.mp3”) |
 | logLevel | (Optional) The verbosity level for SDK logs (defaults to `.none`) |
-| debug | (Optional) Enable WebRTC statistics reporting (defaults to `false`) |
-| forceRelayCandidate | (Optional) Force WebRTC to use TURN relay candidates only (defaults to `false`) |
+| serverConfiguration | (Optional) Custom configuration for signaling server and TURN/STUN servers (defaults to Telnyx Production servers) |
 
 ### `validateParams()`
 
