@@ -198,7 +198,7 @@
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/TxClient.swift",
-      "line": 155,
+      "line": 154,
       "symbol": "TxClient.isSpeakerEnabled",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
