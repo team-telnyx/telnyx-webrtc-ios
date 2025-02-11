@@ -28,41 +28,41 @@ public struct TxServerConfiguration {
     ///   - pushMetaData: Contains push info when a PN is received
     public init(signalingServer: URL? = nil, webRTCIceServers: [RTCIceServer]? = nil, environment: WebRTCEnvironment = .production,pushMetaData:[String: Any]? = nil) {
         
-        // Get rtc_id  to setup TxPushServerConfig
+        // Get rtc_ip and rct_port to setup TxPushServerConfig
         let rtc_id = (pushMetaData?["voice_sdk_id"] as? String)
 
         self.pushMetaData = pushMetaData
     
         Logger.log.i(message: "TxServerConfiguration:: signalingServer [\(String(describing: signalingServer))] webRTCIceServers [\(String(describing: webRTCIceServers))] environment [\(String(describing: environment))] ip - [\(String(describing: rtc_id))]")
         
-        let encodedId = rtc_id.map {
-            return $0.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
-        } ?? ""
-        
-        let query = encodedId.isEmpty ? "" : "?voice_sdk_id=\(encodedId)"
-    
         
         if let signalingServer = signalingServer {
-               var components = URLComponents(url: signalingServer, resolvingAgainstBaseURL: false)
-
-               var updatedQueryItems = components?.queryItems?.filter { $0.name != "voice_sdk_id" } ?? []
-               updatedQueryItems.append(URLQueryItem(name: "voice_sdk_id", value: encodedId))
-               // Assign the modified query items back to components
-               components?.queryItems = updatedQueryItems
-               // Convert back to URL, fallback to default if invalid
-               self.signalingServer = components?.url ??  InternalConfig.default.prodSignalingServer
+            self.signalingServer = signalingServer
         } else {
             if environment == .production {
                 // Set signalingServer for push notifications
                 //pass voice_sdk_id fot proxy to assign the right instance to call
-                let pushRtcServer = "\(InternalConfig.default.prodSignalingServer)\(query)"
-                self.signalingServer = URL(string: pushRtcServer ) ??  InternalConfig.default.prodSignalingServer
+                if let pushId = rtc_id {
+                    let encodedId = pushId.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
+                    let query = "?voice_sdk_id=\(encodedId)"
+                    let pushRtcServer = "\(InternalConfig.default.prodSignalingServer)\(query)"
+                    self.signalingServer = URL(string: pushRtcServer ) ??  InternalConfig.default.prodSignalingServer
+                    
+                }else {
+                    self.signalingServer = InternalConfig.default.prodSignalingServer
+                }
             } else {
                 
                 // Set signalingServer for push notifications
                 //pass voice_sdk_id for proxy to assign the right instance to call
-                let pushRtcServer = "\(InternalConfig.default.developmentSignalingServer)\(query)"
-                self.signalingServer = URL(string: pushRtcServer ) ?? InternalConfig.default.developmentSignalingServer
+                if let pushId = rtc_id {
+                    let query = "?voice_sdk_id=\(pushId)"
+                    let pushRtcServer = "\(InternalConfig.default.developmentSignalingServer)\(query)"
+                    self.signalingServer = URL(string: pushRtcServer ) ?? InternalConfig.default.developmentSignalingServer
+                    
+                }else {
+                    self.signalingServer = InternalConfig.default.developmentSignalingServer
+                }
             }
             self.environment = environment
         }

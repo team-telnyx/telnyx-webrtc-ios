@@ -24,8 +24,6 @@ public enum CallState {
     case HELD
     /// Call has ended.
     case DONE
-    /// The active call is being recvered. Usually after a network switch or bad network
-    case RECONNECTING
 }
 
 enum CallDirection : String {
@@ -293,7 +291,7 @@ public class Call {
         self.ringTonePlayer = self.buildAudioPlayer(fileName: ringtone,fileType: .RINGTONE)
         self.ringbackPlayer = self.buildAudioPlayer(fileName: ringbackTone,fileType: .RINGBACK)
 
-        self.updateCallState(callState: .NEW)
+        self.updateCallState(callState: .RINGING)
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
     }
@@ -330,6 +328,7 @@ public class Call {
                 return
             }
             Logger.log.i(message: "Call:: Offer completed >> SDP: \(sdp)")
+            self.updateCallState(callState: .CONNECTING)
         })
     }
 
@@ -390,9 +389,10 @@ public class Call {
     internal func endForAttachCall() {
         self.statsReporter?.dispose()
         self.peer?.dispose()
+       // self.updateCallState(callState: .DONE)
     }
 
-    internal func updateCallState(callState: CallState) {
+    private func updateCallState(callState: CallState) {
         Logger.log.i(message: "Call state updated: \(callState)")
         self.callState = callState
         self.delegate?.callStateUpdated(call: self)
@@ -494,6 +494,8 @@ extension Call {
                 return
             }
             Logger.log.i(message: "Call:: Attach completed >> SDP: \(sdp)")
+            //self.peer?.startTimer()
+            //self.updateCallState(callState: .ACTIVE)
         })
     }
     
@@ -679,6 +681,7 @@ extension Call : PeerDelegate {
             )
             let message = answerMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
+            self.updateCallState(callState: .ACTIVE)
             Logger.log.s(message:"Send answer >> \(answerMessage)")
         }
     }

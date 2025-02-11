@@ -387,10 +387,6 @@ public class TxClient {
         socket?.disconnect(reconnect: false)
         delegate?.onSocketDisconnected()
     }
-    
-    private var isCallsActive: Bool {
-         !self.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
-    }
 
     /// To check if TxClient is connected to Telnyx server.
     /// - Returns: `true` if TxClient socket is connected, `false` otherwise.
@@ -796,11 +792,8 @@ extension TxClient: CallProtocol {
  */
 extension TxClient : SocketDelegate {
    
-    func reconnectClient() {
-        Logger.log.i(message: "Reconnect Called")
-        if self.isCallsActive {
-            self.calls[self.currentCallId]?.updateCallState(callState: CallState.RECONNECTING)
-        }
+    func recconectClient(){
+        Logger.log.i(message: "Reconnect Called 1")
         if let txConfig = self.txConfig {
             if(txConfig.reconnectClient){
                 guard let currentCall = self.calls[self.currentCallId] else {
@@ -810,6 +803,7 @@ extension TxClient : SocketDelegate {
                 }
                 currentCall.endForAttachCall()
                 self.socket?.disconnect(reconnect: true)
+             
             }else {
                 Logger.log.i(message: "TxClient:: Reconnect Disabled")
             }
@@ -870,7 +864,7 @@ extension TxClient : SocketDelegate {
     }
     
     func onSocketReconnectSuggested() {
-        reconnectClient()
+        recconectClient()
     }
 
     func onSocketError(error: Error) {
@@ -879,7 +873,7 @@ extension TxClient : SocketDelegate {
         self.delegate?.onClientError(error: error)
         //reconnect socket
         Logger.log.e(message:"TxClient:: SocketDelegate reconnect error" +  error.localizedDescription)
-        reconnectClient()
+        recconectClient()
     }
 
     /**
