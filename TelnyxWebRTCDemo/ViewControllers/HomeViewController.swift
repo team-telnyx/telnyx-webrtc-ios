@@ -291,7 +291,9 @@ extension HomeViewController {
                                 // You can choose the appropriate verbosity level of the SDK.
                                 logLevel: .all,
                                 // Enable webrtc stats debug
-                                debug: true)
+                                debug: true,
+                                // Force relay candidate
+                                forceRelayCandidate: false)
         } else if let credential = sipCredential {
             // To obtain SIP credentials, please go to https://portal.telnyx.com
             txConfig = TxConfig(sipUser: credential.username,
@@ -303,7 +305,9 @@ extension HomeViewController {
                                 logLevel: .all,
                                 reconnectClient: true,
                                 // Enable webrtc stats debug
-                                debug: true)
+                                debug: true,
+                                // Force relay candidate.
+                                forceRelayCandidate: false)
             
             // Store user / password in user defaults
             SipCredentialsManager.shared.addOrUpdateCredential(credential)
