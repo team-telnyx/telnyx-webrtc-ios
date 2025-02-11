@@ -146,6 +146,11 @@ public class Call {
     /// When true, the SDK will collect and send WebRTC statistics to Telnyx servers.
     /// This is useful for troubleshooting call quality issues.
     public internal(set) var debug: Bool = false
+    
+    /// Controls whether the SDK should force TURN relay for peer connections.
+    /// When enabled, the SDK will only use TURN relay candidates for ICE gathering,
+    /// which prevents the "local network access" permission popup from appearing.
+    public internal(set) var forceRelayCandidate: Bool = false
 
 
     // MARK: - Properties
@@ -194,7 +199,8 @@ public class Call {
          ringbackTone: String? = nil,
          iceServers: [RTCIceServer],
          isAttach: Bool = false,
-         debug: Bool = false
+         debug: Bool = false,
+         forceRelayCandidate: Bool = false
     ) {
         if isAttach {
             self.direction = CallDirection.ATTACH
@@ -229,6 +235,7 @@ public class Call {
         }
         
         self.debug = debug
+        self.forceRelayCandidate = forceRelayCandidate
     }
     
     //Contructor for attachCalls
@@ -240,7 +247,8 @@ public class Call {
          telnyxSessionId: UUID? = nil,
          telnyxLegId: UUID? = nil,
          iceServers: [RTCIceServer],
-         debug: Bool = false) {
+         debug: Bool = false,
+         forceRelayCandidate: Bool = false) {
         self.direction = CallDirection.ATTACH
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
@@ -258,6 +266,7 @@ public class Call {
         self.iceServers = iceServers
         
         self.debug = debug
+        self.forceRelayCandidate = forceRelayCandidate
     }
 
     /// Constructor for outgoing calls
@@ -268,7 +277,8 @@ public class Call {
          ringtone: String? = nil,
          ringbackTone: String? = nil,
          iceServers: [RTCIceServer],
-         debug: Bool = false) {
+         debug: Bool = false,
+         forceRelayCandidate: Bool = false) {
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
         //this is the signaling server socket
@@ -285,6 +295,7 @@ public class Call {
 
         self.updateCallState(callState: .NEW)
         self.debug = debug
+        self.forceRelayCandidate = forceRelayCandidate
     }
 
     // MARK: - Private functions
@@ -304,7 +315,7 @@ public class Call {
         // - Create the reporter to send the startReporting message before creating the peer connection
         // - Start the reporter once the peer connection is created
         self.configureStatsReporter()
-        self.peer = Peer(iceServers: self.iceServers)
+        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate)
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
@@ -431,7 +442,7 @@ extension Call {
         }
         self.answerCustomHeaders = customHeaders
         self.configureStatsReporter()
-        self.peer = Peer(iceServers: self.iceServers)
+        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate)
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
@@ -467,7 +478,7 @@ extension Call {
         self.statsReporter?.dispose()
         self.answerCustomHeaders = customHeaders
         self.configureStatsReporter()
-        self.peer = Peer(iceServers: self.iceServers, isAttach: true)
+        self.peer = Peer(iceServers: self.iceServers, isAttach: true, forceRelayCandidate: self.forceRelayCandidate)
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket

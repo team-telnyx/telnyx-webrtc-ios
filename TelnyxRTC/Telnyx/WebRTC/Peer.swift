@@ -107,14 +107,19 @@ class Peer : NSObject, WebRTCEventHandler {
     }
 
     required init(iceServers: [RTCIceServer],
-                  isAttach: Bool = false) {
+                  isAttach: Bool = false,
+                  forceRelayCandidate: Bool = false) {
         let config = RTCConfiguration()
         config.iceServers = iceServers
 
         // Unified plan is more superior than planB
         config.sdpSemantics = .unifiedPlan
         config.bundlePolicy = .maxCompat
-        
+
+        // Control local network access for ICE candidate gathering
+        if forceRelayCandidate {
+            config.iceTransportPolicy = .relay // Force TURN relay to avoid local network access
+        }
 
         // gatherContinually will let WebRTC to listen to any network changes and send any new candidates to the other client
         config.continualGatheringPolicy = .gatherContinually
