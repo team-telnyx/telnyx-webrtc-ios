@@ -97,6 +97,7 @@ extension HomeViewController : VoIPDelegate {
             self.callViewModel.callState = callState
             self.viewModel.callState = callState
 
+            print("CallState : \(callState)")
             switch (callState) {
                 case .CONNECTING:
                     break
@@ -105,8 +106,6 @@ extension HomeViewController : VoIPDelegate {
                 case .NEW:
                     break
                 case .ACTIVE:
-//                    self.incomingCallView.isHidden = true
-//                    self.callView.isHidden = false
                     if self.appDelegate.isCallOutGoing {
                         self.appDelegate.executeOutGoingCall()
                     }
@@ -115,6 +114,8 @@ extension HomeViewController : VoIPDelegate {
                     // self.resetCallStates()
                     break
                 case .HELD:
+                    break
+                case .RECONNECTING:
                     break
             }
 //            self.updateButtonsState()
