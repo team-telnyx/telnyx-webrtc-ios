@@ -388,8 +388,8 @@ public class TxClient {
         delegate?.onSocketDisconnected()
     }
     
-    private func isCallsActive() -> Bool {
-        return !self.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
+    private var isCallsActive: Bool {
+         !self.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
     }
 
     /// To check if TxClient is connected to Telnyx server.
@@ -794,9 +794,9 @@ extension TxClient: CallProtocol {
  */
 extension TxClient : SocketDelegate {
    
-    func reconnectClient(){
+    func reconnectClient() {
         Logger.log.i(message: "Reconnect Called")
-        if self.isCallsActive() {
+        if self.isCallsActive {
             self.calls[self.currentCallId]?.updateCallState(callState: CallState.RECONNECTING)
         }
         if let txConfig = self.txConfig {
