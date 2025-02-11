@@ -45,7 +45,7 @@ lane :generate_docs do
       --clean \
       --author "Telnyx LLC" \
       --author_url "https://www.telnyx.com/" \
-      --xcodebuild-arguments -workspace,TelnyxRTC.xcworkspace,-scheme,TelnyxRTC,-sdk,iphoneos \
+      --xcodebuild-arguments -workspace,TelnyxRTC.xcworkspace,-scheme,TelnyxRTC,-sdk,iphoneos,-destination,generic/platform=iOS \
       --output ./docs
   SHELL
   UI.message("📚 Documentation generated in ./docs")
@@ -57,7 +57,10 @@ lane :generate_docs_markdown do
     cd .. && sourcedocs generate --output-folder ./docs-markdown \
                               -- \
                               -workspace TelnyxRTC.xcworkspace \
-                              -scheme TelnyxRTC
+                              -scheme TelnyxRTC \
+                              -destination 'generic/platform=iOS'
+
+
   SHELL
   UI.message("📄 Markdown documentation generated in ./markdown")
 end
