@@ -794,9 +794,9 @@ extension TxClient: CallProtocol {
  */
 extension TxClient : SocketDelegate {
    
-    func recconectClient(){
+    func reconnectClient(){
         Logger.log.i(message: "Reconnect Called")
-        if(self.isCallsActive()) {
+        if self.isCallsActive() {
             self.calls[self.currentCallId]?.updateCallState(callState: CallState.RECONNECTING)
         }
         if let txConfig = self.txConfig {
@@ -868,7 +868,7 @@ extension TxClient : SocketDelegate {
     }
     
     func onSocketReconnectSuggested() {
-        recconectClient()
+        reconnectClient()
     }
 
     func onSocketError(error: Error) {
@@ -877,7 +877,7 @@ extension TxClient : SocketDelegate {
         self.delegate?.onClientError(error: error)
         //reconnect socket
         Logger.log.e(message:"TxClient:: SocketDelegate reconnect error" +  error.localizedDescription)
-        recconectClient()
+        reconnectClient()
     }
 
     /**
