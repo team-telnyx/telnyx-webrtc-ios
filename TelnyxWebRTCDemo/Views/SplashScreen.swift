@@ -12,6 +12,7 @@ struct SplashScreen: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 200)
+                    .accessibilityIdentifier(AccessibilityIdentifiers.splashLogo)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.white)

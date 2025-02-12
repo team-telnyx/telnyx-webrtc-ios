@@ -32,6 +32,7 @@ struct SipCredentialHeader: View {
                         .background(Color(hex: "#F5F3E4"))
                         .cornerRadius(16)
                 }
+                .accessibilityIdentifier(AccessibilityIdentifiers.addProfileButton)
                 Spacer()
             }
             HStack {

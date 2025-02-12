@@ -127,6 +127,16 @@ Enables WebRTC statistics reporting for debugging purposes.
 When true, the SDK will collect and send WebRTC statistics to Telnyx servers.
 This is useful for troubleshooting call quality issues.
 
+### `forceRelayCandidate`
+
+```swift
+public internal(set) var forceRelayCandidate: Bool = false
+```
+
+Controls whether the SDK should force TURN relay for peer connections.
+When enabled, the SDK will only use TURN relay candidates for ICE gathering,
+which prevents the "local network access" permission popup from appearing.
+
 ### `callInfo`
 
 ```swift

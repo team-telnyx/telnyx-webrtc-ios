@@ -24,8 +24,6 @@ public enum CallState {
     case HELD
     /// Call has ended.
     case DONE
-    /// The active call is being recvered. Usually after a network switch or bad network
-    case RECONNECTING
 }
 
 enum CallDirection : String {
@@ -146,6 +144,11 @@ public class Call {
     /// When true, the SDK will collect and send WebRTC statistics to Telnyx servers.
     /// This is useful for troubleshooting call quality issues.
     public internal(set) var debug: Bool = false
+    
+    /// Controls whether the SDK should force TURN relay for peer connections.
+    /// When enabled, the SDK will only use TURN relay candidates for ICE gathering,
+    /// which prevents the "local network access" permission popup from appearing.
+    public internal(set) var forceRelayCandidate: Bool = false
 
 
     // MARK: - Properties
@@ -194,7 +197,8 @@ public class Call {
          ringbackTone: String? = nil,
          iceServers: [RTCIceServer],
          isAttach: Bool = false,
-         debug: Bool = false
+         debug: Bool = false,
+         forceRelayCandidate: Bool = false
     ) {
         if isAttach {
             self.direction = CallDirection.ATTACH
@@ -229,6 +233,7 @@ public class Call {
         }
         
         self.debug = debug
+        self.forceRelayCandidate = forceRelayCandidate
     }
     
     //Contructor for attachCalls
@@ -240,7 +245,8 @@ public class Call {
          telnyxSessionId: UUID? = nil,
          telnyxLegId: UUID? = nil,
          iceServers: [RTCIceServer],
-         debug: Bool = false) {
+         debug: Bool = false,
+         forceRelayCandidate: Bool = false) {
         self.direction = CallDirection.ATTACH
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
@@ -258,6 +264,7 @@ public class Call {
         self.iceServers = iceServers
         
         self.debug = debug
+        self.forceRelayCandidate = forceRelayCandidate
     }
 
     /// Constructor for outgoing calls
@@ -268,7 +275,8 @@ public class Call {
          ringtone: String? = nil,
          ringbackTone: String? = nil,
          iceServers: [RTCIceServer],
-         debug: Bool = false) {
+         debug: Bool = false,
+         forceRelayCandidate: Bool = false) {
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
         //this is the signaling server socket
@@ -283,8 +291,9 @@ public class Call {
         self.ringTonePlayer = self.buildAudioPlayer(fileName: ringtone,fileType: .RINGTONE)
         self.ringbackPlayer = self.buildAudioPlayer(fileName: ringbackTone,fileType: .RINGBACK)
 
-        self.updateCallState(callState: .NEW)
+        self.updateCallState(callState: .RINGING)
         self.debug = debug
+        self.forceRelayCandidate = forceRelayCandidate
     }
 
     // MARK: - Private functions
@@ -304,7 +313,7 @@ public class Call {
         // - Create the reporter to send the startReporting message before creating the peer connection
         // - Start the reporter once the peer connection is created
         self.configureStatsReporter()
-        self.peer = Peer(iceServers: self.iceServers)
+        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate)
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
@@ -319,6 +328,7 @@ public class Call {
                 return
             }
             Logger.log.i(message: "Call:: Offer completed >> SDP: \(sdp)")
+            self.updateCallState(callState: .CONNECTING)
         })
     }
 
@@ -379,9 +389,10 @@ public class Call {
     internal func endForAttachCall() {
         self.statsReporter?.dispose()
         self.peer?.dispose()
+       // self.updateCallState(callState: .DONE)
     }
 
-    internal func updateCallState(callState: CallState) {
+    private func updateCallState(callState: CallState) {
         Logger.log.i(message: "Call state updated: \(callState)")
         self.callState = callState
         self.delegate?.callStateUpdated(call: self)
@@ -431,7 +442,7 @@ extension Call {
         }
         self.answerCustomHeaders = customHeaders
         self.configureStatsReporter()
-        self.peer = Peer(iceServers: self.iceServers)
+        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate)
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
@@ -467,7 +478,7 @@ extension Call {
         self.statsReporter?.dispose()
         self.answerCustomHeaders = customHeaders
         self.configureStatsReporter()
-        self.peer = Peer(iceServers: self.iceServers, isAttach: true)
+        self.peer = Peer(iceServers: self.iceServers, isAttach: true, forceRelayCandidate: self.forceRelayCandidate)
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
@@ -483,6 +494,8 @@ extension Call {
                 return
             }
             Logger.log.i(message: "Call:: Attach completed >> SDP: \(sdp)")
+            //self.peer?.startTimer()
+            //self.updateCallState(callState: .ACTIVE)
         })
     }
     
@@ -668,6 +681,7 @@ extension Call : PeerDelegate {
             )
             let message = answerMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
+            self.updateCallState(callState: .ACTIVE)
             Logger.log.s(message:"Send answer >> \(answerMessage)")
         }
     }

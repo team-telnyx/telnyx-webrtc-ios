@@ -90,11 +90,14 @@ struct SipCredentialsView: View {
                                                 SipCredentialsManager.shared.removeSelectedCredential()
                                                 selectedCredential = nil
                                                 tempSelectedCredential = nil
+                                                isSelectedCredentialChanged = true
                                             }
                                             SipCredentialsManager.shared.removeCredential(username: credential.username)
                                             credentialsList = SipCredentialsManager.shared.getCredentials()
                                             if !credentialsList.isEmpty {
                                                 tempSelectedCredential = credentialsList.first
+                                                SipCredentialsManager.shared.saveSelectedCredential(tempSelectedCredential!)
+                                                isSelectedCredentialChanged = true
                                             }
                                         }
                                     }

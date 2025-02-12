@@ -22,6 +22,7 @@ struct DTMFKeyboardView: View {
                     Image(systemName: "xmark")
                         .foregroundColor(Color(hex: "#1D1D1D"))
                 }
+                .accessibilityIdentifier(AccessibilityIdentifiers.dtmfClose)
             }
             .padding(.horizontal)
             .padding(.top)
@@ -29,6 +30,7 @@ struct DTMFKeyboardView: View {
             TextField("", text: .constant(viewModel.displayText))
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .disabled(true)
+                .accessibilityIdentifier(AccessibilityIdentifiers.dtmfPad)
                 .padding(.horizontal)
             
             VStack(spacing: 12) {
@@ -46,6 +48,7 @@ struct DTMFKeyboardView: View {
                                     .background(Color(hex: "#F5F3E4"))
                                     .clipShape(Circle())
                             }
+                            .accessibilityIdentifier(AccessibilityIdentifiers.dtmfKey(key))
                         }
                     }
                 }

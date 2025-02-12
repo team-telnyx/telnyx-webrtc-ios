@@ -145,6 +145,8 @@ let txConfigUserAndPassowrd = TxConfig(sipUser: sipUser,
                                        pushDeviceToken: "DEVICE_APNS_TOKEN",
                                        ringtone: "incoming_call.mp3",
                                        ringBackTone: "ringback_tone.mp3",
+                                       // Force TURN relay to avoid local network access
+                                       forceRelayCandidate: true,
                                        //You can choose the appropriate verbosity level of the SDK.
                                        //Logs are disabled by default
                                        logLevel: .all)
@@ -154,6 +156,8 @@ let txConfigToken = TxConfig(token: "MY_JWT_TELNYX_TOKEN",
                              pushDeviceToken: "DEVICE_APNS_TOKEN",
                              ringtone: "incoming_call.mp3",
                              ringBackTone: "ringback_tone.mp3",
+                             // Force TURN relay to avoid local network access
+                             forceRelayCandidate: true,
                              //You can choose the appropriate verbosity level of the SDK. Logs are disabled by default
                              logLevel: .all)
 

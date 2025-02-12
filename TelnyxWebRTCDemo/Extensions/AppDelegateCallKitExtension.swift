@@ -266,7 +266,9 @@ extension AppDelegate : CXProviderDelegate {
                                 logLevel: .all,
                                 reconnectClient: true,
                                 // Enable WebRTC stats debug
-                                debug: true)
+                                debug: true,
+                                // Force relay candidate
+                                forceRelayCandidate: false)
         
         do {
             try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)

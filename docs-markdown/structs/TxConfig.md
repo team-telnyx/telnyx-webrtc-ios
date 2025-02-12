@@ -70,8 +70,21 @@ Enables WebRTC communication statistics reporting to Telnyx servers.
   - `logLevel`: Controls console log output in Xcode when running the app in debug mode.
 - Important: The `debug` flag is disabled by default to minimize data usage.
 
+### `forceRelayCandidate`
+
+```swift
+public internal(set) var forceRelayCandidate: Bool = false
+```
+
+Controls whether the SDK should force TURN relay for peer connections.
+When enabled, the SDK will only use TURN relay candidates for ICE gathering,
+which prevents the "local network access" permission popup from appearing.
+- Note: Enabling this may affect the quality of calls when devices are on the same local network,
+        as all media will be relayed through TURN servers.
+- Important: This setting is disabled by default to maintain optimal call quality.
+
 ## Methods
-### `init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:reconnectClient:debug:)`
+### `init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:reconnectClient:debug:forceRelayCandidate:)`
 
 ```swift
 public init(sipUser: String, password: String,
@@ -81,7 +94,8 @@ public init(sipUser: String, password: String,
             pushEnvironment: PushEnvironment? = nil,
             logLevel: LogLevel = .none,
             reconnectClient: Bool = true,
-            debug: Bool = false
+            debug: Bool = false,
+            forceRelayCandidate: Bool = false
 )
 ```
 
@@ -105,7 +119,7 @@ Constructor for the Telnyx SDK configuration using SIP credentials.
 | ringBackTone | (Optional) The audio file name to play while making outbound calls (e.g., “my-ringbacktone.mp3”) |
 | logLevel | (Optional) The verbosity level for SDK logs (defaults to `.none`) |
 
-### `init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:debug:)`
+### `init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:debug:forceRelayCandidate:)`
 
 ```swift
 public init(token: String,
@@ -114,7 +128,8 @@ public init(token: String,
             ringBackTone: String? = nil,
             pushEnvironment: PushEnvironment? = nil,
             logLevel: LogLevel = .none,
-            debug: Bool = false)
+            debug: Bool = false,
+            forceRelayCandidate: Bool = false)
 ```
 
 Constructor for the Telnyx SDK configuration using JWT token authentication.

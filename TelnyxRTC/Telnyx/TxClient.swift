@@ -387,10 +387,6 @@ public class TxClient {
         socket?.disconnect(reconnect: false)
         delegate?.onSocketDisconnected()
     }
-    
-    private var isCallsActive: Bool {
-         !self.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
-    }
 
     /// To check if TxClient is connected to Telnyx server.
     /// - Returns: `true` if TxClient socket is connected, `false` otherwise.
@@ -589,7 +585,8 @@ extension TxClient {
                         ringtone: self.txConfig?.ringtone,
                         ringbackTone: self.txConfig?.ringBackTone,
                         iceServers: self.serverConfiguration.webRTCIceServers,
-                        debug: self.txConfig?.debug ?? false)
+                        debug: self.txConfig?.debug ?? false,
+                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false)
         call.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState, customHeaders: customHeaders)
 
         currentCallId = callId
@@ -631,7 +628,8 @@ extension TxClient {
                         ringbackTone: self.txConfig?.ringBackTone,
                         iceServers: self.serverConfiguration.webRTCIceServers,
                         isAttach: isAttach,
-                        debug: self.txConfig?.debug ?? false)
+                        debug: self.txConfig?.debug ?? false,
+                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false)
         call.callInfo?.callerName = callerName
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)
@@ -718,7 +716,7 @@ extension TxClient {
                 
                 // Create an initial call_object to handle early bye message
                 if let newCallId = (pushMetaData["call_id"] as? String) {
-                    self.calls[UUID(uuidString: newCallId)!] = Call(callId: UUID(uuidString: newCallId)! , sessionId: newCallId, socket: self.socket!, delegate: self, iceServers: self.serverConfiguration.webRTCIceServers, debug: self.txConfig?.debug ?? false)
+                    self.calls[UUID(uuidString: newCallId)!] = Call(callId: UUID(uuidString: newCallId)! , sessionId: newCallId, socket: self.socket!, delegate: self, iceServers: self.serverConfiguration.webRTCIceServers, debug: self.txConfig?.debug ?? false, forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false)
                 }
             } catch let error {
                 Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
@@ -794,11 +792,8 @@ extension TxClient: CallProtocol {
  */
 extension TxClient : SocketDelegate {
    
-    func reconnectClient() {
-        Logger.log.i(message: "Reconnect Called")
-        if self.isCallsActive {
-            self.calls[self.currentCallId]?.updateCallState(callState: CallState.RECONNECTING)
-        }
+    func recconectClient(){
+        Logger.log.i(message: "Reconnect Called 1")
         if let txConfig = self.txConfig {
             if(txConfig.reconnectClient){
                 guard let currentCall = self.calls[self.currentCallId] else {
@@ -808,6 +803,7 @@ extension TxClient : SocketDelegate {
                 }
                 currentCall.endForAttachCall()
                 self.socket?.disconnect(reconnect: true)
+             
             }else {
                 Logger.log.i(message: "TxClient:: Reconnect Disabled")
             }
@@ -868,7 +864,7 @@ extension TxClient : SocketDelegate {
     }
     
     func onSocketReconnectSuggested() {
-        reconnectClient()
+        recconectClient()
     }
 
     func onSocketError(error: Error) {
@@ -877,7 +873,7 @@ extension TxClient : SocketDelegate {
         self.delegate?.onClientError(error: error)
         //reconnect socket
         Logger.log.e(message:"TxClient:: SocketDelegate reconnect error" +  error.localizedDescription)
-        reconnectClient()
+        recconectClient()
     }
 
     /**

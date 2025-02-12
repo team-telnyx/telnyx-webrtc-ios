@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [1.0.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/1.0.0) (2025-02-11)
+
+### Enhacement
+- Added forceRelayCandidate configuration:
+    - Allows control over local network access on iOS.
+    - When set to true, the connection will only use TURN servers, preventing local network candidate gathering and avoiding the permission popup.
+
+- Enabled SDK support for simulators on Mac with M-series chips: Improved compatibility to allow testing the SDK on Apple Silicon simulators.
+
 ## [0.1.42](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/0.1.42) (2025-02-04)
 
 ### Bug Fixes
