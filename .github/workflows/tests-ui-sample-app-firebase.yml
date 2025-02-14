@@ -47,12 +47,14 @@ jobs:
 
       - name: Build UI Tests
         run: |
-          xcodebuild build-for-testing \
-            -workspace TelnyxWebRTCDemo.xcworkspace \
-            -scheme TelnyxWebRTCDemo \
-            -sdk iphoneos \
-            -configuration Debug \
-            -derivedDataPath build
+              xcodebuild build-for-testing \                                                                                                                                                                                                        (base)
+                        -workspace TelnyxRTC.xcworkspace \
+                        -scheme TelnyxWebRTCDemo \
+                        -sdk iphoneos \
+                        -configuration Debug \
+                        -destination 'generic/platform=iOS' \
+                        -derivedDataPath build \
+                        SUPPORTS_MACCATALYST=NO
 
       - name: Create test zip
         run: |
