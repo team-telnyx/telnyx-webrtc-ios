@@ -30,7 +30,7 @@ jobs:
 
       - name: Set up environment
         run: |
-          sh setup_uitest_env.sh \
+          sh scripts/setup_uitest_env.sh \
             -u "${{ secrets.TEST_UI_SIP_USER }}" \
             -p "${{ secrets.TEST_UI_SIP_PASSWORD }}" \
             -t "${{ secrets.TEST_UI_SIP_TOKEN }}" \
