@@ -1,0 +1,58 @@
+name: Run iOS UI Tests on Firebase Test Lab
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ui-tests:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Xcode version
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: Authenticate with Google Cloud
+        run: |
+          echo "${{ secrets.GCLOUD_SERVICE_KEY }}" | gcloud auth activate-service-account --key-file=-
+          gcloud config set project ${{ secrets.GCLOUD_PROJECT_ID }}
+        env:
+          GCLOUD_SERVICE_KEY: ${{ secrets.GCLOUD_SERVICE_KEY }}
+
+      - name: Set up environment
+        run: ./setup_uitest_env.sh
+        env:
+          FIREBASE_PLIST_BASE64: ${{ secrets.FIREBASE_PLIST_BASE64 }}
+
+      - name: Decode and create GoogleService-Info.plist
+        run: |
+          echo $FIREBASE_PLIST_BASE64 | base64 --decode > path/to/GoogleService-Info.plist
+
+      - name: Install dependencies
+        run: |
+          brew install google-cloud-sdk
+          gcloud components install firebase-test
+
+      - name: Build UI Tests
+        run: |
+          xcodebuild build-for-testing \
+            -workspace TelnyxWebRTCDemo.xcworkspace \
+            -scheme TelnyxWebRTCDemo \
+            -sdk iphoneos \
+            -configuration Debug \
+            -derivedDataPath build
+
+      - name: Create test zip
+        run: |
+          TEST_RUN_FILE=$(find build/Build/Products -name "*.xctestrun" | head -n 1)
+          zip -r TelnyxWebRTCDemoUITests.zip \
+              build/Build/Products/Debug-iphoneos \
+              "$TEST_RUN_FILE"
+
+      - name: Run tests on Firebase Test Lab
+        run: |
+          gcloud firebase test ios run \
+            --test TelnyxWebRTCDemoUITests.zip \
+            --device model=iphone14pro,version=16.6,locale=en_US,orientation=portrait
