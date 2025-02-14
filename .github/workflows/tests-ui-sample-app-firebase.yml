@@ -1,4 +1,4 @@
-name: Run iOS UI Tests on Firebase Test Lab
+name: tests-ui-sample-app-firebase
 
 on:
   workflow_dispatch:
@@ -35,6 +35,7 @@ jobs:
             -p "${{ secrets.TEST_UI_SIP_PASSWORD }}" \
             -t "${{ secrets.TEST_UI_SIP_TOKEN }}" \
             -d "${{ secrets.TEST_UI_DESTINATION_NUMBER }}"
+            -c "${{ secrets.TEST_IU_CALLER_NUMBER }}"
 
       - name: Install Google Cloud SDK
         run: |
