@@ -37,14 +37,13 @@ jobs:
             -d "${{ secrets.TEST_UI_DESTINATION_NUMBER }}" \
             -c "${{ secrets.TEST_IU_CALLER_NUMBER }}"
 
-      - name: Install Google Cloud SDK
-        run: |
-          brew install google-cloud-sdk
-
       - name: Authenticate with Google Cloud
-        run: |
-          echo "${{ secrets.TEST_UI_GCLOUD_SERVICE_KEY }}" | gcloud auth activate-service-account --key-file=-
-          gcloud config set project ${{ secrets.TEST_UI_GCLOUD_PROJECT_ID }}
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.TEST_UI_GCLOUD_SERVICE_KEY }}'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
 
       - name: Build UI Tests
         run: |
