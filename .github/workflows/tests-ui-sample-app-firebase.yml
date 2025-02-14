@@ -11,29 +11,40 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Xcode version
-        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+      - name: Select Xcode version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '15.4.0'
 
-      - name: Authenticate with Google Cloud
-        run: |
-          echo "${{ secrets.GCLOUD_SERVICE_KEY }}" | gcloud auth activate-service-account --key-file=-
-          gcloud config set project ${{ secrets.GCLOUD_PROJECT_ID }}
-        env:
-          GCLOUD_SERVICE_KEY: ${{ secrets.GCLOUD_SERVICE_KEY }}
-
-      - name: Set up environment
-        run: ./setup_uitest_env.sh
-        env:
-          FIREBASE_PLIST_BASE64: ${{ secrets.FIREBASE_PLIST_BASE64 }}
-
-      - name: Decode and create GoogleService-Info.plist
-        run: |
-          echo $FIREBASE_PLIST_BASE64 | base64 --decode > path/to/GoogleService-Info.plist
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3.0
+          bundler-cache: true
 
       - name: Install dependencies
+        run: pod install
+
+      - name: Decode and create GoogleService-Info.plist
+        run: echo $TEST_UI_FIREBASE_PLIST_BASE64 | base64 --decode > TelnyxWebRTCDemo/GoogleService-Info.plist
+
+      - name: Set up environment
+        run: |
+          sh setup_uitest_env.sh \
+            -u "${{ secrets.TEST_UI_SIP_USER }}" \
+            -p "${{ secrets.TEST_UI_SIP_PASSWORD }}" \
+            -t "${{ secrets.TEST_UI_SIP_TOKEN }}" \
+            -d "${{ secrets.TEST_UI_DESTINATION_NUMBER }}"
+
+      - name: Install Google Cloud SDK
         run: |
           brew install google-cloud-sdk
           gcloud components install firebase-test
+
+      - name: Authenticate with Google Cloud
+        run: |
+          echo "${{ secrets.TEST_UI_GCLOUD_SERVICE_KEY }}" | gcloud auth activate-service-account --key-file=-
+          gcloud config set project ${{ secrets.TEST_UI_GCLOUD_PROJECT_ID }}
 
       - name: Build UI Tests
         run: |
