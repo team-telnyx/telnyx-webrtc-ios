@@ -34,7 +34,7 @@ jobs:
             -u "${{ secrets.TEST_UI_SIP_USER }}" \
             -p "${{ secrets.TEST_UI_SIP_PASSWORD }}" \
             -t "${{ secrets.TEST_UI_SIP_TOKEN }}" \
-            -d "${{ secrets.TEST_UI_DESTINATION_NUMBER }}"
+            -d "${{ secrets.TEST_UI_DESTINATION_NUMBER }}" \
             -c "${{ secrets.TEST_IU_CALLER_NUMBER }}"
 
       - name: Install Google Cloud SDK
