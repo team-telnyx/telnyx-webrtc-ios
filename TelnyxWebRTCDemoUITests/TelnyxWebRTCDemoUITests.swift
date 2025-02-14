@@ -17,7 +17,7 @@ final class TelnyxWebRTCDemoUITests: XCTestCase {
         app.terminate()
     }
     
-    func testAppLaunch() {
+    func test_01_AppLaunch() {
         // Test app launch and bottom sheet appearance
         XCTAssertTrue(app.exists)
         let homeView = app.images[AccessibilityIdentifiers.homeViewLogo]
@@ -25,7 +25,7 @@ final class TelnyxWebRTCDemoUITests: XCTestCase {
     }
     
     
-    func testUserCreation() throws {
+    func test_02_testUserCreation() throws {
         // Test app launch and bottom sheet appearance
         sleep(1)
         XCTAssertTrue(app.exists)
@@ -90,9 +90,10 @@ final class TelnyxWebRTCDemoUITests: XCTestCase {
         sleep(5)
     }
     
-    func testCallFlow() {
+    func test_03_testCallFlow() {
         
         sleep(1)
+        XCTAssertTrue(app.exists)
         let homeViewLogo = app.images[AccessibilityIdentifiers.homeViewLogo]
         XCTAssertTrue(homeViewLogo.waitForExistence(timeout: 5), "HomeView did not appear after signing in")
         sleep(1)
@@ -100,7 +101,7 @@ final class TelnyxWebRTCDemoUITests: XCTestCase {
         let connectButton = app.buttons[AccessibilityIdentifiers.connectButton]
         XCTAssertTrue(connectButton.waitForExistence(timeout: 5))
         connectButton.tap()
-        sleep(1)
+        sleep(5)
         
         // Enter number to call
         let numberField = app.textFields[AccessibilityIdentifiers.numberToCallTextField]
