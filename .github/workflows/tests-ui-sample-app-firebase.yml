@@ -47,7 +47,7 @@ jobs:
 
       - name: Build UI Tests
         run: |
-              xcodebuild build-for-testing \                                                                                                                                                                                                        (base)
+              xcodebuild build-for-testing \
                         -workspace TelnyxRTC.xcworkspace \
                         -scheme TelnyxWebRTCDemo \
                         -sdk iphoneos \
