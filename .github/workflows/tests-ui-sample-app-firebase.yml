@@ -40,7 +40,6 @@ jobs:
       - name: Install Google Cloud SDK
         run: |
           brew install google-cloud-sdk
-          gcloud components install firebase-test
 
       - name: Authenticate with Google Cloud
         run: |
