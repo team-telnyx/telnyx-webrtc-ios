@@ -1,11 +1,3 @@
-//
-//  Logger.swift
-//  TelnyxRTC
-//
-//  Created by Guillermo Battistel on 29/03/2021.
-//  Copyright © 2021 Telnyx LLC. All rights reserved.
-//
-
 import Foundation
 
 /// Available Log levels:
@@ -61,28 +53,96 @@ class Logger {
 
     internal static let log = Logger()
 
-    /// represents the current log level: `all` is set as default
+    /// Represents the current log level: `all` is set as default
     internal var verboseLevel: LogLevel = .all
 
     private var statsGlyph: String = "\u{1F4CA}"     // Glyph for messages of level .Stats
-
     private var rightArrowGlyph: String = "\u{25B6}"
     private var leftArrowGlyph: String = "\u{25C0}"
-
     private var errorGlyph: String = "\u{1F6AB}"    // Glyph for messages of level .Error
     private var warningGlyph: String = "\u{1F514}"  // Glyph for messages of level .Warning
     private var successGlyph: String = "\u{2705}"   // Glyph for messages of level .Success
     private var infoGlyph: String = "\u{1F535}"     // Glyph for messages of level .Info
-    private var timeStamp:Timestamp = Timestamp()
+    private var timeStamp: Timestamp = Timestamp()
     
-    private init() {}
-
+    /// File handle for logging to a file
+    private var logFileHandle: FileHandle?
+    private let logQueue = DispatchQueue(label: "com.telnyx.logger.queue", attributes: .concurrent)
+    
+    private init() {
+        // Initialize the log file
+        setupLogFile()
+    }
+    
+    deinit {
+        logFileHandle?.closeFile()
+    }
+    
+    /// Sets up the log file
+    private func setupLogFile() {
+        let fileManager = FileManager.default
+        let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let logFileURL = documentsDirectory.appendingPathComponent("TelnyxRTC.log")
+        
+        // Create the log file if it doesn't exist
+        if !fileManager.fileExists(atPath: logFileURL.path) {
+            fileManager.createFile(atPath: logFileURL.path, contents: nil, attributes: nil)
+        }
+        
+        // Open the log file for writing
+        do {
+            logFileHandle = try FileHandle(forWritingTo: logFileURL)
+            logFileHandle?.seekToEndOfFile() // Append to the end of the file
+        } catch {
+            print("Failed to open log file: \(error)")
+        }
+    }
+    
+    /// Writes a log message to the file
+    private func writeToLogFile(_ message: String) {
+        //print(message)
+        logQueue.async(flags: .barrier) {
+            if let data = message.data(using: .utf8) {
+                self.logFileHandle?.write(data)
+            }
+        }
+    }
+    
+    /// Retrieves the logs as a string
+    public func getLogs() -> String? {
+        let fileManager = FileManager.default
+        let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let logFileURL = documentsDirectory.appendingPathComponent("TelnyxRTC.log")
+        
+        do {
+            print("\n Reading log file...")
+            let logData = try Data(contentsOf: logFileURL)
+            let logString = String(data: logData, encoding: .utf8)
+            return logString
+        } catch {
+            print("Failed to read log file: \(error)")
+            return nil
+        }
+    }
+    
+    public func clearLog() {
+        let fileManager = FileManager.default
+        let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let fileURL = documentsDirectory.appendingPathComponent("TelnyxRTC.log")
+            do {
+                try "".write(to: fileURL, atomically: true, encoding: .utf8)
+            } catch {
+                print("Error clearing log file: \(error)")
+            }
+        }
 
     /// Prints information messages if `verboseLevel` is set to `.all` or `.info`
     /// - Parameter message: message to be printed
     public func i(message: String) {
         if verboseLevel == .all || verboseLevel == .info {
-            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .info, message: message))
+            let logMessage = "TxClient : \(timeStamp.getTimestamp())" + buildMessage(level: .info, message: message)
+            //print(logMessage)
+            writeToLogFile(logMessage)
         }
     }
 
@@ -90,7 +150,9 @@ class Logger {
     /// - Parameter message: message to be printed
     public func e(message: String) {
         if verboseLevel == .all || verboseLevel == .error {
-            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .error, message: message))
+            let logMessage = "TxClient : \(timeStamp.getTimestamp())" + buildMessage(level: .error, message: message)
+            //print(logMessage)
+            writeToLogFile(logMessage)
         }
     }
 
@@ -98,7 +160,9 @@ class Logger {
     /// - Parameter message: message to be printed
     public func w(message: String) {
         if verboseLevel == .all || verboseLevel == .warning {
-            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .warning, message: message))
+            let logMessage = "TxClient : \(timeStamp.getTimestamp())" + buildMessage(level: .warning, message: message)
+           // print(logMessage)
+            writeToLogFile(logMessage)
         }
     }
 
@@ -106,7 +170,9 @@ class Logger {
     /// - Parameter message: message to be printed
     public func s(message: String) {
         if verboseLevel == .all || verboseLevel == .success {
-            print( "TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .success, message: message))
+            let logMessage = "TxClient : \(timeStamp.getTimestamp())" + buildMessage(level: .success, message: message)
+            //print(logMessage)
+            writeToLogFile(logMessage)
         }
     }
 
@@ -116,13 +182,17 @@ class Logger {
     ///   - direction: direction of the message. Inbound-outbound
     public func verto(message: String, direction: VertoDirection) {
         if verboseLevel == .all || verboseLevel == .verto {
-            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .verto, message: message, direction: direction))
+            let logMessage = "TxClient : \(timeStamp.getTimestamp())" + buildMessage(level: .verto, message: message, direction: direction)
+            //print(logMessage)
+            writeToLogFile(logMessage)
         }
     }
     
     public func stats(message: String) {
         if verboseLevel == .all || verboseLevel == .stats {
-            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .stats, message: message))
+            let logMessage = "TxClient : \(timeStamp.getTimestamp())" + buildMessage(level: .stats, message: message)
+           //. print(logMessage)
+            writeToLogFile(logMessage)
         }
     }
 
@@ -143,4 +213,3 @@ class Logger {
         return getLogGlyph(level: level, direction: direction) + " " + message + "\n"
     }
 }
-

@@ -305,7 +305,7 @@ extension HomeViewController {
                                 logLevel: .all,
                                 reconnectClient: true,
                                 // Enable webrtc stats debug
-                                debug: true,
+                                debug: false,
                                 // Force relay candidate.
                                 forceRelayCandidate: false)
             

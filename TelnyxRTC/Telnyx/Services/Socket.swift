@@ -98,7 +98,6 @@ extension Socket : WebSocketDelegate {
             Logger.log.i(message: "Socket:: WebSocketDelegate viablility Changed")
             break
         case .reconnectSuggested(_):
-            self.delegate?.onSocketReconnectSuggested()
             Logger.log.i(message: "Socket:: WebSocketDelegate reconnect Suggested")
             break
         case .peerClosed:
