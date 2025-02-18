@@ -62,7 +62,7 @@ jobs:
                         -configuration Debug \
                         -destination 'generic/platform=iOS' \
                         -derivedDataPath build \
-                        SUPPORTS_MACCATALYST=NO
+                        SUPPORTS_MACCATALYST=NO \
                         -allowProvisioningUpdates
 
       - name: Create test zip
