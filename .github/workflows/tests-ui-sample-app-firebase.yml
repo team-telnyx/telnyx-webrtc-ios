@@ -28,6 +28,13 @@ jobs:
       - name: Decode and create GoogleService-Info.plist
         run: echo $TEST_UI_FIREBASE_PLIST_BASE64 | base64 --decode > TelnyxWebRTCDemo/GoogleService-Info.plist
 
+      - name: Verify GoogleService-Info.plist
+        run: |
+          if [ ! -f TelnyxWebRTCDemo/GoogleService-Info.plist ]; then
+            echo "GoogleService-Info.plist not found!"
+            exit 1
+          fi
+
       - name: Set up environment
         run: |
           sh scripts/setup_uitest_env.sh \
