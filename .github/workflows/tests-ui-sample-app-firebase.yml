@@ -53,6 +53,9 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           mv provisioning_profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
 
+      - name: Install xcpretty
+        run: gem install xcpretty
+
       - name: Build UI Tests
         run: |
               xcodebuild build-for-testing \
