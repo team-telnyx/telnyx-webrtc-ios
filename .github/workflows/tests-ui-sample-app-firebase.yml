@@ -63,7 +63,8 @@ jobs:
                         -destination 'generic/platform=iOS' \
                         -derivedDataPath build \
                         SUPPORTS_MACCATALYST=NO \
-                        -allowProvisioningUpdates
+                        -allowProvisioningUpdates \
+                        | xcpretty
 
       - name: Create test zip
         run: |
