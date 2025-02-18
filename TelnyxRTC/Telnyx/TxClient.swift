@@ -251,7 +251,6 @@ public class TxClient {
         // Start monitoring audio route changes
         setupAudioRouteChangeMonitoring()
         print(Logger.log.getLogs() ?? "")
-        //Logger.log.clearLog()
 
         
         NetworkMonitor.shared.startMonitoring()
@@ -263,10 +262,10 @@ public class TxClient {
                    DispatchQueue.main.async {
                        switch state {
                        case .wifi:
-                           Logger.log.i(message: "Connected to Wi-Fi")
+                           Logger.log.e(message: "Connected to Wi-Fi")
                            self.reconnectClient()
                        case .cellular:
-                           Logger.log.i(message:"Connected to Cellular")
+                           Logger.log.e(message:"Connected to Cellular")
                            self.reconnectClient()
                        case .noConnection:
                            Logger.log.e(message:"No network connection")
@@ -393,6 +392,7 @@ public class TxClient {
     /// Disconnects the TxClient from the Telnyx signaling server.
     public func disconnect() {
         Logger.log.i(message: "TxClient:: disconnect()")
+        Logger.log.clearLog()
         self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
         self.gatewayState = .NOREG
 
