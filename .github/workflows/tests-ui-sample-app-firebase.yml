@@ -81,18 +81,23 @@ jobs:
       - name: Install xcpretty
         run: gem install xcpretty
 
+      - name: Unlock keychain
+        run: |
+          security unlock-keychain -p "${{ secrets.KEYCHAIN_PASSWORD }}" build.keychain
+
       - name: Build UI Tests
         run: |
-              xcodebuild build-for-testing \
-                        -workspace TelnyxRTC.xcworkspace \
-                        -scheme TelnyxWebRTCDemo \
-                        -sdk iphoneos \
-                        -configuration Debug \
-                        -destination 'generic/platform=iOS' \
-                        -derivedDataPath build \
-                        SUPPORTS_MACCATALYST=NO \
-                        -allowProvisioningUpdates \
-                        | xcpretty
+          set -x
+          xcodebuild build-for-testing \
+                    -workspace TelnyxRTC.xcworkspace \
+                    -scheme TelnyxWebRTCDemo \
+                    -sdk iphoneos \
+                    -configuration Debug \
+                    -destination 'generic/platform=iOS' \
+                    -derivedDataPath build \
+                    SUPPORTS_MACCATALYST=NO \
+                    -allowProvisioningUpdates \
+                    | xcpretty
 
       - name: Create test zip
         run: |
