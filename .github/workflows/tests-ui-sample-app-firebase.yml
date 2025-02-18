@@ -26,7 +26,7 @@ jobs:
         run: pod install
 
       - name: Decode and create GoogleService-Info.plist
-        run: echo $TEST_UI_FIREBASE_PLIST_BASE64 | base64 --decode > TelnyxWebRTCDemo/GoogleService-Info.plist
+        run: echo "${{ secrets.TEST_UI_FIREBASE_PLIST_BASE64 }}" | base64 --decode > TelnyxWebRTCDemo/GoogleService-Info.plist
 
       - name: Verify GoogleService-Info.plist
         run: |
