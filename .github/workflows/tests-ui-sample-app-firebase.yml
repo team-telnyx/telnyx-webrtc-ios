@@ -53,6 +53,11 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           mv provisioning_profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
 
+      - name: Clean Xcode build cache
+        run: |
+          sudo xcodebuild -alltargets clean
+          sudo rm -rf ~/Library/Developer/Xcode/DerivedData/*
+
       - name: Disable UI prompts
         run: |
           sudo defaults write /Library/Preferences/com.apple.security.revocation CRLStyle None
