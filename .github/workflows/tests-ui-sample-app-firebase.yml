@@ -45,6 +45,14 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Add signing certificates
+        run: |
+          echo "${{ secrets.APPLE_CERTIFICATE }}" | base64 --decode > certificate.p12
+          echo "${{ secrets.APPLE_CERTIFICATE_PASSWORD }}" | security import certificate.p12 -P -k ~/Library/Keychains/login.keychain-db
+          echo "${{ secrets.APPLE_PROVISIONING_PROFILE }}" | base64 --decode > provisioning_profile.mobileprovision
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          mv provisioning_profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+
       - name: Build UI Tests
         run: |
               xcodebuild build-for-testing \
@@ -68,3 +76,10 @@ jobs:
           gcloud firebase test ios run \
             --test TelnyxWebRTCDemoUITests.zip \
             --device model=iphone14pro,version=16.6,locale=en_US,orientation=portrait
+
+      - name: Clean up environment
+        if: always()
+        run: |
+          security delete-keychain ~/Library/Keychains/login.keychain-db
+          rm -rf ~/Library/MobileDevice/Provisioning\ Profiles/provisioning_profile.mobileprovision
+          rm -f certificate.p12
