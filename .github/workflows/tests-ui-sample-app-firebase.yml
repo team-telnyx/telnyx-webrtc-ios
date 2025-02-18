@@ -53,6 +53,11 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           mv provisioning_profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
 
+      - name: Disable UI prompts
+        run: |
+          sudo defaults write /Library/Preferences/com.apple.security.revocation CRLStyle None
+          sudo defaults write /Library/Preferences/com.apple.security.revocation OCSPStyle None
+
       - name: Install xcpretty
         run: gem install xcpretty
 
