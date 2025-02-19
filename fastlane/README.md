@@ -61,6 +61,14 @@ Generate documentation using SourceDocs - Markdown docs
 
 Generate HTML and Markdown documentation
 
+### build_for_testing
+
+```sh
+[bundle exec] fastlane build_for_testing
+```
+
+
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.

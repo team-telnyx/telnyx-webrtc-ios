@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: pod install
 
+      - name: Install Fastlane
+        run: gem install fastlane
+
       - name: Decode and create GoogleService-Info.plist
         run: echo "${{ secrets.TEST_UI_FIREBASE_PLIST_BASE64 }}" | base64 --decode > TelnyxWebRTCDemo/GoogleService-Info.plist
 
@@ -85,19 +88,8 @@ jobs:
         run: |
           security unlock-keychain -p "${{ secrets.KEYCHAIN_PASSWORD }}" build.keychain
 
-      - name: Build UI Tests
-        run: |
-          set -x
-          xcodebuild build-for-testing \
-                    -workspace TelnyxRTC.xcworkspace \
-                    -scheme TelnyxWebRTCDemo \
-                    -sdk iphoneos \
-                    -configuration Debug \
-                    -destination 'generic/platform=iOS' \
-                    -derivedDataPath build \
-                    SUPPORTS_MACCATALYST=NO \
-                    -allowProvisioningUpdates \
-                    | xcpretty
+      - name: Build UI Tests with Fastlane
+        run: fastlane build_for_testing
 
       - name: Create test zip
         run: |
