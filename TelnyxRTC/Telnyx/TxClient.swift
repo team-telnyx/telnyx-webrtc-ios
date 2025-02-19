@@ -250,29 +250,27 @@ public class TxClient {
         sessionId = UUID().uuidString.lowercased()
         // Start monitoring audio route changes
         setupAudioRouteChangeMonitoring()
-        print(Logger.log.getLogs() ?? "")
-        Logger.log.clearLog()
-        
+
         NetworkMonitor.shared.startMonitoring()
-               
-               // Set up a closure to handle network state changes
-               NetworkMonitor.shared.onNetworkStateChange = { [weak self] state in
-                   guard let self = self else { return }
-                   
-                   DispatchQueue.main.async {
-                       switch state {
-                       case .wifi:
-                           Logger.log.i(message: "Connected to Wi-Fi")
-                           self.reconnectClient()
-                       case .cellular,.vpn:
-                           Logger.log.i(message:"Connected to Cellular")
-                           self.reconnectClient()
-                       case .noConnection:
-                           Logger.log.e(message:"No network connection")
-                           self.updateActiveCallsState(callState: CallState.DROPPED(reason: .networkLost))
-                       }
-                   }
-               }
+
+        // Set up a closure to handle network state changes
+        NetworkMonitor.shared.onNetworkStateChange = { [weak self] state in
+            guard let self = self else { return }
+
+            DispatchQueue.main.async {
+                switch state {
+                case .wifi:
+                    Logger.log.i(message: "Connected to Wi-Fi")
+                    self.reconnectClient()
+                case .cellular, .vpn:
+                    Logger.log.i(message: "Connected to Cellular")
+                    self.reconnectClient()
+                case .noConnection:
+                    Logger.log.e(message: "No network connection")
+                    self.updateActiveCallsState(callState: CallState.DROPPED(reason: .networkLost))
+                }
+            }
+        }
     }
     
     /// Sets up monitoring for audio route changes (e.g., headphones connected/disconnected, 
@@ -392,7 +390,6 @@ public class TxClient {
     /// Disconnects the TxClient from the Telnyx signaling server.
     public func disconnect() {
         Logger.log.i(message: "TxClient:: disconnect()")
-        Logger.log.clearLog()
         self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
         self.gatewayState = .NOREG
 

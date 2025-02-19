@@ -11,7 +11,7 @@ import WebRTC
 
 
 /// `CallState` represents the state of the call
-public enum CallState : Equatable {
+public enum CallState: Equatable {
     /// New call has been created in the client.
     case NEW
     /// The outbound call is being sent to the server.
@@ -28,18 +28,18 @@ public enum CallState : Equatable {
     case RECONNECTING(reason: Reason)
     /// The active call is dropped. Usually when the network is lost.
     case DROPPED(reason: Reason)
-    
+
     /// Enum to represent reasons for reconnection or call drop.
     public enum Reason: String {
         case networkSwitch = "Network switched"
         case networkLost = "Network lost"
         case serverError = "Server error"
     }
-    
+
     /// Helper function to get the reason for the state (if applicable).
     public func getReason() -> String? {
         switch self {
-        case .RECONNECTING(let reason), .DROPPED(let reason):
+        case let .RECONNECTING(reason), let .DROPPED(reason):
             return reason.rawValue
         default:
             return nil
