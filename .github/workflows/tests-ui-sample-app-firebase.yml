@@ -55,6 +55,13 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Verify IAM Permissions
+        run: |
+          gcloud projects get-iam-policy telnyx-webrtc-notifications \
+            --flatten="bindings[].members" \
+            --format="table(bindings.role)" \
+            --filter="bindings.members:voice-ios-github-actions-runne@telnyx-webrtc-notifications.iam.gserviceaccount.com"
+
       - name: Create and unlock temporary keychain
         run: |
           security create-keychain -p "${{ secrets.KEYCHAIN_PASSWORD }}" build.keychain
