@@ -34,54 +34,58 @@ class NetworkMonitor {
                 } else if path.usesInterfaceType(.cellular) {
                     newState = .cellular
                 } else {
-                    // If satisfied. however can be satisfied by vpn
-                    if(hasInternetAccess()){
-                        newState = .vpn
-                    } else {
-                        newState = .noConnection
-                    }
+                    // If satisfied but no specific interface, assume VPN
+                    newState = .vpn
                 }
-            } else if !path.usesInterfaceType(.wifi) && !path.usesInterfaceType(.cellular) {
-                // Airplane mode or no interfaces available
-                newState = .noConnection
+                
+                // Check for actual internet connectivity when VPN is active
+                if newState == .vpn {
+                    self.checkInternetAccess { hasInternet in
+                        if !hasInternet {
+                            // No internet despite VPN being active
+                            self.updateState(.noConnection)
+                        } else {
+                            // Internet is available
+                            self.updateState(newState)
+                        }
+                    }
+                } else {
+                    // For Wi-Fi or cellular, assume internet is available
+                    self.updateState(newState)
+                }
             } else {
                 // No connection
-                newState = .noConnection
+                self.updateState(.noConnection)
             }
-            
-            // Check if the state has changed
-            if self.currentState != newState {
-                self.currentState = newState
-                
-                // Notify the listener
-                self.onNetworkStateChange?(self.currentState)
-            }
+        }
+        
+    }
+
+
+
+    private func updateState(_ newState: NetworkState) {
+        if self.currentState != newState {
+            self.currentState = newState
+            self.onNetworkStateChange?(self.currentState)
         }
     }
     
 
-    private func hasInternetAccess() -> Bool {
-        var zeroAddress = sockaddr_in()
-        zeroAddress.sin_len = UInt8(MemoryLayout.size(ofValue: zeroAddress))
-        zeroAddress.sin_family = sa_family_t(AF_INET)
 
-        guard let defaultRouteReachability = withUnsafePointer(to: &zeroAddress, {
-            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
-                SCNetworkReachabilityCreateWithAddress(nil, $0)
+    private func checkInternetAccess(completion: @escaping (Bool) -> Void) {
+        let url = URL(string: "https://www.google.com")! // Use a reliable server
+        let request = URLRequest(url: url, timeoutInterval: 1) // Set a timeout
+
+        let task = URLSession.shared.dataTask(with: request) { _, response, error in
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                // Internet is reachable
+                completion(true)
+            } else {
+                // No internet
+                completion(false)
             }
-        }) else {
-            return false
         }
-
-        var flags: SCNetworkReachabilityFlags = []
-        if !SCNetworkReachabilityGetFlags(defaultRouteReachability, &flags) {
-            return false
-        }
-
-        let isReachable = flags.contains(.reachable)
-        let needsConnection = flags.contains(.connectionRequired)
-
-        return isReachable && !needsConnection
+        task.resume()
     }
     
     // Start monitoring

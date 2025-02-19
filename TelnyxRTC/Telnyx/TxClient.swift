@@ -251,7 +251,7 @@ public class TxClient {
         // Start monitoring audio route changes
         setupAudioRouteChangeMonitoring()
         print(Logger.log.getLogs() ?? "")
-
+        Logger.log.clearLog()
         
         NetworkMonitor.shared.startMonitoring()
                
@@ -262,10 +262,10 @@ public class TxClient {
                    DispatchQueue.main.async {
                        switch state {
                        case .wifi:
-                           Logger.log.e(message: "Connected to Wi-Fi")
+                           Logger.log.i(message: "Connected to Wi-Fi")
                            self.reconnectClient()
-                       case .cellular, .vpn:
-                           Logger.log.e(message:"Connected to Cellular")
+                       case .cellular,.vpn:
+                           Logger.log.i(message:"Connected to Cellular")
                            self.reconnectClient()
                        case .noConnection:
                            Logger.log.e(message:"No network connection")
@@ -825,7 +825,6 @@ extension TxClient : SocketDelegate {
             updateActiveCallsState(callState: CallState.RECONNECTING(reason: .networkSwitch))
             Logger.log.i(message: "Reconnect Called : Calls are active")
         }else {
-            Logger.log.i(message: "Reconnect Called : Calls not active")
             return
         }
         if let txConfig = self.txConfig {

@@ -70,6 +70,17 @@ struct HomeView: View {
                                     }
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.top, 5)
+                                    
+                                    if viewModel.socketState == .connected || viewModel.socketState == .clientReady {
+                                        
+                                        Text("Call State : \(viewModel.callState.value)")
+                                            .font(.system(size: 15, weight: .regular))
+                                            .foregroundColor(Color(hex: "#525252"))
+                                            .padding(.top, 10)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                    }
+                                    
+                                    
                                 }
                                 .padding(.leading, 30)
                                 .frame(maxWidth: .infinity, alignment: .leading)
