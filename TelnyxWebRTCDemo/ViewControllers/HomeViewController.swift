@@ -252,7 +252,7 @@ extension HomeViewController {
             // Update local credential
 
             let isToken = sipCredential.isToken ?? false
-            let txConfig = try createTxConfig(telnyxToken: isToken ? sipCredential.username : nil, sipCredential: sipCredential, deviceToken: nil)
+            let txConfig = try createTxConfig(telnyxToken: isToken ? sipCredential.username : nil, sipCredential: sipCredential, deviceToken: deviceToken)
             
             if let serverConfig = serverConfig {
                 print("Development Server ")
