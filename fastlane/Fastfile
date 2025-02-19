@@ -81,6 +81,6 @@ lane :build_for_testing do
     configuration: "Debug",
     destination: "generic/platform=iOS",
     derivedDataPath: "build",
-    xcargs: "SUPPORTS_MACCATALYST=NO -allowProvisioningUpdates"
+    xcargs: "CODE_SIGNING_ALLOWED=NO SUPPORTS_MACCATALYST=NO -allowProvisioningUpdates"
   )
 end
