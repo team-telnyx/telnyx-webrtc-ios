@@ -266,7 +266,7 @@ extension AppDelegate : CXProviderDelegate {
                                 logLevel: .all,
                                 reconnectClient: true,
                                 // Enable WebRTC stats debug
-                                debug: false,
+                                debug: true,
                                 // Force relay candidate
                                 forceRelayCandidate: false)
         
