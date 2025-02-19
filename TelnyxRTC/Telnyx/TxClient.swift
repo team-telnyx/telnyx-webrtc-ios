@@ -264,7 +264,7 @@ public class TxClient {
                        case .wifi:
                            Logger.log.e(message: "Connected to Wi-Fi")
                            self.reconnectClient()
-                       case .cellular:
+                       case .cellular, .vpn:
                            Logger.log.e(message:"Connected to Cellular")
                            self.reconnectClient()
                        case .noConnection:

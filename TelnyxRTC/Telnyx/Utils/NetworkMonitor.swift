@@ -1,5 +1,6 @@
 import Network
 import Foundation
+import SystemConfiguration
 
 class NetworkMonitor {
     static let shared = NetworkMonitor() // Singleton instance
@@ -11,6 +12,7 @@ class NetworkMonitor {
     enum NetworkState {
         case wifi
         case cellular
+        case vpn
         case noConnection
     }
     
@@ -32,8 +34,12 @@ class NetworkMonitor {
                 } else if path.usesInterfaceType(.cellular) {
                     newState = .cellular
                 } else {
-                    // If satisfied but no specific interface, assume Wi-Fi (or handle as needed)
-                    newState = .wifi
+                    // If satisfied. however can be satisfied by vpn
+                    if(hasInternetAccess()){
+                        newState = .vpn
+                    } else {
+                        newState = .noConnection
+                    }
                 }
             } else if !path.usesInterfaceType(.wifi) && !path.usesInterfaceType(.cellular) {
                 // Airplane mode or no interfaces available
@@ -51,6 +57,31 @@ class NetworkMonitor {
                 self.onNetworkStateChange?(self.currentState)
             }
         }
+    }
+    
+
+    private func hasInternetAccess() -> Bool {
+        var zeroAddress = sockaddr_in()
+        zeroAddress.sin_len = UInt8(MemoryLayout.size(ofValue: zeroAddress))
+        zeroAddress.sin_family = sa_family_t(AF_INET)
+
+        guard let defaultRouteReachability = withUnsafePointer(to: &zeroAddress, {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                SCNetworkReachabilityCreateWithAddress(nil, $0)
+            }
+        }) else {
+            return false
+        }
+
+        var flags: SCNetworkReachabilityFlags = []
+        if !SCNetworkReachabilityGetFlags(defaultRouteReachability, &flags) {
+            return false
+        }
+
+        let isReachable = flags.contains(.reachable)
+        let needsConnection = flags.contains(.connectionRequired)
+
+        return isReachable && !needsConnection
     }
     
     // Start monitoring
