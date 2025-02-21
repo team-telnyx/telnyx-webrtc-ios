@@ -93,6 +93,7 @@ public struct TxConfig {
                 ringBackTone: String? = nil,
                 pushEnvironment: PushEnvironment? = nil,
                 logLevel: LogLevel = .none,
+                reconnectClient: Bool = true,
                 debug: Bool = false,
                 forceRelayCandidate: Bool = false) {
         self.token = token

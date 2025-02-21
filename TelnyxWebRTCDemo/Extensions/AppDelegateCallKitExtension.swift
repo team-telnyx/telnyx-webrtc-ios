@@ -252,28 +252,56 @@ extension AppDelegate : CXProviderDelegate {
         }
         
         let selectedCredentials = SipCredentialsManager.shared.getSelectedCredential()
-        let sipUser = selectedCredentials?.username ?? ""
-        let password = selectedCredentials?.password ?? ""
-        let deviceToken = userDefaults.getPushToken()
-        //Sets the login credentials and the ringtone/ringback configurations if required.
-        //Ringtone / ringback tone files are not mandatory.
-        let txConfig = TxConfig(sipUser: sipUser,
-                                password: password,
-                                pushDeviceToken: deviceToken,
-                                ringtone: "incoming_call.mp3",
-                                ringBackTone: "ringback_tone.mp3",
-                                //You can choose the appropriate verbosity level of the SDK.
-                                logLevel: .all,
-                                reconnectClient: true,
-                                // Enable WebRTC stats debug
-                                debug: true,
-                                // Force relay candidate
-                                forceRelayCandidate: false)
         
-        do {
-            try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)
-        } catch let error {
-            print("AppDelegate:: processVoIPNotification Error \(error)")
+        if selectedCredentials?.isToken ?? false {
+            let token = selectedCredentials?.username ?? ""
+            let deviceToken = userDefaults.getPushToken()
+            //Sets the login credentials and the ringtone/ringback configurations if required.
+            //Ringtone / ringback tone files are not mandatory.
+            let txConfig = TxConfig(token: token,
+                                    pushDeviceToken: deviceToken,
+                                    ringtone: "incoming_call.mp3",
+                                    ringBackTone: "ringback_tone.mp3",
+                                    //You can choose the appropriate verbosity level of the SDK.
+                                    logLevel: .all,
+                                    reconnectClient: true,
+                                    // Enable WebRTC stats debug
+                                    debug: true,
+                                    // Force relay candidate
+                                    forceRelayCandidate: false)
+            
+            do {
+                try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)
+            } catch let error {
+                print("AppDelegate:: processVoIPNotification Error \(error)")
+            }
+        } else {
+            let sipUser = selectedCredentials?.username ?? ""
+            let password = selectedCredentials?.password ?? ""
+            let deviceToken = userDefaults.getPushToken()
+            //Sets the login credentials and the ringtone/ringback configurations if required.
+            //Ringtone / ringback tone files are not mandatory.
+            let txConfig = TxConfig(sipUser: sipUser,
+                                    password: password,
+                                    pushDeviceToken: deviceToken,
+                                    ringtone: "incoming_call.mp3",
+                                    ringBackTone: "ringback_tone.mp3",
+                                    //You can choose the appropriate verbosity level of the SDK.
+                                    logLevel: .all,
+                                    reconnectClient: true,
+                                    // Enable WebRTC stats debug
+                                    debug: true,
+                                    // Force relay candidate
+                                    forceRelayCandidate: false)
+            
+            do {
+                try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)
+            } catch let error {
+                print("AppDelegate:: processVoIPNotification Error \(error)")
+            }
         }
+        
+        
+       
     }
 }
