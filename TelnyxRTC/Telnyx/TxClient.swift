@@ -252,6 +252,9 @@ public class TxClient {
         setupAudioRouteChangeMonitoring()
 
         NetworkMonitor.shared.startMonitoring()
+        Logger.log.clearLogs()
+        print(Logger.log.getLogsAsString())
+        
 
         // Set up a closure to handle network state changes
         NetworkMonitor.shared.onNetworkStateChange = { [weak self] state in
@@ -266,6 +269,10 @@ public class TxClient {
                     Logger.log.i(message: "Connected to Cellular")
                     self.reconnectClient()
                 case .noConnection:
+                    self.socket?.disconnect(reconnect: false)
+                    if(!self.isCallsActive){
+                        self.delegate?.onSocketDisconnected()
+                    }
                     Logger.log.e(message: "No network connection")
                     self.updateActiveCallsState(callState: CallState.DROPPED(reason: .networkLost))
                 }
