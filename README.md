@@ -367,14 +367,12 @@ To create a custom logger, implement the `TxLogger` protocol:
 
 ```Swift
 class MyCustomLogger: TxLogger {
-    func log(level: LogLevel, tag: String?, message: String, timestamp: Date, vertoDirection: VertoDirection?) {
+    func log(level: LogLevel, message: String) {
         // Implement your custom logging logic here
         // Example: Send logs to your analytics service
         MyAnalyticsService.log(
             level: level,
-            tag: tag ?? "TxClient",
             message: message,
-            timestamp: timestamp
         )
     }
 }
