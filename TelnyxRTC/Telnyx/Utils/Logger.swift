@@ -63,6 +63,9 @@ class Logger {
 
     /// represents the current log level: `all` is set as default
     internal var verboseLevel: LogLevel = .all
+    
+    /// Custom logger implementation for handling log messages
+    internal var customLogger: TxLogger?
 
     private var statsGlyph: String = "\u{1F4CA}"     // Glyph for messages of level .Stats
 
@@ -75,14 +78,16 @@ class Logger {
     private var infoGlyph: String = "\u{1F535}"     // Glyph for messages of level .Info
     private var timeStamp:Timestamp = Timestamp()
     
-    private init() {}
+    private init() {
+        customLogger = TxDefaultLogger()
+    }
 
 
     /// Prints information messages if `verboseLevel` is set to `.all` or `.info`
     /// - Parameter message: message to be printed
     public func i(message: String) {
         if verboseLevel == .all || verboseLevel == .info {
-            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .info, message: message))
+            customLogger?.log(level: .info, tag: "TxClient", message: message, timestamp: Date(), vertoDirection: nil)
         }
     }
 
@@ -90,7 +95,7 @@ class Logger {
     /// - Parameter message: message to be printed
     public func e(message: String) {
         if verboseLevel == .all || verboseLevel == .error {
-            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .error, message: message))
+            customLogger?.log(level: .error, tag: "TxClient", message: message, timestamp: Date(), vertoDirection: nil)
         }
     }
 
@@ -98,7 +103,7 @@ class Logger {
     /// - Parameter message: message to be printed
     public func w(message: String) {
         if verboseLevel == .all || verboseLevel == .warning {
-            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .warning, message: message))
+            customLogger?.log(level: .warning, tag: "TxClient", message: message, timestamp: Date(), vertoDirection: nil)
         }
     }
 
@@ -106,7 +111,7 @@ class Logger {
     /// - Parameter message: message to be printed
     public func s(message: String) {
         if verboseLevel == .all || verboseLevel == .success {
-            print( "TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .success, message: message))
+            customLogger?.log(level: .success, tag: "TxClient", message: message, timestamp: Date(), vertoDirection: nil)
         }
     }
 
@@ -116,13 +121,13 @@ class Logger {
     ///   - direction: direction of the message. Inbound-outbound
     public func verto(message: String, direction: VertoDirection) {
         if verboseLevel == .all || verboseLevel == .verto {
-            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .verto, message: message, direction: direction))
+            customLogger?.log(level: .verto, tag: "TxClient", message: message, timestamp: Date(), vertoDirection: direction)
         }
     }
     
     public func stats(message: String) {
         if verboseLevel == .all || verboseLevel == .stats {
-            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .stats, message: message))
+            customLogger?.log(level: .stats, tag: "TxClient", message: message, timestamp: Date(), vertoDirection: nil)
         }
     }
 
