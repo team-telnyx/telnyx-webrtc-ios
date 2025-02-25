@@ -59,6 +59,8 @@ enum VertoDirection: Int {
 
 class Logger {
 
+    private static let TAG = "TxClient"
+    
     internal static let log = Logger()
 
     /// represents the current log level: `all` is set as default
@@ -87,7 +89,8 @@ class Logger {
     /// - Parameter message: message to be printed
     public func i(message: String) {
         if verboseLevel == .all || verboseLevel == .info {
-            customLogger?.log(level: .info, tag: "TxClient", message: message, timestamp: Date(), vertoDirection: nil)
+            let fullMessage = buildMessage(level: .info, message: message, direction: .none)
+            customLogger?.log(level: .info, message: fullMessage)
         }
     }
 
@@ -95,7 +98,8 @@ class Logger {
     /// - Parameter message: message to be printed
     public func e(message: String) {
         if verboseLevel == .all || verboseLevel == .error {
-            customLogger?.log(level: .error, tag: "TxClient", message: message, timestamp: Date(), vertoDirection: nil)
+            let fullMessage = buildMessage(level: .error, message: message, direction: .none)
+            customLogger?.log(level: .error, message: fullMessage)
         }
     }
 
@@ -103,7 +107,8 @@ class Logger {
     /// - Parameter message: message to be printed
     public func w(message: String) {
         if verboseLevel == .all || verboseLevel == .warning {
-            customLogger?.log(level: .warning, tag: "TxClient", message: message, timestamp: Date(), vertoDirection: nil)
+            let fullMessage = buildMessage(level: .warning, message: message, direction: .none)
+            customLogger?.log(level: .warning, message: fullMessage)
         }
     }
 
@@ -111,7 +116,8 @@ class Logger {
     /// - Parameter message: message to be printed
     public func s(message: String) {
         if verboseLevel == .all || verboseLevel == .success {
-            customLogger?.log(level: .success, tag: "TxClient", message: message, timestamp: Date(), vertoDirection: nil)
+            let fullMessage = buildMessage(level: .warning, message: message, direction: .none)
+            customLogger?.log(level: .success, message: fullMessage)
         }
     }
 
@@ -121,13 +127,14 @@ class Logger {
     ///   - direction: direction of the message. Inbound-outbound
     public func verto(message: String, direction: VertoDirection) {
         if verboseLevel == .all || verboseLevel == .verto {
-            customLogger?.log(level: .verto, tag: "TxClient", message: message, timestamp: Date(), vertoDirection: direction)
+            let fullMessage = buildMessage(level: .warning, message: message, direction: direction)
+            customLogger?.log(level: .verto, message: fullMessage)
         }
     }
     
     public func stats(message: String) {
         if verboseLevel == .all || verboseLevel == .stats {
-            customLogger?.log(level: .stats, tag: "TxClient", message: message, timestamp: Date(), vertoDirection: nil)
+            customLogger?.log(level: .stats, message: buildMessage(level: .stats, message: message))
         }
     }
 
@@ -144,8 +151,15 @@ class Logger {
         }
     }
 
+    private func buildTimeStamp() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
+        let timestampStr = formatter.string(from: Date())
+        return timestampStr
+    }
+    
     private func buildMessage(level: LogLevel, message: String, direction: VertoDirection = .none) -> String {
-        return getLogGlyph(level: level, direction: direction) + " " + message + "\n"
+        return Logger.TAG + buildTimeStamp() + getLogGlyph(level: level, direction: direction) + " " + message + "\n"
     }
 }
 
