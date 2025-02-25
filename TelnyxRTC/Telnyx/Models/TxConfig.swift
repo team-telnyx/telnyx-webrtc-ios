@@ -43,6 +43,10 @@ public struct TxConfig {
     ///         as all media will be relayed through TURN servers.
     /// - Important: This setting is disabled by default to maintain optimal call quality.
     public internal(set) var forceRelayCandidate: Bool = false
+    
+    /// Custom logger implementation for handling SDK logs
+    /// If not provided, the default logger will be used
+    public internal(set) var customLogger: TxLogger?
 
     // MARK: - Initializers
 
@@ -54,12 +58,14 @@ public struct TxConfig {
     ///   - ringtone: (Optional) The audio file name to play for incoming calls (e.g., "my-ringtone.mp3")
     ///   - ringBackTone: (Optional) The audio file name to play while making outbound calls (e.g., "my-ringbacktone.mp3")
     ///   - logLevel: (Optional) The verbosity level for SDK logs (defaults to `.none`)
+    ///   - customLogger: (Optional) Custom logger implementation for handling SDK logs. If not provided, the default logger will be used
     public init(sipUser: String, password: String,
                 pushDeviceToken: String? = nil,
                 ringtone: String? = nil,
                 ringBackTone: String? = nil,
                 pushEnvironment: PushEnvironment? = nil,
                 logLevel: LogLevel = .none,
+                customLogger: TxLogger? = nil,
                 reconnectClient: Bool = true,
                 debug: Bool = false,
                 forceRelayCandidate: Bool = false
@@ -76,7 +82,9 @@ public struct TxConfig {
         self.pushEnvironment = pushEnvironment
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
+        self.customLogger = customLogger
         Logger.log.verboseLevel = logLevel
+        Logger.log.customLogger = customLogger ?? TxDefaultLogger()
     }
 
     /// Constructor for the Telnyx SDK configuration using JWT token authentication.
@@ -86,6 +94,7 @@ public struct TxConfig {
     ///   - ringtone: (Optional) The audio file name to play for incoming calls (e.g., "my-ringtone.mp3")
     ///   - ringBackTone: (Optional) The audio file name to play while making outbound calls (e.g., "my-ringbacktone.mp3")
     ///   - logLevel: (Optional) The verbosity level for SDK logs (defaults to `.none`)
+    ///   - customLogger: (Optional) Custom logger implementation for handling SDK logs. If not provided, the default logger will be used
     ///   - serverConfiguration: (Optional) Custom configuration for signaling server and TURN/STUN servers (defaults to Telnyx Production servers)
     public init(token: String,
                 pushDeviceToken: String? = nil,
@@ -93,6 +102,7 @@ public struct TxConfig {
                 ringBackTone: String? = nil,
                 pushEnvironment: PushEnvironment? = nil,
                 logLevel: LogLevel = .none,
+                customLogger: TxLogger? = nil,
                 reconnectClient: Bool = true,
                 debug: Bool = false,
                 forceRelayCandidate: Bool = false) {
@@ -106,7 +116,9 @@ public struct TxConfig {
         self.pushEnvironment = pushEnvironment
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
+        self.customLogger = customLogger
         Logger.log.verboseLevel = logLevel
+        Logger.log.customLogger = customLogger ?? TxDefaultLogger()
     }
 
     // MARK: - Methods
