@@ -9,7 +9,7 @@ class TestConstants {
     static let token = "<SIP_TOKEN>"
     static let destinationNumber = "<DESTINATION_NUMBER>"
 
-    static let callerNumber = "+1234567890"
-    static let callerName = "Test User"
+    static let callerNumber = "<CALLER_NUMBER>"
+    static let callerName = "Telnyx WebRTC Test User"
 
 }

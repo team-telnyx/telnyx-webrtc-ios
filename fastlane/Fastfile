@@ -71,3 +71,16 @@ lane :generate_full_docs do
   generate_docs_markdown
   UI.success("✅ Documentation successfully generated and converted to Markdown")
 end
+
+desc "Builds the app and tests in build-for-testing mode to be executed later on devices or in Firebase Test Lab."
+lane :build_for_testing do
+  xcodebuild(
+    workspace: "TelnyxRTC.xcworkspace",
+    scheme: "TelnyxWebRTCDemo",
+    sdk: "iphoneos",
+    configuration: "Debug",
+    destination: "generic/platform=iOS",
+    derivedDataPath: "build",
+    xcargs: "CODE_SIGNING_ALLOWED=NO SUPPORTS_MACCATALYST=NO -allowProvisioningUpdates"
+  )
+end
