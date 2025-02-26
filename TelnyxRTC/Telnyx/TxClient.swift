@@ -252,10 +252,7 @@ public class TxClient {
         setupAudioRouteChangeMonitoring()
 
         NetworkMonitor.shared.startMonitoring()
-        Logger.log.clearLogs()
-        print(Logger.log.getLogsAsString())
         
-
         // Set up a closure to handle network state changes
         NetworkMonitor.shared.onNetworkStateChange = { [weak self] state in
             guard let self = self else { return }
@@ -269,11 +266,11 @@ public class TxClient {
                     Logger.log.i(message: "Connected to Cellular")
                     self.reconnectClient()
                 case .noConnection:
-                    self.socket?.disconnect(reconnect: false)
                     if(!self.isCallsActive){
                         self.delegate?.onSocketDisconnected()
                     }
                     Logger.log.e(message: "No network connection")
+                    self.socket?.isConnected = false
                     self.updateActiveCallsState(callState: CallState.DROPPED(reason: .networkLost))
                 }
             }

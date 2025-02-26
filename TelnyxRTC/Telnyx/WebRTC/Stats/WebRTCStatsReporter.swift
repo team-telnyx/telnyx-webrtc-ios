@@ -250,7 +250,6 @@ class WebRTCStatsReporter {
     // MARK: - Message Queue
     private func enqueueMessage(_ message: String) {
         messageQueue.async { [weak self] in
-            if ((self?.socket?.isConnected) != nil) == false { return }
             self?.socket?.sendMessage(message: message)
         }
     }

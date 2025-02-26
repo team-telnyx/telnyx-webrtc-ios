@@ -35,6 +35,10 @@ class Socket {
     }
     
     func sendMessage(message: String?) {
+        if self.isConnected == false {
+            Logger.log.e(message: "Socket::  not connected...")
+            return
+        }
         Logger.log.i(message: "Socket:: sendMessage() sending message...")
         if let message = message,
            let socket = self.socket {
