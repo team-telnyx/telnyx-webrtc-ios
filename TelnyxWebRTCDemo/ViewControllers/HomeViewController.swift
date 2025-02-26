@@ -291,7 +291,7 @@ extension HomeViewController {
                                 logLevel: .all,
                                 reconnectClient: true,
                                 // Enable webrtc stats debug
-                                debug: false,
+                                debug: true,
                                 // Force relay candidate
                                 forceRelayCandidate: false)
         } else if let credential = sipCredential {
@@ -305,7 +305,7 @@ extension HomeViewController {
                                 logLevel: .all,
                                 reconnectClient: true,
                                 // Enable webrtc stats debug
-                                debug: false,
+                                debug: true,
                                 // Force relay candidate.
                                 forceRelayCandidate: false)
         }
