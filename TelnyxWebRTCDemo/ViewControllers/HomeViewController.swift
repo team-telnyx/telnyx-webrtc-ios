@@ -126,11 +126,7 @@ class HomeViewController: UIViewController {
         print("Connect tapped")
         let deviceToken = userDefaults.getPushToken()
         if let selectedProfile = profileViewModel.selectedProfile {
-            if selectedProfile.isToken ?? false {
-                connectToTelnyx(telnyxToken: selectedProfile.username, sipCredential: nil, deviceToken: deviceToken)
-            } else {
-                connectToTelnyx(telnyxToken: nil, sipCredential: selectedProfile, deviceToken: deviceToken)
-            }
+            connectToTelnyx(sipCredential: selectedProfile, deviceToken: deviceToken)
         }
     }
     
@@ -177,11 +173,7 @@ extension HomeViewController: SipCredentialsViewControllerDelegate {
     func onNewSipCredential(credential: SipCredential?) {
         let deviceToken = userDefaults.getPushToken()
         if let newProfile = credential {
-            if newProfile.isToken ?? false {
-                connectToTelnyx(telnyxToken: newProfile.username, sipCredential: nil, deviceToken: deviceToken)
-            } else {
-                connectToTelnyx(telnyxToken: nil, sipCredential: newProfile, deviceToken: deviceToken)
-            }
+            connectToTelnyx(sipCredential: newProfile, deviceToken: deviceToken)
         }
     }
     
@@ -246,9 +238,8 @@ extension HomeViewController {
 
 // MARK: - Handle connection
 extension HomeViewController {
-    private func connectToTelnyx(telnyxToken: String?,
-                                 sipCredential: SipCredential?,
-                                 deviceToken: String) {
+    private func connectToTelnyx(sipCredential: SipCredential,
+                                 deviceToken: String?) {
         guard let telnyxClient = self.telnyxClient else { return }
         
         if telnyxClient.isConnected() {
@@ -257,7 +248,11 @@ extension HomeViewController {
         }
         
         do {
-            let txConfig = try createTxConfig(telnyxToken: telnyxToken, sipCredential: sipCredential, deviceToken: deviceToken)
+            self.viewModel.isLoading = true
+            // Update local credential
+
+            let isToken = sipCredential.isToken ?? false
+            let txConfig = try createTxConfig(telnyxToken: isToken ? sipCredential.username : nil, sipCredential: sipCredential, deviceToken: deviceToken)
             
             if let serverConfig = serverConfig {
                 print("Development Server ")
@@ -267,7 +262,12 @@ extension HomeViewController {
                 try telnyxClient.connect(txConfig: txConfig)
             }
             
-            self.viewModel.isLoading = true
+            // Store user / password in user defaults
+            SipCredentialsManager.shared.addOrUpdateCredential(sipCredential)
+            SipCredentialsManager.shared.saveSelectedCredential(sipCredential)
+            // Update UI
+            self.onSipCredentialSelected(credential: sipCredential)
+
         } catch let error {
             print("ViewController:: connect Error \(error)")
             self.viewModel.isLoading = false
@@ -276,7 +276,7 @@ extension HomeViewController {
     
     private func createTxConfig(telnyxToken: String?,
                                 sipCredential: SipCredential?,
-                                deviceToken: String) throws -> TxConfig {
+                                deviceToken: String?) throws -> TxConfig {
         var txConfig: TxConfig? = nil
         
         // Set the connection configuration object.
@@ -287,9 +287,9 @@ extension HomeViewController {
                                 pushDeviceToken: deviceToken,
                                 ringtone: "incoming_call.mp3",
                                 ringBackTone: "ringback_tone.mp3",
-                                pushEnvironment: .production,
                                 // You can choose the appropriate verbosity level of the SDK.
                                 logLevel: .all,
+                                reconnectClient: true,
                                 // Enable webrtc stats debug
                                 debug: false,
                                 // Force relay candidate
@@ -308,12 +308,6 @@ extension HomeViewController {
                                 debug: false,
                                 // Force relay candidate.
                                 forceRelayCandidate: false)
-            
-            // Store user / password in user defaults
-            SipCredentialsManager.shared.addOrUpdateCredential(credential)
-            SipCredentialsManager.shared.saveSelectedCredential(credential)
-            // Update UI
-            self.onSipCredentialSelected(credential: credential)
         }
         
         guard let config = txConfig else {

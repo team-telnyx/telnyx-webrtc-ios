@@ -27,8 +27,8 @@ extension UserDefaults {
         removeObject(forKey: UserDefaultsKey.pushDeviceToken.rawValue)
     }
     
-    func getPushToken() -> String {
-        return string(forKey: UserDefaultsKey.pushDeviceToken.rawValue) ?? ""
+    func getPushToken() -> String? {
+        return string(forKey: UserDefaultsKey.pushDeviceToken.rawValue)
     }
     
     func saveCallDestination(_ callDestination: String) {
