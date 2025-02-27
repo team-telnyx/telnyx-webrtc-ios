@@ -18,21 +18,6 @@ extension HomeViewController : VoIPDelegate {
     
     func onSocketDisconnected() {
         print("ViewController:: TxClientDelegate onSocketDisconnected()")
-        let noActiveCalls = self.telnyxClient?.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
-        
-        // Re-connection logic
-        if noActiveCalls != true {
-            self.reachability.whenReachable = { reachability in
-                if reachability.connection == .wifi {
-                    print("Reachable via WiFi")
-                    self.handleConnect()
-                } else {
-                    print("Reachable via Cellular")
-                    self.handleConnect()
-                }
-            }
-            return
-        }
         
         DispatchQueue.main.async {
             self.viewModel.isLoading = false
@@ -115,7 +100,9 @@ extension HomeViewController : VoIPDelegate {
                     break
                 case .HELD:
                     break
-                case .RECONNECTING:
+                case .RECONNECTING(reason: _):
+                    break
+                case .DROPPED(reason: _):
                     break
             }
 //            self.updateButtonsState()

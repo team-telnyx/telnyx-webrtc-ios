@@ -143,4 +143,3 @@ class Logger {
         return getLogGlyph(level: level, direction: direction) + " " + message + "\n"
     }
 }
-

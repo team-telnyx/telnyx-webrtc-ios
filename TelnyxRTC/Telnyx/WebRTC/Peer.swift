@@ -289,11 +289,6 @@ class Peer : NSObject, WebRTCEventHandler {
             self.negotiationTimer = Timer.scheduledTimer(withTimeInterval: self.NEGOTIATION_TIMOUT, repeats: false) { timer in
                 // Check if the negotiation process has ended to avoid duplicated calls to the delegate method.
                 if self.negotiationEnded {
-                    // Means we have an active call for this peer object
-                    if self.connection?.connectionState == .disconnected {
-                        // Reconnect if the peer is disconnected
-                        self.socket?.delegate?.onSocketReconnectSuggested()
-                    }
                     Logger.log.w(message: "ICE negotiation has ended:: For Peer")
                     return
                 }
