@@ -35,6 +35,10 @@ class Socket {
     }
     
     func sendMessage(message: String?) {
+        if self.isConnected == false {
+            Logger.log.e(message: "Socket::  not connected...")
+            return
+        }
         Logger.log.i(message: "Socket:: sendMessage() sending message...")
         if let message = message,
            let socket = self.socket {
@@ -98,7 +102,6 @@ extension Socket : WebSocketDelegate {
             Logger.log.i(message: "Socket:: WebSocketDelegate viablility Changed")
             break
         case .reconnectSuggested(_):
-            self.delegate?.onSocketReconnectSuggested()
             Logger.log.i(message: "Socket:: WebSocketDelegate reconnect Suggested")
             break
         case .peerClosed:

@@ -162,4 +162,3 @@ class Logger {
         return Logger.TAG + buildTimeStamp() + getLogGlyph(level: level, direction: direction) + " " + message + "\n"
     }
 }
-
