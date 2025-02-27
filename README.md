@@ -357,6 +357,68 @@ When `debug: true` is configured:
 ---
 </br>
 
+## Custom Logging
+
+The SDK provides a flexible logging system that allows you to implement your own custom logger. This feature enables you to route SDK logs to your preferred logging framework or format.
+
+### Implementing a Custom Logger
+
+To create a custom logger, implement the `TxLogger` protocol:
+
+```Swift
+class MyCustomLogger: TxLogger {
+    func log(level: LogLevel, message: String) {
+        // Implement your custom logging logic here
+        // Example: Send logs to your analytics service
+        MyAnalyticsService.log(
+            level: level,
+            message: message,
+        )
+    }
+}
+```
+
+### Using a Custom Logger
+
+To use your custom logger, pass it to the `TxConfig` when initializing the client:
+
+```Swift
+let customLogger = MyCustomLogger()
+let txConfig = TxConfig(
+    sipUser: sipUser,
+    password: password,
+    logLevel: .all,           // Set desired log level
+    customLogger: customLogger // Pass your custom logger
+)
+```
+
+### Default Logger
+
+If no custom logger is provided, the SDK uses `TxDefaultLogger` which prints logs to the console with appropriate formatting and emojis for different log levels.
+
+### Important Notes
+
+1. **Log Levels**: 
+   - The `logLevel` parameter in `TxConfig` still controls which logs are processed
+   - Custom loggers only receive logs that match the configured verbosity level
+
+2. **Thread Safety**:
+   - Ensure your custom logger implementation is thread-safe
+   - Log callbacks may come from different threads
+
+3. **Performance**:
+   - Keep logging operations lightweight to avoid impacting call quality
+   - Consider asynchronous logging for heavy operations
+
+4. **Best Practices**:
+   - Handle all log levels appropriately
+   - Include timestamps for proper log sequencing
+   - Consider log persistence for debugging
+   - Handle errors gracefully within the logger
+
+---
+</br>
+
 ## Setting up VoIP push notifications: 
 
 In order to receive incoming calls while the app is running in background or closed, you will need to perform a set of configurations over your Mission Control Portal Account and your application. 

@@ -59,10 +59,15 @@ enum VertoDirection: Int {
 
 class Logger {
 
+    private static let TAG = "TxClient"
+    
     internal static let log = Logger()
 
     /// represents the current log level: `all` is set as default
     internal var verboseLevel: LogLevel = .all
+    
+    /// Custom logger implementation for handling log messages
+    internal var customLogger: TxLogger?
 
     private var statsGlyph: String = "\u{1F4CA}"     // Glyph for messages of level .Stats
 
@@ -75,14 +80,17 @@ class Logger {
     private var infoGlyph: String = "\u{1F535}"     // Glyph for messages of level .Info
     private var timeStamp:Timestamp = Timestamp()
     
-    private init() {}
+    private init() {
+        customLogger = TxDefaultLogger()
+    }
 
 
     /// Prints information messages if `verboseLevel` is set to `.all` or `.info`
     /// - Parameter message: message to be printed
     public func i(message: String) {
         if verboseLevel == .all || verboseLevel == .info {
-            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .info, message: message))
+            let fullMessage = buildMessage(level: .info, message: message, direction: .none)
+            customLogger?.log(level: .info, message: fullMessage)
         }
     }
 
@@ -90,7 +98,8 @@ class Logger {
     /// - Parameter message: message to be printed
     public func e(message: String) {
         if verboseLevel == .all || verboseLevel == .error {
-            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .error, message: message))
+            let fullMessage = buildMessage(level: .error, message: message, direction: .none)
+            customLogger?.log(level: .error, message: fullMessage)
         }
     }
 
@@ -98,7 +107,8 @@ class Logger {
     /// - Parameter message: message to be printed
     public func w(message: String) {
         if verboseLevel == .all || verboseLevel == .warning {
-            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .warning, message: message))
+            let fullMessage = buildMessage(level: .warning, message: message, direction: .none)
+            customLogger?.log(level: .warning, message: fullMessage)
         }
     }
 
@@ -106,7 +116,8 @@ class Logger {
     /// - Parameter message: message to be printed
     public func s(message: String) {
         if verboseLevel == .all || verboseLevel == .success {
-            print( "TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .success, message: message))
+            let fullMessage = buildMessage(level: .warning, message: message, direction: .none)
+            customLogger?.log(level: .success, message: fullMessage)
         }
     }
 
@@ -116,13 +127,14 @@ class Logger {
     ///   - direction: direction of the message. Inbound-outbound
     public func verto(message: String, direction: VertoDirection) {
         if verboseLevel == .all || verboseLevel == .verto {
-            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .verto, message: message, direction: direction))
+            let fullMessage = buildMessage(level: .warning, message: message, direction: direction)
+            customLogger?.log(level: .verto, message: fullMessage)
         }
     }
     
     public func stats(message: String) {
         if verboseLevel == .all || verboseLevel == .stats {
-            print("TxClient : \(timeStamp.printTimestamp())" + buildMessage(level: .stats, message: message))
+            customLogger?.log(level: .stats, message: buildMessage(level: .stats, message: message))
         }
     }
 
@@ -139,7 +151,14 @@ class Logger {
         }
     }
 
+    private func buildTimeStamp() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
+        let timestampStr = formatter.string(from: Date())
+        return timestampStr
+    }
+    
     private func buildMessage(level: LogLevel, message: String, direction: VertoDirection = .none) -> String {
-        return getLogGlyph(level: level, direction: direction) + " " + message + "\n"
+        return Logger.TAG + buildTimeStamp() + getLogGlyph(level: level, direction: direction) + " " + message + "\n"
     }
 }

@@ -19,6 +19,7 @@
 		3BC03B4E2CC25F5F00FD2B29 /* Reachability.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B0F56CC2C7F1CCA0011A48A /* Reachability.framework */; };
 		3BC03B592CC2653700FD2B29 /* TelnyxRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B368BEC025EDDB610032AE52 /* TelnyxRTC.framework */; };
 		3BF1D5842BEB7B8F0097453F /* TelnyxRTC.podspec in Resources */ = {isa = PBXBuildFile; fileRef = 3BF1D5832BEB7B8F0097453F /* TelnyxRTC.podspec */; };
+		98D6A87945BC2C6B8FD9F82F /* Pods_TelnyxRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AD238984CA3603D836D3974 /* Pods_TelnyxRTC.framework */; };
 		63028CD9806A4EA4826C7D52 /* Pods_TelnyxWebRTCDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2941A8F2124E97E56648C87 /* Pods_TelnyxWebRTCDemo.framework */; };
 		9911247E2CF50092000C23BA /* Dictionary+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9911247D2CF50088000C23BA /* Dictionary+Extensions.swift */; };
 		991A6D442D3A96C100B29785 /* SplashScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991A6D432D3A96C100B29785 /* SplashScreen.swift */; };
@@ -67,6 +68,8 @@
 		99CC5BAE2CF80D3A00EF43DC /* WebRTCEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99CC5BAD2CF80D3400EF43DC /* WebRTCEventHandler.swift */; };
 		99D498D32D565D1F00A7B38F /* TelnyxWebRTCDemoUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D498D12D565D1F00A7B38F /* TelnyxWebRTCDemoUITests.swift */; };
 		99D498D52D567A2C00A7B38F /* TestConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D498D42D567A2C00A7B38F /* TestConstants.swift */; };
+		99D717742D6E195100471D44 /* TxLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D717732D6E195100471D44 /* TxLogger.swift */; };
+		99D717762D6E229800471D44 /* TelnyxRTCLoggerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D717752D6E229000471D44 /* TelnyxRTCLoggerTests.swift */; };
 		99FF7B102D4BC4F700DB1408 /* DTMFKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FF7B0F2D4BC4F700DB1408 /* DTMFKeyboardView.swift */; };
 		99FF7B122D4BC71800DB1408 /* DTMFKeyboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FF7B112D4BC71800DB1408 /* DTMFKeyboardViewModel.swift */; };
 		B309D13D25EF119E00A2AADF /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B309D11125EF107F00A2AADF /* Starscream.framework */; };
@@ -230,6 +233,9 @@
 		99CC5BAD2CF80D3400EF43DC /* WebRTCEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCEventHandler.swift; sourceTree = "<group>"; };
 		99D498D12D565D1F00A7B38F /* TelnyxWebRTCDemoUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnyxWebRTCDemoUITests.swift; sourceTree = "<group>"; };
 		99D498D42D567A2C00A7B38F /* TestConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConstants.swift; sourceTree = "<group>"; };
+		99D717732D6E195100471D44 /* TxLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxLogger.swift; sourceTree = "<group>"; };
+		99D717752D6E229000471D44 /* TelnyxRTCLoggerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnyxRTCLoggerTests.swift; sourceTree = "<group>"; };
+		99F6C45ABCBE0043BFC0506D /* Pods-TelnyxWebRTCDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxWebRTCDemo.release.xcconfig"; path = "Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo.release.xcconfig"; sourceTree = "<group>"; };
 		99FF7B0F2D4BC4F700DB1408 /* DTMFKeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTMFKeyboardView.swift; sourceTree = "<group>"; };
 		99FF7B112D4BC71800DB1408 /* DTMFKeyboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTMFKeyboardViewModel.swift; sourceTree = "<group>"; };
 		A196D366150B48F1D85648D7 /* Pods_TelnyxRTC_TelnyxRTCTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxRTC_TelnyxRTCTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -564,6 +570,7 @@
 				B39121F32603AE670051E076 /* Verto */,
 				B39121F22603AD7B0051E076 /* Socket */,
 				B368BED325EDDBC90032AE52 /* TelnyxRTCTests.swift */,
+				99D717752D6E229000471D44 /* TelnyxRTCLoggerTests.swift */,
 				B3912263260F6A050051E076 /* TelnyxRTCMulticallTests.swift */,
 				B39122112604FBC00051E076 /* TestConstants.swift */,
 				B368BED525EDDBC90032AE52 /* Info.plist */,
@@ -615,6 +622,7 @@
 				3BABEA382D5F595A00B7C79C /* NetworkMonitor.swift */,
 				3B758F1D2BF97E8C00D50069 /* FileLoger.swift */,
 				B36FC8BF2612794A00A30BC4 /* Logger.swift */,
+				99D717732D6E195100471D44 /* TxLogger.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -986,6 +994,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3B0F56CB2C7F15830011A48A /* StatsMessage.swift in Sources */,
+				99D717742D6E195100471D44 /* TxLogger.swift in Sources */,
 				99B6DFFF2CF547470010CA96 /* DebugReportStopMessage.swift in Sources */,
 				3B49B7152AA9B0A20026D36D /* AttachCallMessage.swift in Sources */,
 				B36FC8C02612794A00A30BC4 /* Logger.swift in Sources */,
@@ -1045,6 +1054,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B39121E72600F7B10051E076 /* VertoMessagesTests.swift in Sources */,
+				99D717762D6E229800471D44 /* TelnyxRTCLoggerTests.swift in Sources */,
 				B39121ED2602F22F0051E076 /* SocketTests.swift in Sources */,
 				B39122122604FBC00051E076 /* TestConstants.swift in Sources */,
 				B368BED425EDDBC90032AE52 /* TelnyxRTCTests.swift in Sources */,
