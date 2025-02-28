@@ -438,6 +438,12 @@ public class Call {
     internal func updateCallState(callState: CallState) {
         Logger.log.i(message: "Call state updated: \(callState)")
         self.callState = callState
+        
+        // Notify the stats reporter about the call state change
+        if let statsReporter = self.statsReporter, debug {
+            statsReporter.handleCallStateChange(callState: callState)
+        }
+        
         self.delegate?.callStateUpdated(call: self)
     }
 } // End Call class
