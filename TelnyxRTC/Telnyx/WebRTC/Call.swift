@@ -524,9 +524,10 @@ extension Call {
             return
         }
         peer?.dispose()
+        let reportId = self?.statsReporter?.reportId
         self.statsReporter?.dispose()
         self.answerCustomHeaders = customHeaders
-        self.configureStatsReporter()
+        self.configureStatsReporter(reportID: reportId)
         self.peer = Peer(iceServers: self.iceServers, isAttach: true, forceRelayCandidate: self.forceRelayCandidate)
         self.startStatsReporter()
         self.peer?.delegate = self
@@ -546,11 +547,11 @@ extension Call {
         })
     }
     
-    private func configureStatsReporter() {
+    private func configureStatsReporter(reportID:UUID? = nil) {
         if debug,
            let socket = self.socket {
             self.statsReporter?.dispose()
-            self.statsReporter = WebRTCStatsReporter(socket: socket)
+            self.statsReporter = WebRTCStatsReporter(socket: socket,reportId: reportID)
         }
     }
 

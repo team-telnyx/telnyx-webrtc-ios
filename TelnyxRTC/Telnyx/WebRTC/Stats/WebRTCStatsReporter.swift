@@ -34,7 +34,7 @@ class WebRTCStatsReporter {
     private var peerId: UUID?
     
     /// Unique identifier for this reporting session
-    private var reportId: UUID = UUID.init()
+    internal var reportId: UUID = UUID.init()
     
     /// Reference to the peer connection being monitored
     private weak var peer: Peer?
@@ -49,8 +49,9 @@ class WebRTCStatsReporter {
     private var isReportingPaused: Bool = false
     
     // MARK: - Initializer
-    init(socket: Socket) {
+    init(socket: Socket,reportId:UUID? = nil) {
         self.socket = socket
+        self.reportId = reportId ?? UUID.init()
     }
     
     public func startDebugReport(peerId: UUID,
