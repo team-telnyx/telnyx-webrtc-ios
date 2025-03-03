@@ -110,7 +110,8 @@ final class TelnyxWebRTCDemoUITests: XCTestCase {
         numberField.typeText(TestConstants.destinationNumber)
         
         // Tap logo to hide keyboard
-        homeViewLogo.tap()
+        app.children(matching: .window).firstMatch.tap()
+        sleep(5)
 
         // Initiate call
         let callButton = app.buttons[AccessibilityIdentifiers.callButton]
