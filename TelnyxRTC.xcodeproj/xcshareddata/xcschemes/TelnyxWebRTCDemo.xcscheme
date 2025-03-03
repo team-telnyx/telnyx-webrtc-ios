@@ -46,7 +46,7 @@
             parallelizable = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "993CA9C72D530F6700872588"
+               BlueprintIdentifier = "9946517E2D761F7800049EF4"
                BuildableName = "TelnyxWebRTCDemoUITests.xctest"
                BlueprintName = "TelnyxWebRTCDemoUITests"
                ReferencedContainer = "container:TelnyxRTC.xcodeproj">
