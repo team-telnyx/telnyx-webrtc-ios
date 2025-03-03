@@ -847,7 +847,9 @@ extension TxClient : SocketDelegate {
     
     func updateActiveCallsState(callState: CallState) {
         if self.isCallsActive {
-            self.calls[self.currentCallId]?.updateCallState(callState: callState)
+            for call in self.calls.values {
+                call.updateCallState(callState: callState)
+            }
         }
     }
     

@@ -524,7 +524,7 @@ extension Call {
             return
         }
         peer?.dispose()
-        let reportId = self?.statsReporter?.reportId
+        let reportId = self.statsReporter?.reportId
         self.statsReporter?.dispose()
         self.answerCustomHeaders = customHeaders
         self.configureStatsReporter(reportID: reportId)
@@ -557,9 +557,8 @@ extension Call {
 
     private func startStatsReporter() {
         if debug,
-           let callId = self.callInfo?.callId,
-           let peer = self.peer {
-            self.statsReporter?.startDebugReport(peerId: callId, peer: peer)
+           let callId = self.callInfo?.callId {
+            self.statsReporter?.startDebugReport(peerId: callId, call: self)
         }
     }
 }

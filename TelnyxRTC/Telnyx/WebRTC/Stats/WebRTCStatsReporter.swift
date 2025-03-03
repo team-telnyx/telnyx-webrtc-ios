@@ -39,6 +39,9 @@ class WebRTCStatsReporter {
     /// Reference to the peer connection being monitored
     private weak var peer: Peer?
     
+    /// Reference to the peer connection being monitored
+    private weak var call: Call?
+    
     /// Socket connection for sending stats to Telnyx servers
     weak var socket: Socket?
     
@@ -55,10 +58,11 @@ class WebRTCStatsReporter {
     }
     
     public func startDebugReport(peerId: UUID,
-                                 peer: Peer) {
+                                 call: Call) {
         
         self.peerId = peerId
-        self.peer = peer
+        self.peer = call.peer
+        self.call  = call
         self.isReportingPaused = false
         self.sendDebugReportStartMessage(id: self.reportId)
         
@@ -178,6 +182,8 @@ class WebRTCStatsReporter {
     // MARK: - Task Execution
     private func executeTask() {
         guard let peer = peer else { return }
+        guard let call = call else { return }
+
         
         // Check socket connection state
         if let socket = socket, !socket.isConnected {
@@ -187,15 +193,13 @@ class WebRTCStatsReporter {
         }
         
         // Check call state
-        if let callState = peer.callState {
-            switch callState {
-            case .RECONNECTING, .DROPPED:
-                updateReportingState(shouldPause: true)
-                Logger.log.i(message: "WebRTCStatsReporter:: Skipping stats collection while call is in \(callState.value) state")
-                return
-            default:
-                updateReportingState(shouldPause: false)
-            }
+        switch call.callState {
+        case .RECONNECTING, .DROPPED:
+            updateReportingState(shouldPause: true)
+            Logger.log.i(message: "WebRTCStatsReporter:: Skipping stats collection while call is in \(call.callState.value) state")
+            return
+        default:
+            updateReportingState(shouldPause: false)
         }
         
         // If we reach here, we can collect and send stats
