@@ -250,6 +250,31 @@ public class TxClient {
         sessionId = UUID().uuidString.lowercased()
         // Start monitoring audio route changes
         setupAudioRouteChangeMonitoring()
+
+        NetworkMonitor.shared.startMonitoring()
+        
+        // Set up a closure to handle network state changes
+        NetworkMonitor.shared.onNetworkStateChange = { [weak self] state in
+            guard let self = self else { return }
+
+            DispatchQueue.main.async {
+                switch state {
+                case .wifi:
+                    Logger.log.i(message: "Connected to Wi-Fi")
+                    self.reconnectClient()
+                case .cellular, .vpn:
+                    Logger.log.i(message: "Connected to Cellular")
+                    self.reconnectClient()
+                case .noConnection:
+                    if(!self.isCallsActive){
+                        self.delegate?.onSocketDisconnected()
+                    }
+                    Logger.log.e(message: "No network connection")
+                    self.socket?.isConnected = false
+                    self.updateActiveCallsState(callState: CallState.DROPPED(reason: .networkLost))
+                }
+            }
+        }
     }
     
     /// Sets up monitoring for audio route changes (e.g., headphones connected/disconnected, 
@@ -389,7 +414,7 @@ public class TxClient {
     }
 
     private var isCallsActive: Bool {
-         !self.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
+        !self.calls.filter { $0.value.callState != .DONE || $0.value.callState != .NEW }.isEmpty
     }
 
     /// To check if TxClient is connected to Telnyx server.
@@ -797,9 +822,11 @@ extension TxClient: CallProtocol {
 extension TxClient : SocketDelegate {
    
     func reconnectClient() {
-        Logger.log.i(message: "Reconnect Called")
         if self.isCallsActive {
-            self.calls[self.currentCallId]?.updateCallState(callState: CallState.RECONNECTING)
+            updateActiveCallsState(callState: CallState.RECONNECTING(reason: .networkSwitch))
+            Logger.log.i(message: "Reconnect Called : Calls are active")
+        }else {
+            return
         }
         if let txConfig = self.txConfig {
             if(txConfig.reconnectClient){
@@ -815,7 +842,12 @@ extension TxClient : SocketDelegate {
             }
         }else {
             Logger.log.e(message:"TxClient:: Not Reconnecting")
-
+        }
+    }
+    
+    func updateActiveCallsState(callState: CallState) {
+        if self.isCallsActive {
+            self.calls[self.currentCallId]?.updateCallState(callState: callState)
         }
     }
     
@@ -841,10 +873,6 @@ extension TxClient : SocketDelegate {
             let vertoLogin = LoginMessage(user: sipUser, password: password, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush,pushEnvironment: self.txConfig?.pushEnvironment,sessionId: self.sessionId!)
             self.socket?.sendMessage(message: vertoLogin.encode())
         }
-        
-        //FileLogger.shared.sendLogFile()
-  
-
     }
     
     func onSocketDisconnected(reconnect: Bool) {
@@ -868,18 +896,11 @@ extension TxClient : SocketDelegate {
         self.sessionId = UUID().uuidString.lowercased()
         self.delegate?.onSocketDisconnected()
     }
-    
-    func onSocketReconnectSuggested() {
-        reconnectClient()
-    }
 
     func onSocketError(error: Error) {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketError()")
-        let socketError = TxError.socketConnectionFailed(reason: .socketCancelled(nativeError: error))
-        self.delegate?.onClientError(error: error)
-        //reconnect socket
-        Logger.log.e(message:"TxClient:: SocketDelegate reconnect error" +  error.localizedDescription)
-        reconnectClient()
+        self.delegate?.onSocketDisconnected()
+        Logger.log.e(message:"TxClient:: Socket Error" +  error.localizedDescription)
     }
 
     /**
