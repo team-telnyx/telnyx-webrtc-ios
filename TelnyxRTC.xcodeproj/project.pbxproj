@@ -27,7 +27,7 @@
 		994651932D76202C00049EF4 /* TelnyxWebRTCDemoUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D498D12D565D1F00A7B38F /* TelnyxWebRTCDemoUITests.swift */; };
 		994651942D76203100049EF4 /* TestConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D498D42D567A2C00A7B38F /* TestConstants.swift */; };
 		994651952D76204800049EF4 /* AccessibilityIdentifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9982C03E2D53977B00FA91B4 /* AccessibilityIdentifiers.swift */; };
-		994651972D7620B100049EF4 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 994651962D7620A900049EF4 /* GoogleService-Info.plist */; };
+		994651992D76339D00049EF4 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 994651982D76339500049EF4 /* GoogleService-Info.plist */; };
 		995BF7132CE7E8F100454076 /* WebRTCEnvironmentExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995BF7122CE7E8EB00454076 /* WebRTCEnvironmentExtension.swift */; };
 		995BF7162CE7EB2600454076 /* SipUserCredential.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995BF7152CE7EB2200454076 /* SipUserCredential.swift */; };
 		995BF71C2CE7EC0600454076 /* SipCredentialsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995BF71A2CE7EBF800454076 /* SipCredentialsManager.swift */; };
@@ -189,7 +189,7 @@
 		991A6D472D3AB36E00B29785 /* SipCredentialRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialRow.swift; sourceTree = "<group>"; };
 		991A6D482D3AB36E00B29785 /* SipCredentialsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialsView.swift; sourceTree = "<group>"; };
 		9946517F2D761F7800049EF4 /* TelnyxWebRTCDemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TelnyxWebRTCDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		994651962D7620A900049EF4 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		994651982D76339500049EF4 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		995BF7122CE7E8EB00454076 /* WebRTCEnvironmentExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCEnvironmentExtension.swift; sourceTree = "<group>"; };
 		995BF7152CE7EB2200454076 /* SipUserCredential.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipUserCredential.swift; sourceTree = "<group>"; };
 		995BF71A2CE7EBF800454076 /* SipCredentialsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialsManager.swift; sourceTree = "<group>"; };
@@ -586,7 +586,7 @@
 				995BF71E2CE8174B00454076 /* ViewControllers */,
 				B3AF24A825EE84410062EDA9 /* Extensions */,
 				B368BEEA25EDDD060032AE52 /* AppDelegate.swift */,
-				994651962D7620A900049EF4 /* GoogleService-Info.plist */,
+				994651982D76339500049EF4 /* GoogleService-Info.plist */,
 				B368BEF025EDDD060032AE52 /* Main.storyboard */,
 				B368BEF325EDDD070032AE52 /* Assets.xcassets */,
 				B368BEF525EDDD070032AE52 /* LaunchScreen.storyboard */,
@@ -862,7 +862,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B368BEF725EDDD070032AE52 /* LaunchScreen.storyboard in Resources */,
-				994651972D7620B100049EF4 /* GoogleService-Info.plist in Resources */,
+				994651992D76339D00049EF4 /* GoogleService-Info.plist in Resources */,
 				3B758F1A2BF44D7800D50069 /* PrivacyInfo.xcprivacy in Resources */,
 				B3E1033225F7F94900227DCE /* incoming_call.mp3 in Resources */,
 				B368BEF425EDDD070032AE52 /* Assets.xcassets in Resources */,
