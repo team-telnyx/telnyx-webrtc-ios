@@ -30,11 +30,9 @@ func onClientError(error: Error)
 The `onClientError` callback is triggered in the following scenarios:
 
 1. **Gateway Registration Failure**: When the client fails to register with the Telnyx gateway after multiple retry attempts.
-   - Location: [TxClient.swift:538](https://github.com/team-telnyx/telnyx-webrtc-ios/blob/main/TelnyxRTC/Telnyx/TxClient.swift#L538)
    - Error Type: `TxError.serverError(reason: .gatewayNotRegistered)`
 
 2. **Server Error Messages**: When the server sends an error message through the WebSocket connection.
-   - Location: [TxClient.swift:933](https://github.com/team-telnyx/telnyx-webrtc-ios/blob/main/TelnyxRTC/Telnyx/TxClient.swift#L933)
    - Error Type: `TxError.serverError(reason: .signalingServerError(message: String, code: String))`
 
 3. **Socket Connection Errors**: When there are issues with the WebSocket connection.
@@ -163,5 +161,3 @@ To effectively handle errors in your application:
 4. **Log errors** for debugging purposes:
    - Use the error information provided in the callbacks to log detailed error information
    - Include error codes and messages in your logs to help with troubleshooting
-
-By following these best practices, you can create a robust application that handles errors gracefully and provides a better user experience.
