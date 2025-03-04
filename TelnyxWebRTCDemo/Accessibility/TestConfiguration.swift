@@ -1,5 +1,6 @@
 import Foundation
 import UIKit
+import FirebaseCore
 
 enum TestConfiguration {
     
@@ -11,6 +12,7 @@ enum TestConfiguration {
         if isRunningUITests {
             // Disable animations
             UIView.setAnimationsEnabled(false)
+            FirebaseApp.configure()
         }
     }
 }

@@ -5,6 +5,8 @@ target 'TelnyxWebRTCDemo' do
   # Comment the next line if you don't want to use dynamic frameworks
   use_frameworks!
   
+  pod 'Firebase/Core'
+
   pod 'ReachabilitySwift', '~> 5.2.1'
 
   # Pods for TelnyxWebRTCDemo

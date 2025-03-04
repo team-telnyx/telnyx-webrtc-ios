@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "B368BEE725EDDD060032AE52"
-               BuildableName = "TelnyxWebRTCDemo.app"
+               BuildableName = "Telnyx WebRTC.app"
                BlueprintName = "TelnyxWebRTCDemo"
                ReferencedContainer = "container:TelnyxRTC.xcodeproj">
             </BuildableReference>
@@ -46,7 +46,7 @@
             parallelizable = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "993CA9C72D530F6700872588"
+               BlueprintIdentifier = "9946517E2D761F7800049EF4"
                BuildableName = "TelnyxWebRTCDemoUITests.xctest"
                BlueprintName = "TelnyxWebRTCDemoUITests"
                ReferencedContainer = "container:TelnyxRTC.xcodeproj">
@@ -69,7 +69,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "B368BEE725EDDD060032AE52"
-            BuildableName = "TelnyxWebRTCDemo.app"
+            BuildableName = "Telnyx WebRTC.app"
             BlueprintName = "TelnyxWebRTCDemo"
             ReferencedContainer = "container:TelnyxRTC.xcodeproj">
          </BuildableReference>
@@ -86,7 +86,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "B368BEE725EDDD060032AE52"
-            BuildableName = "TelnyxWebRTCDemo.app"
+            BuildableName = "Telnyx WebRTC.app"
             BlueprintName = "TelnyxWebRTCDemo"
             ReferencedContainer = "container:TelnyxRTC.xcodeproj">
          </BuildableReference>
