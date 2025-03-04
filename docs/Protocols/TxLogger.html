@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>WebRTCEnvironment Enumeration Reference</title>
+    <title>TxLogger Protocol Reference</title>
     <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
     <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
     <meta charset='utf-8'>
@@ -13,8 +13,8 @@
     <script src="../js/jazzy.search.js" defer></script>
   </head>
   <body>
-    <a name="//apple_ref/swift/Enum/WebRTCEnvironment" class="dashAnchor"></a>
-    <a title="WebRTCEnvironment Enumeration Reference"></a>
+    <a name="//apple_ref/swift/Protocol/TxLogger" class="dashAnchor"></a>
+    <a title="TxLogger Protocol Reference"></a>
     <header>
       <div class="content-wrapper">
         <p><a href="../index.html">TelnyxRTC 1.2.0 Docs</a> (77% documented)</p>
@@ -29,9 +29,9 @@
       <p id="breadcrumbs">
         <a href="../index.html">TelnyxRTC</a>
         <img id="carat" src="../img/carat.png" alt=""/>
-        <a href="../Enums.html">Enumerations</a>
+        <a href="../Protocols.html">Protocols</a>
         <img id="carat" src="../img/carat.png" alt=""/>
-        WebRTCEnvironment Enumeration Reference
+        TxLogger Protocol Reference
       </p>
     </div>
     <div class="content-wrapper">
@@ -125,15 +125,16 @@
       <article class="main-content">
         <section>
           <section class="section">
-            <h1>WebRTCEnvironment</h1>
+            <h1>TxLogger</h1>
               <div class="declaration">
                 <div class="language">
                   
-                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">WebRTCEnvironment</span></code></pre>
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">TxLogger</span></code></pre>
 
                 </div>
               </div>
-            <p>Undocumented</p>
+            <p>Protocol defining the interface for custom logging in the Telnyx SDK.
+Implement this protocol to create a custom logger that can receive and handle logs from the SDK.</p>
 
           </section>
           <section class="section task-group-section">
@@ -142,9 +143,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC17WebRTCEnvironmentO11developmentyA2CmF"></a>
-                    <a name="//apple_ref/swift/Element/development" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC17WebRTCEnvironmentO11developmentyA2CmF">development</a>
+                    <a name="/s:9TelnyxRTC8TxLoggerP3log5level7messageyAA8LogLevelO_SStF"></a>
+                    <a name="//apple_ref/swift/Method/log(level:message:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxLoggerP3log5level7messageyAA8LogLevelO_SStF">log(level:<wbr>message:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -152,43 +153,47 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Called when a log message needs to be processed.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">development</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">log</span><span class="p">(</span><span class="nv">level</span><span class="p">:</span> <span class="kt"><a href="../Enums/LogLevel.html">LogLevel</a></span><span class="p">,</span> <span class="nv">message</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span></code></pre>
 
                         </div>
                       </div>
-                    </section>
-                  </div>
-                </li>
-                <li class="item">
-                  <div>
-                    <code>
-                    <a name="/s:9TelnyxRTC17WebRTCEnvironmentO10productionyA2CmF"></a>
-                    <a name="//apple_ref/swift/Element/production" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC17WebRTCEnvironmentO10productionyA2CmF">production</a>
-                    </code>
-                  </div>
-                  <div class="height-container">
-                    <div class="pointer-container"></div>
-                    <section class="section">
-                      <div class="pointer"></div>
-                      <div class="abstract">
-                        <p>Undocumented</p>
-
-                      </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">production</span></code></pre>
-
-                        </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>level</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The severity level of the log message</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>message</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The actual log message</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </section>
                   </div>

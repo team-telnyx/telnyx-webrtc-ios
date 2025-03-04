@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>ServerErrorReason Enumeration Reference</title>
+    <title>Reason Enumeration Reference</title>
     <link rel="stylesheet" type="text/css" href="../../css/jazzy.css" />
     <link rel="stylesheet" type="text/css" href="../../css/highlight.css" />
     <meta charset='utf-8'>
@@ -13,8 +13,8 @@
     <script src="../../js/jazzy.search.js" defer></script>
   </head>
   <body>
-    <a name="//apple_ref/swift/Enum/ServerErrorReason" class="dashAnchor"></a>
-    <a title="ServerErrorReason Enumeration Reference"></a>
+    <a name="//apple_ref/swift/Enum/Reason" class="dashAnchor"></a>
+    <a title="Reason Enumeration Reference"></a>
     <header>
       <div class="content-wrapper">
         <p><a href="../../index.html">TelnyxRTC 1.2.0 Docs</a> (77% documented)</p>
@@ -31,9 +31,9 @@
         <img id="carat" src="../../img/carat.png" alt=""/>
         <a href="../../Enums.html">Enumerations</a>
         <img id="carat" src="../../img/carat.png" alt=""/>
-        <a href="../../Enums/TxError.html">TxError</a>
+        <a href="../../Enums/CallState.html">CallState</a>
         <img id="carat" src="../../img/carat.png" alt=""/>
-        ServerErrorReason Enumeration Reference
+        Reason Enumeration Reference
       </p>
     </div>
     <div class="content-wrapper">
@@ -127,15 +127,15 @@
       <article class="main-content">
         <section>
           <section class="section">
-            <h1>ServerErrorReason</h1>
+            <h1>Reason</h1>
               <div class="declaration">
                 <div class="language">
                   
-                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">ServerErrorReason</span></code></pre>
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">Reason</span> <span class="p">:</span> <span class="kt">String</span></code></pre>
 
                 </div>
               </div>
-            <p>The underlying reason of the server errors</p>
+            <p>Enum to represent reasons for reconnection or call drop.</p>
 
           </section>
           <section class="section task-group-section">
@@ -144,76 +144,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC7TxErrorO06ServerD6ReasonO09signalingeD0yAESS_SStcAEmF"></a>
-                    <a name="//apple_ref/swift/Element/signalingServerError(message:code:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC7TxErrorO06ServerD6ReasonO09signalingeD0yAESS_SStcAEmF">signalingServerError(message:<wbr>code:<wbr>)</a>
-                    </code>
-                  </div>
-                  <div class="height-container">
-                    <div class="pointer-container"></div>
-                    <section class="section">
-                      <div class="pointer"></div>
-                      <div class="abstract">
-                        <p>Any server signaling error. We get the message and code from the server</p>
-
-                      </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">signalingServerError</span><span class="p">(</span><span class="nv">message</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">code</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span></code></pre>
-
-                        </div>
-                      </div>
-                    </section>
-                  </div>
-                </li>
-                <li class="item">
-                  <div>
-                    <code>
-                    <a name="/s:9TelnyxRTC7TxErrorO06ServerD6ReasonO20gatewayNotRegisteredyA2EmF"></a>
-                    <a name="//apple_ref/swift/Element/gatewayNotRegistered" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC7TxErrorO06ServerD6ReasonO20gatewayNotRegisteredyA2EmF">gatewayNotRegistered</a>
-                    </code>
-                  </div>
-                  <div class="height-container">
-                    <div class="pointer-container"></div>
-                    <section class="section">
-                      <div class="pointer"></div>
-                      <div class="abstract">
-                        <p>Gateway is not registered.</p>
-
-                      </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">gatewayNotRegistered</span></code></pre>
-
-                        </div>
-                      </div>
-                    </section>
-                  </div>
-                </li>
-              </ul>
-            </div>
-            <div class="task-group">
-              <div class="task-name-container">
-                <a name="/Error%20Descriptions"></a>
-                <a name="//apple_ref/swift/Section/Error Descriptions" class="dashAnchor"></a>
-                <div class="section-name-container">
-                  <a class="section-name-link" href="#/Error%20Descriptions"></a>
-                  <h3 class="section-name"><span>Error Descriptions</span>
-</h3>
-                </div>
-              </div>
-              <ul>
-                <li class="item">
-                  <div>
-                    <code>
-                    <a name="/s:9TelnyxRTC7TxErrorO06ServerD6ReasonO20localizedDescriptionSSvp"></a>
-                    <a name="//apple_ref/swift/Property/localizedDescription" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC7TxErrorO06ServerD6ReasonO20localizedDescriptionSSvp">localizedDescription</a>
+                    <a name="/s:9TelnyxRTC9CallStateO6ReasonO13networkSwitchyA2EmF"></a>
+                    <a name="//apple_ref/swift/Element/networkSwitch" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC9CallStateO6ReasonO13networkSwitchyA2EmF">networkSwitch</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -228,7 +161,61 @@
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">localizedDescription</span><span class="p">:</span> <span class="kt">String</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">networkSwitch</span> <span class="o">=</span> <span class="s">"Network switched"</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC9CallStateO6ReasonO11networkLostyA2EmF"></a>
+                    <a name="//apple_ref/swift/Element/networkLost" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC9CallStateO6ReasonO11networkLostyA2EmF">networkLost</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">networkLost</span> <span class="o">=</span> <span class="s">"Network lost"</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC9CallStateO6ReasonO11serverErroryA2EmF"></a>
+                    <a name="//apple_ref/swift/Element/serverError" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC9CallStateO6ReasonO11serverErroryA2EmF">serverError</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">serverError</span> <span class="o">=</span> <span class="s">"Server error"</span></code></pre>
 
                         </div>
                       </div>
