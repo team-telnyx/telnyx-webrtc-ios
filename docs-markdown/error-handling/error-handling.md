@@ -153,11 +153,6 @@ To effectively handle errors in your application:
    - When `onSocketDisconnected` is called, inform the user about connection issues
    - When `onSocketConnected` is called, update the UI to show the connection is restored
 
-3. **Implement proper error recovery**:
-   - For authentication errors, prompt the user to re-enter credentials
-   - For network-related errors, provide a retry mechanism
-   - For persistent errors, guide the user to contact support
-
-4. **Log errors** for debugging purposes:
+3. **Log errors** for debugging purposes:
    - Use the error information provided in the callbacks to log detailed error information
    - Include error codes and messages in your logs to help with troubleshooting
