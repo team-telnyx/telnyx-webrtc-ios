@@ -21,6 +21,12 @@ enum AccessibilityIdentifiers {
     static let userSelectionList = "userSelectionList"
     static let userSelectionCell = "userSelectionCell"
     
+    // Credential Management
+    static let editCredentialButton = "editCredentialButton"
+    static let deleteCredentialButton = "deleteCredentialButton"
+    static let updateCredentialButton = "updateCredentialButton"
+    static let deleteToastMessage = "deleteToastMessage"
+    
     // Connection
     static let connectButton = "connectButton"
     static let disconnectButton = "disconnectButton"
