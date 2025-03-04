@@ -261,7 +261,7 @@
 		B368BED325EDDBC90032AE52 /* TelnyxRTCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnyxRTCTests.swift; sourceTree = "<group>"; };
 		B368BED525EDDBC90032AE52 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B368BEE025EDDC7D0032AE52 /* TxClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxClient.swift; sourceTree = "<group>"; };
-		B368BEE825EDDD060032AE52 /* TelnyxWebRTCDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TelnyxWebRTCDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B368BEE825EDDD060032AE52 /* Telnyx WebRTC.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Telnyx WebRTC.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B368BEEA25EDDD060032AE52 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B368BEF125EDDD060032AE52 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		B368BEF325EDDD070032AE52 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -328,7 +328,6 @@
 			files = (
 				99FF147F2D5E9826009ED956 /* TelnyxRTC.framework in Frameworks */,
 				3BC03B4E2CC25F5F00FD2B29 /* Reachability.framework in Frameworks */,
-				63028CD9806A4EA4826C7D52 /* Pods_TelnyxWebRTCDemo.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -547,6 +546,7 @@
 				B368BED125EDDBC90032AE52 /* TelnyxRTCTests.xctest */,
 				B368BEE825EDDD060032AE52 /* TelnyxWebRTCDemo.app */,
 				9946517F2D761F7800049EF4 /* TelnyxWebRTCDemoUITests.xctest */,
+
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -787,7 +787,7 @@
 			);
 			name = TelnyxWebRTCDemo;
 			productName = TelnyxWebRTCDemo;
-			productReference = B368BEE825EDDD060032AE52 /* TelnyxWebRTCDemo.app */;
+			productReference = B368BEE825EDDD060032AE52 /* Telnyx WebRTC.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -1451,8 +1451,7 @@
 				);
 				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PRODUCT_NAME = "Telnyx WebRTC";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -1479,9 +1478,8 @@
 				);
 				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "ios-webrtcapp-uitests-profile";
+				PRODUCT_NAME = "Telnyx WebRTC";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
