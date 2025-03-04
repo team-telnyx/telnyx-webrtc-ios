@@ -2,7 +2,25 @@
 
 Enable Telnyx real-time communication services on iOS. :telephone_receiver: :fire:
 
-## Project structure: 
+## Table of Contents
+
+- [Project Structure](#project-structure)
+- [Project Setup](#project-setup)
+- [SIP Credentials](#sip-credentials)
+- [Adding Telnyx SDK to your iOS Client Application](#adding-telnyx-sdk-to-your-ios-client-application)
+- [Usage](#usage)
+  - [Telnyx Client Setup](#telnyx-client-setup)
+  - [Telnyx Client Delegate](#telnyx-client-delegate)
+  - [Calls](#calls)
+- [WebRTC Statistics](#webrtc-statistics)
+- [Custom Logging](#custom-logging)
+- [Documentation](#documentation)
+  - [Error Handling](docs-markdown/error-handling/error-handling.md)
+  - [Push Notifications Setup](#push-notifications-setup)
+    - [App Setup](docs-markdown/push-notification/app-setup.md)
+    - [Portal Setup](docs-markdown/push-notification/portal-setup.md)
+
+## Project Structure
 
 - SDK project: Enable Telnyx WebRTC communications.
 - SDK Tests project.
@@ -419,9 +437,13 @@ If no custom logger is provided, the SDK uses `TxDefaultLogger` which prints log
 ---
 </br>
 
-## Setting up VoIP push notifications: 
+## Push Notifications Setup
 
 In order to receive incoming calls while the app is running in background or closed, you will need to perform a set of configurations over your Mission Control Portal Account and your application. 
+
+For detailed documentation on setting up push notifications, see:
+- [App Setup](docs-markdown/push-notification/app-setup.md) - Configure your iOS app to receive VoIP push notifications
+- [Portal Setup](docs-markdown/push-notification/portal-setup.md) - Set up your Telnyx Portal account with VoIP push credentials
 
 </br>
 
