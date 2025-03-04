@@ -14,11 +14,7 @@ Enable Telnyx real-time communication services on iOS. :telephone_receiver: :fir
   - [Calls](#calls)
 - [WebRTC Statistics](#webrtc-statistics)
 - [Custom Logging](#custom-logging)
-- [Documentation](#documentation)
-  - [Error Handling](docs-markdown/error-handling/error-handling.md)
-  - [Push Notifications Setup](#push-notifications-setup)
-    - [App Setup](docs-markdown/push-notification/app-setup.md)
-    - [Portal Setup](docs-markdown/push-notification/portal-setup.md)
+- [Push Notifications Setup](#push-notifications-setup)
 
 ## Project Structure
 
