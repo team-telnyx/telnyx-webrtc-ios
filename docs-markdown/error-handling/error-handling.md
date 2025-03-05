@@ -1,4 +1,4 @@
-# Error Handling in Telnyx WebRTC iOS SDK
+## Error Handling
 
 This document provides a comprehensive overview of error handling in the Telnyx WebRTC iOS SDK, including when the `onClientError` callback is triggered, the types of errors that can occur, and how the SDK handles reconnection attempts.
 
