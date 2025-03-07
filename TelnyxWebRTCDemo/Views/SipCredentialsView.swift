@@ -142,38 +142,38 @@ struct SipCredentialsView: View {
                         } else {
                             ForEach(credentialsList, id: \.username) { credential in
                                 SipCredentialRow(
-                                    credential: credential,
-                                    isSelected: credential.username == tempSelectedCredential?.username,
-                                    onDelete: {
-                                        withAnimation {
-                                            if selectedCredential?.username == credential.username {
-                                                SipCredentialsManager.shared.removeSelectedCredential()
-                                                selectedCredential = nil
-                                                tempSelectedCredential = nil
-                                                isSelectedCredentialChanged = true
+                                    viewModel: SipCredentialRowViewModel(
+                                        credential: credential,
+                                        isSelected: credential.username == tempSelectedCredential?.username,
+                                        onDelete: {
+                                            withAnimation {
+                                                if selectedCredential?.username == credential.username {
+                                                    SipCredentialsManager.shared.removeSelectedCredential()
+                                                    selectedCredential = nil
+                                                    tempSelectedCredential = nil
+                                                    isSelectedCredentialChanged = true
+                                                    SipCredentialsManager.shared.removeCredential(username: credential.username)
+                                                    credentialsList = SipCredentialsManager.shared.getCredentials()
+                                                    if !credentialsList.isEmpty {
+                                                        tempSelectedCredential = credentialsList.first
+                                                        SipCredentialsManager.shared.saveSelectedCredential(tempSelectedCredential!)
+                                                        isSelectedCredentialChanged = true
+                                                    }
+                                                }
                                             }
-                                            SipCredentialsManager.shared.removeCredential(username: credential.username)
-                                            credentialsList = SipCredentialsManager.shared.getCredentials()
-                                            if !credentialsList.isEmpty {
-                                                tempSelectedCredential = credentialsList.first
-                                                SipCredentialsManager.shared.saveSelectedCredential(tempSelectedCredential!)
-                                                isSelectedCredentialChanged = true
+
+                                        },
+                                        onEdit: {
+                                            withAnimation {
+                                                credentialToEdit = credential
+                                                isEditMode = true
+                                                internalIsShowingCredentialsInput = true
+                                                isShowingCredentialsInput = true
                                             }
+
                                         }
-                                    },
-                                    onEdit: {
-                                        withAnimation {
-                                            credentialToEdit = credential
-                                            isEditMode = true
-                                            internalIsShowingCredentialsInput = true
-                                            isShowingCredentialsInput = true
-                                        }
-                                    }
+                                    )
                                 )
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    tempSelectedCredential = credential
-                                }
                                 .listRowInsets(EdgeInsets())
                                 .listRowSeparator(.hidden)
                                 .listRowBackground(Color.white)

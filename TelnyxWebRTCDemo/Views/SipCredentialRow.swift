@@ -1,18 +1,12 @@
 import SwiftUI
 
 struct SipCredentialRow: View {
-    let credential: SipCredential
-    let isSelected: Bool
-    let onDelete: () -> Void
-    let onEdit: () -> Void
-    @State private var showDeleteToast: Bool = false
-    @State private var longPressInProgress: Bool = false
-    @State private var deleteToastTimer: Timer? = nil
+    @ObservedObject var viewModel: SipCredentialRowViewModel
     
     var body: some View {
         HStack {
             HStack {
-                Text(credential.username)
+                Text(viewModel.credential.username)
                     .font(.system(size: 18, weight: .light))
                     .foregroundColor(Color(hex: "#1D1D1D"))
                     .padding(.vertical, 5)
@@ -20,87 +14,73 @@ struct SipCredentialRow: View {
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(isSelected ? Color(hex: "#F5F3E4") : .white)
-            .contentShape(Rectangle())
+            .background(viewModel.isSelected ? Color(hex: "#F5F3E4") : .white)
             .cornerRadius(4)
+            .contentShape(Rectangle())
+
             Spacer()
             HStack(spacing: 16) {
-                if isSelected {
-                    Button(action: onEdit) {
+                if viewModel.isSelected {
+                    Button(action: { viewModel.onEdit() }) {
                         Image(systemName: "pencil")
                             .font(.system(size: 16))
                             .foregroundColor(Color(hex: "#1D1D1D"))
                     }
-                    .frame(width: 16, height: 16)
-                    .accessibilityIdentifier(AccessibilityIdentifiers.editCredentialButton)
+                    .buttonStyle(PlainButtonStyle())
+                    .frame(width: 30, height: 30)
                     
-                    Button(action: {
-                        if !showDeleteToast {
-                            showDeleteToast = true
-                            deleteToastTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { _ in
-                                showDeleteToast = false
-                            }
-                        }
-                    }) {
+                    Button(action: { viewModel.onDelete() }) {
                         Image(systemName: "trash")
                             .font(.system(size: 16))
                             .foregroundColor(Color(hex: "#1D1D1D"))
                     }
-                    .simultaneousGesture(
-                        LongPressGesture(minimumDuration: 1.0)
-                            .onChanged { _ in
-                                longPressInProgress = true
-                            }
-                            .onEnded { _ in
-                                longPressInProgress = false
-                                showDeleteToast = false
-                                deleteToastTimer?.invalidate()
-                                onDelete()
-                            }
-                    )
-                    .frame(width: 16, height: 16)
-                    .accessibilityIdentifier(AccessibilityIdentifiers.deleteCredentialButton)
+                    .buttonStyle(PlainButtonStyle())
+                    .frame(width: 30, height: 30)
                 }
             }
-            .frame(width: 60, alignment: .center)
+            .frame(width: 100, alignment: .center)
+            .contentShape(Rectangle())
         }
-        .overlay(
-            Group {
-                if showDeleteToast {
-                    VStack {
-                        Text("Hold down to delete")
-                            .font(.system(size: 14))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(Color.black.opacity(0.7))
-                            .cornerRadius(8)
-                            .accessibilityIdentifier(AccessibilityIdentifiers.deleteToastMessage)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-                    .padding(.trailing, 40)
-                    .transition(.opacity)
-                    .animation(.easeInOut, value: showDeleteToast)
-                }
-            }
-        )
+        .onTapGesture {
+            viewModel.isSelected.toggle()
+        }
     }
 }
+
 
 #Preview {
     VStack {
         SipCredentialRow(
-            credential: SipCredential(username: "test_user", password: ""),
-            isSelected: true,
-            onDelete: {},
-            onEdit: {}
+            viewModel: SipCredentialRowViewModel(
+                credential: SipCredential(username: "test_user", password: ""),
+                isSelected: true,
+                onDelete: {},
+                onEdit: {}
+            )
         )
         SipCredentialRow(
-            credential: SipCredential(username: "gencredzGcUippdfjdfldsfsfdjnmnssdsdadcsn", password: ""),
-            isSelected: false,
-            onDelete: {},
-            onEdit: {}
+            viewModel: SipCredentialRowViewModel(
+                credential: SipCredential(username: "gencredzGcUippdfjdfldsfsfdjnmnssdsdadcsn", password: ""),
+                isSelected: false,
+                onDelete: {},
+                onEdit: {}
+            )
         )
     }
     .padding()
+}
+// MARK: - ViewModel para SipCredentialRow
+class SipCredentialRowViewModel: ObservableObject {
+    @Published var credential: SipCredential
+    @Published var isSelected: Bool
+    
+    let onDelete: () -> Void
+    let onEdit: () -> Void
+    
+    init(credential: SipCredential, isSelected: Bool, onDelete: @escaping () -> Void, onEdit: @escaping () -> Void) {
+        self.credential = credential
+        self.isSelected = isSelected
+        self.onDelete = onDelete
+        self.onEdit = onEdit
+    }
 }
