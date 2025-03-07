@@ -171,6 +171,13 @@ struct SipCredentialsView: View {
                                                 isShowingCredentialsInput = true
                                             }
 
+                                        },
+                                        onSelect: {
+                                            tempSelectedCredential = credential
+                                            if selectedCredential?.username != credential.username {
+                                                selectedCredential = credential
+                                                isSelectedCredentialChanged = true
+                                            }
                                         }
                                     )
                                 )

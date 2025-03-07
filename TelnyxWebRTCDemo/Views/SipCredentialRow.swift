@@ -17,7 +17,10 @@ struct SipCredentialRow: View {
             .background(viewModel.isSelected ? Color(hex: "#F5F3E4") : .white)
             .cornerRadius(4)
             .contentShape(Rectangle())
-
+            .onTapGesture {
+                viewModel.onSelect()
+            }
+            
             Spacer()
             HStack(spacing: 16) {
                 if viewModel.isSelected {
@@ -55,7 +58,8 @@ struct SipCredentialRow: View {
                 credential: SipCredential(username: "test_user", password: ""),
                 isSelected: true,
                 onDelete: {},
-                onEdit: {}
+                onEdit: {},
+                onSelect: {}
             )
         )
         SipCredentialRow(
@@ -63,7 +67,8 @@ struct SipCredentialRow: View {
                 credential: SipCredential(username: "gencredzGcUippdfjdfldsfsfdjnmnssdsdadcsn", password: ""),
                 isSelected: false,
                 onDelete: {},
-                onEdit: {}
+                onEdit: {},
+                onSelect: {}
             )
         )
     }
@@ -76,11 +81,17 @@ class SipCredentialRowViewModel: ObservableObject {
     
     let onDelete: () -> Void
     let onEdit: () -> Void
-    
-    init(credential: SipCredential, isSelected: Bool, onDelete: @escaping () -> Void, onEdit: @escaping () -> Void) {
+    let onSelect: () -> Void
+
+    init(credential: SipCredential,
+         isSelected: Bool,
+         onDelete: @escaping () -> Void,
+         onEdit: @escaping () -> Void,
+         onSelect: @escaping () -> Void) {
         self.credential = credential
         self.isSelected = isSelected
         self.onDelete = onDelete
         self.onEdit = onEdit
+        self.onSelect = onSelect
     }
 }
