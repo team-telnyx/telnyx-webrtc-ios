@@ -6,19 +6,20 @@ This guide helps you troubleshoot common issues that prevent push notifications 
 
 ### 1. VoIP Push Notification Certificate
 
-One of the most critical components for iOS push notifications is the VoIP Push Notification Certificate.
+One of the most critical components for iOS push notifications is the VoIP Push Notification Certificate. A single VoIP Services Certificate supports both sandbox and production environments for the same bundle ID.
 
 **How to verify:**
-- Check that you have generated a valid VoIP Push Notification Certificate in the Apple Developer Portal
+- Check that you have generated a valid VoIP Services Certificate in the Apple Developer Portal
 - Verify that the certificate is not expired
 - Ensure the certificate is generated for the correct bundle ID used in your app
-- Confirm whether you need a development (sandbox) or production certificate based on your build configuration
+- Verify that the VoIP Services Certificate establishes connectivity between your notification server and both APNS sandbox and production environments
 
 **Solution:**
-- Follow Apple's official documentation to generate a new VoIP Push Notification Certificate
-- Upload the correct certificate (development or production) to the Telnyx Portal
+- Follow [Apple's official documentation](https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/establishing_a_certificate-based_connection_to_apns) to generate a new VoIP Services Certificate
+- Upload the certificate to the Telnyx Portal
 - Ensure the certificate matches your app's bundle ID
-- For different environments (development, staging, production), create separate certificates if using different bundle IDs
+- For different bundle IDs (e.g., com.myapp.dev, com.myapp), create separate VoIP Services Certificates
+- Note: A separate certificate is required for each app you distribute, but each certificate works for both sandbox and production
 
 ### 2. Push Token Not Passed to Login
 
