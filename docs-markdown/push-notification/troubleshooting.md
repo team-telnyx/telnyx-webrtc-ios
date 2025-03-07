@@ -45,17 +45,17 @@ If the push credential is not correctly assigned to your SIP credential, the ser
 
 **Solution:**
 - Follow the steps in the [Portal Setup](https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/portal-setup) guide to properly assign the push credential
-- Make sure you've selected the correct credential for your application environment (development or production)
+- Make sure you've selected the correct credential for your application.
 - If using multiple environments, ensure each has its own SIP connection with the appropriate certificate
 
 ### 4. APNS Environment Mismatch
 
-iOS apps can target either the APNS Sandbox (development) or Production environment, and this must match your certificate and build configuration.
+OS apps can target either the APNS Sandbox (development) or Production environment, and this must align with your build configuration.
 
 **How to verify:**
-- Check your build configuration (Debug vs Release)
-- Verify the APNS environment setting in your TelnyxConfig
-- Confirm which certificate (development or production) is uploaded to the Telnyx Portal
+- Check your build configuration (Debug vs Release).
+- Ensure that the APNS environment setting in your TxConfig (`pushEnvironment` property) is not being forced.
+- Confirm that the correct VoIP Services Certificate, valid for both production and development, is uploaded to the Telnyx Portal.
 
 **Solution:**
 - For Debug builds running from Xcode:
