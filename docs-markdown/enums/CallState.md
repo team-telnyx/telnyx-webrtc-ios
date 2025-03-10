@@ -3,7 +3,7 @@
 # `CallState`
 
 ```swift
-public enum CallState
+public enum CallState: Equatable
 ```
 
 `CallState` represents the state of the call
@@ -56,3 +56,28 @@ case DONE
 ```
 
 Call has ended.
+
+### `RECONNECTING(reason:)`
+
+```swift
+case RECONNECTING(reason: Reason)
+```
+
+The active call is being recovered. Usually after a network switch or bad network
+
+### `DROPPED(reason:)`
+
+```swift
+case DROPPED(reason: Reason)
+```
+
+The active call is dropped. Usually when the network is lost.
+
+## Methods
+### `getReason()`
+
+```swift
+public func getReason() -> String?
+```
+
+Helper function to get the reason for the state (if applicable).

@@ -9,6 +9,8 @@ struct SipCredentialsView: View {
     @Binding var isShowingCredentialsInput: Bool
     @State private var internalIsShowingCredentialsInput: Bool
     @State private var viewHeight: CGFloat = 0
+    @State private var isEditMode: Bool = false
+    @State private var credentialToEdit: SipCredential? = nil
     
     let onCredentialSelected: (SipCredential?) -> Void
     let onSignIn: (SipCredential?) -> Void
@@ -39,17 +41,75 @@ struct SipCredentialsView: View {
                 ScrollView {
                     
                     SipInputCredentialsView(
-                        username: "",
-                        password: "",
+                        username: credentialToEdit?.username ?? "",
+                        password: credentialToEdit?.password ?? "",
                         isPasswordVisible: false,
                         hasError: false,
-                        onSignIn: { newCredential in
-                            onSignIn(newCredential)
+                        isTokenLogin: credentialToEdit?.isToken ?? false,
+                        tokenCallerId: credentialToEdit?.isToken == true ? credentialToEdit?.username ?? "" : "",
+                        callerIdNumber: credentialToEdit?.callerNumber ?? "",
+                        callerName: credentialToEdit?.callerName ?? "",
+                        isEditMode: isEditMode,
+                        onSignIn: { newCredential, isEdit, originalUsername in
+                            if isEdit {
+                                // Check if username was changed and already exists
+                                if originalUsername != newCredential?.username && 
+                                   credentialsList.contains(where: { $0.username == newCredential?.username }) {
+                                    // Show error - username already exists
+                                    // This would be handled in the real implementation
+                                    print("Error: Username already exists")
+                                } else {
+                                    // If editing the currently selected credential
+                                    if selectedCredential?.username == originalUsername {
+                                        // Update the selected credential
+                                        selectedCredential = newCredential
+                                        tempSelectedCredential = newCredential
+                                        isSelectedCredentialChanged = true
+                                    }
+                                    
+                                    // Remove the old credential if username changed
+                                    if originalUsername != newCredential?.username {
+                                        SipCredentialsManager.shared.removeCredential(username: originalUsername)
+                                    }
+                                    
+                                    // Add or update the credential
+                                    if let credential = newCredential {
+                                        SipCredentialsManager.shared.addOrUpdateCredential(credential)
+                                    }
+                                    
+                                    // Refresh the credentials list
+                                    credentialsList = SipCredentialsManager.shared.getCredentials()
+                                    
+                                    // Reset edit mode
+                                    isEditMode = false
+                                    credentialToEdit = nil
+                                    
+                                    // Close the input view
+                                    withAnimation {
+                                        internalIsShowingCredentialsInput = false
+                                        isShowingCredentialsInput = false
+                                    }
+                                }
+                            } else {
+                                // Normal sign in flow
+                                onSignIn(newCredential)
+                                
+                                // Refresh the credentials list
+                                credentialsList = SipCredentialsManager.shared.getCredentials()
+                                
+                                // Close the input view
+                                withAnimation {
+                                    internalIsShowingCredentialsInput = false
+                                    isShowingCredentialsInput = false
+                                }
+                            }
                         },
                         onCancel: {
                             withAnimation {
                                 internalIsShowingCredentialsInput = false
                                 isShowingCredentialsInput = false
+                                isEditMode = false
+                                credentialToEdit = nil
                             }
                         }
                     )
@@ -82,30 +142,45 @@ struct SipCredentialsView: View {
                         } else {
                             ForEach(credentialsList, id: \.username) { credential in
                                 SipCredentialRow(
-                                    credential: credential,
-                                    isSelected: credential.username == tempSelectedCredential?.username,
-                                    onDelete: {
-                                        withAnimation {
-                                            if selectedCredential?.username == credential.username {
-                                                SipCredentialsManager.shared.removeSelectedCredential()
-                                                selectedCredential = nil
-                                                tempSelectedCredential = nil
-                                                isSelectedCredentialChanged = true
+                                    viewModel: SipCredentialRowViewModel(
+                                        credential: credential,
+                                        isSelected: credential.username == tempSelectedCredential?.username,
+                                        onDelete: {
+                                            withAnimation {
+                                                if selectedCredential?.username == credential.username {
+                                                    SipCredentialsManager.shared.removeSelectedCredential()
+                                                    selectedCredential = nil
+                                                    tempSelectedCredential = nil
+                                                    isSelectedCredentialChanged = true
+                                                    SipCredentialsManager.shared.removeCredential(username: credential.username)
+                                                    credentialsList = SipCredentialsManager.shared.getCredentials()
+                                                    if !credentialsList.isEmpty {
+                                                        tempSelectedCredential = credentialsList.first
+                                                        SipCredentialsManager.shared.saveSelectedCredential(tempSelectedCredential!)
+                                                        isSelectedCredentialChanged = true
+                                                    }
+                                                }
                                             }
-                                            SipCredentialsManager.shared.removeCredential(username: credential.username)
-                                            credentialsList = SipCredentialsManager.shared.getCredentials()
-                                            if !credentialsList.isEmpty {
-                                                tempSelectedCredential = credentialsList.first
-                                                SipCredentialsManager.shared.saveSelectedCredential(tempSelectedCredential!)
+
+                                        },
+                                        onEdit: {
+                                            withAnimation {
+                                                credentialToEdit = credential
+                                                isEditMode = true
+                                                internalIsShowingCredentialsInput = true
+                                                isShowingCredentialsInput = true
+                                            }
+
+                                        },
+                                        onSelect: {
+                                            tempSelectedCredential = credential
+                                            if selectedCredential?.username != credential.username {
+                                                selectedCredential = credential
                                                 isSelectedCredentialChanged = true
                                             }
                                         }
-                                    }
+                                    )
                                 )
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    tempSelectedCredential = credential
-                                }
                                 .listRowInsets(EdgeInsets())
                                 .listRowSeparator(.hidden)
                                 .listRowBackground(Color.white)

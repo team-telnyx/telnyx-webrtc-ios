@@ -26,3 +26,5 @@ reports/
 
 #build
 build/*
+
+TelnyxWebRTCDemo/GoogleService-Info.plist

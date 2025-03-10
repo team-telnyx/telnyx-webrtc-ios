@@ -17,7 +17,7 @@
     <a title="TxConfig Structure Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">TelnyxRTC 1.0.0 Docs</a> (78% documented)</p>
+        <p><a href="../index.html">TelnyxRTC 1.2.0 Docs</a> (77% documented)</p>
         <div class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -49,6 +49,9 @@
               <li class="nav-group-task">
                 <a href="../Classes/TxClient.html">TxClient</a>
               </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TxDefaultLogger.html">TxDefaultLogger</a>
+              </li>
             </ul>
           </li>
           <li class="nav-group-name">
@@ -56,6 +59,9 @@
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
                 <a href="../Enums/CallState.html">CallState</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/CallState/Reason.html">– Reason</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Enums/LogLevel.html">LogLevel</a>
@@ -88,6 +94,9 @@
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
                 <a href="../Protocols/TxClientDelegate.html">TxClientDelegate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TxLogger.html">TxLogger</a>
               </li>
             </ul>
           </li>
@@ -436,6 +445,34 @@ which prevents the &ldquo;local network access&rdquo; permission popup from appe
                     </section>
                   </div>
                 </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC8TxConfigV12customLoggerAA0cF0_pSgvp"></a>
+                    <a name="//apple_ref/swift/Property/customLogger" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV12customLoggerAA0cF0_pSgvp">customLogger</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Custom logger implementation for handling SDK logs
+If not provided, the default logger will be used</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">internal(set)</span> <span class="k">var</span> <span class="nv">customLogger</span><span class="p">:</span> <span class="kt"><a href="../Protocols/TxLogger.html">TxLogger</a></span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
               </ul>
             </div>
             <div class="task-group">
@@ -452,9 +489,9 @@ which prevents the &ldquo;local network access&rdquo; permission popup from appe
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone0H11Environment8logLevel15reconnectClient5debug19forceRelayCandidateACSS_S2SSgA2nA04PushO0OSgAA03LogQ0OS3btcfc"></a>
-                    <a name="//apple_ref/swift/Method/init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:reconnectClient:debug:forceRelayCandidate:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone0H11Environment8logLevel15reconnectClient5debug19forceRelayCandidateACSS_S2SSgA2nA04PushO0OSgAA03LogQ0OS3btcfc">init(sipUser:<wbr>password:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>pushEnvironment:<wbr>logLevel:<wbr>reconnectClient:<wbr>debug:<wbr>forceRelayCandidate:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone0H11Environment8logLevel12customLogger15reconnectClient5debug19forceRelayCandidateACSS_S2SSgA2oA04PushO0OSgAA03LogQ0OAA0cS0_pSgS3btcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone0H11Environment8logLevel12customLogger15reconnectClient5debug19forceRelayCandidateACSS_S2SSgA2oA04PushO0OSgAA03LogQ0OAA0cS0_pSgS3btcfc">init(sipUser:<wbr>password:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>pushEnvironment:<wbr>logLevel:<wbr>customLogger:<wbr>reconnectClient:<wbr>debug:<wbr>forceRelayCandidate:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -475,6 +512,7 @@ which prevents the &ldquo;local network access&rdquo; permission popup from appe
             <span class="nv">ringBackTone</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
             <span class="nv">pushEnvironment</span><span class="p">:</span> <span class="kt"><a href="../Enums/PushEnvironment.html">PushEnvironment</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
             <span class="nv">logLevel</span><span class="p">:</span> <span class="kt"><a href="../Enums/LogLevel.html">LogLevel</a></span> <span class="o">=</span> <span class="o">.</span><span class="k">none</span><span class="p">,</span>
+            <span class="nv">customLogger</span><span class="p">:</span> <span class="kt"><a href="../Protocols/TxLogger.html">TxLogger</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
             <span class="nv">reconnectClient</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">true</span><span class="p">,</span>
             <span class="nv">debug</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span>
             <span class="nv">forceRelayCandidate</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span>
@@ -558,6 +596,18 @@ which prevents the &ldquo;local network access&rdquo; permission popup from appe
                                 </div>
                               </td>
                             </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>customLogger</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) Custom logger implementation for handling SDK logs. If not provided, the default logger will be used</p>
+                                </div>
+                              </td>
+                            </tr>
                           </tbody>
                         </table>
                       </div>
@@ -567,9 +617,9 @@ which prevents the &ldquo;local network access&rdquo; permission popup from appe
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone0F11Environment8logLevel5debug19forceRelayCandidateACSS_SSSgA2lA04PushM0OSgAA03LogO0OS2btcfc"></a>
-                    <a name="//apple_ref/swift/Method/init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:debug:forceRelayCandidate:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone0F11Environment8logLevel5debug19forceRelayCandidateACSS_SSSgA2lA04PushM0OSgAA03LogO0OS2btcfc">init(token:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>pushEnvironment:<wbr>logLevel:<wbr>debug:<wbr>forceRelayCandidate:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone0F11Environment8logLevel12customLogger15reconnectClient5debug19forceRelayCandidateACSS_SSSgA2nA04PushM0OSgAA03LogO0OAA0cQ0_pSgS3btcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone0F11Environment8logLevel12customLogger15reconnectClient5debug19forceRelayCandidateACSS_SSSgA2nA04PushM0OSgAA03LogO0OAA0cQ0_pSgS3btcfc">init(token:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>pushEnvironment:<wbr>logLevel:<wbr>customLogger:<wbr>reconnectClient:<wbr>debug:<wbr>forceRelayCandidate:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -590,6 +640,8 @@ which prevents the &ldquo;local network access&rdquo; permission popup from appe
             <span class="nv">ringBackTone</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
             <span class="nv">pushEnvironment</span><span class="p">:</span> <span class="kt"><a href="../Enums/PushEnvironment.html">PushEnvironment</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
             <span class="nv">logLevel</span><span class="p">:</span> <span class="kt"><a href="../Enums/LogLevel.html">LogLevel</a></span> <span class="o">=</span> <span class="o">.</span><span class="k">none</span><span class="p">,</span>
+            <span class="nv">customLogger</span><span class="p">:</span> <span class="kt"><a href="../Protocols/TxLogger.html">TxLogger</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+            <span class="nv">reconnectClient</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">true</span><span class="p">,</span>
             <span class="nv">debug</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span>
             <span class="nv">forceRelayCandidate</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">)</span></code></pre>
 
@@ -662,6 +714,18 @@ which prevents the &ldquo;local network access&rdquo; permission popup from appe
                             <tr>
                               <td>
                                 <code>
+                                <em>customLogger</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) Custom logger implementation for handling SDK logs. If not provided, the default logger will be used</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
                                 <em>serverConfiguration</em>
                                 </code>
                               </td>
@@ -727,7 +791,7 @@ which prevents the &ldquo;local network access&rdquo; permission popup from appe
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-02-11)</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-03-04)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>
