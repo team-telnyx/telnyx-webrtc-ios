@@ -438,6 +438,12 @@ public class Call {
     internal func updateCallState(callState: CallState) {
         Logger.log.i(message: "Call state updated: \(callState)")
         self.callState = callState
+        
+        // Notify the stats reporter about the call state change
+        if let statsReporter = self.statsReporter, debug {
+            statsReporter.handleCallStateChange(callState: callState)
+        }
+        
         self.delegate?.callStateUpdated(call: self)
     }
 } // End Call class
@@ -518,9 +524,10 @@ extension Call {
             return
         }
         peer?.dispose()
+        let reportId = self.statsReporter?.reportId
         self.statsReporter?.dispose()
         self.answerCustomHeaders = customHeaders
-        self.configureStatsReporter()
+        self.configureStatsReporter(reportID: reportId)
         self.peer = Peer(iceServers: self.iceServers, isAttach: true, forceRelayCandidate: self.forceRelayCandidate)
         self.startStatsReporter()
         self.peer?.delegate = self
@@ -540,19 +547,18 @@ extension Call {
         })
     }
     
-    private func configureStatsReporter() {
+    private func configureStatsReporter(reportID:UUID? = nil) {
         if debug,
            let socket = self.socket {
             self.statsReporter?.dispose()
-            self.statsReporter = WebRTCStatsReporter(socket: socket)
+            self.statsReporter = WebRTCStatsReporter(socket: socket,reportId: reportID)
         }
     }
 
     private func startStatsReporter() {
         if debug,
-           let callId = self.callInfo?.callId,
-           let peer = self.peer {
-            self.statsReporter?.startDebugReport(peerId: callId, peer: peer)
+           let callId = self.callInfo?.callId {
+            self.statsReporter?.startDebugReport(peerId: callId, call: self)
         }
     }
 }

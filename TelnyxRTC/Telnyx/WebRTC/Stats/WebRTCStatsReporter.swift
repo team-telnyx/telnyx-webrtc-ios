@@ -34,10 +34,13 @@ class WebRTCStatsReporter {
     private var peerId: UUID?
     
     /// Unique identifier for this reporting session
-    private var reportId: UUID = UUID.init()
+    internal var reportId: UUID = UUID.init()
     
     /// Reference to the peer connection being monitored
     private weak var peer: Peer?
+    
+    /// Reference to the peer connection being monitored
+    private weak var call: Call?
     
     /// Socket connection for sending stats to Telnyx servers
     weak var socket: Socket?
@@ -45,16 +48,22 @@ class WebRTCStatsReporter {
     /// Queue for handling message sending to avoid blocking the main thread
     private let messageQueue = DispatchQueue(label: "WebRTCStatsReporter.MessageQueue")
     
+    /// Flag to track if stats reporting is paused due to socket disconnection or call state
+    private var isReportingPaused: Bool = false
+    
     // MARK: - Initializer
-    init(socket: Socket) {
+    init(socket: Socket,reportId:UUID? = nil) {
         self.socket = socket
+        self.reportId = reportId ?? UUID.init()
     }
     
     public func startDebugReport(peerId: UUID,
-                                 peer: Peer) {
+                                 call: Call) {
         
         self.peerId = peerId
-        self.peer = peer
+        self.peer = call.peer
+        self.call  = call
+        self.isReportingPaused = false
         self.sendDebugReportStartMessage(id: self.reportId)
         
         let delay = DispatchTime.now() + 0.2
@@ -99,6 +108,12 @@ class WebRTCStatsReporter {
     }
     
     private func sendDebugReportDataMessage(id: UUID, data: [String: Any]) {
+        // Skip sending messages if reporting is paused due to socket disconnection or call state
+        if isReportingPaused {
+            Logger.log.i(message: "WebRTCStatsReporter:: Skipping stats message while socket is disconnected or call is recovering")
+            return
+        }
+        
         let statsMessage = DebugReportDataMessage(reportID: id.uuidString.lowercased(), reportData: data)
         if let message = statsMessage.encode() {
             enqueueMessage(message)
@@ -138,11 +153,56 @@ class WebRTCStatsReporter {
         data["data"] = debugData
         self.sendDebugReportDataMessage(id: reportId, data: data)
     }
-
+    
+    /// Updates the reporting state based on socket connection and call state
+    /// - Parameter shouldPause: Whether to pause reporting
+    public func updateReportingState(shouldPause: Bool) {
+        if isReportingPaused != shouldPause {
+            isReportingPaused = shouldPause
+            Logger.log.i(message: "WebRTCStatsReporter:: Stats reporting \(shouldPause ? "paused" : "resumed")")
+        }
+    }
+    
+    /// Updates the reporting state based on call state changes
+    /// - Parameter callState: The current call state
+    public func handleCallStateChange(callState: CallState) {
+        switch callState {
+        case .RECONNECTING, .DROPPED:
+            updateReportingState(shouldPause: true)
+            Logger.log.i(message: "WebRTCStatsReporter:: Pausing stats reporting due to call state: \(callState.value)")
+        case .ACTIVE:
+            updateReportingState(shouldPause: false)
+            Logger.log.i(message: "WebRTCStatsReporter:: Resuming stats reporting due to call state: \(callState.value)")
+        default:
+            // Keep current state for other call states
+            break
+        }
+    }
     
     // MARK: - Task Execution
     private func executeTask() {
         guard let peer = peer else { return }
+        guard let call = call else { return }
+
+        
+        // Check socket connection state
+        if let socket = socket, !socket.isConnected {
+            updateReportingState(shouldPause: true)
+            Logger.log.i(message: "WebRTCStatsReporter:: Skipping stats collection while socket is disconnected")
+            return
+        }
+        
+        // Check call state
+        switch call.callState {
+        case .RECONNECTING, .DROPPED:
+            updateReportingState(shouldPause: true)
+            Logger.log.i(message: "WebRTCStatsReporter:: Skipping stats collection while call is in \(call.callState.value) state")
+            return
+        default:
+            updateReportingState(shouldPause: false)
+        }
+        
+        // If we reach here, we can collect and send stats
         Logger.log.i(message: "WebRTCStatsReporter:: Task executed at \(Date())")
         peer.connection?.statistics(completionHandler: { [weak self] reports in
             guard let self = self else { return }
@@ -250,7 +310,11 @@ class WebRTCStatsReporter {
     // MARK: - Message Queue
     private func enqueueMessage(_ message: String) {
         messageQueue.async { [weak self] in
-            self?.socket?.sendMessage(message: message)
+            guard let self = self, !self.isReportingPaused else {
+                Logger.log.i(message: "WebRTCStatsReporter:: Message sending skipped due to paused state")
+                return
+            }
+            self.socket?.sendMessage(message: message)
         }
     }
 }
@@ -261,6 +325,9 @@ extension WebRTCStatsReporter {
         self.stopDebugReport()
         timer?.cancel()
         timer = nil
+        
+        // Reset the reporting state
+        isReportingPaused = false
         
         peerId = nil
         peer = nil
