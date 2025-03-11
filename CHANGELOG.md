@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [1.2.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/1.2.1) (2025-03-11)
+
+### Bug Fixes
+- Disabled WebRTC stats during socket reconnection process to improve call reconnection speed.
+
 ## [1.2.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/1.2.0) (2025-03-01)
 
 ### Enhacement
