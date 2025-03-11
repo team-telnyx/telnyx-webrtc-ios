@@ -254,7 +254,7 @@
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Stats/WebRTCStatsReporter.swift",
-      "line": 260,
+      "line": 324,
       "symbol": "WebRTCStatsReporter.dispose()",
       "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"
