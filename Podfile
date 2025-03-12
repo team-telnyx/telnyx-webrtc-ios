@@ -11,7 +11,7 @@ target 'TelnyxWebRTCDemo' do
 
   # Pods for TelnyxWebRTCDemo
   # Using the framework from the main project instead of as a pod
-  # pod 'TelnyxRTC', :path => '.'
+#   pod 'TelnyxRTC', :path => '.'
 
 end
 
@@ -29,23 +29,18 @@ target 'TelnyxRTC' do
 
 end
 
-#Disable bitecode -> WebRTC pod doesn't have bitcode enabled
-
 post_install do |installer|
-    installer.generated_projects.each do |project|
-          project.targets.each do |target|
-              target.build_configurations.each do |config|
-                  config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.0'
-                  
-                  # Fix for Xcode 15 resource bundle issue
-                  config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'
-                  
-                  # Ensure we're not building the same framework twice
-                  if target.name == 'TelnyxRTC'
-                    config.build_settings['SKIP_INSTALL'] = 'NO'
-                  end
-               end
-          end
-   end
+  installer.generated_projects.each do |project|
+    project.targets.each do |target|
+      target.build_configurations.each do |config|
+        # Evitar que CocoaPods elimine TelnyxRTC de la app
+        if target.name == 'TelnyxRTC'
+          config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+          config.build_settings['SKIP_INSTALL'] = 'NO'
+        end
+      end
+    end
+  end
 end
+
 
