@@ -10,7 +10,8 @@ target 'TelnyxWebRTCDemo' do
   pod 'ReachabilitySwift', '~> 5.2.1'
 
   # Pods for TelnyxWebRTCDemo
-  pod 'TelnyxRTC', :path => '.'
+  # Using the framework from the main project instead of as a pod
+#   pod 'TelnyxRTC', :path => '.'
 
 end
 
@@ -28,15 +29,18 @@ target 'TelnyxRTC' do
 
 end
 
-#Disable bitecode -> WebRTC pod doesn't have bitcode enabled
-
 post_install do |installer|
-    installer.generated_projects.each do |project|
-          project.targets.each do |target|
-              target.build_configurations.each do |config|
-                  config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.0'
-               end
-          end
-   end
+  installer.generated_projects.each do |project|
+    project.targets.each do |target|
+      target.build_configurations.each do |config|
+        # Evitar que CocoaPods elimine TelnyxRTC de la app
+        if target.name == 'TelnyxRTC'
+          config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+          config.build_settings['SKIP_INSTALL'] = 'NO'
+        end
+      end
+    end
+  end
 end
+
 
