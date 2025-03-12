@@ -1,5 +1,67 @@
 # CHANGELOG
 
+## [1.2.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/1.2.1) (2025-03-11)
+
+### Bug Fixes
+- Disabled WebRTC stats during socket reconnection process to improve call reconnection speed.
+
+## [1.2.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/1.2.0) (2025-03-01)
+
+### Enhacement
+- **Custom Logs Support**: 
+  - Added support for custom logs in the SDK. You can now pass a customLogger in TxConfig to handle SDK logs.
+  - If no custom logger is provided, logs will be printed to the console based on the configured logLevel (.none by default).
+
+### Reconnection Enhancements
+- Improved call reconnection handling when switching networks (Wi-Fi / mobile data).
+- New CallState: Introduced a new DROPPED state to better track when a call is lost due to network issues.
+
+```Swift
+/// `CallState` represents the state of the call
+public enum CallState: Equatable {
+    /// New call has been created in the client.
+    case NEW
+    /// The outbound call is being sent to the server.
+    case CONNECTING
+    /// Call is pending to be answered. Someone is attempting to call you.
+    case RINGING
+    /// Call is active when two clients are fully connected.
+    case ACTIVE
+    /// Call has been held.
+    case HELD
+    /// Call has ended.
+    case DONE
+    /// The active call is being recovered. Usually after a network switch or bad network
+    case RECONNECTING(reason: Reason)
+    /// The active call is dropped. Usually when the network is lost.
+    case DROPPED(reason: Reason)
+
+    /// Enum to represent reasons for reconnection or call drop.
+    public enum Reason: String {
+        case networkSwitch = "Network switched"
+        case networkLost = "Network lost"
+        case serverError = "Server error"
+    }
+
+    /// Helper function to get the reason for the state (if applicable).
+    public func getReason() -> String? {
+        switch self {
+        case let .RECONNECTING(reason), let .DROPPED(reason):
+            return reason.rawValue
+        default:
+            return nil
+        }
+    }
+}
+
+```
+
+## [1.1.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/1.1.0) (2025-02-17)
+
+### Bug Fixes
+- Fix callstate sequence for outgoing and incoming calls
+- Fix network switch for foreground calls
+
 ## [1.0.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/1.0.0) (2025-02-11)
 
 ### Enhacement

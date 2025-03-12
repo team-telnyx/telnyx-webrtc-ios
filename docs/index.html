@@ -16,7 +16,7 @@
     <a title="TelnyxRTC  Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="index.html">TelnyxRTC 1.0.0 Docs</a> (78% documented)</p>
+        <p><a href="index.html">TelnyxRTC 1.2.1 Docs</a> (77% documented)</p>
         <div class="header-right">
           <form role="search" action="search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -44,6 +44,9 @@
               <li class="nav-group-task">
                 <a href="Classes/TxClient.html">TxClient</a>
               </li>
+              <li class="nav-group-task">
+                <a href="Classes/TxDefaultLogger.html">TxDefaultLogger</a>
+              </li>
             </ul>
           </li>
           <li class="nav-group-name">
@@ -51,6 +54,9 @@
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
                 <a href="Enums/CallState.html">CallState</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/CallState/Reason.html">– Reason</a>
               </li>
               <li class="nav-group-task">
                 <a href="Enums/LogLevel.html">LogLevel</a>
@@ -84,6 +90,9 @@
               <li class="nav-group-task">
                 <a href="Protocols/TxClientDelegate.html">TxClientDelegate</a>
               </li>
+              <li class="nav-group-task">
+                <a href="Protocols/TxLogger.html">TxLogger</a>
+              </li>
             </ul>
           </li>
           <li class="nav-group-name">
@@ -115,7 +124,25 @@
             <h1 id='telnyx-webrtc-ios' class='heading'>telnyx-webrtc-ios</h1>
 
 <p>Enable Telnyx real-time communication services on iOS. :telephone_receiver: :fire:</p>
-<h2 id='project-structure' class='heading'>Project structure:</h2>
+<h2 id='table-of-contents' class='heading'>Table of Contents</h2>
+
+<ul>
+<li><a href="#project-structure">Project Structure</a></li>
+<li><a href="#project-setup">Project Setup</a></li>
+<li><a href="#sip-credentials">SIP Credentials</a></li>
+<li><a href="#adding-telnyx-sdk-to-your-ios-client-application">Adding Telnyx SDK to your iOS Client Application</a></li>
+<li><a href="#usage">Usage</a>
+
+<ul>
+<li><a href="#telnyx-client-setup">Telnyx Client Setup</a></li>
+<li><a href="#telnyx-client-delegate">Telnyx Client Delegate</a></li>
+<li><a href="#calls">Calls</a></li>
+</ul></li>
+<li><a href="#webrtc-statistics">WebRTC Statistics</a></li>
+<li><a href="#custom-logging">Custom Logging</a></li>
+<li><a href="#push-notifications-setup">Push Notifications Setup</a></li>
+</ul>
+<h2 id='project-structure' class='heading'>Project Structure</h2>
 
 <ul>
 <li>SDK project: Enable Telnyx WebRTC communications.</li>
@@ -477,9 +504,81 @@ extension ViewController: TxClientDelegate {
 <hr>
 
 <p></br></p>
-<h2 id='setting-up-voip-push-notifications' class='heading'>Setting up VoIP push notifications:</h2>
+<h2 id='custom-logging' class='heading'>Custom Logging</h2>
+
+<p>The SDK provides a flexible logging system that allows you to implement your own custom logger. This feature enables you to route SDK logs to your preferred logging framework or format.</p>
+<h3 id='implementing-a-custom-logger' class='heading'>Implementing a Custom Logger</h3>
+
+<p>To create a custom logger, implement the <code><a href="Protocols/TxLogger.html">TxLogger</a></code> protocol:</p>
+<pre class="highlight plaintext"><code>class MyCustomLogger: TxLogger {
+    func log(level: LogLevel, message: String) {
+        // Implement your custom logging logic here
+        // Example: Send logs to your analytics service
+        MyAnalyticsService.log(
+            level: level,
+            message: message,
+        )
+    }
+}
+</code></pre>
+<h3 id='using-a-custom-logger' class='heading'>Using a Custom Logger</h3>
+
+<p>To use your custom logger, pass it to the <code><a href="Structs/TxConfig.html">TxConfig</a></code> when initializing the client:</p>
+<pre class="highlight plaintext"><code>let customLogger = MyCustomLogger()
+let txConfig = TxConfig(
+    sipUser: sipUser,
+    password: password,
+    logLevel: .all,           // Set desired log level
+    customLogger: customLogger // Pass your custom logger
+)
+</code></pre>
+<h3 id='default-logger' class='heading'>Default Logger</h3>
+
+<p>If no custom logger is provided, the SDK uses <code><a href="Classes/TxDefaultLogger.html">TxDefaultLogger</a></code> which prints logs to the console with appropriate formatting and emojis for different log levels.</p>
+<h3 id='important-notes' class='heading'>Important Notes</h3>
+
+<ol>
+<li><p><strong>Log Levels</strong>: </p>
+
+<ul>
+<li>The <code>logLevel</code> parameter in <code><a href="Structs/TxConfig.html">TxConfig</a></code> still controls which logs are processed</li>
+<li>Custom loggers only receive logs that match the configured verbosity level</li>
+</ul></li>
+<li><p><strong>Thread Safety</strong>:</p>
+
+<ul>
+<li>Ensure your custom logger implementation is thread-safe</li>
+<li>Log callbacks may come from different threads</li>
+</ul></li>
+<li><p><strong>Performance</strong>:</p>
+
+<ul>
+<li>Keep logging operations lightweight to avoid impacting call quality</li>
+<li>Consider asynchronous logging for heavy operations</li>
+</ul></li>
+<li><p><strong>Best Practices</strong>:</p>
+
+<ul>
+<li>Handle all log levels appropriately</li>
+<li>Include timestamps for proper log sequencing</li>
+<li>Consider log persistence for debugging</li>
+<li>Handle errors gracefully within the logger</li>
+</ul></li>
+</ol>
+
+<hr>
+
+<p></br></p>
+<h2 id='push-notifications-setup' class='heading'>Push Notifications Setup</h2>
 
 <p>In order to receive incoming calls while the app is running in background or closed, you will need to perform a set of configurations over your Mission Control Portal Account and your application. </p>
+
+<p>For detailed documentation on setting up push notifications, see:</p>
+
+<ul>
+<li><a href="docs-markdown/push-notification/app-setup.md">App Setup</a> - Configure your iOS app to receive VoIP push notifications</li>
+<li><a href="docs-markdown/push-notification/portal-setup.md">Portal Setup</a> - Set up your Telnyx Portal account with VoIP push credentials</li>
+</ul>
 
 <p></br></p>
 <h3 id='voip-push-portal-setup' class='heading'>VoIP Push - Portal setup</h3>
@@ -915,7 +1014,7 @@ user interface until there are no more active sessions.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-02-11)</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-03-11)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>

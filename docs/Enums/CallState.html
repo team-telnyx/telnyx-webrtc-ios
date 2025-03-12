@@ -17,7 +17,7 @@
     <a title="CallState Enumeration Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">TelnyxRTC 1.0.0 Docs</a> (78% documented)</p>
+        <p><a href="../index.html">TelnyxRTC 1.2.1 Docs</a> (77% documented)</p>
         <div class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -49,6 +49,9 @@
               <li class="nav-group-task">
                 <a href="../Classes/TxClient.html">TxClient</a>
               </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TxDefaultLogger.html">TxDefaultLogger</a>
+              </li>
             </ul>
           </li>
           <li class="nav-group-name">
@@ -56,6 +59,9 @@
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
                 <a href="../Enums/CallState.html">CallState</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/CallState/Reason.html">– Reason</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Enums/LogLevel.html">LogLevel</a>
@@ -89,6 +95,9 @@
               <li class="nav-group-task">
                 <a href="../Protocols/TxClientDelegate.html">TxClientDelegate</a>
               </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TxLogger.html">TxLogger</a>
+              </li>
             </ul>
           </li>
           <li class="nav-group-name">
@@ -120,7 +129,7 @@
               <div class="declaration">
                 <div class="language">
                   
-                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">CallState</span></code></pre>
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">CallState</span> <span class="p">:</span> <span class="kt">Equatable</span></code></pre>
 
                 </div>
               </div>
@@ -292,12 +301,148 @@
                     </section>
                   </div>
                 </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC9CallStateO12RECONNECTINGyA2C6ReasonO_tcACmF"></a>
+                    <a name="//apple_ref/swift/Element/RECONNECTING(reason:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC9CallStateO12RECONNECTINGyA2C6ReasonO_tcACmF">RECONNECTING(reason:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The active call is being recovered. Usually after a network switch or bad network</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="kt">RECONNECTING</span><span class="p">(</span><span class="nv">reason</span><span class="p">:</span> <span class="kt"><a href="../Enums/CallState/Reason.html">Reason</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC9CallStateO7DROPPEDyA2C6ReasonO_tcACmF"></a>
+                    <a name="//apple_ref/swift/Element/DROPPED(reason:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC9CallStateO7DROPPEDyA2C6ReasonO_tcACmF">DROPPED(reason:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The active call is dropped. Usually when the network is lost.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="kt">DROPPED</span><span class="p">(</span><span class="nv">reason</span><span class="p">:</span> <span class="kt"><a href="../Enums/CallState/Reason.html">Reason</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC9CallStateO6ReasonO"></a>
+                    <a name="//apple_ref/swift/Enum/Reason" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC9CallStateO6ReasonO">Reason</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Enum to represent reasons for reconnection or call drop.</p>
+
+                        <a href="../Enums/CallState/Reason.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">Reason</span> <span class="p">:</span> <span class="kt">String</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC9CallStateO9getReasonSSSgyF"></a>
+                    <a name="//apple_ref/swift/Method/getReason()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC9CallStateO9getReasonSSSgyF">getReason()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Helper function to get the reason for the state (if applicable).</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getReason</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">String</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC9CallStateO5valueSSvp"></a>
+                    <a name="//apple_ref/swift/Property/value" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC9CallStateO5valueSSvp">value</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns the string representation of the enum case.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">var</span> <span class="nv">value</span><span class="p">:</span> <span class="kt">String</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
               </ul>
             </div>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-02-11)</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-03-11)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>

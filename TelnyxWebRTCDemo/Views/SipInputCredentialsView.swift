@@ -5,24 +5,40 @@ struct SipInputCredentialsView: View {
     @State private var password: String
     @State private var isPasswordVisible: Bool
     @State private var hasError: Bool
-    @State private var isTokenLogin: Bool = false
-    @State private var tokenCallerId: String = ""
-    @State private var callerIdNumber: String = ""
-    @State private var callerName: String = ""
+    @State private var errorMessage: String
+    @State private var isTokenLogin: Bool
+    @State private var tokenCallerId: String
+    @State private var callerIdNumber: String
+    @State private var callerName: String
+    @State private var isEditMode: Bool
+    @State private var originalUsername: String
     
-    let onSignIn: (SipCredential?) -> Void
+    let onSignIn: (SipCredential?, Bool, String) -> Void
     var onCancel: () -> Void
     
     init(username: String = "",
          password: String = "",
          isPasswordVisible: Bool = false,
          hasError: Bool = false,
-         onSignIn: @escaping (SipCredential?) -> Void = { _ in },
+         errorMessage: String = "That username/password combination does not match our records. Please try again.",
+         isTokenLogin: Bool = false,
+         tokenCallerId: String = "",
+         callerIdNumber: String = "",
+         callerName: String = "",
+         isEditMode: Bool = false,
+         onSignIn: @escaping (SipCredential?, Bool, String) -> Void = { _, _, _ in },
          onCancel: @escaping () -> Void = {}) {
         self._username = State(initialValue: username)
         self._password = State(initialValue: password)
         self._isPasswordVisible = State(initialValue: isPasswordVisible)
         self._hasError = State(initialValue: hasError)
+        self._errorMessage = State(initialValue: errorMessage)
+        self._isTokenLogin = State(initialValue: isTokenLogin)
+        self._tokenCallerId = State(initialValue: tokenCallerId)
+        self._callerIdNumber = State(initialValue: callerIdNumber)
+        self._callerName = State(initialValue: callerName)
+        self._isEditMode = State(initialValue: isEditMode)
+        self._originalUsername = State(initialValue: username)
         self.onSignIn = onSignIn
         self.onCancel = onCancel
     }
@@ -31,7 +47,7 @@ struct SipInputCredentialsView: View {
         VStack(alignment: .leading,
                spacing: 12) {
             if hasError {
-                ErrorView(errorMessage: "That username/password combination does not match our records. Please try again.")
+                ErrorView(errorMessage: errorMessage)
             }
             Toggle("Token Login", isOn: $isTokenLogin)
                 .toggleStyle(SwitchToggleStyle(tint: .black))
@@ -142,16 +158,18 @@ struct SipInputCredentialsView: View {
                                                    isToken: isTokenLogin,
                                                    callerName: callerName,
                                                    callerNumber: callerIdNumber)
-                    onSignIn(credential)
+                    onSignIn(credential, isEditMode, originalUsername)
                 }) {
-                    Text("Sign In")
+                    Text(isEditMode ? "Update" : "Sign In")
                         .font(.system(size: 16).bold())
                         .foregroundColor(Color(hex: "#525252"))
                         .frame(width: 100)
                         .padding(.vertical, 12)
                         .background(Color(hex: "#F5F3E4"))
                         .cornerRadius(20)
-                        .accessibilityIdentifier(AccessibilityIdentifiers.signInButton)
+                        .accessibilityIdentifier(isEditMode ? 
+                                                AccessibilityIdentifiers.updateCredentialButton : 
+                                                AccessibilityIdentifiers.signInButton)
                 }
                 
                 Button(action: { onCancel() }) {
@@ -178,10 +196,28 @@ struct SipInputCredentialsView: View {
 }
 
 #Preview {
-    SipInputCredentialsView(username: "testuser",
-                            password: "password",
-                            isPasswordVisible: true,
-                            hasError: true) { credential in
-        print("Signed in with: \(credential?.username ?? "nil")")
+    VStack {
+        SipInputCredentialsView(
+            username: "testuser",
+            password: "password",
+            isPasswordVisible: true,
+            hasError: true,
+            errorMessage: "That username/password combination does not match our records. Please try again."
+        ) { credential, isEditMode, originalUsername in
+            print("Signed in with: \(credential?.username ?? "nil"), Edit mode: \(isEditMode), Original username: \(originalUsername)")
+        }
+        
+        SipInputCredentialsView(
+            username: "edituser",
+            password: "editpassword",
+            isPasswordVisible: false,
+            hasError: false,
+            isTokenLogin: false,
+            callerIdNumber: "+1234567890",
+            callerName: "Edit User",
+            isEditMode: true
+        ) { credential, isEditMode, originalUsername in
+            print("Updated credential: \(credential?.username ?? "nil"), Edit mode: \(isEditMode), Original username: \(originalUsername)")
+        }
     }
 }
