@@ -151,9 +151,8 @@ public class TxClient {
     private let AUTH_ERROR_CODE = "-32001"
     private var reconnectTimeoutTimer: DispatchSourceTimer?
     private let reconnectQueue = DispatchQueue(label: "TelnyxClient.ReconnectQueue")
-    private var isReconnecting: Bool = false
-    
     private var _isSpeakerEnabled: Bool = false
+    
     public private(set) var isSpeakerEnabled: Bool {
         get {
             return _isSpeakerEnabled
@@ -838,7 +837,6 @@ extension TxClient : SocketDelegate {
    
     func reconnectClient() {
         if self.isCallsActive {
-            isReconnecting = true
             updateActiveCallsState(callState: CallState.RECONNECTING(reason: .networkSwitch))
             Logger.log.i(message: "Reconnect Called : Calls are active")
         }else {
