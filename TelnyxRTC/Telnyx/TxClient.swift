@@ -832,7 +832,6 @@ extension TxClient : SocketDelegate {
         self.reconnectTimeoutTimer?.setEventHandler { [weak self] in
             Logger.log.i(message: "Reconnect TimeOut : after \(self?.txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT) secs")
             self?.delegate?.onClientError(error: TxError.callFailed(reason: .reconnectFailed))
-            //self?.reconnectTimeoutTimer?.cancel()
         }
         self.reconnectTimeoutTimer?.resume()
     }
