@@ -830,6 +830,7 @@ extension TxClient : SocketDelegate {
         self.reconnectTimeoutTimer?.schedule(deadline: .now() + (txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT))
         self.reconnectTimeoutTimer?.setEventHandler { [weak self] in
             Logger.log.i(message: "Reconnect TimeOut : after \(self?.txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT) secs")
+            self?.updateActiveCallsState(callState: CallState.DONE)
             self?.delegate?.onClientError(error: TxError.callFailed(reason: .reconnectFailed))
         }
         self.reconnectTimeoutTimer?.resume()
@@ -838,6 +839,7 @@ extension TxClient : SocketDelegate {
     func reconnectClient() {
         if self.isCallsActive {
             updateActiveCallsState(callState: CallState.RECONNECTING(reason: .networkSwitch))
+            startReconnectTimeout()
             Logger.log.i(message: "Reconnect Called : Calls are active")
         }else {
             return
