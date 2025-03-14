@@ -38,7 +38,7 @@ extension HomeViewController : VoIPDelegate {
             
             if error.self is NWError {
                 print("ERROR: socket connectiontion error \(error)")
-                self.showAlertToast(message: "\(error)")
+                self.showAlert(message: "\(error)")
             } else if(error is TxError) {
                 let txError = error as! TxError
                 switch txError {
@@ -50,7 +50,7 @@ extension HomeViewController : VoIPDelegate {
                         
                     case .callFailed(let reason):
                         print("Call Failure: \(reason.localizedDescription ?? "Unknown reason")")
-                    self.showAlertToast(message: reason.localizedDescription ?? "")
+                    self.showAlert(message: reason.localizedDescription ?? "")
                         
                     case .serverError(let reason):
                         self.telnyxClient?.disconnect()
@@ -63,10 +63,11 @@ extension HomeViewController : VoIPDelegate {
         }
     }
     
-    func showAlertToast(message: String) {
+    func showAlert(message: String) {
         DispatchQueue.main.async {
             let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
             self.present(alert, animated: true)
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
                 alert.dismiss(animated: true)
