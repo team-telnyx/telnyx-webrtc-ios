@@ -40,6 +40,8 @@ public enum TxError : Error {
         case destinationNumberIsRequired
         /// Session Id is missing when starting a call. Check you're logged in before starting a call.
         case sessionIdIsRequired
+        /// Session Id is missing when starting a call. Check you're logged in before starting a call.
+        case reconnectFailed
     }
 
     /// The underlying reason of the server errors
@@ -88,6 +90,7 @@ extension TxError.CallFailureReason {
     var underlyingError: Error? {
         switch self {
         case .destinationNumberIsRequired,
+             .reconnectFailed,
              .sessionIdIsRequired:
             return nil
         }
@@ -164,6 +167,8 @@ extension TxError.CallFailureReason {
             return "destinationNumber is missing. A destination number is required to start a call."
         case .sessionIdIsRequired:
             return "sessionId is missing, check that you have called .connect() first."
+        case .reconnectFailed:
+            return "Call reconnection failed"
         }
     }
 }
