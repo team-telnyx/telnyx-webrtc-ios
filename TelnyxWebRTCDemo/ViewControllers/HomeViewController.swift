@@ -18,6 +18,9 @@ class HomeViewController: UIViewController {
     var incomingCall: Bool = false
     var isSpeakerActive : Bool = false
     let reachability = try! Reachability()
+    
+    // Timer for connection timeout
+    private var connectionTimer: Timer?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -132,6 +135,9 @@ class HomeViewController: UIViewController {
     
     func handleDisconnect() {
         print("Disconnect tapped")
+        // Stop the connection timer if it's running
+        stopConnectionTimer()
+        
         if self.telnyxClient?.isConnected() ?? false {
             self.telnyxClient?.disconnect()
         } else {
@@ -257,6 +263,9 @@ extension HomeViewController {
             let isToken = sipCredential.isToken ?? false
             let txConfig = try createTxConfig(telnyxToken: isToken ? sipCredential.username : nil, sipCredential: sipCredential, deviceToken: deviceToken)
             
+            // Start the connection timeout timer
+            startConnectionTimer()
+            
             if let serverConfig = serverConfig {
                 print("Development Server ")
                 try telnyxClient.connect(txConfig: txConfig, serverConfiguration: serverConfig)
@@ -274,6 +283,52 @@ extension HomeViewController {
         } catch let error {
             print("ViewController:: connect Error \(error)")
             self.viewModel.isLoading = false
+            stopConnectionTimer()
+        }
+    }
+    
+    // Start the connection timeout timer
+    private func startConnectionTimer() {
+        // Invalidate any existing timer first
+        stopConnectionTimer()
+        
+        // Create a new timer
+        connectionTimer = Timer.scheduledTimer(
+            timeInterval: viewModel.connectionTimeout,
+            target: self,
+            selector: #selector(connectionTimedOut),
+            userInfo: nil,
+            repeats: false
+        )
+        print("Connection timer started: \(viewModel.connectionTimeout) seconds")
+    }
+    
+    // Stop the connection timeout timer
+    private func stopConnectionTimer() {
+        connectionTimer?.invalidate()
+        connectionTimer = nil
+        print("Connection timer stopped")
+    }
+    
+    // Handle connection timeout
+    @objc private func connectionTimedOut() {
+        print("Connection timed out after \(viewModel.connectionTimeout) seconds")
+        
+        DispatchQueue.main.async {
+            // Stop the loading indicator
+            self.viewModel.isLoading = false
+            
+            // Disconnect the socket
+            self.telnyxClient?.disconnect()
+            
+            // Show an alert to the user
+            let alert = UIAlertController(
+                title: "Connection Timeout",
+                message: "The connection to the server timed out. Please check your internet connection and try again.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(alert, animated: true)
         }
     }
     
