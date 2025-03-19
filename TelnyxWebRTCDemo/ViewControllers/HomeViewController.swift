@@ -134,6 +134,9 @@ class HomeViewController: UIViewController {
         print("Disconnect tapped")
         if self.telnyxClient?.isConnected() ?? false {
             self.telnyxClient?.disconnect()
+        } else {
+            // If we are not connected, take the user to the connect screen
+            onSocketDisconnected()
         }
     }
 }
