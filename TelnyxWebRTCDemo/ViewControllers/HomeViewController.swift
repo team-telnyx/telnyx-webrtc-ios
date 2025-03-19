@@ -288,7 +288,7 @@ extension HomeViewController {
     }
     
     // Start the connection timeout timer
-    private func startConnectionTimer() {
+    internal func startConnectionTimer() {
         // Invalidate any existing timer first
         stopConnectionTimer()
         
@@ -304,7 +304,7 @@ extension HomeViewController {
     }
     
     // Stop the connection timeout timer
-    private func stopConnectionTimer() {
+    internal func stopConnectionTimer() {
         connectionTimer?.invalidate()
         connectionTimer = nil
         print("Connection timer stopped")
