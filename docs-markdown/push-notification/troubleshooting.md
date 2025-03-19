@@ -32,7 +32,7 @@ A common issue is that the push token is not being passed correctly during the l
 
 **Solution:**
 - Make sure you're retrieving the push token as shown in the [App Setup](https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/app-setup) guide
-- Ensure the token is passed to the `connect()` method within the [TelnyxConfig](https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/config/txconfig) object
+- Ensure the token is passed to the `connect()` method within the [TelnyxConfig](https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/structs/tx-config) object
 - Verify that the token is not null or empty before passing it
 
 ### 3. Wrong Push Credential Assigned to SIP Connection
