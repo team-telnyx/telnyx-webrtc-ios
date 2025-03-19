@@ -405,13 +405,11 @@ public class TxClient {
             call.hangup()
         }
         self.calls.removeAll()
-        
+        self.stopReconnectTimeout()
         // Remove audio route change observer
         NotificationCenter.default.removeObserver(self,
                                                   name: AVAudioSession.routeChangeNotification,
                                                   object: nil)
-        
-
         socket?.disconnect(reconnect: false)
         delegate?.onSocketDisconnected()
     }
@@ -446,7 +444,7 @@ public class TxClient {
         }
     }
     
-    private func resetPushVariables(){
+    private func resetPushVariables() {
         answerCallAction = nil
         endCallAction = nil
     }
@@ -459,11 +457,13 @@ public class TxClient {
             Logger.log.i(message: "EndClient:: Ended Call with Id \(endAction.callUUID)")
             call.hangup()
             self.resetPushVariables()
+            self.stopReconnectTimeout()
             endAction.fulfill()
         } else if(self.calls[self.currentCallId] != nil) {
             Logger.log.i(message: "EndClient:: Ended Call")
             self.calls[self.currentCallId]?.hangup()
             self.resetPushVariables()
+            self.stopReconnectTimeout()
             endAction.fulfill()
         }
     }
@@ -688,8 +688,9 @@ extension TxClient {
             }
             
             //End is pending from callkit
-            if(endCallAction != nil){
+            if endCallAction != nil {
                 call.hangup()
+                stopReconnectTimeout()
                 currentCallId = UUID()
                 resetPushVariables()
             }
@@ -824,13 +825,19 @@ extension TxClient: CallProtocol {
  */
 extension TxClient : SocketDelegate {
     
+    func stopReconnectTimeout() {
+        Logger.log.i(message: "Reconnect TimeOut stopped")
+        self.reconnectTimeoutTimer?.cancel()
+    }
+
     func startReconnectTimeout() {
-        Logger.log.i(message: "TimeOut Started")
+        Logger.log.i(message: "Reconnect TimeOut Started")
         self.reconnectTimeoutTimer = DispatchSource.makeTimerSource(queue: reconnectQueue)
         self.reconnectTimeoutTimer?.schedule(deadline: .now() + (txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT))
         self.reconnectTimeoutTimer?.setEventHandler { [weak self] in
             Logger.log.i(message: "Reconnect TimeOut : after \(self?.txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT) secs")
             self?.updateActiveCallsState(callState: CallState.DONE)
+            self?.disconnect()
             self?.delegate?.onClientError(error: TxError.callFailed(reason: .reconnectFailed))
         }
         self.reconnectTimeoutTimer?.resume()
@@ -1060,7 +1067,7 @@ extension TxClient : SocketDelegate {
             case .ATTACH:
                 Logger.log.i(message: "Attach Received")
                 // Stop the timeout
-                self.reconnectTimeoutTimer?.cancel()
+                stopReconnectTimeout()
                 if let params = vertoMessage.params {
                     guard let sdp = params["sdp"] as? String,
                           let callId = params["callID"] as? String,
