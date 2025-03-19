@@ -825,11 +825,27 @@ extension TxClient: CallProtocol {
  */
 extension TxClient : SocketDelegate {
     
+    /// Stops the reconnection timeout timer.
+    /// 
+    /// This function cancels the timer that would terminate a call if reconnection takes too long.
+    /// It should be called when a call has successfully reconnected or when the call is intentionally ended.
     func stopReconnectTimeout() {
         Logger.log.i(message: "Reconnect TimeOut stopped")
         self.reconnectTimeoutTimer?.cancel()
     }
 
+    /// Starts the reconnection timeout timer.
+    /// 
+    /// This function initializes and starts a timer that will terminate a call if reconnection
+    /// takes longer than the configured timeout period (default: 60 seconds).
+    /// 
+    /// When the timer expires, the following actions occur:
+    /// 1. The call state is updated to DONE
+    /// 2. The client disconnects from the signaling server
+    /// 3. A reconnectFailed error is triggered via the delegate
+    /// 
+    /// This prevents calls from being stuck in a "reconnecting" state indefinitely when
+    /// network conditions prevent successful reconnection.
     func startReconnectTimeout() {
         Logger.log.i(message: "Reconnect TimeOut Started")
         self.reconnectTimeoutTimer = DispatchSource.makeTimerSource(queue: reconnectQueue)
