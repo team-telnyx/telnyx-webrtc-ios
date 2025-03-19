@@ -40,6 +40,9 @@ public enum TxError : Error {
         case destinationNumberIsRequired
         /// Session Id is missing when starting a call. Check you're logged in before starting a call.
         case sessionIdIsRequired
+        /// Call reconnection failed after the configured timeout period.
+        /// This error occurs when a call cannot be reconnected after network disruption within the time specified by `TxConfig.reconnectTimeout`.
+        case reconnectFailed
     }
 
     /// The underlying reason of the server errors
@@ -88,6 +91,7 @@ extension TxError.CallFailureReason {
     var underlyingError: Error? {
         switch self {
         case .destinationNumberIsRequired,
+             .reconnectFailed,
              .sessionIdIsRequired:
             return nil
         }
@@ -164,6 +168,8 @@ extension TxError.CallFailureReason {
             return "destinationNumber is missing. A destination number is required to start a call."
         case .sessionIdIsRequired:
             return "sessionId is missing, check that you have called .connect() first."
+        case .reconnectFailed:
+            return "Call reconnection failed: The call could not be reconnected within the configured timeout period after network disruption."
         }
     }
 }

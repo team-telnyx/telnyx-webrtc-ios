@@ -149,8 +149,10 @@ public class TxClient {
     private var attachCallId:String?
     private var pushMetaData:[String:Any]?
     private let AUTH_ERROR_CODE = "-32001"
-    
+    private var reconnectTimeoutTimer: DispatchSourceTimer?
+    private let reconnectQueue = DispatchQueue(label: "TelnyxClient.ReconnectQueue")
     private var _isSpeakerEnabled: Bool = false
+    
     public private(set) var isSpeakerEnabled: Bool {
         get {
             return _isSpeakerEnabled
@@ -272,6 +274,7 @@ public class TxClient {
                     Logger.log.e(message: "No network connection")
                     self.socket?.isConnected = false
                     self.updateActiveCallsState(callState: CallState.DROPPED(reason: .networkLost))
+                    self.startReconnectTimeout()
                 }
             }
         }
@@ -402,13 +405,11 @@ public class TxClient {
             call.hangup()
         }
         self.calls.removeAll()
-        
+        self.stopReconnectTimeout()
         // Remove audio route change observer
         NotificationCenter.default.removeObserver(self,
                                                   name: AVAudioSession.routeChangeNotification,
                                                   object: nil)
-        
-
         socket?.disconnect(reconnect: false)
         delegate?.onSocketDisconnected()
     }
@@ -443,7 +444,7 @@ public class TxClient {
         }
     }
     
-    private func resetPushVariables(){
+    private func resetPushVariables() {
         answerCallAction = nil
         endCallAction = nil
     }
@@ -456,11 +457,13 @@ public class TxClient {
             Logger.log.i(message: "EndClient:: Ended Call with Id \(endAction.callUUID)")
             call.hangup()
             self.resetPushVariables()
+            self.stopReconnectTimeout()
             endAction.fulfill()
         } else if(self.calls[self.currentCallId] != nil) {
             Logger.log.i(message: "EndClient:: Ended Call")
             self.calls[self.currentCallId]?.hangup()
             self.resetPushVariables()
+            self.stopReconnectTimeout()
             endAction.fulfill()
         }
     }
@@ -685,8 +688,9 @@ extension TxClient {
             }
             
             //End is pending from callkit
-            if(endCallAction != nil){
+            if endCallAction != nil {
                 call.hangup()
+                stopReconnectTimeout()
                 currentCallId = UUID()
                 resetPushVariables()
             }
@@ -820,10 +824,45 @@ extension TxClient: CallProtocol {
  Listen for wss socket events
  */
 extension TxClient : SocketDelegate {
+    
+    /// Stops the reconnection timeout timer.
+    /// 
+    /// This function cancels the timer that would terminate a call if reconnection takes too long.
+    /// It should be called when a call has successfully reconnected or when the call is intentionally ended.
+    func stopReconnectTimeout() {
+        Logger.log.i(message: "Reconnect TimeOut stopped")
+        self.reconnectTimeoutTimer?.cancel()
+    }
+
+    /// Starts the reconnection timeout timer.
+    /// 
+    /// This function initializes and starts a timer that will terminate a call if reconnection
+    /// takes longer than the configured timeout period (default: 60 seconds).
+    /// 
+    /// When the timer expires, the following actions occur:
+    /// 1. The call state is updated to DONE
+    /// 2. The client disconnects from the signaling server
+    /// 3. A reconnectFailed error is triggered via the delegate
+    /// 
+    /// This prevents calls from being stuck in a "reconnecting" state indefinitely when
+    /// network conditions prevent successful reconnection.
+    func startReconnectTimeout() {
+        Logger.log.i(message: "Reconnect TimeOut Started")
+        self.reconnectTimeoutTimer = DispatchSource.makeTimerSource(queue: reconnectQueue)
+        self.reconnectTimeoutTimer?.schedule(deadline: .now() + (txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT))
+        self.reconnectTimeoutTimer?.setEventHandler { [weak self] in
+            Logger.log.i(message: "Reconnect TimeOut : after \(self?.txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT) secs")
+            self?.updateActiveCallsState(callState: CallState.DONE)
+            self?.disconnect()
+            self?.delegate?.onClientError(error: TxError.callFailed(reason: .reconnectFailed))
+        }
+        self.reconnectTimeoutTimer?.resume()
+    }
    
     func reconnectClient() {
         if self.isCallsActive {
             updateActiveCallsState(callState: CallState.RECONNECTING(reason: .networkSwitch))
+            startReconnectTimeout()
             Logger.log.i(message: "Reconnect Called : Calls are active")
         }else {
             return
@@ -1043,6 +1082,8 @@ extension TxClient : SocketDelegate {
                     break;
             case .ATTACH:
                 Logger.log.i(message: "Attach Received")
+                // Stop the timeout
+                stopReconnectTimeout()
                 if let params = vertoMessage.params {
                     guard let sdp = params["sdp"] as? String,
                           let callId = params["callID"] as? String,
@@ -1089,30 +1130,6 @@ extension TxClient : SocketDelegate {
                                             customHeaders: customHeaders,
                                             isAttach: true
                     )
-                    
-                  
-
-        
-                    
-                  /*  let call = Call(callId: uuid,
-                         remoteSdp: sdp,
-                         sessionId: self.sessionId ?? "",
-                         socket: socket!,
-                         delegate: self,
-                         telnyxSessionId:  UUID(uuidString: telnyxSessionId),
-                         telnyxLegId:   UUID(uuidString: telnyxLegId),
-                         iceServers: self.serverConfiguration.webRTCIceServers)
-         
-                    
-                    call.callInfo?.callerName = callerName
-                    call.callInfo?.callerNumber = callerNumber
-                    call.callOptions = TxCallOptions(audio: true)
-                    call.inviteCustomHeaders = customHeaders
-                    call.direction = CallDirection.ATTACH
-                    
-                    self.calls[uuid] = call
-                    
-                    call.acceptReAttach(peer:currentCall.peer,customHeaders: pendingAnswerHeaders) */
                     
                 }
                  break;

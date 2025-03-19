@@ -16,7 +16,10 @@ public enum PushEnvironment: String {
 public struct TxConfig {
 
 
-    
+    /// Default timeout value for reconnection attempts in seconds.
+    /// After this period, if a call hasn't successfully reconnected, it will be terminated.
+    public static let DEFAULT_TIMEOUT = 60.0
+
     // MARK: - Properties
     public internal(set) var sipUser: String?
     public internal(set) var password: String?
@@ -44,6 +47,13 @@ public struct TxConfig {
     /// - Important: This setting is disabled by default to maintain optimal call quality.
     public internal(set) var forceRelayCandidate: Bool = false
     
+    /// Maximum time (in seconds) the SDK will attempt to reconnect a call after network disruption.
+    /// - If a call is successfully reconnected within this time, the call continues normally.
+    /// - If reconnection fails after this timeout period, the call will be terminated and a `reconnectFailed` error will be triggered.
+    /// - Default value is 60 seconds (defined by `DEFAULT_TIMEOUT`).
+    /// - This timeout helps prevent calls from being stuck in a "reconnecting" state indefinitely.
+    public internal(set) var reconnectTimeout: Double = DEFAULT_TIMEOUT
+    
     /// Custom logger implementation for handling SDK logs
     /// If not provided, the default logger will be used
     public internal(set) var customLogger: TxLogger?
@@ -59,6 +69,7 @@ public struct TxConfig {
     ///   - ringBackTone: (Optional) The audio file name to play while making outbound calls (e.g., "my-ringbacktone.mp3")
     ///   - logLevel: (Optional) The verbosity level for SDK logs (defaults to `.none`)
     ///   - customLogger: (Optional) Custom logger implementation for handling SDK logs. If not provided, the default logger will be used
+    ///   - reconnectTimeOut: (Optional) Maximum time in seconds the SDK will attempt to reconnect a call after network disruption. Default is 60 seconds.
     public init(sipUser: String, password: String,
                 pushDeviceToken: String? = nil,
                 ringtone: String? = nil,
@@ -68,7 +79,8 @@ public struct TxConfig {
                 customLogger: TxLogger? = nil,
                 reconnectClient: Bool = true,
                 debug: Bool = false,
-                forceRelayCandidate: Bool = false
+                forceRelayCandidate: Bool = false,
+                reconnectTimeOut: Double = DEFAULT_TIMEOUT
     ) {
         self.sipUser = sipUser
         self.password = password
@@ -83,6 +95,7 @@ public struct TxConfig {
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
         self.customLogger = customLogger
+        self.reconnectClient = reconnectClient
         Logger.log.verboseLevel = logLevel
         Logger.log.customLogger = customLogger ?? TxDefaultLogger()
     }
@@ -96,6 +109,7 @@ public struct TxConfig {
     ///   - logLevel: (Optional) The verbosity level for SDK logs (defaults to `.none`)
     ///   - customLogger: (Optional) Custom logger implementation for handling SDK logs. If not provided, the default logger will be used
     ///   - serverConfiguration: (Optional) Custom configuration for signaling server and TURN/STUN servers (defaults to Telnyx Production servers)
+    ///   - reconnectTimeOut: (Optional) Maximum time in seconds the SDK will attempt to reconnect a call after network disruption. Default is 60 seconds.
     public init(token: String,
                 pushDeviceToken: String? = nil,
                 ringtone: String? = nil,
@@ -105,7 +119,9 @@ public struct TxConfig {
                 customLogger: TxLogger? = nil,
                 reconnectClient: Bool = true,
                 debug: Bool = false,
-                forceRelayCandidate: Bool = false) {
+                forceRelayCandidate: Bool = false,
+                reconnectTimeOut: Double = DEFAULT_TIMEOUT
+    ) {
         self.token = token
         if let pushToken = pushDeviceToken {
             //Create a notification configuration if there's an available a device push notification token
@@ -117,6 +133,7 @@ public struct TxConfig {
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
         self.customLogger = customLogger
+        self.reconnectClient = reconnectClient
         Logger.log.verboseLevel = logLevel
         Logger.log.customLogger = customLogger ?? TxDefaultLogger()
     }
