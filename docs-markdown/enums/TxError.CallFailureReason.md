@@ -24,3 +24,12 @@ case sessionIdIsRequired
 ```
 
 Session Id is missing when starting a call. Check you're logged in before starting a call.
+
+### `reconnectFailed`
+
+```swift
+case reconnectFailed
+```
+
+Call reconnection failed after the configured timeout period.
+This error occurs when a call cannot be reconnected after network disruption within the time specified by `TxConfig.reconnectTimeout`.
