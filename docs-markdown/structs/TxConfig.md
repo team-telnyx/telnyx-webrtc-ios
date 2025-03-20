@@ -9,6 +9,15 @@ public struct TxConfig
 This structure is intended to used for Telnyx SDK configurations.
 
 ## Properties
+### `DEFAULT_TIMEOUT`
+
+```swift
+public static let DEFAULT_TIMEOUT = 60.0
+```
+
+Default timeout value for reconnection attempts in seconds.
+After this period, if a call hasn't successfully reconnected, it will be terminated.
+
 ### `sipUser`
 
 ```swift
@@ -83,6 +92,18 @@ which prevents the "local network access" permission popup from appearing.
         as all media will be relayed through TURN servers.
 - Important: This setting is disabled by default to maintain optimal call quality.
 
+### `reconnectTimeout`
+
+```swift
+public internal(set) var reconnectTimeout: Double = DEFAULT_TIMEOUT
+```
+
+Maximum time (in seconds) the SDK will attempt to reconnect a call after network disruption.
+- If a call is successfully reconnected within this time, the call continues normally.
+- If reconnection fails after this timeout period, the call will be terminated and a `reconnectFailed` error will be triggered.
+- Default value is 60 seconds (defined by `DEFAULT_TIMEOUT`).
+- This timeout helps prevent calls from being stuck in a "reconnecting" state indefinitely.
+
 ### `customLogger`
 
 ```swift
@@ -93,7 +114,7 @@ Custom logger implementation for handling SDK logs
 If not provided, the default logger will be used
 
 ## Methods
-### `init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:)`
+### `init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:reconnectTimeOut:)`
 
 ```swift
 public init(sipUser: String, password: String,
@@ -105,7 +126,8 @@ public init(sipUser: String, password: String,
             customLogger: TxLogger? = nil,
             reconnectClient: Bool = true,
             debug: Bool = false,
-            forceRelayCandidate: Bool = false
+            forceRelayCandidate: Bool = false,
+            reconnectTimeOut: Double = DEFAULT_TIMEOUT
 )
 ```
 
@@ -118,6 +140,7 @@ Constructor for the Telnyx SDK configuration using SIP credentials.
   - ringBackTone: (Optional) The audio file name to play while making outbound calls (e.g., "my-ringbacktone.mp3")
   - logLevel: (Optional) The verbosity level for SDK logs (defaults to `.none`)
   - customLogger: (Optional) Custom logger implementation for handling SDK logs. If not provided, the default logger will be used
+  - reconnectTimeOut: (Optional) Maximum time in seconds the SDK will attempt to reconnect a call after network disruption. Default is 60 seconds.
 
 #### Parameters
 
@@ -130,8 +153,9 @@ Constructor for the Telnyx SDK configuration using SIP credentials.
 | ringBackTone | (Optional) The audio file name to play while making outbound calls (e.g., “my-ringbacktone.mp3”) |
 | logLevel | (Optional) The verbosity level for SDK logs (defaults to `.none`) |
 | customLogger | (Optional) Custom logger implementation for handling SDK logs. If not provided, the default logger will be used |
+| reconnectTimeOut | (Optional) Maximum time in seconds the SDK will attempt to reconnect a call after network disruption. Default is 60 seconds. |
 
-### `init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:)`
+### `init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:reconnectTimeOut:)`
 
 ```swift
 public init(token: String,
@@ -143,7 +167,9 @@ public init(token: String,
             customLogger: TxLogger? = nil,
             reconnectClient: Bool = true,
             debug: Bool = false,
-            forceRelayCandidate: Bool = false)
+            forceRelayCandidate: Bool = false,
+            reconnectTimeOut: Double = DEFAULT_TIMEOUT
+)
 ```
 
 Constructor for the Telnyx SDK configuration using JWT token authentication.
@@ -155,6 +181,7 @@ Constructor for the Telnyx SDK configuration using JWT token authentication.
   - logLevel: (Optional) The verbosity level for SDK logs (defaults to `.none`)
   - customLogger: (Optional) Custom logger implementation for handling SDK logs. If not provided, the default logger will be used
   - serverConfiguration: (Optional) Custom configuration for signaling server and TURN/STUN servers (defaults to Telnyx Production servers)
+  - reconnectTimeOut: (Optional) Maximum time in seconds the SDK will attempt to reconnect a call after network disruption. Default is 60 seconds.
 
 #### Parameters
 
@@ -167,6 +194,7 @@ Constructor for the Telnyx SDK configuration using JWT token authentication.
 | logLevel | (Optional) The verbosity level for SDK logs (defaults to `.none`) |
 | customLogger | (Optional) Custom logger implementation for handling SDK logs. If not provided, the default logger will be used |
 | serverConfiguration | (Optional) Custom configuration for signaling server and TURN/STUN servers (defaults to Telnyx Production servers) |
+| reconnectTimeOut | (Optional) Maximum time in seconds the SDK will attempt to reconnect a call after network disruption. Default is 60 seconds. |
 
 ### `validateParams()`
 
