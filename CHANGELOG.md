@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [1.2.2](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/1.2.2) (2025-03-20)
+
+### Enhancements
+- Improved call reconnection process for better reliability during network changes
+- Added configurable reconnection timeout for more control over network recovery
+
 ## [1.2.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/1.2.1) (2025-03-11)
 
 ### Bug Fixes
