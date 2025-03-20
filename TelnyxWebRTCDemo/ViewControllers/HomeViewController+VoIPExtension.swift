@@ -14,10 +14,14 @@ extension HomeViewController : VoIPDelegate {
             self.viewModel.socketState = .connected
             self.sipCredentialsVC.dismiss(animated: false)
         }
+        // Don't stop the timer here, wait for onClientReady
     }
     
     func onSocketDisconnected() {
         print("ViewController:: TxClientDelegate onSocketDisconnected()")
+        
+        // Stop the connection timer if it's running
+        stopConnectionTimer()
         
         DispatchQueue.main.async {
             self.viewModel.isLoading = false
@@ -28,6 +32,9 @@ extension HomeViewController : VoIPDelegate {
     func onClientError(error: Error) {
         print("ViewController:: TxClientDelegate onClientError() error: \(error)")
         let noActiveCalls = self.telnyxClient?.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
+        
+        // Stop the connection timer if it's running
+        stopConnectionTimer()
         
         if noActiveCalls != true {
             return
@@ -77,6 +84,10 @@ extension HomeViewController : VoIPDelegate {
     
     func onClientReady() {
         print("ViewController:: TxClientDelegate onClientReady()")
+        
+        // Stop the connection timer as the connection is now established
+        stopConnectionTimer()
+        
         DispatchQueue.main.async {
             self.viewModel.isLoading = false
             self.viewModel.socketState = .clientReady
