@@ -62,6 +62,9 @@ class HomeViewController: UIViewController {
             },
             onDTMF: { [weak self] key in
                 self?.appDelegate.currentCall?.dtmf(dtmf: key)
+            },
+            onStartNewCall: { [weak self] in
+                self?.onStartNewCall()
             }
         )
         
@@ -400,6 +403,21 @@ extension HomeViewController {
         let uuid = UUID()
         let handle = "Telnyx"
         
+        appDelegate.executeStartCallAction(uuid: uuid, handle: handle)
+    }
+    
+    func onStartNewCall() {
+        // Store the current call as the previous call
+        self.appDelegate.previousCall = self.appDelegate.currentCall
+        
+        // Use the current sipAddress for the new call
+        let destinationNumber = self.callViewModel.sipAddress
+        
+        // Create a new UUID for the call
+        let uuid = UUID()
+        let handle = "Telnyx"
+        
+        // Execute the start call action
         appDelegate.executeStartCallAction(uuid: uuid, handle: handle)
     }
     
