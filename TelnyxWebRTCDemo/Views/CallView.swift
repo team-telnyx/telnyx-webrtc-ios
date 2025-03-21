@@ -12,6 +12,7 @@ struct CallView: View {
     let onToggleSpeaker: () -> Void
     let onHold: (Bool) -> Void
     let onDTMF: (String) -> Void
+    let onStartNewCall: () -> Void
 
     var body: some View {
         VStack {
@@ -72,8 +73,8 @@ struct CallView: View {
             TextField("Enter sip address or phone number", text: $viewModel.sipAddress)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding()
-                .disabled(true)
-                .opacity(0.5)
+                .disabled(false) // Enable the text field during active calls
+                .opacity(1.0)
                         
             HStack {
                 Button(action: {
@@ -126,20 +127,48 @@ struct CallView: View {
                         .clipShape(Circle())
                 }
                 .accessibilityIdentifier(AccessibilityIdentifiers.dtmfButton)
-
             }
             
-            Button(action: {
-                onEndCall()
-            }) {
-                Image(systemName: "phone.down.fill")
-                    .foregroundColor(Color(hex: "#1D1D1D"))
-                    .frame(width: 60, height: 60)
-                    .background(Color(hex: "#EB0000"))
-                    .clipShape(Circle())
+            HStack {
+                // New Call Button
+                Button(action: {
+                    // Put current call on hold
+                    if !viewModel.isOnHold {
+                        viewModel.isOnHold = true
+                        onHold(true)
+                    }
+                    // Start a new call
+                    onStartNewCall()
+                }) {
+                    HStack {
+                        Image(systemName: "phone.fill.badge.plus")
+                            .foregroundColor(Color(hex: "#1D1D1D"))
+                        Text("New Call")
+                            .foregroundColor(Color(hex: "#1D1D1D"))
+                            .font(.system(size: 14, weight: .medium))
+                    }
+                    .frame(height: 40)
+                    .padding(.horizontal, 16)
+                    .background(Color(hex: "#00E3AA"))
+                    .cornerRadius(20)
+                }
+                .accessibilityIdentifier("newCallButton")
+                .padding(.horizontal, 8)
+                
+                // End Call Button
+                Button(action: {
+                    onEndCall()
+                }) {
+                    Image(systemName: "phone.down.fill")
+                        .foregroundColor(Color(hex: "#1D1D1D"))
+                        .frame(width: 60, height: 60)
+                        .background(Color(hex: "#EB0000"))
+                        .clipShape(Circle())
+                }
+                .accessibilityIdentifier(AccessibilityIdentifiers.hangupButton)
+                .padding(.horizontal, 8)
             }
-            .accessibilityIdentifier(AccessibilityIdentifiers.hangupButton)
-            .padding()
+            .padding(.vertical, 8)
         }
         Spacer()
     }
@@ -191,7 +220,8 @@ struct CallView_Previews: PreviewProvider {
             onMuteUnmuteSwitch: { _ in },
             onToggleSpeaker: {},
             onHold: { _ in },
-            onDTMF: { _ in }
+            onDTMF: { _ in },
+            onStartNewCall: {}
         )
     }
 }
