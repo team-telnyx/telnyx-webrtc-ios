@@ -450,6 +450,8 @@ extension HomeViewController {
     func onHoldUnholdSwitch(isOnHold: Bool) {
         if isOnHold {
             self.appDelegate.currentCall?.hold()
+            let currentCall =  self.appDelegate.currentCall
+            self.appDelegate.excuteCallOnHoldAction(uuid: currentCall?.callInfo?.callId ?? UUID(), isOnHold: isOnHold)
         } else {
             self.appDelegate.currentCall?.unhold()
         }

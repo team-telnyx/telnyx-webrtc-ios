@@ -48,6 +48,19 @@ extension AppDelegate : CXProviderDelegate {
         }
     }
     
+    func excuteCallOnHoldAction(uuid: UUID, isOnHold: Bool) {
+        let setHeldAction = CXSetHeldCallAction(call: UUID(uuidString: uuid.uuidString)!, onHold: isOnHold)
+        let transaction = CXTransaction()
+        transaction.addAction(setHeldAction)
+        callKitCallController.request(transaction) { error in
+            if let error = error {
+                print("AppDelegate:: HoldCallAction transaction request failed: \(error.localizedDescription).")
+            } else {
+                print("AppDelegate:: HoldCallAction transaction request successful")
+            }
+        }
+    }
+    
     func executeOutGoingCall() {
         if let provider = self.callKitProvider,
            let callKitUUID = self.callKitUUID {
@@ -175,7 +188,7 @@ extension AppDelegate : CXProviderDelegate {
     }
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
-        print("AppDelegate:: END call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
+        print("AppDelegate:: CXEndCallAction: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
         
         if(previousCall?.callState == .HELD){
             print("AppDelegate:: call held.. unholding call")

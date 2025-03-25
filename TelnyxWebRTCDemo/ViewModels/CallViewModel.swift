@@ -9,5 +9,4 @@ class CallViewModel: ObservableObject {
     @Published var isOnHold: Bool = false
     @Published var showDTMFKeyboard: Bool = false
     @Published var isMultiCallActive: Bool = false
-    @Published var newCallNumber: String = "+15551234567" // Default number for new call
 }
