@@ -62,6 +62,9 @@ class HomeViewController: UIViewController {
             },
             onDTMF: { [weak self] key in
                 self?.appDelegate.currentCall?.dtmf(dtmf: key)
+            },
+            onStartNewCall: { [weak self] in
+                self?.onStartNewCall()
             }
         )
         
@@ -403,6 +406,21 @@ extension HomeViewController {
         appDelegate.executeStartCallAction(uuid: uuid, handle: handle)
     }
     
+    func onStartNewCall() {
+        // Store the current call as the previous call
+        self.appDelegate.previousCall = self.appDelegate.currentCall
+        
+        // Use the current sipAddress for the new call
+        let destinationNumber = self.callViewModel.sipAddress
+        
+        // Create a new UUID for the call
+        let uuid = UUID()
+        let handle = "Telnyx"
+        
+        // Execute the start call action
+        appDelegate.executeStartCallAction(uuid: uuid, handle: handle)
+    }
+    
     func onEndCallButton() {
         guard let uuid = self.appDelegate.currentCall?.callInfo?.callId else { return }
         appDelegate.executeEndCallAction(uuid: uuid)
@@ -432,6 +450,8 @@ extension HomeViewController {
     func onHoldUnholdSwitch(isOnHold: Bool) {
         if isOnHold {
             self.appDelegate.currentCall?.hold()
+            let currentCall =  self.appDelegate.currentCall
+            self.appDelegate.excuteCallOnHoldAction(uuid: currentCall?.callInfo?.callId ?? UUID(), isOnHold: isOnHold)
         } else {
             self.appDelegate.currentCall?.unhold()
         }
