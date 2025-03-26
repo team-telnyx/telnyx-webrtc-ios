@@ -231,7 +231,8 @@ public class Call {
 
     // MARK: - Initializers
     /// Constructor for incoming calls
-    init(callId: UUID,
+    init(callId: UUID, callIdString: String,
+         callIdString: String,
          remoteSdp: String,
          sessionId: String,
          socket: Socket,
@@ -259,7 +260,7 @@ public class Call {
         self.telnyxLegId = telnyxLegId
 
         self.remoteSdp = remoteSdp
-        self.callInfo = TxCallInfo(callId: callId)
+        self.callInfo = TxCallInfo(callIdString: callIdString)
         self.delegate = delegate
 
         // Configure iceServers
@@ -282,7 +283,7 @@ public class Call {
     }
     
     //Contructor for attachCalls
-    init(callId: UUID,
+    init(callId: UUID, callIdString: String,
          remoteSdp: String,
          sessionId: String,
          socket: Socket,
@@ -302,7 +303,7 @@ public class Call {
         self.telnyxLegId = telnyxLegId
 
         self.remoteSdp = remoteSdp
-        self.callInfo = TxCallInfo(callId: callId)
+        self.callInfo = TxCallInfo(callIdString: callIdString)
         self.delegate = delegate
 
         // Configure iceServers
@@ -313,7 +314,7 @@ public class Call {
     }
 
     /// Constructor for outgoing calls
-    init(callId: UUID,
+    init(callId: UUID, callIdString: String,
          sessionId: String,
          socket: Socket,
          delegate: CallProtocol,
@@ -326,7 +327,7 @@ public class Call {
         self.sessionId = sessionId
         //this is the signaling server socket
         self.socket = socket
-        self.callInfo = TxCallInfo(callId: callId)
+        self.callInfo = TxCallInfo(callIdString: callIdString)
         self.delegate = delegate
 
         // Configure iceServers
@@ -470,7 +471,7 @@ extension Call {
     public func hangup() {
         Logger.log.i(message: "Call:: hangup()")
         guard let sessionId = self.sessionId, let callId = self.callInfo?.callId else { return }
-        let byeMessage = ByeMessage(sessionId: sessionId, callId: callId.uuidString, causeCode: .USER_BUSY)
+        let byeMessage = ByeMessage(sessionId: sessionId, callId: callInfo?.callIdString ?? callId.uuidString, causeCode: .USER_BUSY)
         let message = byeMessage.encode() ?? ""
         self.socket?.sendMessage(message: message)
         self.endCall()
@@ -632,7 +633,7 @@ extension Call {
         Logger.log.i(message: "Call:: hold()")
         guard let callId = self.callInfo?.callId,
               let sessionId = self.sessionId else { return }
-        let hold = ModifyMessage(sessionId: sessionId, callId: callId.uuidString, action: .HOLD)
+        let hold = ModifyMessage(sessionId: sessionId, callId: callInfo?.callIdString ?? callId.uuidString, action: .HOLD)
         let message = hold.encode() ?? ""
         self.socket?.sendMessage(message: message)
         self.updateCallState(callState: .HELD)
@@ -647,7 +648,7 @@ extension Call {
         Logger.log.i(message: "Call:: unhold()")
         guard let callId = self.callInfo?.callId,
               let sessionId = self.sessionId else { return }
-        let unhold = ModifyMessage(sessionId: sessionId, callId: callId.uuidString, action: .UNHOLD)
+        let unhold = ModifyMessage(sessionId: sessionId, callId: callInfo?.callIdString ?? callId.uuidString, action: .UNHOLD)
         let message = unhold.encode() ?? ""
         self.socket?.sendMessage(message: message)
         self.updateCallState(callState: .ACTIVE)
@@ -661,7 +662,7 @@ extension Call {
         Logger.log.i(message: "Call:: toggleHold()")
         guard let callId = self.callInfo?.callId,
               let sessionId = self.sessionId else { return }
-        let toggleHold = ModifyMessage(sessionId: sessionId, callId: callId.uuidString, action: .TOGGLE_HOLD)
+        let toggleHold = ModifyMessage(sessionId: sessionId, callId: callInfo?.callIdString ?? callId.uuidString, action: .TOGGLE_HOLD)
         let message = toggleHold.encode() ?? ""
         self.socket?.sendMessage(message: message)
 

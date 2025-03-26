@@ -120,9 +120,9 @@ class VertoMessagesTests: XCTestCase {
         let callId = UUID.init()
         let callerName = "<callerName>"
         let callerNumber = "<callerNumber>"
-        let callInfo: TxCallInfo = TxCallInfo(callId: callId,
-                                              callerName: callerName,
-                                              callerNumber: callerNumber)
+        let callInfo: TxCallInfo = TxCallInfo(callIdString: callId.uuidString); callInfo.callerName = 
+                                              callerName; callInfo.callerNumber = 
+                                              callerNumber
         // Setup callOptions
         let destinationNumber = "<destinationNumber>"
         let remoteCallerName = "<remoteCallerName>"
@@ -217,9 +217,9 @@ class VertoMessagesTests: XCTestCase {
         let callId = UUID.init()
         let callerName = "<callerName>"
         let callerNumber = "<callerNumber>"
-        let callInfo: TxCallInfo = TxCallInfo(callId: callId,
-                                              callerName: callerName,
-                                              callerNumber: callerNumber)
+        let callInfo: TxCallInfo = TxCallInfo(callIdString: callId.uuidString); callInfo.callerName = 
+                                              callerName; callInfo.callerNumber = 
+                                              callerNumber
         // Setup callOptions
         let destinationNumber = "<destinationNumber>"
         let remoteCallerName = "<remoteCallerName>"
@@ -304,7 +304,7 @@ class VertoMessagesTests: XCTestCase {
         let callId = UUID.init()
         let dtmf = "1"
 
-        let callInfo = TxCallInfo(callId: callId, callerName: "<caller_name>", callerNumber: "<caller_number>")
+        let callInfo = TxCallInfo(callIdString: callId.uuidString); callInfo.callerName = "<caller_name>"; callInfo.callerNumber = "<caller_number>"
         let callOptions = TxCallOptions(destinationNumber: "<destination_number>", audio: true)
         let infoMessage = InfoMessage(sessionId: sessionId, dtmf: dtmf, callInfo: callInfo, callOptions: callOptions)
 

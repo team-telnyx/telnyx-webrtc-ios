@@ -637,6 +637,7 @@ extension TxClient {
     private func createIncomingCall(callerName: String,
                                     callerNumber: String,
                                     callId: UUID,
+                                    callIdString: String,
                                     remoteSdp: String,
                                     telnyxSessionId: String,
                                     telnyxLegId: String,
@@ -650,6 +651,7 @@ extension TxClient {
         }
 
         let call = Call(callId: callId,
+                        callIdString: callIdString,
                         remoteSdp: remoteSdp,
                         sessionId: sessionId,
                         socket: socket,
@@ -1003,12 +1005,23 @@ extension TxClient : SocketDelegate {
             self.delegate?.onSessionUpdated(sessionId: sessionId)
             
         } else {
-            //Forward message to call based on it's uuid
+            //Forward message to call based on it's uuid or string id
             if let params = vertoMessage.params,
-               let callUUIDString = params["callID"] as? String,
-               let callUUID = UUID(uuidString: callUUIDString),
-               let call = calls[callUUID] {
-                call.handleVertoMessage(message: vertoMessage, dataMessage: message, txClient: self)
+               let callIdString = params["callID"] as? String {
+                // First try to find the call by UUID if the callIdString is a valid UUID
+                if let callUUID = UUID(uuidString: callIdString), let call = calls[callUUID] {
+                    call.handleVertoMessage(message: vertoMessage, dataMessage: message, txClient: self)
+                } else {
+                    // If not a valid UUID or not found, try to find the call by iterating through all calls
+                    // and checking the callIdString property
+                    let matchingCall = calls.values.first { call in
+                        call.callInfo?.callIdString == callIdString
+                    }
+                    
+                    if let call = matchingCall {
+                        call.handleVertoMessage(message: vertoMessage, dataMessage: message, txClient: self)
+                    }
+                }
             }
             
 
@@ -1033,10 +1046,12 @@ extension TxClient : SocketDelegate {
                     //invite received
                     if let params = vertoMessage.params {
                         guard let sdp = params["sdp"] as? String,
-                              let callId = params["callID"] as? String,
-                              let uuid = UUID(uuidString: callId) else {
+                              let callIdString = params["callID"] as? String else {
                             return
                         }
+                        
+                        // Create a UUID from the callIdString if possible, otherwise generate a new one
+                        let uuid = UUID(uuidString: callIdString) ?? UUID()
                         
                         self.voiceSdkId = vertoMessage.voiceSdkId
 
@@ -1067,6 +1082,7 @@ extension TxClient : SocketDelegate {
                         self.createIncomingCall(callerName: callerName,
                                                 callerNumber: callerNumber,
                                                 callId: uuid,
+                                                callIdString: callIdString,
                                                 remoteSdp: sdp,
                                                 telnyxSessionId: telnyxSessionId,
                                                 telnyxLegId: telnyxLegId,
@@ -1086,10 +1102,12 @@ extension TxClient : SocketDelegate {
                 stopReconnectTimeout()
                 if let params = vertoMessage.params {
                     guard let sdp = params["sdp"] as? String,
-                          let callId = params["callID"] as? String,
-                          let uuid = UUID(uuidString: callId) else {
+                          let callIdString = params["callID"] as? String else {
                         return
                     }
+                    
+                    // Create a UUID from the callIdString if possible, otherwise generate a new one
+                    let uuid = UUID(uuidString: callIdString) ?? UUID()
                     
                     self.voiceSdkId = vertoMessage.voiceSdkId
 
@@ -1124,6 +1142,7 @@ extension TxClient : SocketDelegate {
                     self.createIncomingCall(callerName: callerName,
                                             callerNumber: callerNumber,
                                             callId: uuid,
+                                            callIdString: callIdString,
                                             remoteSdp: sdp,
                                             telnyxSessionId: telnyxSessionId,
                                             telnyxLegId: telnyxLegId,
