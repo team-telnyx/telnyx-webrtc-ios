@@ -45,10 +45,36 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Configure for UI testing if needed
         TestConfiguration.configureForTesting()
         
+        // Set the global appearance for the app
+        if #available(iOS 15.0, *) {
+            let appearance = UINavigationBarAppearance()
+            let backgroundColor = UIColor(red: 254/255, green: 253/255, blue: 245/255, alpha: 1.0)
+            appearance.configureWithOpaqueBackground()
+            appearance.backgroundColor = backgroundColor
+            
+            UINavigationBar.appearance().standardAppearance = appearance
+            UINavigationBar.appearance().scrollEdgeAppearance = appearance
+            UINavigationBar.appearance().compactAppearance = appearance
+            
+            // Set tab bar appearance
+            let tabBarAppearance = UITabBarAppearance()
+            tabBarAppearance.configureWithOpaqueBackground()
+            tabBarAppearance.backgroundColor = backgroundColor
+            UITabBar.appearance().standardAppearance = tabBarAppearance
+            UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
+        } else if #available(iOS 13.0, *) {
+            let backgroundColor = UIColor(red: 254/255, green: 253/255, blue: 245/255, alpha: 1.0)
+            UINavigationBar.appearance().backgroundColor = backgroundColor
+            UITabBar.appearance().backgroundColor = backgroundColor
+        }
+        
         // Create and set window
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = UIHostingController(rootView: SplashScreen())
         window?.makeKeyAndVisible()
+        
+        // Set the window background color
+        window?.backgroundColor = UIColor(red: 254/255, green: 253/255, blue: 245/255, alpha: 1.0)
 
         // Instantiate the Telnyx Client SDK
         self.telnyxClient = TxClient()

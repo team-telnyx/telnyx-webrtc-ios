@@ -25,8 +25,27 @@ class HomeViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = UIColor(red: 254/255, green: 253/255, blue: 245/255, alpha: 1.0)
-
+        // Set the background color to #FEFDF5
+        let backgroundColor = UIColor(red: 254/255, green: 253/255, blue: 245/255, alpha: 1.0)
+        view.backgroundColor = backgroundColor
+        
+        // Configure the status bar appearance
+        if #available(iOS 13.0, *) {
+            let window = UIApplication.shared.windows.first
+            let statusBarHeight = window?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0
+            
+            let statusBarView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: statusBarHeight))
+            statusBarView.backgroundColor = backgroundColor
+            statusBarView.tag = 100
+            
+            // Remove any existing status bar view
+            if let existingView = view.viewWithTag(100) {
+                existingView.removeFromSuperview()
+            }
+            
+            view.addSubview(statusBarView)
+        }
+        
         self.appDelegate.voipDelegate = self
         self.telnyxClient = self.appDelegate.telnyxClient
         
@@ -108,6 +127,26 @@ class HomeViewController: UIViewController {
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .darkContent
+    }
+    
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        
+        // Update status bar view frame when orientation changes
+        coordinator.animate(alongsideTransition: { [weak self] _ in
+            self?.updateStatusBarView()
+        })
+    }
+    
+    private func updateStatusBarView() {
+        if #available(iOS 13.0, *) {
+            let window = UIApplication.shared.windows.first
+            let statusBarHeight = window?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0
+            
+            if let statusBarView = view.viewWithTag(100) {
+                statusBarView.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: statusBarHeight)
+            }
+        }
     }
     
     deinit {
