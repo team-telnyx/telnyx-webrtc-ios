@@ -25,6 +25,8 @@ class HomeViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        view.backgroundColor = UIColor(red: 254/255, green: 253/255, blue: 245/255, alpha: 1.0)
+
         self.appDelegate.voipDelegate = self
         self.telnyxClient = self.appDelegate.telnyxClient
         
@@ -38,7 +40,7 @@ class HomeViewController: UIViewController {
             })
         
         let callView = CallView(
-            viewModel: callViewModel,
+            viewModel: callViewModel, isPhoneNumber: false,
             onStartCall: { [weak self] in
                 self?.onCallButton()
             },
@@ -100,6 +102,12 @@ class HomeViewController: UIViewController {
                                                selector: #selector(appWillEnterForeground),
                                                name: UIApplication.willEnterForegroundNotification,
                                                object: nil)
+        
+        self.setNeedsStatusBarAppearanceUpdate()
+    }
+    
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .darkContent
     }
     
     deinit {

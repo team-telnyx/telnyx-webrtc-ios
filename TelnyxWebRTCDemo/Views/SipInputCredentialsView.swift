@@ -44,153 +44,174 @@ struct SipInputCredentialsView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading,
-               spacing: 12) {
-            if hasError {
-                ErrorView(errorMessage: errorMessage)
-            }
-            Toggle("Token Login", isOn: $isTokenLogin)
-                .toggleStyle(SwitchToggleStyle(tint: .black))
-                .padding(.bottom, 12)
-            
-            if isTokenLogin {
-                Text("Token")
-                    .foregroundColor(.black)
-                
-                HStack {
-                    TextField("Enter token", text: $tokenCallerId)
-                        .padding(.horizontal, 10)
-                        .frame(height: 40)
+        ScrollView {
+            VStack(alignment: .leading,
+                   spacing: 14)
+            {
+                if hasError {
+                    ErrorView(errorMessage: errorMessage)
                 }
-                .background(RoundedRectangle(cornerRadius: 4)
-                    .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
+                //Text("Login With").padding()
                 
-                Text("Caller Number")
-                    .foregroundColor(.black)
+                DestinationToggle(
+                    isFirstOptionSelected: $isTokenLogin,
+                    firstOption: "Credential Login",
+                    secondOption: "Token Login"
+                )
                 
-                HStack {
-                    TextField("Enter caller number", text: $callerIdNumber)
-                        .padding(.horizontal, 10)
-                        .frame(height: 40)
-                }
-                .background(RoundedRectangle(cornerRadius: 4)
-                    .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
-                
-                Text("Caller Name")
-                    .foregroundColor(.black)
-                
-                HStack {
-                    TextField("Enter caller name", text: $callerName)
-                        .padding(.horizontal, 10)
-                        .frame(height: 40)
-                }
-                .background(RoundedRectangle(cornerRadius: 4)
-                    .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
-            } else {
-                Text("Username")
-                    .foregroundColor(.black)
-                
-                HStack {
-                    TextField("Enter username", text: $username)
-                        .padding(.horizontal, 10)
-                        .frame(height: 40)
-                        .accessibilityIdentifier(AccessibilityIdentifiers.usernameTextField)
-                }
-                .background(RoundedRectangle(cornerRadius: 4)
-                    .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
-                
-                Text("Password")
-                    .foregroundColor(.black)
-                
-                HStack {
-                    if isPasswordVisible {
-                        TextField("Enter password", text: $password)
+                if isTokenLogin {
+                    Text("Token")
+                        .foregroundColor(.black)
+                    
+                    HStack {
+                        TextField("Enter token", text: $tokenCallerId)
                             .padding(.horizontal, 10)
                             .frame(height: 40)
-                            .accessibilityIdentifier(AccessibilityIdentifiers.passwordTextField)
-                    } else {
-                        SecureField("Enter password", text: $password)
+                    }
+                    .background(RoundedRectangle(cornerRadius: 4)
+                        .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
+                    
+                    Text("Caller Number")
+                        .foregroundColor(.black)
+                    
+                    HStack {
+                        TextField("Enter caller number", text: $callerIdNumber)
                             .padding(.horizontal, 10)
                             .frame(height: 40)
-                            .accessibilityIdentifier(AccessibilityIdentifiers.passwordTextField)
+                    }
+                    .background(RoundedRectangle(cornerRadius: 4)
+                        .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
+                    
+                    Text("Caller Name")
+                        .foregroundColor(.black)
+                    
+                    HStack {
+                        TextField("Enter caller name", text: $callerName)
+                            .padding(.horizontal, 10)
+                            .frame(height: 40)
+                    }
+                    .background(RoundedRectangle(cornerRadius: 4)
+                        .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
+                } else {
+                    Text("Username")
+                        .foregroundColor(.black)
+                    
+                    HStack {
+                        TextField("Enter username", text: $username)
+                            .padding(.horizontal, 10)
+                            .frame(height: 40)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .stroke(Color(hex: "#525252"), lineWidth: 1)
+                            )
+                            .accessibilityIdentifier(AccessibilityIdentifiers.usernameTextField)
+                    }
+                    .background(RoundedRectangle(cornerRadius: 4)
+                        .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
+                    
+                    Text("Password")
+                        .foregroundColor(.black)
+                    
+                    HStack {
+                        if isPasswordVisible {
+                            TextField("Enter password", text: $password)
+                                .padding(.horizontal, 10)
+                                .frame(height: 40)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .stroke(Color(hex: "#525252"), lineWidth: 1)
+                                )
+                                .accessibilityIdentifier(AccessibilityIdentifiers.passwordTextField)
+                        } else {
+                            SecureField("Enter password", text: $password)
+                                .padding(.horizontal, 10)
+                                .frame(height: 40)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .stroke(Color(hex: "#525252"), lineWidth: 1)
+                                )
+                                .accessibilityIdentifier(AccessibilityIdentifiers.passwordTextField)
+                        }
+                        
+                        Button(action: {
+                            isPasswordVisible.toggle()
+                        }) {
+                            Image(isPasswordVisible ? "Hide" : "View")
+                                .foregroundColor(Color(hex: "#525252"))
+                                .padding(.trailing, 10)
+                        }
+                    }
+                    .background(RoundedRectangle(cornerRadius: 4)
+                        .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
+                    
+                    Text("Caller Number")
+                        .foregroundColor(.black)
+                    
+                    HStack {
+                        TextField("Enter caller number", text: $callerIdNumber)
+                            .padding(.horizontal, 10)
+                            .frame(height: 40)
+                            .accessibilityIdentifier(AccessibilityIdentifiers.callerNumberTextField)
+                    }
+                    .background(RoundedRectangle(cornerRadius: 4)
+                        .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
+                    
+                    Text("Caller Name")
+                        .foregroundColor(.black)
+                    
+                    HStack {
+                        TextField("Enter caller name", text: $callerName)
+                            .padding(.horizontal, 10)
+                            .frame(height: 40)
+                            .accessibilityIdentifier(AccessibilityIdentifiers.callerNameTextField)
+                    }
+                    .background(RoundedRectangle(cornerRadius: 4)
+                        .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
+                }
+                
+                Spacer(minLength: 4)
+                
+                HStack(spacing: 12) {
+                    Button(action: {
+                        let credential = SipCredential(username: isTokenLogin ? tokenCallerId : username,
+                                                       password: isTokenLogin ? "" : password,
+                                                       isToken: isTokenLogin,
+                                                       callerName: callerName,
+                                                       callerNumber: callerIdNumber)
+                        onSignIn(credential, isEditMode, originalUsername)
+                    }) {
+                        Text(isEditMode ? "Update" : "Sign In")
+                            .font(.system(size: 16,weight: .semibold))
+                            .foregroundColor(Color(hex: "#525252"))
+                            .frame(width: 100)
+                            .padding(.vertical, 12)
+                            .background(Color(hex: "#F5F3E4"))
+                            .cornerRadius(20)
+                            .accessibilityIdentifier(isEditMode ? 
+                                                     AccessibilityIdentifiers.updateCredentialButton : 
+                                                        AccessibilityIdentifiers.signInButton)
                     }
                     
-                    Button(action: {
-                        isPasswordVisible.toggle()
-                    }) {
-                        Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
-                            .foregroundColor(Color(hex: "#525252"))
-                            .padding(.trailing, 10)
+                    Button(action: { onCancel() }) {
+                        Text("Cancel")
+                            .font(.system(size: 16,weight: .semibold))
+                            .foregroundColor(Color(hex: "#1D1D1D"))
+                            .frame(width: 100)
+                            .padding(.vertical, 12)
+                            .background(.white)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(Color(hex: "#1D1D1D"), lineWidth: 1)
+                            )
                     }
+                    Spacer()
                 }
-                .background(RoundedRectangle(cornerRadius: 4)
-                    .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
-                
-                Text("Caller Number")
-                    .foregroundColor(.black)
-                
-                HStack {
-                    TextField("Enter caller number", text: $callerIdNumber)
-                        .padding(.horizontal, 10)
-                        .frame(height: 40)
-                        .accessibilityIdentifier(AccessibilityIdentifiers.callerNumberTextField)
-                }
-                .background(RoundedRectangle(cornerRadius: 4)
-                    .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
-                
-                Text("Caller Name")
-                    .foregroundColor(.black)
-                
-                HStack {
-                    TextField("Enter caller name", text: $callerName)
-                        .padding(.horizontal, 10)
-                        .frame(height: 40)
-                        .accessibilityIdentifier(AccessibilityIdentifiers.callerNameTextField)
-                }
-                .background(RoundedRectangle(cornerRadius: 4)
-                    .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
-            }
-            
-            HStack(spacing: 12) {
-                Button(action: {
-                    let credential = SipCredential(username: isTokenLogin ? tokenCallerId : username,
-                                                   password: isTokenLogin ? "" : password,
-                                                   isToken: isTokenLogin,
-                                                   callerName: callerName,
-                                                   callerNumber: callerIdNumber)
-                    onSignIn(credential, isEditMode, originalUsername)
-                }) {
-                    Text(isEditMode ? "Update" : "Sign In")
-                        .font(.system(size: 16).bold())
-                        .foregroundColor(Color(hex: "#525252"))
-                        .frame(width: 100)
-                        .padding(.vertical, 12)
-                        .background(Color(hex: "#F5F3E4"))
-                        .cornerRadius(20)
-                        .accessibilityIdentifier(isEditMode ? 
-                                                AccessibilityIdentifiers.updateCredentialButton : 
-                                                AccessibilityIdentifiers.signInButton)
-                }
-                
-                Button(action: { onCancel() }) {
-                    Text("Cancel")
-                        .font(.system(size: 16))
-                        .foregroundColor(Color(hex: "#1D1D1D"))
-                        .frame(width: 100)
-                        .padding(.vertical, 12)
-                        .background(.white)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color(hex: "#1D1D1D"), lineWidth: 1)
-                        )
-                }
+                .padding(.vertical, 12)
+                .background(.white)
                 Spacer()
-            }
-            .padding(.vertical, 12)
-            .background(.white)
-            Spacer()
-        }.padding(.horizontal, 5)
-
+            }.padding(.horizontal, 5)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+        }
     }
     
 }

@@ -128,7 +128,8 @@ struct SipCredentialsView: View {
                     }
                     Spacer()
                 }
-            } else {
+            } else
+            {
                 List {
                     Section {
                         if credentialsList.isEmpty && !internalIsShowingCredentialsInput {
@@ -197,6 +198,7 @@ struct SipCredentialsView: View {
                     Button(action: { dismiss() }) {
                         Text("Cancel")
                             .font(.system(size: 16))
+                            .fontWeight(.semibold)
                             .foregroundColor(Color(hex: "#1D1D1D"))
                             .frame(width: 100)
                             .padding(.vertical, 12)
@@ -216,6 +218,7 @@ struct SipCredentialsView: View {
                     }) {
                         Text("Confirm")
                             .font(.system(size: 16))
+                            .fontWeight(.semibold)
                             .foregroundColor(.white)
                             .frame(width: 100)
                             .padding(.vertical, 12)

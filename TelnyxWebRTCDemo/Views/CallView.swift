@@ -3,7 +3,8 @@ import TelnyxRTC
 
 struct CallView: View {
     @ObservedObject var viewModel: CallViewModel
-    
+    @State var isPhoneNumber: Bool
+
     let onStartCall: () -> Void
     let onEndCall: () -> Void
     let onRejectCall: () -> Void
@@ -24,7 +25,7 @@ struct CallView: View {
                     callingView
             }
         }
-        .padding()
+        .padding(.trailing,30)
         .sheet(isPresented: $viewModel.showDTMFKeyboard) {
             VStack {
                 DTMFKeyboardView(
@@ -43,10 +44,19 @@ struct CallView: View {
     @ViewBuilder
     private var callView: some View {
         VStack {
-            TextField("Enter sip address or phone number", text: $viewModel.sipAddress)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .accessibilityIdentifier(AccessibilityIdentifiers.numberToCallTextField)
-                .padding()
+            DestinationToggle(
+                isFirstOptionSelected: $isPhoneNumber,
+                            firstOption: "Sip address",
+                            secondOption: "Phone number"
+                        )
+            
+            VStack {
+                TextField("Enter \(isPhoneNumber ? "Phone number" : "Sip address")", text: $viewModel.sipAddress)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .keyboardType(isPhoneNumber ? .numberPad : .default)
+                    .accessibilityIdentifier(AccessibilityIdentifiers.numberToCallTextField)
+            }.padding(.top,6)
+           
             
             Spacer()
             
@@ -126,14 +136,13 @@ struct CallView: View {
                         .clipShape(Circle())
                 }
                 .accessibilityIdentifier(AccessibilityIdentifiers.dtmfButton)
-
             }
             
             Button(action: {
                 onEndCall()
             }) {
                 Image(systemName: "phone.down.fill")
-                    .foregroundColor(Color(hex: "#1D1D1D"))
+                    .foregroundColor(.white)
                     .frame(width: 60, height: 60)
                     .background(Color(hex: "#EB0000"))
                     .clipShape(Circle())
@@ -165,7 +174,7 @@ struct CallView: View {
                 Button(action: {
                     onAnswerCall()
                 }) {
-                    Image(systemName: "phone.fill")
+                    Image("Call")
                         .foregroundColor(Color(hex: "#1D1D1D"))
                         .frame(width: 60, height: 60)
                         .background(Color(hex: "#00E3AA"))
@@ -183,7 +192,7 @@ struct CallView: View {
 struct CallView_Previews: PreviewProvider {
     static var previews: some View {
         CallView(
-            viewModel: CallViewModel(),
+            viewModel: CallViewModel(), isPhoneNumber: true,
             onStartCall: {},
             onEndCall: {},
             onRejectCall: {},

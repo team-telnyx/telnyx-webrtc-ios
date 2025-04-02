@@ -26,142 +26,155 @@ struct HomeView: View {
                 GeometryReader { geometry in
                     let safeHeight = max(geometry.size.height / 2 - 100, 0)
 
-                    VStack {
-                        Spacer().frame(height: isAnimating ? 50 : safeHeight)
-                        Image("telnyx-logo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 200)
-                            .onLongPressGesture {
-                                onLongPressLogo()
-                            }
-                            .accessibilityIdentifier(AccessibilityIdentifiers.homeViewLogo)
-                        Spacer().frame(height: isAnimating ? 0 : safeHeight)
-                        
-                        if isAnimating {
-                            VStack {
-                                if viewModel.socketState == .connected || viewModel.socketState == .clientReady {
-                                    Text("Enter a destination (phone number or SIP user) to initiate your call.")
-                                        .font(.system(size: 18, weight: .regular))
-                                        .foregroundColor(Color(hex: "1D1D1D"))
-                                        .padding(20)
-                                } else {
-                                    Text("Please confirm details below and click ‘Connect’ to make a call.")
-                                        .font(.system(size: 18, weight: .regular))
-                                        .foregroundColor(Color(hex: "1D1D1D"))
-                                        .padding(20)
+                    ScrollView {
+                        VStack {
+                            Spacer().frame(height: isAnimating ? 50 : safeHeight)
+                            
+                            Image("telnyx-logo")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 200)
+                                .onLongPressGesture {
+                                    onLongPressLogo()
                                 }
-                                
-                                // Socket State
+                                .accessibilityIdentifier(AccessibilityIdentifiers.homeViewLogo)
+                            
+                            
+                            if isAnimating {
                                 VStack {
-                                    Text("Socket")
-                                        .font(.system(size: 18, weight: .regular))
-                                        .foregroundColor(Color(hex: "#525252"))
-                                        .padding(.top, 10)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                    
-                                    HStack {
-                                        Circle()
-                                            .fill(viewModel.socketState == .connected || viewModel.socketState == .clientReady ? Color(hex: "00E3AA") : Color(hex: "D40000"))
-                                            .frame(width: 8, height: 8)
-                                        Text(socketStateText(for: viewModel.socketState))
-                                            .font(.system(size: 15, weight: .regular))
+                                    if viewModel.socketState == .connected || viewModel.socketState == .clientReady {
+                                        Text("Enter a destination (phone number or SIP user) to initiate your call.")
+                                            .font(.system(size: 18, weight: .regular))
                                             .foregroundColor(Color(hex: "1D1D1D"))
+                                            .padding(20)
+                                    } else {
+                                        Text("Please confirm details below and click ‘Connect’ to make a call.")
+                                            .font(.system(size: 18, weight: .regular))
+                                            .foregroundColor(Color(hex: "1D1D1D"))
+                                            .padding(20)
+                                    }
+                                    
+                                    // Socket State
+                                    VStack {
+                                        Text("Socket")
+                                            .font(.system(size: 18, weight: .regular))
+                                            .foregroundColor(Color(hex: "#525252"))
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .padding(.top, 10)
+                                        
+                                        HStack {
+                                            Circle()
+                                                .fill(viewModel.socketState == .connected || viewModel.socketState == .clientReady ? Color(hex: "00E3AA") : Color(hex: "D40000"))
+                                                .frame(width: 8, height: 8)
+                                            Text(socketStateText(for: viewModel.socketState))
+                                                .font(.system(size: 15, weight: .regular))
+                                                .foregroundColor(Color(hex: "1D1D1D"))
+                                        }
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(.top, 5)
+                                        
+                                        if viewModel.socketState == .connected || viewModel.socketState == .clientReady {
+                                            let stateInfo = callStateInfo(for: viewModel.callState)
+                                            Text("Call State")
+                                                .font(.system(size: 15, weight: .regular))
+                                                .foregroundColor(Color(hex: "1D1D1D"))
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                                .padding(.top, 10)
+                                            
+                                            HStack(spacing: 8) {
+                                                
+                                                Circle()
+                                                    .fill(stateInfo.color)
+                                                    .frame(width: 8, height: 8)
+                                                
+                                                Text(stateInfo.text)
+                                                    .font(.system(size: 15, weight: .regular))
+                                                    .foregroundColor(Color(hex: "1D1D1D"))
+                                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                            }
+                                            
+                                        }
                                     }
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.top, 5)
-
-                                    if viewModel.socketState == .connected || viewModel.socketState == .clientReady {
-                                        Text("Call State : \(viewModel.callState.value)")
-                                            .font(.system(size: 15, weight: .regular))
+                                    .padding(.bottom, 8)
+                                    
+                                    // Session
+                                    VStack {
+                                        Text("Session ID")
+                                            .font(.system(size: 18, weight: .regular))
                                             .foregroundColor(Color(hex: "#525252"))
+                                            .frame(maxWidth: .infinity, alignment: .leading)
                                             .padding(.top, 10)
+                                        
+                                        Text(viewModel.sessionId)
+                                            .font(.system(size: 15, weight: .regular))
+                                            .foregroundColor(Color(hex: "1D1D1D"))
+                                            .padding(.top, 2)
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                     }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.bottom, 16)
                                     
+                                    // Profile or Call view
+                                    profileOrCallView(for: viewModel.socketState)
+                                        .padding(.bottom, 16)
                                     
+                                    Spacer()
                                 }
-                                .padding(.leading, 30)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                
-                                // Session
-                                VStack {
-                                    Text("Session ID")
-                                        .font(.system(size: 18, weight: .regular))
-                                        .foregroundColor(Color(hex: "#525252"))
-                                        .padding(.top, 10)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                    
-                                    Text(viewModel.sessionId)
-                                        .font(.system(size: 15, weight: .regular))
-                                        .foregroundColor(Color(hex: "1D1D1D"))
-                                        .padding(.top, 2)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                }
-                                .padding(.leading, 30)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                
-                                // Profile or Call view
-                                profileOrCallView(for: viewModel.socketState)
-                                
-                                Spacer()
-                                if viewModel.callState == .NEW ||
-                                   viewModel.callState == .DONE
-                                {
-                                    if viewModel.socketState == .disconnected {
-                                        Button(action: onConnect) {
-                                            Text("Connect")
-                                                .font(.system(size: 16).bold())
-                                                .foregroundColor(.white)
-                                                .frame(maxWidth: 300)
-                                                .padding(.vertical, 12)
-                                                .background(Color(hex: "#1D1D1D"))
-                                                .cornerRadius(20)
-                                        }
-                                        .accessibilityIdentifier(AccessibilityIdentifiers.connectButton)
-                                        .padding(.horizontal, 60)
-                                        .padding(.bottom, 20)
-                                    } else {
-                                        Button(action: onDisconnect) {
-                                            Text("Disconnect")
-                                                .font(.system(size: 16).bold())
-                                                .foregroundColor(.white)
-                                                .frame(maxWidth: 300)
-                                                .padding(.vertical, 12)
-                                                .background(Color(hex: "#1D1D1D"))
-                                                .cornerRadius(20)
-                                        }
-                                        .accessibilityIdentifier(AccessibilityIdentifiers.disconnectButton)
-                                        .padding(.horizontal, 60)
-                                        .padding(.bottom, 10)
-                                    }
-                                    
-                                    
-                                    // Environment Text
-                                    Text(viewModel.environment)
-                                        .font(.system(size: 14, weight: .regular))
-                                        .foregroundColor(Color(hex: "1D1D1D"))
-                                        .padding(.bottom, 5)
-                                }
+                                .opacity(textOpacity)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .padding(.leading, 30)  // Added padding for consistency in the whole VStack
                             }
-                            .opacity(textOpacity)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .background(Color.white)
-                    .onAppear {
-                        withAnimation(nil) {
-                            isAnimating = true
-                        }
-                        withAnimation(nil) {
-                            textOpacity = 1.0
+                        .frame(maxWidth: .infinity)
+                        .background(Color(hex: "#FEFDF5"))
+                        .onAppear {
+                            withAnimation(nil) {
+                                isAnimating = true
+                            }
+                            withAnimation(nil) {
+                                textOpacity = 1.0
+                            }
                         }
                     }
                 }
+                if viewModel.callState == .NEW || viewModel.callState == .DONE {
+                    if viewModel.socketState == .disconnected {
+                        Button(action: onConnect) {
+                            Text("Connect")
+                                .font(.system(size: 16).bold())
+                                .foregroundColor(.white)
+                                .frame(maxWidth: 300)
+                                .padding(.vertical, 12)
+                                .background(Color(hex: "#1D1D1D"))
+                                .cornerRadius(20)
+                        }
+                        .accessibilityIdentifier(AccessibilityIdentifiers.connectButton)
+                        .padding(.horizontal, 60)
+                        .padding(.bottom, 20)
+                    } else {
+                        Button(action: onDisconnect) {
+                            Text("Disconnect")
+                                .font(.system(size: 16).bold())
+                                .foregroundColor(.white)
+                                .frame(maxWidth: 300, minHeight: 16)
+                                .padding(.vertical, 12)
+                                .background(Color(hex: "#1D1D1D"))
+                                .cornerRadius(100)
+                        }
+                        .accessibilityIdentifier(AccessibilityIdentifiers.disconnectButton)
+                        .padding(.horizontal, 60)
+                        .padding(.bottom, 10)
+                    }
+                    
+                    // Environment Text
+                    Text(viewModel.environment)
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundColor(Color(hex: "#525252"))
+                        .padding(.bottom, 5)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.white)
             
             if viewModel.isLoading {
                 Color.black.opacity(0.5)
@@ -174,6 +187,7 @@ struct HomeView: View {
                 }
             }
         }
+        .background(Color(hex: "#FEFDF5")).ignoresSafeArea()
     }
     
     @ViewBuilder
@@ -189,11 +203,32 @@ struct HomeView: View {
     private func socketStateText(for state: SocketState) -> String {
         switch state {
             case .disconnected:
-                return "disconnected"
+                return "Disconnected"
             case .connected:
-                return "connected"
+                return "Connected"
             case .clientReady:
-                return "client-ready"
+                return "Client-ready"
+        }
+    }
+    
+    private func callStateInfo(for state: CallState) -> (color: Color, text: String) {
+        switch state {
+        case .DONE:
+            return (Color.gray, "Done")
+        case .RINGING:
+            return (Color(hex: "#3434EF"), "Ringing")
+        case .CONNECTING:
+            return (Color(hex: "#008563"), "Connecting")
+        case .DROPPED:
+            return (Color(hex: "#D40000"), "Dropped")
+        case .RECONNECTING:
+            return (Color(hex: "#CF7E20"), "Reconnecting")
+        case .ACTIVE:
+            return (Color(hex: "#008563"), "Active")
+        case .NEW:
+            return (Color.black, "New")
+        case .HELD:
+            return (Color(hex: "#008563"), "Held")
         }
     }
 }
@@ -212,7 +247,7 @@ struct HomeView_Previews: PreviewProvider {
                     onSwitchProfile: {})),
             callView: AnyView(
                 CallView(
-                    viewModel: CallViewModel(),
+                    viewModel: CallViewModel(), isPhoneNumber: false,
                     onStartCall: {},
                     onEndCall: {},
                     onRejectCall: {},

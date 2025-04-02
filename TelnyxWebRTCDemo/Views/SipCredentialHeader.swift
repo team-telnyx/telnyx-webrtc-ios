@@ -16,25 +16,30 @@ struct SipCredentialHeader: View {
                 Spacer()
                 
                 Button(action: onClose) {
-                    Image(systemName: "xmark")
+                    Image("Close")
                         .font(.system(size: 16))
                         .foregroundColor(Color(hex: "#1D1D1D"))
                 }
             }
             .padding(.top, 20)
+            .padding(.bottom,24)
             HStack {
                 Button(action: onAddProfile) {
-                    Text("+ Add new profile")
-                        .font(.system(size: 14).bold())
-                        .foregroundColor(Color(hex: "#1D1D1D"))
-                        .frame(width: 150)
-                        .padding(.vertical, 8)
-                        .background(Color(hex: "#F5F3E4"))
-                        .cornerRadius(16)
+                    HStack(spacing: 6) {
+                        Image("Add")
+                            .font(.system(size: 16, weight: .semibold))
+                        Text("Add new profile")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(Color(hex: "#1D1D1D"))
+                    .frame(width: 150)
+                    .padding(.vertical, 8)
+                    .background(Color(hex: "#F5F3E4"))
+                    .cornerRadius(16)
                 }
                 .accessibilityIdentifier(AccessibilityIdentifiers.addProfileButton)
                 Spacer()
-            }
+            } .padding(.bottom,20)
             HStack {
                 Text(subtitle)
                     .font(.system(size: 12))

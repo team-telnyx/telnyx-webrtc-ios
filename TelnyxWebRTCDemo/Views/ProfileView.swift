@@ -31,8 +31,8 @@ struct ProfileView: View {
                         Text(viewModel.selectedProfile?.username ?? "")
                             .font(.system(size: 18, weight: .regular))
                             .foregroundColor(Color(hex: "1D1D1D"))
-                            .frame(maxWidth: 150, alignment: .leading)
-                            .lineLimit(1)
+                            .lineLimit(1)  
+                            .layoutPriority(1)
                         
                         Button(action: onSwitchProfile) {
                             Text("Switch Profile")
@@ -52,7 +52,6 @@ struct ProfileView: View {
                 }
             }.frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.leading, 30)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
