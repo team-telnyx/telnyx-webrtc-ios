@@ -127,7 +127,6 @@ struct HomeView: View {
                             }
                         }
                         .frame(maxWidth: .infinity)
-                        .background(Color(hex: "#FEFDF5"))
                         .onAppear {
                             withAnimation(nil) {
                                 isAnimating = true
@@ -171,7 +170,7 @@ struct HomeView: View {
                     Text(viewModel.environment)
                         .font(.system(size: 14, weight: .regular))
                         .foregroundColor(Color(hex: "#525252"))
-                        .padding(.bottom, 5)
+                        .padding(.bottom, 30)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
