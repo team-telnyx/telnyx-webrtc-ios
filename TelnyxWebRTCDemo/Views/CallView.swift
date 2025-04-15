@@ -50,12 +50,22 @@ struct CallView: View {
                             secondOption: "Phone number"
                         )
             
-            VStack {
-                TextField("Enter \(isPhoneNumber ? "Phone number" : "Sip address")", text: $viewModel.sipAddress)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .keyboardType(isPhoneNumber ? .numberPad : .default)
-                    .accessibilityIdentifier(AccessibilityIdentifiers.numberToCallTextField)
-            }.padding(.top,6)
+            if(isPhoneNumber){
+                VStack {
+                    TextField("Enter Phone number", text: $viewModel.sipAddress)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .keyboardType(.numbersAndPunctuation)
+                        .accessibilityIdentifier(AccessibilityIdentifiers.numberToCallTextField)
+                }.padding(.top,6)
+            } else {
+                VStack {
+                    TextField("Enter Sip address", text: $viewModel.sipAddress)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .keyboardType(.default)
+                        .accessibilityIdentifier(AccessibilityIdentifiers.numberToCallTextField)
+                }.padding(.top,6)
+            }
+        
            
             
             Spacer()
@@ -63,7 +73,7 @@ struct CallView: View {
             Button(action: {
                 onStartCall()
             }) {
-                Image(systemName: "phone.fill")
+                Image("Call")
                     .foregroundColor(Color(hex: "#1D1D1D"))
                     .frame(width: 60, height: 60)
                     .background(Color(hex: "#00E3AA"))
@@ -72,7 +82,8 @@ struct CallView: View {
             .accessibilityIdentifier(AccessibilityIdentifiers.callButton)
             .padding()
             
-            Spacer()
+            //Keep Keyboard above Textfiled
+            Spacer().frame(height: 600)
         }
     }
     
@@ -162,7 +173,7 @@ struct CallView: View {
                 Button(action: {
                     onRejectCall()
                 }) {
-                    Image(systemName: "phone.down.fill")
+                    Image("ic-hangup")
                         .foregroundColor(Color(hex: "#1D1D1D"))
                         .frame(width: 60, height: 60)
                         .background(Color(hex: "#EB0000"))

@@ -22,6 +22,7 @@ struct HomeView: View {
     
     var body: some View {
         ZStack {
+            
             VStack {
                 GeometryReader { geometry in
                     let safeHeight = max(geometry.size.height / 2 - 100, 0)
