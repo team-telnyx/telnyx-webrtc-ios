@@ -25,6 +25,9 @@ import Foundation
 /// // Stop reporting when done
 /// reporter.dispose()
 /// ```
+///
+/// The reporter also provides real-time call quality metrics through the `onStatsFrame` callback,
+/// which can be used to monitor call quality in real-time.
 class WebRTCStatsReporter {
     // MARK: - Properties
     /// Timer for periodic stats collection
@@ -51,6 +54,9 @@ class WebRTCStatsReporter {
     /// Flag to track if stats reporting is paused due to socket disconnection or call state
     private var isReportingPaused: Bool = false
     
+    /// Callback for real-time call quality metrics
+    public var onStatsFrame: ((CallQualityMetrics) -> Void)?
+    
     // MARK: - Initializer
     init(socket: Socket,reportId:UUID? = nil) {
         self.socket = socket
@@ -65,6 +71,11 @@ class WebRTCStatsReporter {
         self.call  = call
         self.isReportingPaused = false
         self.sendDebugReportStartMessage(id: self.reportId)
+        
+        // Connect the onStatsFrame callback to the Call's onCallQualityChange callback
+        self.onStatsFrame = { [weak call] metrics in
+            call?.onCallQualityChange?(metrics)
+        }
         
         let delay = DispatchTime.now() + 0.2
         DispatchQueue.main.asyncAfter(deadline: delay) { [weak self] in
@@ -177,6 +188,47 @@ class WebRTCStatsReporter {
             // Keep current state for other call states
             break
         }
+    }
+    
+    // MARK: - Real-time Metrics Conversion
+    
+    /// Converts WebRTC statistics to real-time call quality metrics
+    /// - Parameter statsData: Dictionary containing WebRTC statistics
+    /// - Returns: CallQualityMetrics object with calculated metrics
+    private func toRealTimeMetrics(audio: [[String: Any]], remote: [String: Any]) -> CallQualityMetrics {
+        // Extract remote audio stats
+        let remoteAudio = remote["audio"] as? [String: [[String: Any]]] ?? [:]
+        let remoteInbound = remoteAudio["inbound"] ?? []
+        let remoteOutbound = remoteAudio["outbound"] ?? []
+        
+        // Extract metrics from stats
+        let jitter = (remoteInbound.first?["jitter"] as? Double) ?? Double.infinity
+        let rtt = (remoteInbound.first?["roundTripTime"] as? Double) ?? Double.infinity
+        let packetsReceived = (audio.first?["packetsReceived"] as? Int) ?? -1
+        let packetsLost = (audio.first?["packetsLost"] as? Int) ?? -1
+        
+        // Calculate MOS score
+        let mos = MOSCalculator.calculateMOS(
+            jitter: jitter * 1000, // Convert to ms
+            rtt: rtt * 1000,       // Convert to ms
+            packetsReceived: packetsReceived,
+            packetsLost: packetsLost
+        )
+        
+        // Determine call quality
+        let quality = MOSCalculator.getQuality(mos: mos)
+        
+        // Create metrics object
+        return CallQualityMetrics(
+            jitter: jitter,
+            rtt: rtt,
+            mos: mos,
+            quality: quality,
+            inboundAudio: audio.first,
+            outboundAudio: audio.first,
+            remoteInboundAudio: remoteInbound.first,
+            remoteOutboundAudio: remoteAudio["outbound"]?.first
+        )
     }
     
     // MARK: - Task Execution
@@ -300,6 +352,37 @@ class WebRTCStatsReporter {
                 "inbound": audioInboundStats,
                 "outbound": audioOutboundStats
             ] as NSObject
+            
+            // Create remote data structure for metrics calculation
+            let remoteData: [String: Any] = [
+                "audio": [
+                    "inbound": remoteInbound,
+                    "outbound": remoteOutbound
+                ]
+            ]
+            
+            // Generate real-time metrics if we have audio stats
+            if !audioInboundStats.isEmpty {
+                // Convert stats to typed arrays for metrics calculation
+                let typedAudioInboundStats = audioInboundStats.compactMap { $0 as? [String: Any] }
+                
+                // Calculate real-time metrics
+                let metrics = self.toRealTimeMetrics(audio: typedAudioInboundStats, remote: remoteData)
+                
+                // Emit metrics through callback
+                self.onStatsFrame?(metrics)
+                
+                // Send metrics as a stats frame event
+                var statsFrameEvent = [String: Any]()
+                statsFrameEvent["event"] = WebRTCStatsEvent.statsFrame.rawValue
+                statsFrameEvent["tag"] = WebRTCStatsTag.stats.rawValue
+                statsFrameEvent["peerId"] = self.peerId?.uuidString as NSObject? ?? NSNull()
+                statsFrameEvent["connectionId"] = peer.callLegID as NSObject? ?? NSNull()
+                statsFrameEvent["data"] = metrics.toDictionary()
+                
+                self.sendDebugReportDataMessage(id: self.reportId, data: statsFrameEvent)
+            }
+            
             statsEvent["data"] = statsData as NSObject
             statsEvent["statsObject"] = statsObject as NSObject
 
@@ -328,6 +411,9 @@ extension WebRTCStatsReporter {
         
         // Reset the reporting state
         isReportingPaused = false
+        
+        // Clear callbacks
+        onStatsFrame = nil
         
         peerId = nil
         peer = nil

@@ -162,6 +162,10 @@ public class Call {
     var callOptions: TxCallOptions?
     
     var statsReporter: WebRTCStatsReporter?
+    
+    /// Callback for real-time call quality metrics
+    /// This is triggered whenever new WebRTC statistics are available
+    public var onCallQualityChange: ((CallQualityMetrics) -> Void)?
 
     /// Custom headers received from the WebRTC INVITE message.
     /// These headers are passed during call initiation and can contain application-specific information.
