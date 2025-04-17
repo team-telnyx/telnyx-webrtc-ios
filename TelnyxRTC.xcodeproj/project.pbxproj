@@ -121,7 +121,7 @@
 		B3E1029A25F2C16500227DCE /* ModifyMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3E1029925F2C16500227DCE /* ModifyMessage.swift */; };
 		B3E1033225F7F94900227DCE /* incoming_call.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B3E1033025F7F94900227DCE /* incoming_call.mp3 */; };
 		B3E1033325F7F94900227DCE /* ringback_tone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B3E1033125F7F94900227DCE /* ringback_tone.mp3 */; };
-		B84E50517AD67FE44AC37952 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
+		B84E50517AD67FE44AC37952 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		FC2835C766C287188726D1C1 /* Pods_TelnyxRTC_TelnyxRTCTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2F433F3B81462AC009A0B69 /* Pods_TelnyxRTC_TelnyxRTCTests.framework */; };
 /* End PBXBuildFile section */
 
@@ -323,7 +323,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B368BED625EDDBC90032AE52 /* TelnyxRTC.framework in Frameworks */,
-				B84E50517AD67FE44AC37952 /* BuildFile in Frameworks */,
+				B84E50517AD67FE44AC37952 /* (null) in Frameworks */,
 				FC2835C766C287188726D1C1 /* Pods_TelnyxRTC_TelnyxRTCTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1457,7 +1457,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.2;
+				MARKETING_VERSION = 1.2.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp;
 				PRODUCT_NAME = "Telnyx WebRTC";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1484,7 +1484,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.2;
+				MARKETING_VERSION = 1.2.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp;
 				PRODUCT_NAME = "Telnyx WebRTC";
 				PROVISIONING_PROFILE_SPECIFIER = "";
