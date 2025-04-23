@@ -32,6 +32,10 @@ public class MOSCalculator {
     ///   - packetsLost: Number of packets lost
     /// - Returns: MOS score between 1.0 and 5.0
     public static func calculateMOS(jitter: Double, rtt: Double, packetsReceived: Int, packetsLost: Int) -> Double {
+        
+    
+        Logger.log.i(message: "Calculating_MOS... \(jitter), \(rtt), \(packetsReceived), \(packetsLost)") 
+        
         // Simplified R-factor calculation
         let R0: Double = 93.2 // Base value for G.711 codec
         let Is: Double = 0 // Assume no simultaneous transmission impairment

@@ -200,10 +200,11 @@ class WebRTCStatsReporter {
         let remoteAudio = remote["audio"] as? [String: [[String: Any]]] ?? [:]
         let remoteInbound = remoteAudio["inbound"] ?? []
         let remoteOutbound = remoteAudio["outbound"] ?? []
+        let candidates = remoteAudio["candidates"] ?? []
         
         // Extract metrics from stats
         let jitter = (remoteInbound.first?["jitter"] as? Double) ?? Double.infinity
-        let rtt = (remoteInbound.first?["roundTripTime"] as? Double) ?? Double.infinity
+        let rtt = candidates.first?["totalRoundTripTime"] as? Double ?? Double.infinity
         let packetsReceived = (audio.first?["packetsReceived"] as? Int) ?? -1
         let packetsLost = (audio.first?["packetsLost"] as? Int) ?? -1
         
@@ -214,10 +215,10 @@ class WebRTCStatsReporter {
             packetsReceived: packetsReceived,
             packetsLost: packetsLost
         )
-        
+
         // Determine call quality
         let quality = MOSCalculator.getQuality(mos: mos)
-        
+                
         // Create metrics object
         return CallQualityMetrics(
             jitter: jitter,
@@ -227,7 +228,7 @@ class WebRTCStatsReporter {
             inboundAudio: audio.first,
             outboundAudio: audio.first,
             remoteInboundAudio: remoteInbound.first,
-            remoteOutboundAudio: remoteAudio["outbound"]?.first
+            remoteOutboundAudio: remoteOutbound.first
         )
     }
     
@@ -286,6 +287,7 @@ class WebRTCStatsReporter {
                         }
                         
                     case "candidate-pair":
+                        Logger.log.i(message: "Default_Values : \(values)")
                         connectionCandidates.append(values)
                         statsObject[report.key] = values
                         
@@ -356,8 +358,9 @@ class WebRTCStatsReporter {
             // Create remote data structure for metrics calculation
             let remoteData: [String: Any] = [
                 "audio": [
-                    "inbound": remoteInbound,
-                    "outbound": remoteOutbound
+                    "inbound": audioInboundStats,
+                    "outbound": audioOutboundStats,
+                    "candidates":connectionCandidates
                 ]
             ]
             
@@ -371,16 +374,6 @@ class WebRTCStatsReporter {
                 
                 // Emit metrics through callback
                 self.onStatsFrame?(metrics)
-                
-                // Send metrics as a stats frame event
-                var statsFrameEvent = [String: Any]()
-                statsFrameEvent["event"] = WebRTCStatsEvent.statsFrame.rawValue
-                statsFrameEvent["tag"] = WebRTCStatsTag.stats.rawValue
-                statsFrameEvent["peerId"] = self.peerId?.uuidString as NSObject? ?? NSNull()
-                statsFrameEvent["connectionId"] = peer.callLegID as NSObject? ?? NSNull()
-                statsFrameEvent["data"] = metrics.toDictionary()
-                
-                self.sendDebugReportDataMessage(id: self.reportId, data: statsFrameEvent)
             }
             
             statsEvent["data"] = statsData as NSObject

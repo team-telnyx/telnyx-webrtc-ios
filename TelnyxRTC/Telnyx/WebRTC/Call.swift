@@ -563,6 +563,9 @@ extension Call {
         if debug,
            let callId = self.callInfo?.callId {
             self.statsReporter?.startDebugReport(peerId: callId, call: self)
+            self.statsReporter?.onStatsFrame = { metric in
+                self.onCallQualityChange?(metric)
+            }
         }
     }
 }

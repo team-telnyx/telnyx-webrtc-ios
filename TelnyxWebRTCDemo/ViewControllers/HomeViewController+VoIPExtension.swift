@@ -129,6 +129,11 @@ extension HomeViewController : VoIPDelegate {
                 case .NEW:
                     break
                 case .ACTIVE:
+                    if let call = self.appDelegate.currentCall {
+                        call.onCallQualityChange = { qualityMetric in
+                            print("metric_values: \(qualityMetric)")
+                        }
+                    }
                     if self.appDelegate.isCallOutGoing {
                         self.appDelegate.executeOutGoingCall()
                     }
