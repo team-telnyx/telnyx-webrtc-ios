@@ -12,6 +12,7 @@ struct CallView: View {
     let onToggleSpeaker: () -> Void
     let onHold: (Bool) -> Void
     let onDTMF: (String) -> Void
+    
 
     var body: some View {
         VStack {
@@ -37,6 +38,40 @@ struct CallView: View {
                 .background(Color.white)
             }
             .ignoresSafeArea(edges: .bottom)
+        }.sheet(isPresented: $viewModel.showCallMetricsPopup) {
+            if let metrics = viewModel.callQualityMetrics {
+                VStack(spacing: 16) {
+                    Text("Call Quality Metrics")
+                        .font(.headline)
+
+                    HStack {
+                        Text("Jitter:")
+                        Spacer()
+                        Text("\(metrics.jitter, specifier: "%.3f") s")
+                    }
+
+                    HStack {
+                        Text("MOS:")
+                        Spacer()
+                        Text("\(metrics.mos, specifier: "%.1f")")
+                    }
+
+                    HStack {
+                        Text("Quality:")
+                        Spacer()
+                        Text(metrics.quality.rawValue.capitalized)
+                    }
+
+                    Button("Close") {
+                        viewModel.showCallMetricsPopup = false
+                    }
+                    .padding(.top)
+                }
+                .padding()
+                .background(Color(.systemBackground))
+                .cornerRadius(16)
+                .padding()
+            }
         }
     }
     
@@ -126,6 +161,17 @@ struct CallView: View {
                         .clipShape(Circle())
                 }
                 .accessibilityIdentifier(AccessibilityIdentifiers.dtmfButton)
+                
+                Button(action: {
+                    viewModel.showCallMetricsPopup.toggle()
+                }) {
+                    Image(systemName: "chart.bar.fill")
+                        .foregroundColor(Color(hex: "#1D1D1D"))
+                        .frame(width: 60, height: 60)
+                        .background(Color(hex: "#F5F3E4"))
+                        .clipShape(Circle())
+                }
+                .accessibilityIdentifier(AccessibilityIdentifiers.dtmfButton)
 
             }
             
@@ -140,9 +186,13 @@ struct CallView: View {
             }
             .accessibilityIdentifier(AccessibilityIdentifiers.hangupButton)
             .padding()
+            
+          
         }
         Spacer()
     }
+       
+
     
     @ViewBuilder
     private var incomingCallView: some View {
