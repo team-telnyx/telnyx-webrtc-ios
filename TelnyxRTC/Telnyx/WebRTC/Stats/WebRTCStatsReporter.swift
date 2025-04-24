@@ -225,8 +225,6 @@ class WebRTCStatsReporter {
             rtt: rtt,
             mos: mos,
             quality: quality,
-            inboundAudio: audio.first,
-            outboundAudio: audio.first,
             remoteInboundAudio: remoteInbound.first,
             remoteOutboundAudio: remoteOutbound.first
         )

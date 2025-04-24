@@ -14,12 +14,6 @@ public struct CallQualityMetrics {
     /// Call quality rating based on MOS
     public let quality: CallQuality
     
-    /// Inbound audio statistics
-    public let inboundAudio: [String: Any]?
-    
-    /// Outbound audio statistics
-    public let outboundAudio: [String: Any]?
-    
     /// Remote inbound audio statistics
     public let remoteInboundAudio: [String: Any]?
     
@@ -35,14 +29,6 @@ public struct CallQualityMetrics {
             "mos": mos,
             "quality": quality.rawValue
         ]
-        
-        if let inboundAudio = inboundAudio {
-            dict["inboundAudio"] = inboundAudio
-        }
-        
-        if let outboundAudio = outboundAudio {
-            dict["outboundAudio"] = outboundAudio
-        }
         
         if let remoteInboundAudio = remoteInboundAudio {
             dict["remoteInboundAudio"] = remoteInboundAudio

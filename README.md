@@ -388,7 +388,6 @@ call.onCallQualityChange = { metrics in
         // Show poor/bad quality indicator
         self.qualityIndicator.backgroundColor = .red
         // Optionally show a message to the user
-        self.showPoorConnectionAlert()
     case .unknown:
         // Quality couldn't be determined
         self.qualityIndicator.backgroundColor = .gray
@@ -440,7 +439,6 @@ The `CallQuality` enum provides the following values:
 
 4. **Performance Considerations**:
    - The callback is triggered periodically (approximately every 2 seconds)
-   - Keep callback processing lightweight to avoid impacting call performance
 
 ### Important Notes
 
