@@ -54,7 +54,18 @@ struct CallView: View {
                 VStack {
                     TextField("Enter Phone number", text: $viewModel.sipAddress)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .keyboardType(.numbersAndPunctuation)
+                        .keyboardType(.numberPad)
+                        .toolbar {
+                                        ToolbarItemGroup(placement: .keyboard) {
+                                            Spacer()
+                                            Button("+") {
+                                                viewModel.sipAddress += "+"
+                                            }
+                                            .font(.title)
+                                            .foregroundColor(.black) 
+                                            Spacer()
+                                        }
+                                    }
                         .accessibilityIdentifier(AccessibilityIdentifiers.numberToCallTextField)
                 }.padding(.top,6)
             } else {
