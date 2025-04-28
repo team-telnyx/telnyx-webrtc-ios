@@ -197,12 +197,12 @@ class WebRTCStatsReporter {
     /// - Returns: CallQualityMetrics object with calculated metrics
     private func toRealTimeMetrics(inboundboundAudio: [[String: Any]], audio: [String: Any]) -> CallQualityMetrics {
         // Extract remote audio stats
-        let remoteAudio = audio["audio"] as? [String: [[String: Any]]] ?? [:]
-        let remoteInbound = remoteAudio["remoteInbound"] ?? []
-        let remoteOutbound = remoteAudio["remoteOutbound"] ?? []
-        let inbound = remoteAudio["inbound"] ?? []
-        let outbound = remoteAudio["outbound"] ?? []
-        let candidates = remoteAudio["candidates"] ?? []
+        let audioContent = audio["audio"] as? [String: [[String: Any]]] ?? [:]
+        let remoteInbound = audioContent["remoteInbound"] ?? []
+        let remoteOutbound = audioContent["remoteOutbound"] ?? []
+        let inbound = audioContent["inbound"] ?? []
+        let outbound = audioContent["outbound"] ?? []
+        let candidates = audioContent["candidates"] ?? []
         
         // Extract metrics from stats
         let jitter = (inbound.first?["jitter"] as? Double) ?? Double.infinity
