@@ -195,18 +195,20 @@ class WebRTCStatsReporter {
     /// Converts WebRTC statistics to real-time call quality metrics
     /// - Parameter statsData: Dictionary containing WebRTC statistics
     /// - Returns: CallQualityMetrics object with calculated metrics
-    private func toRealTimeMetrics(audio: [[String: Any]], remote: [String: Any]) -> CallQualityMetrics {
+    private func toRealTimeMetrics(inboundboundAudio: [[String: Any]], audio: [String: Any]) -> CallQualityMetrics {
         // Extract remote audio stats
-        let remoteAudio = remote["audio"] as? [String: [[String: Any]]] ?? [:]
-        let remoteInbound = remoteAudio["inbound"] ?? []
-        let remoteOutbound = remoteAudio["outbound"] ?? []
+        let remoteAudio = audio["audio"] as? [String: [[String: Any]]] ?? [:]
+        let remoteInbound = remoteAudio["remoteInbound"] ?? []
+        let remoteOutbound = remoteAudio["remoteOutbound"] ?? []
+        let inbound = remoteAudio["inbound"] ?? []
+        let outbound = remoteAudio["outbound"] ?? []
         let candidates = remoteAudio["candidates"] ?? []
         
         // Extract metrics from stats
-        let jitter = (remoteInbound.first?["jitter"] as? Double) ?? Double.infinity
+        let jitter = (inbound.first?["jitter"] as? Double) ?? Double.infinity
         let rtt = candidates.first?["totalRoundTripTime"] as? Double ?? Double.infinity
-        let packetsReceived = (audio.first?["packetsReceived"] as? Int) ?? -1
-        let packetsLost = (audio.first?["packetsLost"] as? Int) ?? -1
+        let packetsReceived = (inboundboundAudio.first?["packetsReceived"] as? Int) ?? -1
+        let packetsLost = (inboundboundAudio.first?["packetsLost"] as? Int) ?? -1
         
         // Calculate MOS score
         let mos = MOSCalculator.calculateMOS(
@@ -225,6 +227,8 @@ class WebRTCStatsReporter {
             rtt: rtt,
             mos: mos,
             quality: quality,
+            inboundAudio: inbound.first,
+            outboundAudio: outbound.first,
             remoteInboundAudio: remoteInbound.first,
             remoteOutboundAudio: remoteOutbound.first
         )
@@ -259,7 +263,9 @@ class WebRTCStatsReporter {
             guard let self = self else { return }
             var statsEvent = [String: Any]()
             var audioInboundStats = [Any]()
+            var remoteAudioInboundStats = [Any]()
             var audioOutboundStats = [Any]()
+            var remoteAudioOutboundStats = [Any]()
             var connectionCandidates = [Any]()
             var statsData = [String: Any]()
             var statsObject = [String: Any]()
@@ -270,32 +276,44 @@ class WebRTCStatsReporter {
                 values["type"] = report.value.type as NSObject
                 values["id"] = report.value.id as NSObject
                 values["timestamp"] = (report.value.timestamp_us / 1000.0) as NSObject
-                
+
                 switch report.value.type {
-                    case "inbound-rtp":
-                        if let kind = values["kind"] as? String, kind == "audio" {
-                            audioInboundStats.append(values)
-                            statsObject[report.key] = values
-                        }
-                        
-                    case "outbound-rtp":
-                        if let kind = values["kind"] as? String, kind == "audio" {
-                            audioOutboundStats.append(values)
-                            statsObject[report.key] = values
-                        }
-                        
-                    case "candidate-pair":
-                        Logger.log.i(message: "Default_Values : \(values)")
-                        connectionCandidates.append(values)
+                case "inbound-rtp":
+                    if let kind = values["kind"] as? String, kind == "audio" {
+                        audioInboundStats.append(values)
                         statsObject[report.key] = values
-                        
-                    default:
+                    }
+
+                case "outbound-rtp":
+                    if let kind = values["kind"] as? String, kind == "audio" {
+                        audioOutboundStats.append(values)
                         statsObject[report.key] = values
+                    }
+
+                case "remote-inbound-rtp":
+                    if let kind = values["kind"] as? String, kind == "audio" {
+                        remoteAudioInboundStats.append(values)
+                        statsObject[report.key] = values
+                    }
+
+                case "remote-outbound-rtp":
+                    if let kind = values["kind"] as? String, kind == "audio" {
+                        remoteAudioOutboundStats.append(values)
+                        statsObject[report.key] = values
+                    }
+
+                case "candidate-pair":
+                    Logger.log.i(message: "Default_Values : \(values)")
+                    connectionCandidates.append(values)
+                    statsObject[report.key] = values
+
+                default:
+                    statsObject[report.key] = values
                 }
             }
-            
+
             // Otbound Stats
-            audioOutboundStats.enumerated().forEach { (index, outboundStat) in
+            audioOutboundStats.enumerated().forEach { index, outboundStat in
                 if let outboundDict = outboundStat as? [String: NSObject],
                    let mediaSourceId = outboundDict["mediaSourceId"] as? String,
                    let mediaSource = statsObject[mediaSourceId] as? [String: NSObject] {
@@ -306,7 +324,7 @@ class WebRTCStatsReporter {
                     audioOutboundStats[index] = updatedStat as NSDictionary
                 }
             }
-            
+
             // Retrieve the T01 stats and selectedCandidatePairId from the statsObject
             if let t01Stats = statsObject["T01"] as? [String: NSObject],
                let selectedCandidatePairId = t01Stats["selectedCandidatePairId"] as? String {
@@ -358,17 +376,18 @@ class WebRTCStatsReporter {
                 "audio": [
                     "inbound": audioInboundStats,
                     "outbound": audioOutboundStats,
+                    "remoteInbound": remoteAudioInboundStats,
+                    "remoteOutbound": remoteAudioOutboundStats,
                     "candidates":connectionCandidates
                 ]
             ]
             
-            // Generate real-time metrics if we have audio stats
             if !audioInboundStats.isEmpty {
                 // Convert stats to typed arrays for metrics calculation
                 let typedAudioInboundStats = audioInboundStats.compactMap { $0 as? [String: Any] }
                 
                 // Calculate real-time metrics
-                let metrics = self.toRealTimeMetrics(audio: typedAudioInboundStats, remote: remoteData)
+                let metrics = self.toRealTimeMetrics(inboundboundAudio: typedAudioInboundStats, audio: remoteData)
                 
                 // Emit metrics through callback
                 self.onStatsFrame?(metrics)

@@ -15,6 +15,12 @@ public struct CallQualityMetrics {
     public let quality: CallQuality
     
     /// Remote inbound audio statistics
+    public let inboundAudio: [String: Any]?
+    
+    /// Remote outbound audio statistics
+    public let outboundAudio: [String: Any]?
+    
+    /// Remote inbound audio statistics
     public let remoteInboundAudio: [String: Any]?
     
     /// Remote outbound audio statistics
