@@ -194,6 +194,9 @@ public class Call {
     /// This is useful for troubleshooting call quality issues.
     public internal(set) var debug: Bool = false
     
+    /// Enables CallQuality Metrics for Call
+    public internal(set) var enableQualityMetrics: Bool = false
+    
     /// Controls whether the SDK should force TURN relay for peer connections.
     /// When enabled, the SDK will only use TURN relay candidates for ICE gathering,
     /// which prevents the "local network access" permission popup from appearing.
@@ -247,7 +250,8 @@ public class Call {
          iceServers: [RTCIceServer],
          isAttach: Bool = false,
          debug: Bool = false,
-         forceRelayCandidate: Bool = false
+         forceRelayCandidate: Bool = false,
+         enableQualityMetrics: Bool = false
     ) {
         if isAttach {
             self.direction = CallDirection.ATTACH
@@ -283,6 +287,7 @@ public class Call {
         
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
+        self.enableQualityMetrics = enableQualityMetrics
     }
     
     //Contructor for attachCalls
@@ -295,7 +300,9 @@ public class Call {
          telnyxLegId: UUID? = nil,
          iceServers: [RTCIceServer],
          debug: Bool = false,
-         forceRelayCandidate: Bool = false) {
+         forceRelayCandidate: Bool = false,
+         enableQualityMetrics: Bool = false
+    ) {
         self.direction = CallDirection.ATTACH
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
@@ -314,6 +321,7 @@ public class Call {
         
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
+        self.enableQualityMetrics = enableQualityMetrics
     }
 
     /// Constructor for outgoing calls
@@ -325,7 +333,9 @@ public class Call {
          ringbackTone: String? = nil,
          iceServers: [RTCIceServer],
          debug: Bool = false,
-         forceRelayCandidate: Bool = false) {
+         forceRelayCandidate: Bool = false,
+         enableCallQualityMetrics: Bool = false
+    ) {
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
         //this is the signaling server socket
@@ -343,6 +353,7 @@ public class Call {
         self.updateCallState(callState: .NEW)
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
+        self.enableQualityMetrics = enableCallQualityMetrics
     }
 
     // MARK: - Private functions
@@ -444,7 +455,7 @@ public class Call {
         self.callState = callState
         
         // Notify the stats reporter about the call state change
-        if let statsReporter = self.statsReporter, debug {
+        if let statsReporter = self.statsReporter, (debug || enableQualityMetrics) {
             statsReporter.handleCallStateChange(callState: callState)
         }
         
@@ -552,7 +563,7 @@ extension Call {
     }
     
     private func configureStatsReporter(reportID:UUID? = nil) {
-        if debug,
+        if (debug || enableQualityMetrics),
            let socket = self.socket {
             self.statsReporter?.dispose()
             self.statsReporter = WebRTCStatsReporter(socket: socket,reportId: reportID)
@@ -560,7 +571,7 @@ extension Call {
     }
 
     private func startStatsReporter() {
-        if debug,
+        if (debug || enableQualityMetrics),
            let callId = self.callInfo?.callId {
             self.statsReporter?.startDebugReport(peerId: callId, call: self)
             self.statsReporter?.onStatsFrame = { metric in

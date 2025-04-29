@@ -268,7 +268,9 @@ extension AppDelegate : CXProviderDelegate {
                                     // Enable WebRTC stats debug
                                     debug: true,
                                     // Force relay candidate
-                                    forceRelayCandidate: false)
+                                    forceRelayCandidate: false,
+                                    // Enable Call Quality Metrics
+                                    enableQualityMetrics: true)
             
             do {
                 try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)
@@ -292,7 +294,9 @@ extension AppDelegate : CXProviderDelegate {
                                     // Enable WebRTC stats debug
                                     debug: true,
                                     // Force relay candidate
-                                    forceRelayCandidate: false)
+                                    forceRelayCandidate: false,
+                                    // Enable Call Quality Metrics
+                                    enableQualityMetrics: true)
             
             do {
                 try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)

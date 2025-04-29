@@ -47,6 +47,10 @@ public struct TxConfig {
     /// - Important: This setting is disabled by default to maintain optimal call quality.
     public internal(set) var forceRelayCandidate: Bool = false
     
+    /// Controls whether the SDK should deliver call quality metrics
+    public internal(set) var enableQualityMetrics: Bool = false
+    
+    
     /// Maximum time (in seconds) the SDK will attempt to reconnect a call after network disruption.
     /// - If a call is successfully reconnected within this time, the call continues normally.
     /// - If reconnection fails after this timeout period, the call will be terminated and a `reconnectFailed` error will be triggered.
@@ -80,6 +84,7 @@ public struct TxConfig {
                 reconnectClient: Bool = true,
                 debug: Bool = false,
                 forceRelayCandidate: Bool = false,
+                enableQualityMetrics: Bool = false,
                 reconnectTimeOut: Double = DEFAULT_TIMEOUT
     ) {
         self.sipUser = sipUser
@@ -96,6 +101,7 @@ public struct TxConfig {
         self.forceRelayCandidate = forceRelayCandidate
         self.customLogger = customLogger
         self.reconnectClient = reconnectClient
+        self.enableQualityMetrics = enableQualityMetrics
         Logger.log.verboseLevel = logLevel
         Logger.log.customLogger = customLogger ?? TxDefaultLogger()
     }
@@ -120,6 +126,7 @@ public struct TxConfig {
                 reconnectClient: Bool = true,
                 debug: Bool = false,
                 forceRelayCandidate: Bool = false,
+                enableQualityMetrics: Bool = false,
                 reconnectTimeOut: Double = DEFAULT_TIMEOUT
     ) {
         self.token = token
@@ -132,6 +139,7 @@ public struct TxConfig {
         self.pushEnvironment = pushEnvironment
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
+        self.enableQualityMetrics = enableQualityMetrics
         self.customLogger = customLogger
         self.reconnectClient = reconnectClient
         Logger.log.verboseLevel = logLevel

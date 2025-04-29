@@ -618,7 +618,8 @@ extension TxClient {
                         ringbackTone: self.txConfig?.ringBackTone,
                         iceServers: self.serverConfiguration.webRTCIceServers,
                         debug: self.txConfig?.debug ?? false,
-                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false)
+                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
+                        enableCallQualityMetrics: txConfig?.enableQualityMetrics ?? false)
         call.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState, customHeaders: customHeaders)
 
         currentCallId = callId
@@ -661,7 +662,8 @@ extension TxClient {
                         iceServers: self.serverConfiguration.webRTCIceServers,
                         isAttach: isAttach,
                         debug: self.txConfig?.debug ?? false,
-                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false)
+                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
+                        enableQualityMetrics: self.txConfig?.enableQualityMetrics ?? false)
         call.callInfo?.callerName = callerName
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)

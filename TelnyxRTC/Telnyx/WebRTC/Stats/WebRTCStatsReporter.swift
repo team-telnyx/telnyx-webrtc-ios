@@ -99,6 +99,10 @@ class WebRTCStatsReporter {
     
     // MARK: - Private Helper Methods
     private func sendDebugReportStartMessage(id: UUID) {
+        if self.call?.debug == false {
+            Logger.log.i(message: "WebRTCStatsReporter:: Skipping sending stats message debug not enabled")
+            return
+        }
         let statsMessage = DebugReportStartMessage(reportID: id.uuidString.lowercased())
         if let message = statsMessage.encode() {
             enqueueMessage(message)
@@ -109,6 +113,10 @@ class WebRTCStatsReporter {
     }
     
     private func sendDebugReportStopMessage(id: UUID) {
+        if self.call?.debug == false {
+            Logger.log.i(message: "WebRTCStatsReporter:: Skipping sending stats message debug not enabled")
+            return
+        }
         let statsMessage = DebugReportStopMessage(reportID: id.uuidString.lowercased())
         if let message = statsMessage.encode() {
             enqueueMessage(message)
@@ -119,6 +127,10 @@ class WebRTCStatsReporter {
     }
     
     private func sendDebugReportDataMessage(id: UUID, data: [String: Any]) {
+        if self.call?.debug == false {
+            Logger.log.i(message: "WebRTCStatsReporter:: Skipping sending stats message debug not enabled")
+            return
+        }
         // Skip sending messages if reporting is paused due to socket disconnection or call state
         if isReportingPaused {
             Logger.log.i(message: "WebRTCStatsReporter:: Skipping stats message while socket is disconnected or call is recovering")
@@ -382,7 +394,7 @@ class WebRTCStatsReporter {
                 ]
             ]
             
-            if !audioInboundStats.isEmpty {
+            if !audioInboundStats.isEmpty && call.enableQualityMetrics {
                 // Convert stats to typed arrays for metrics calculation
                 let typedAudioInboundStats = audioInboundStats.compactMap { $0 as? [String: Any] }
                 
