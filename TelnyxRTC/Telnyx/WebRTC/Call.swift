@@ -300,9 +300,7 @@ public class Call {
          telnyxLegId: UUID? = nil,
          iceServers: [RTCIceServer],
          debug: Bool = false,
-         forceRelayCandidate: Bool = false,
-         enableQualityMetrics: Bool = false
-    ) {
+         forceRelayCandidate: Bool = false) {
         self.direction = CallDirection.ATTACH
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
@@ -321,7 +319,6 @@ public class Call {
         
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
-        self.enableQualityMetrics = enableQualityMetrics
     }
 
     /// Constructor for outgoing calls
@@ -333,9 +330,7 @@ public class Call {
          ringbackTone: String? = nil,
          iceServers: [RTCIceServer],
          debug: Bool = false,
-         forceRelayCandidate: Bool = false,
-         enableCallQualityMetrics: Bool = false
-    ) {
+         forceRelayCandidate: Bool = false) {
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
         //this is the signaling server socket
@@ -353,7 +348,6 @@ public class Call {
         self.updateCallState(callState: .NEW)
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
-        self.enableQualityMetrics = enableCallQualityMetrics
     }
 
     // MARK: - Private functions
@@ -361,7 +355,7 @@ public class Call {
         Creates an offer to start the calling process
      */
     private func invite(callerName: String, callerNumber: String, destinationNumber: String, clientState: String? = nil,
-                        customHeaders:[String:String] = [:]) {
+                        customHeaders:[String:String] = [:],debug:Bool = false) {
         self.direction = .OUTBOUND
         self.inviteCustomHeaders = customHeaders
         self.callInfo?.callerName = callerName
@@ -369,6 +363,7 @@ public class Call {
         self.callOptions = TxCallOptions(destinationNumber: destinationNumber,
                                          clientState: clientState)
 
+        self.enableQualityMetrics = debug
         // We need to:
         // - Create the reporter to send the startReporting message before creating the peer connection
         // - Start the reporter once the peer connection is created
@@ -471,12 +466,13 @@ extension Call {
                           callerNumber: String,
                           destinationNumber: String,
                           clientState: String? = nil,
-                          customHeaders:[String:String] = [:]) {
+                          customHeaders:[String:String] = [:],
+                          debug: Bool = false) {
         if (destinationNumber.isEmpty) {
             Logger.log.e(message: "Call:: Please enter a destination number.")
             return
         }
-        invite(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState, customHeaders: customHeaders)
+        invite(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState, customHeaders: customHeaders,debug: debug)
     }
 
     /// Hangup or reject an incoming call.
@@ -497,7 +493,7 @@ extension Call {
     ///  - Parameters:
     ///         - customHeaders: (optional) Custom Headers to be passed over webRTC Messages, should be in the
     ///     format `X-key:Value` `X` is required for headers to be passed.
-    public func answer(customHeaders:[String:String] = [:]) {
+    public func answer(customHeaders:[String:String] = [:],debug:Bool = false) {
         self.stopRingtone()
         self.stopRingbackTone()
         //TODO: Create an error if there's no remote SDP
@@ -507,6 +503,7 @@ extension Call {
         self.answerCustomHeaders = customHeaders
         self.configureStatsReporter()
         self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate)
+        self.enableQualityMetrics = debug
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
@@ -533,13 +530,14 @@ extension Call {
     ///  - Parameters:
     ///         - customHeaders: (optional) Custom Headers to be passed over webRTC Messages, should be in the
     ///     format `X-key:Value` `X` is required for headers to be passed.
-    internal func acceptReAttach(peer: Peer?, customHeaders:[String:String] = [:]) {
+    internal func acceptReAttach(peer: Peer?, customHeaders:[String:String] = [:],debug:Bool = false) {
         //TODO: Create an error if there's no remote SDP
         guard let remoteSdp = self.remoteSdp else {
             return
         }
         peer?.dispose()
         let reportId = self.statsReporter?.reportId
+        self.enableQualityMetrics = debug
         self.statsReporter?.dispose()
         self.answerCustomHeaders = customHeaders
         self.configureStatsReporter(reportID: reportId)

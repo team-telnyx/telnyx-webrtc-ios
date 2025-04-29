@@ -152,6 +152,7 @@ public class TxClient {
     private var reconnectTimeoutTimer: DispatchSourceTimer?
     private let reconnectQueue = DispatchQueue(label: "TelnyxClient.ReconnectQueue")
     private var _isSpeakerEnabled: Bool = false
+    private var enableQualityMetrics: Bool = false
     
     public private(set) var isSpeakerEnabled: Bool {
         get {
@@ -429,18 +430,21 @@ public class TxClient {
     /// - Parameters:
     ///     - answerAction : `CXAnswerCallAction` from callKit
     ///     - customHeaders: (Optional)
-    public func answerFromCallkit(answerAction:CXAnswerCallAction,customHeaders:[String:String] = [:]) {
+    ///     - debug:  (Optional) to enable quality metrics for call
+    public func answerFromCallkit(answerAction:CXAnswerCallAction,customHeaders:[String:String] = [:],debug:Bool = false) {
         self.answerCallAction = answerAction
         ///answer call if currentPushCall is not nil
         ///This means the client has connected and we can safelyanswer
         if(self.calls[currentCallId] != nil){
-            self.calls[currentCallId]?.answer(customHeaders: customHeaders)
+            self.calls[currentCallId]?.answer(customHeaders: customHeaders,debug: debug)
             answerCallAction?.fulfill()
             resetPushVariables()
             Logger.log.i(message: "answered from callkit")
         }else{
             /// Let's Keep track od the `customHeaders` passed
             pendingAnswerHeaders = customHeaders
+            /// Set call quality metrics
+            self.enableQualityMetrics = debug
         }
     }
     
@@ -594,7 +598,8 @@ extension TxClient {
                         destinationNumber: String,
                         callId: UUID,
                         clientState: String? = nil,
-                        customHeaders:[String:String] = [:]) throws -> Call {
+                        customHeaders:[String:String] = [:],
+                        debug:Bool = false) throws -> Call {
         //User needs to be logged in to get a sessionId
         guard let sessionId = self.sessionId else {
             throw TxError.callFailed(reason: .sessionIdIsRequired)
@@ -618,9 +623,8 @@ extension TxClient {
                         ringbackTone: self.txConfig?.ringBackTone,
                         iceServers: self.serverConfiguration.webRTCIceServers,
                         debug: self.txConfig?.debug ?? false,
-                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
-                        enableCallQualityMetrics: txConfig?.enableQualityMetrics ?? false)
-        call.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState, customHeaders: customHeaders)
+                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false)
+        call.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState, customHeaders: customHeaders,debug: debug)
 
         currentCallId = callId
         self.calls[callId] = call
@@ -662,8 +666,7 @@ extension TxClient {
                         iceServers: self.serverConfiguration.webRTCIceServers,
                         isAttach: isAttach,
                         debug: self.txConfig?.debug ?? false,
-                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
-                        enableQualityMetrics: self.txConfig?.enableQualityMetrics ?? false)
+                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false)
         call.callInfo?.callerName = callerName
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)
@@ -676,7 +679,7 @@ extension TxClient {
         
         if isAttach {
             Logger.log.i(message: "TxClient :: Attaching Call....")
-            call.acceptReAttach(peer: nil)
+            call.acceptReAttach(peer: nil,debug: enableQualityMetrics)
             return
         }
 
@@ -684,7 +687,7 @@ extension TxClient {
             self.delegate?.onPushCall(call: call)
             //Answer is pending from push - Answer Call
             if(answerCallAction != nil){
-                call.answer(customHeaders: pendingAnswerHeaders)
+                call.answer(customHeaders: pendingAnswerHeaders,debug: enableQualityMetrics)
                 answerCallAction?.fulfill()
                 resetPushVariables()
             }
