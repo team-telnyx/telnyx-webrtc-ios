@@ -171,7 +171,7 @@ extension AppDelegate : CXProviderDelegate {
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         print("AppDelegate:: ANSWER call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
-        self.telnyxClient?.answerFromCallkit(answerAction: action, customHeaders:  ["X-test-answer":"ios-test"])
+        self.telnyxClient?.answerFromCallkit(answerAction: action, customHeaders:  ["X-test-answer":"ios-test"],debug: true)
     }
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
@@ -268,7 +268,9 @@ extension AppDelegate : CXProviderDelegate {
                                     // Enable WebRTC stats debug
                                     debug: true,
                                     // Force relay candidate
-                                    forceRelayCandidate: false)
+                                    forceRelayCandidate: false,
+                                    // Enable Call Quality Metrics
+                                    enableQualityMetrics: true)
             
             do {
                 try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)
@@ -292,7 +294,9 @@ extension AppDelegate : CXProviderDelegate {
                                     // Enable WebRTC stats debug
                                     debug: true,
                                     // Force relay candidate
-                                    forceRelayCandidate: false)
+                                    forceRelayCandidate: false,
+                                    // Enable Call Quality Metrics
+                                    enableQualityMetrics: true)
             
             do {
                 try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)

@@ -162,6 +162,10 @@ public class Call {
     var callOptions: TxCallOptions?
     
     var statsReporter: WebRTCStatsReporter?
+    
+    /// Callback for real-time call quality metrics
+    /// This is triggered whenever new WebRTC statistics are available
+    public var onCallQualityChange: ((CallQualityMetrics) -> Void)?
 
     /// Custom headers received from the WebRTC INVITE message.
     /// These headers are passed during call initiation and can contain application-specific information.
@@ -189,6 +193,9 @@ public class Call {
     /// When true, the SDK will collect and send WebRTC statistics to Telnyx servers.
     /// This is useful for troubleshooting call quality issues.
     public internal(set) var debug: Bool = false
+    
+    /// Enables CallQuality Metrics for Call
+    public internal(set) var enableQualityMetrics: Bool = false
     
     /// Controls whether the SDK should force TURN relay for peer connections.
     /// When enabled, the SDK will only use TURN relay candidates for ICE gathering,
@@ -243,7 +250,8 @@ public class Call {
          iceServers: [RTCIceServer],
          isAttach: Bool = false,
          debug: Bool = false,
-         forceRelayCandidate: Bool = false
+         forceRelayCandidate: Bool = false,
+         enableQualityMetrics: Bool = false
     ) {
         if isAttach {
             self.direction = CallDirection.ATTACH
@@ -279,6 +287,7 @@ public class Call {
         
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
+        self.enableQualityMetrics = enableQualityMetrics
     }
     
     //Contructor for attachCalls
@@ -346,7 +355,7 @@ public class Call {
         Creates an offer to start the calling process
      */
     private func invite(callerName: String, callerNumber: String, destinationNumber: String, clientState: String? = nil,
-                        customHeaders:[String:String] = [:]) {
+                        customHeaders:[String:String] = [:],debug:Bool = false) {
         self.direction = .OUTBOUND
         self.inviteCustomHeaders = customHeaders
         self.callInfo?.callerName = callerName
@@ -354,6 +363,7 @@ public class Call {
         self.callOptions = TxCallOptions(destinationNumber: destinationNumber,
                                          clientState: clientState)
 
+        self.enableQualityMetrics = debug
         // We need to:
         // - Create the reporter to send the startReporting message before creating the peer connection
         // - Start the reporter once the peer connection is created
@@ -440,7 +450,7 @@ public class Call {
         self.callState = callState
         
         // Notify the stats reporter about the call state change
-        if let statsReporter = self.statsReporter, debug {
+        if let statsReporter = self.statsReporter, (debug || enableQualityMetrics) {
             statsReporter.handleCallStateChange(callState: callState)
         }
         
@@ -456,12 +466,13 @@ extension Call {
                           callerNumber: String,
                           destinationNumber: String,
                           clientState: String? = nil,
-                          customHeaders:[String:String] = [:]) {
+                          customHeaders:[String:String] = [:],
+                          debug: Bool = false) {
         if (destinationNumber.isEmpty) {
             Logger.log.e(message: "Call:: Please enter a destination number.")
             return
         }
-        invite(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState, customHeaders: customHeaders)
+        invite(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState, customHeaders: customHeaders,debug: debug)
     }
 
     /// Hangup or reject an incoming call.
@@ -482,7 +493,7 @@ extension Call {
     ///  - Parameters:
     ///         - customHeaders: (optional) Custom Headers to be passed over webRTC Messages, should be in the
     ///     format `X-key:Value` `X` is required for headers to be passed.
-    public func answer(customHeaders:[String:String] = [:]) {
+    public func answer(customHeaders:[String:String] = [:],debug:Bool = false) {
         self.stopRingtone()
         self.stopRingbackTone()
         //TODO: Create an error if there's no remote SDP
@@ -492,6 +503,7 @@ extension Call {
         self.answerCustomHeaders = customHeaders
         self.configureStatsReporter()
         self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate)
+        self.enableQualityMetrics = debug
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
@@ -518,13 +530,14 @@ extension Call {
     ///  - Parameters:
     ///         - customHeaders: (optional) Custom Headers to be passed over webRTC Messages, should be in the
     ///     format `X-key:Value` `X` is required for headers to be passed.
-    internal func acceptReAttach(peer: Peer?, customHeaders:[String:String] = [:]) {
+    internal func acceptReAttach(peer: Peer?, customHeaders:[String:String] = [:],debug:Bool = false) {
         //TODO: Create an error if there's no remote SDP
         guard let remoteSdp = self.remoteSdp else {
             return
         }
         peer?.dispose()
         let reportId = self.statsReporter?.reportId
+        self.enableQualityMetrics = debug
         self.statsReporter?.dispose()
         self.answerCustomHeaders = customHeaders
         self.configureStatsReporter(reportID: reportId)
@@ -548,7 +561,7 @@ extension Call {
     }
     
     private func configureStatsReporter(reportID:UUID? = nil) {
-        if debug,
+        if (debug || enableQualityMetrics),
            let socket = self.socket {
             self.statsReporter?.dispose()
             self.statsReporter = WebRTCStatsReporter(socket: socket,reportId: reportID)
@@ -556,9 +569,12 @@ extension Call {
     }
 
     private func startStatsReporter() {
-        if debug,
+        if (debug || enableQualityMetrics),
            let callId = self.callInfo?.callId {
             self.statsReporter?.startDebugReport(peerId: callId, call: self)
+            self.statsReporter?.onStatsFrame = { metric in
+                self.onCallQualityChange?(metric)
+            }
         }
     }
 }
