@@ -3,6 +3,7 @@ import Foundation
 enum WebRTCStatsEvent: String {
     case addConnection = "addConnection"
     case stats = "stats"
+    case statsFrame = "statsFrame"
     case onIceCandidate = "onicecandidate"
     case onTrack = "ontrack"
     case onSignalingStateChange = "onsignalingstatechange"

@@ -482,6 +482,7 @@
 		B309D1E225F023F400A2AADF /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				3B47D8962DB40B9C00BDCA33 /* CallQualityMetrics.swift */,
 				3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */,
 				B309D1E325F0240200A2AADF /* TxConfig.swift */,
 				B309D23525F06D2100A2AADF /* TxCallInfo.swift */,
@@ -627,6 +628,7 @@
 		B36FC8BE2612791E00A30BC4 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				3B47D8942DB4077400BDCA33 /* MOSCalculator.swift */,
 				3BABEA382D5F595A00B7C79C /* NetworkMonitor.swift */,
 				3B758F1D2BF97E8C00D50069 /* FileLoger.swift */,
 				B36FC8BF2612794A00A30BC4 /* Logger.swift */,
@@ -1032,6 +1034,7 @@
 				B3AF248025EE7B1F0062EDA9 /* TxClientDelegate.swift in Sources */,
 				996C67CC2CFEA6910056E508 /* RTCSignalingState+Extension.swift in Sources */,
 				B309D28225F1838700A2AADF /* ByeMessage.swift in Sources */,
+				3B47D8972DB40B9C00BDCA33 /* CallQualityMetrics.swift in Sources */,
 				B309D1D625F020B300A2AADF /* Message.swift in Sources */,
 				B3B1D9A126542860008D28C9 /* TxPushConfig.swift in Sources */,
 				996C67C82CFEA6530056E508 /* RTCRtcpMuxPolicy+Extension.swift in Sources */,
@@ -1047,6 +1050,7 @@
 				B309D22925F06C6900A2AADF /* Call.swift in Sources */,
 				996C67C42CFEA5AC0056E508 /* RTCContinualGatheringPolicy+Extension.swift in Sources */,
 				B309D1EC25F024B900A2AADF /* LoginMessage.swift in Sources */,
+				3B47D8952DB4077400BDCA33 /* MOSCalculator.swift in Sources */,
 				99B6DFFA2CF5226F0010CA96 /* WebRTCStatsTag.swift in Sources */,
 				99CC5BAE2CF80D3A00EF43DC /* WebRTCEventHandler.swift in Sources */,
 				996C67D02CFEA6F30056E508 /* RTCIceGatheringState+Extension.swift in Sources */,
@@ -1165,7 +1169,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.2.2;
+				MARKETING_VERSION = 1.2.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp.TelnyxWebRTCDemoUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
@@ -1189,7 +1193,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.2.2;
+				MARKETING_VERSION = 1.2.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp.TelnyxWebRTCDemoUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -1350,7 +1354,7 @@
 					"@loader_path/Frameworks",
 					"$(BUILT_PRODUCTS_DIR)/Starscream",
 				);
-				MARKETING_VERSION = 1.2.2;
+				MARKETING_VERSION = 1.2.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.WebRTCSDK;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1386,7 +1390,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.2;
+				MARKETING_VERSION = 1.2.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.WebRTCSDK;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;

@@ -359,7 +359,9 @@ extension HomeViewController {
                                 // Enable webrtc stats debug
                                 debug: true,
                                 // Force relay candidate
-                                forceRelayCandidate: false)
+                                forceRelayCandidate: false,
+                                // Enable Call Quality Metrics
+                                enableQualityMetrics: true)
         } else if let credential = sipCredential {
             // To obtain SIP credentials, please go to https://portal.telnyx.com
             txConfig = TxConfig(sipUser: credential.username,
@@ -373,7 +375,9 @@ extension HomeViewController {
                                 // Enable webrtc stats debug
                                 debug: true,
                                 // Force relay candidate.
-                                forceRelayCandidate: false)
+                                forceRelayCandidate: false,
+                                // Enable Call Quality Metrics
+                                enableQualityMetrics: true)
         }
         
         guard let config = txConfig else {

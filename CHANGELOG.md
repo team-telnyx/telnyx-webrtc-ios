@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [1.2.3](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/1.2.3) (2025-05-02)
+
+### Enhancements
+- Implemented CallQuality metrics for real-time monitoring of call quality metrics including:
+  - Jitter measurements
+  - Packet loss statistics
+  - Latency tracking
+  - MOS (Mean Opinion Score) estimation
+  
 ## [1.2.2](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/1.2.2) (2025-03-20)
 
 ### Enhancements
