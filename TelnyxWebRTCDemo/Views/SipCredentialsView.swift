@@ -113,7 +113,6 @@ struct SipCredentialsView: View {
                         }
                     )
                     .transition(.move(edge: .top))
-                    .frame(height: viewHeight)
                     .background(.white)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 20)
@@ -124,10 +123,9 @@ struct SipCredentialsView: View {
                     .onDisappear {
                         viewHeight = 0
                     }
-                    Spacer()
                 }
-            } else
-            {
+                .frame(maxWidth: .infinity, alignment: .top)
+            } else {
                 List {
                     Section {
                         if credentialsList.isEmpty && !internalIsShowingCredentialsInput {

@@ -206,7 +206,6 @@ struct SipInputCredentialsView: View {
             Spacer()
         }
         .padding(.horizontal, 5)
-        .frame(maxWidth: .infinity, alignment: .topLeading)
     }
 }
 
