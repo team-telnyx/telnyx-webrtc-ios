@@ -91,16 +91,16 @@ struct CallView: View {
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .keyboardType(.numberPad)
                         .toolbar {
-                                        ToolbarItemGroup(placement: .keyboard) {
-                                            Spacer()
-                                            Button("+") {
-                                                viewModel.sipAddress += "+"
-                                            }
-                                            .font(.title)
-                                            .foregroundColor(.black) 
-                                            Spacer()
-                                        }
-                                    }
+                            ToolbarItemGroup(placement: .keyboard) {
+                                Spacer()
+                                Button("+") {
+                                    viewModel.sipAddress += "+"
+                                }
+                                .font(.title)
+                                .foregroundColor(.black)
+                                Spacer()
+                            }
+                        }
                         .accessibilityIdentifier(AccessibilityIdentifiers.numberToCallTextField)
                 }
                 .padding(.horizontal, 30)
@@ -115,11 +115,7 @@ struct CallView: View {
                 .padding(.horizontal, 30)
                 .padding(.vertical, 8)
             }
-        
-           
-            
-            Spacer()
-            
+
             Button(action: {
                 onStartCall()
             }) {
@@ -132,8 +128,8 @@ struct CallView: View {
             .accessibilityIdentifier(AccessibilityIdentifiers.callButton)
             .padding()
             
-            //Keep Keyboard above Textfiled
-            Spacer().frame(height: 600)
+            // Keep Keyboard below Textfiled
+            Spacer().frame(height: 100)
         }
     }
     
