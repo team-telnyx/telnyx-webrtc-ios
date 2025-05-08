@@ -39,7 +39,6 @@ struct SipCredentialsView: View {
             )
             if internalIsShowingCredentialsInput {
                 ScrollView {
-                    
                     SipInputCredentialsView(
                         username: credentialToEdit?.username ?? "",
                         password: credentialToEdit?.password ?? "",
@@ -115,8 +114,7 @@ struct SipCredentialsView: View {
                     )
                     .transition(.move(edge: .top))
                     .frame(height: viewHeight)
-                    .background(Color.white)
-                    .cornerRadius(12)
+                    .background(.white)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 20)
                     .offset(y: 0)
