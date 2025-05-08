@@ -39,7 +39,9 @@ struct SipCredentialHeader: View {
                 }
                 .accessibilityIdentifier(AccessibilityIdentifiers.addProfileButton)
                 Spacer()
-            } .padding(.bottom,20)
+            }
+            .padding(.bottom, 8)
+
             HStack {
                 Text(subtitle)
                     .font(.system(size: 12))
