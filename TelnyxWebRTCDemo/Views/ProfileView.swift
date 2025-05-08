@@ -53,5 +53,6 @@ struct ProfileView: View {
             }.frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 30)
     }
 }

@@ -54,67 +54,7 @@ struct HomeView: View {
                                             .foregroundColor(Color(hex: "1D1D1D"))
                                             .padding(20)
                                     }
-                                    
-                                    // Socket State
-                                    VStack {
-                                        Text("Socket")
-                                            .font(.system(size: 18, weight: .regular))
-                                            .foregroundColor(Color(hex: "#525252"))
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                            .padding(.top, 10)
-                                        
-                                        HStack {
-                                            Circle()
-                                                .fill(viewModel.socketState == .connected || viewModel.socketState == .clientReady ? Color(hex: "00E3AA") : Color(hex: "D40000"))
-                                                .frame(width: 8, height: 8)
-                                            Text(socketStateText(for: viewModel.socketState))
-                                                .font(.system(size: 15, weight: .regular))
-                                                .foregroundColor(Color(hex: "1D1D1D"))
-                                        }
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                        .padding(.top, 5)
-                                        
-                                        if viewModel.socketState == .connected || viewModel.socketState == .clientReady {
-                                            let stateInfo = callStateInfo(for: viewModel.callState)
-                                            Text("Call State")
-                                                .font(.system(size: 15, weight: .regular))
-                                                .foregroundColor(Color(hex: "1D1D1D"))
-                                                .frame(maxWidth: .infinity, alignment: .leading)
-                                                .padding(.top, 10)
-                                            
-                                            HStack(spacing: 8) {
-                                                
-                                                Circle()
-                                                    .fill(stateInfo.color)
-                                                    .frame(width: 8, height: 8)
-                                                
-                                                Text(stateInfo.text)
-                                                    .font(.system(size: 15, weight: .regular))
-                                                    .foregroundColor(Color(hex: "1D1D1D"))
-                                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                            }
-                                            
-                                        }
-                                    }
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.bottom, 8)
-                                    
-                                    // Session
-                                    VStack {
-                                        Text("Session ID")
-                                            .font(.system(size: 18, weight: .regular))
-                                            .foregroundColor(Color(hex: "#525252"))
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                            .padding(.top, 10)
-                                        
-                                        Text(viewModel.sessionId)
-                                            .font(.system(size: 15, weight: .regular))
-                                            .foregroundColor(Color(hex: "1D1D1D"))
-                                            .padding(.top, 2)
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                    }
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.bottom, 16)
+                                    statesView()
                                     
                                     // Profile or Call view
                                     profileOrCallView(for: viewModel.socketState)
@@ -123,8 +63,7 @@ struct HomeView: View {
                                     Spacer()
                                 }
                                 .opacity(textOpacity)
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .padding(.leading, 30)  // Added padding for consistency in the whole VStack
+                                .frame(maxWidth: .infinity, alignment: .center)
                             }
                         }
                         .frame(maxWidth: .infinity)
@@ -189,6 +128,73 @@ struct HomeView: View {
         }
         .background(Color(hex: "#FEFDF5")).ignoresSafeArea()
     }
+    
+    @ViewBuilder
+    private func statesView() -> some View {
+        VStack {
+            Text("Socket")
+                .font(.system(size: 18, weight: .regular))
+                .foregroundColor(Color(hex: "#525252"))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, 10)
+            
+            HStack {
+                Circle()
+                    .fill(viewModel.socketState == .connected || viewModel.socketState == .clientReady ? Color(hex: "00E3AA") : Color(hex: "D40000"))
+                    .frame(width: 8, height: 8)
+                Text(socketStateText(for: viewModel.socketState))
+                    .font(.system(size: 15, weight: .regular))
+                    .foregroundColor(Color(hex: "1D1D1D"))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 5)
+            
+            // Call State
+            if viewModel.socketState == .connected || viewModel.socketState == .clientReady {
+                let stateInfo = callStateInfo(for: viewModel.callState)
+                Text("Call State")
+                    .font(.system(size: 15, weight: .regular))
+                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 10)
+                
+                HStack(spacing: 8) {
+                    
+                    Circle()
+                        .fill(stateInfo.color)
+                        .frame(width: 8, height: 8)
+                    
+                    Text(stateInfo.text)
+                        .font(.system(size: 15, weight: .regular))
+                        .foregroundColor(Color(hex: "1D1D1D"))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                
+            }
+            
+            // Session
+            VStack {
+                Text("Session ID")
+                    .font(.system(size: 18, weight: .regular))
+                    .foregroundColor(Color(hex: "#525252"))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 10)
+                
+                Text(viewModel.sessionId)
+                    .font(.system(size: 15, weight: .regular))
+                    .foregroundColor(Color(hex: "1D1D1D"))
+                    .padding(.top, 2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.bottom, 16)
+            .padding(.top, 8)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.bottom, 8)
+        .padding(.horizontal, 30)
+    }
+    
     
     @ViewBuilder
     private func profileOrCallView(for state: SocketState) -> some View {

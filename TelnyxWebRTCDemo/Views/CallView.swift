@@ -26,7 +26,6 @@ struct CallView: View {
                     callingView
             }
         }
-        .padding(.trailing,30)
         .sheet(isPresented: $viewModel.showDTMFKeyboard) {
             VStack {
                 DTMFKeyboardView(
@@ -81,11 +80,12 @@ struct CallView: View {
         VStack {
             DestinationToggle(
                 isFirstOptionSelected: $isPhoneNumber,
-                            firstOption: "Sip address",
-                            secondOption: "Phone number"
-                        )
+                firstOption: "Sip address",
+                secondOption: "Phone number"
+            )
+            .padding(.horizontal, 30)
             
-            if(isPhoneNumber){
+            if isPhoneNumber {
                 VStack {
                     TextField("Enter Phone number", text: $viewModel.sipAddress)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -102,14 +102,18 @@ struct CallView: View {
                                         }
                                     }
                         .accessibilityIdentifier(AccessibilityIdentifiers.numberToCallTextField)
-                }.padding(.top,6)
+                }
+                .padding(.horizontal, 30)
+                .padding(.vertical, 8)
             } else {
                 VStack {
                     TextField("Enter Sip address", text: $viewModel.sipAddress)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .keyboardType(.default)
                         .accessibilityIdentifier(AccessibilityIdentifiers.numberToCallTextField)
-                }.padding(.top,6)
+                }
+                .padding(.horizontal, 30)
+                .padding(.vertical, 8)
             }
         
            
@@ -138,7 +142,8 @@ struct CallView: View {
         VStack {
             TextField("Enter sip address or phone number", text: $viewModel.sipAddress)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding()
+                .padding(.horizontal, 30)
+                .padding(.vertical, 8)
                 .disabled(true)
                 .opacity(0.5)
                         
@@ -154,7 +159,6 @@ struct CallView: View {
                         .clipShape(Circle())
                 }
                 .accessibilityIdentifier(AccessibilityIdentifiers.muteButton)
-                .padding(.horizontal, 2)
                                 
                                 
                 Button(action: {
@@ -168,7 +172,6 @@ struct CallView: View {
                         .clipShape(Circle())
                 }
                 .accessibilityIdentifier(AccessibilityIdentifiers.speakerButton)
-                .padding(.horizontal, 2)
 
                 Button(action: {
                     viewModel.isOnHold.toggle()
@@ -181,7 +184,6 @@ struct CallView: View {
                         .clipShape(Circle())
                 }
                 .accessibilityIdentifier(AccessibilityIdentifiers.holdButton)
-                .padding(.horizontal, 2)
 
                 Button(action: {
                     viewModel.showDTMFKeyboard.toggle()
