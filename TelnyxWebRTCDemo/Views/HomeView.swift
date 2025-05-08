@@ -13,7 +13,8 @@ struct HomeView: View {
     @State private var isAnimating: Bool = false
     @State private var textOpacity: Double = 0.0
     @State private var keyboardHeight: CGFloat = 0
-
+    @State private var scrollToKeyboard: Bool = false
+    
     let onConnect: () -> Void
     let onDisconnect: () -> Void
     let onLongPressLogo: () -> Void
@@ -72,6 +73,13 @@ struct HomeView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.bottom, keyboardHeight)
                             .animation(.easeOut(duration: 0.3), value: keyboardHeight)
+                            .onChange(of: scrollToKeyboard) { shouldScroll in
+                                if shouldScroll {
+                                    withAnimation {
+                                        proxy.scrollTo("keyboard", anchor: .bottom)
+                                    }
+                                }
+                            }
                             .onAppear {
                                 withAnimation(nil) {
                                     isAnimating = true
@@ -79,7 +87,7 @@ struct HomeView: View {
                                 withAnimation(nil) {
                                     textOpacity = 1.0
                                 }
-                                setupKeyboardObservers(proxy: proxy)
+                                setupKeyboardObservers()
                             }
                             .onDisappear {
                                 removeKeyboardObservers()
@@ -139,19 +147,22 @@ struct HomeView: View {
         }
     }
     
-    private func setupKeyboardObservers(proxy: ScrollViewProxy) {
+    
+    private func setupKeyboardObservers() {
         NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { notification in
             if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
                 keyboardHeight = keyboardFrame.height
-                // Desplazar la vista para que el contenido no quede tapado
                 withAnimation {
-                    proxy.scrollTo("keyboard", anchor: .bottom)
+                    scrollToKeyboard = true
                 }
             }
         }
         
         NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
             keyboardHeight = 0
+            withAnimation {
+                scrollToKeyboard = false
+            }
         }
     }
     
