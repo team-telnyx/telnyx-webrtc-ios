@@ -3,7 +3,8 @@ import TelnyxRTC
 
 struct CallView: View {
     @ObservedObject var viewModel: CallViewModel
-    
+    @State var isPhoneNumber: Bool
+
     let onStartCall: () -> Void
     let onEndCall: () -> Void
     let onRejectCall: () -> Void
@@ -25,7 +26,6 @@ struct CallView: View {
                     callingView
             }
         }
-        .padding()
         .sheet(isPresented: $viewModel.showDTMFKeyboard) {
             VStack {
                 DTMFKeyboardView(
@@ -40,37 +40,12 @@ struct CallView: View {
             .ignoresSafeArea(edges: .bottom)
         }.sheet(isPresented: $viewModel.showCallMetricsPopup) {
             if let metrics = viewModel.callQualityMetrics {
-                VStack(spacing: 16) {
-                    Text("Call Quality Metrics")
-                        .font(.headline)
-
-                    HStack {
-                        Text("Jitter:")
-                        Spacer()
-                        Text("\(metrics.jitter, specifier: "%.3f") s")
-                    }
-
-                    HStack {
-                        Text("MOS:")
-                        Spacer()
-                        Text("\(metrics.mos, specifier: "%.1f")")
-                    }
-
-                    HStack {
-                        Text("Quality:")
-                        Spacer()
-                        Text(metrics.quality.rawValue.capitalized)
-                    }
-
-                    Button("Close") {
+                CallQualityMetricsView(
+                    metrics: metrics,
+                    onClose: {
                         viewModel.showCallMetricsPopup = false
                     }
-                    .padding(.top)
-                }
-                .padding()
-                .background(Color(.systemBackground))
-                .cornerRadius(16)
-                .padding()
+                )
             }
         }
     }
@@ -78,17 +53,48 @@ struct CallView: View {
     @ViewBuilder
     private var callView: some View {
         VStack {
-            TextField("Enter sip address or phone number", text: $viewModel.sipAddress)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .accessibilityIdentifier(AccessibilityIdentifiers.numberToCallTextField)
-                .padding()
+            DestinationToggle(
+                isFirstOptionSelected: $isPhoneNumber,
+                firstOption: "Sip address",
+                secondOption: "Phone number"
+            )
+            .padding(.horizontal, 30)
             
-            Spacer()
-            
+            if isPhoneNumber {
+                VStack {
+                    TextField("Enter Phone number", text: $viewModel.sipAddress)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .keyboardType(.numberPad)
+                        .toolbar {
+                            ToolbarItemGroup(placement: .keyboard) {
+                                Spacer()
+                                Button("+") {
+                                    viewModel.sipAddress += "+"
+                                }
+                                .font(.title)
+                                .foregroundColor(.black)
+                                Spacer()
+                            }
+                        }
+                        .accessibilityIdentifier(AccessibilityIdentifiers.numberToCallTextField)
+                }
+                .padding(.horizontal, 30)
+                .padding(.vertical, 8)
+            } else {
+                VStack {
+                    TextField("Enter Sip address", text: $viewModel.sipAddress)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .keyboardType(.default)
+                        .accessibilityIdentifier(AccessibilityIdentifiers.numberToCallTextField)
+                }
+                .padding(.horizontal, 30)
+                .padding(.vertical, 8)
+            }
+
             Button(action: {
                 onStartCall()
             }) {
-                Image(systemName: "phone.fill")
+                Image("Call")
                     .foregroundColor(Color(hex: "#1D1D1D"))
                     .frame(width: 60, height: 60)
                     .background(Color(hex: "#00E3AA"))
@@ -97,7 +103,8 @@ struct CallView: View {
             .accessibilityIdentifier(AccessibilityIdentifiers.callButton)
             .padding()
             
-            Spacer()
+            // Keep Keyboard below Textfiled
+            Spacer().frame(height: 100)
         }
     }
     
@@ -106,7 +113,8 @@ struct CallView: View {
         VStack {
             TextField("Enter sip address or phone number", text: $viewModel.sipAddress)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding()
+                .padding(.horizontal, 30)
+                .padding(.vertical, 8)
                 .disabled(true)
                 .opacity(0.5)
                         
@@ -122,7 +130,6 @@ struct CallView: View {
                         .clipShape(Circle())
                 }
                 .accessibilityIdentifier(AccessibilityIdentifiers.muteButton)
-                .padding(.horizontal, 2)
                                 
                                 
                 Button(action: {
@@ -136,7 +143,6 @@ struct CallView: View {
                         .clipShape(Circle())
                 }
                 .accessibilityIdentifier(AccessibilityIdentifiers.speakerButton)
-                .padding(.horizontal, 2)
 
                 Button(action: {
                     viewModel.isOnHold.toggle()
@@ -149,7 +155,6 @@ struct CallView: View {
                         .clipShape(Circle())
                 }
                 .accessibilityIdentifier(AccessibilityIdentifiers.holdButton)
-                .padding(.horizontal, 2)
 
                 Button(action: {
                     viewModel.showDTMFKeyboard.toggle()
@@ -179,7 +184,7 @@ struct CallView: View {
                 onEndCall()
             }) {
                 Image(systemName: "phone.down.fill")
-                    .foregroundColor(Color(hex: "#1D1D1D"))
+                    .foregroundColor(.white)
                     .frame(width: 60, height: 60)
                     .background(Color(hex: "#EB0000"))
                     .clipShape(Circle())
@@ -203,7 +208,7 @@ struct CallView: View {
                 Button(action: {
                     onRejectCall()
                 }) {
-                    Image(systemName: "phone.down.fill")
+                    Image("ic-hangup")
                         .foregroundColor(Color(hex: "#1D1D1D"))
                         .frame(width: 60, height: 60)
                         .background(Color(hex: "#EB0000"))
@@ -215,7 +220,7 @@ struct CallView: View {
                 Button(action: {
                     onAnswerCall()
                 }) {
-                    Image(systemName: "phone.fill")
+                    Image("Call")
                         .foregroundColor(Color(hex: "#1D1D1D"))
                         .frame(width: 60, height: 60)
                         .background(Color(hex: "#00E3AA"))
@@ -233,7 +238,7 @@ struct CallView: View {
 struct CallView_Previews: PreviewProvider {
     static var previews: some View {
         CallView(
-            viewModel: CallViewModel(),
+            viewModel: CallViewModel(), isPhoneNumber: true,
             onStartCall: {},
             onEndCall: {},
             onRejectCall: {},

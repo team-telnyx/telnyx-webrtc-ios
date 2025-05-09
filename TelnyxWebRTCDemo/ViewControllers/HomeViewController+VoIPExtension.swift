@@ -132,7 +132,9 @@ extension HomeViewController : VoIPDelegate {
                     if let call = self.appDelegate.currentCall {
                         call.onCallQualityChange = { qualityMetric in
                             print("metric_values: \(qualityMetric)")
-                            self.callViewModel.callQualityMetrics = qualityMetric
+                            DispatchQueue.main.async {
+                                self.callViewModel.callQualityMetrics = qualityMetric
+                            }
                         }
                     }
                     if self.appDelegate.isCallOutGoing {

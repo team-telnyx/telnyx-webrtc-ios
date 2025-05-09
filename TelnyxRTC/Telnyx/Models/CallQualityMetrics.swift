@@ -46,4 +46,25 @@ public struct CallQualityMetrics {
         
         return dict
     }
+
+    // Public initializer
+    public init(
+        jitter: Double,
+        rtt: Double,
+        mos: Double,
+        quality: CallQuality,
+        inboundAudio: [String: Any]?,
+        outboundAudio: [String: Any]?,
+        remoteInboundAudio: [String: Any]?,
+        remoteOutboundAudio: [String: Any]?
+    ) {
+        self.jitter = jitter
+        self.rtt = rtt
+        self.mos = mos
+        self.quality = quality
+        self.inboundAudio = inboundAudio
+        self.outboundAudio = outboundAudio
+        self.remoteInboundAudio = remoteInboundAudio
+        self.remoteOutboundAudio = remoteOutboundAudio
+    }
 }

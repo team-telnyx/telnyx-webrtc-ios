@@ -41,21 +41,30 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var callKitProvider: CXProvider?
     let callKitCallController = CXCallController()
 
+   
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Configure for UI testing if needed
         TestConfiguration.configureForTesting()
         
-        // Create and set window
+        // Create window
         window = UIWindow(frame: UIScreen.main.bounds)
-        window?.rootViewController = UIHostingController(rootView: SplashScreen())
+        
+        // Create hosting controller with background color
+        let splashView = SplashScreen()
+            .edgesIgnoringSafeArea(.all)
+        
+        let hostingController = UIHostingController(rootView: splashView)
+        
+        // Set as root
+        window?.rootViewController = hostingController
         window?.makeKeyAndVisible()
-
+        
         // Instantiate the Telnyx Client SDK
         self.telnyxClient = TxClient()
         self.telnyxClient?.delegate = self
-        //init pushkit to handle VoIP push notifications
         self.initPushKit()
         self.initCallKit()
+        
         return true
     }
     

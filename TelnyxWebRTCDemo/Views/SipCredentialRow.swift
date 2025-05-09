@@ -25,7 +25,7 @@ struct SipCredentialRow: View {
             HStack(spacing: 16) {
                 if viewModel.isSelected {
                     Button(action: { viewModel.onEdit() }) {
-                        Image(systemName: "pencil")
+                        Image("Edit")
                             .font(.system(size: 16))
                             .foregroundColor(Color(hex: "#1D1D1D"))
                     }
@@ -33,7 +33,7 @@ struct SipCredentialRow: View {
                     .frame(width: 30, height: 30)
                     
                     Button(action: { viewModel.onDelete() }) {
-                        Image(systemName: "trash")
+                        Image("Delete")
                             .font(.system(size: 16))
                             .foregroundColor(Color(hex: "#1D1D1D"))
                     }

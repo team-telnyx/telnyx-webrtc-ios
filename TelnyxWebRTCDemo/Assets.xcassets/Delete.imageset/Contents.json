@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "Icon-20.png",
+      "filename" : "Delete.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "Icon-20@2x.png",
+      "filename" : "Delete 1.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "Icon-20@3x.png",
+      "filename" : "Delete 2.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
