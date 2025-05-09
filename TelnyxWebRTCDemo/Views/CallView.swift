@@ -40,37 +40,12 @@ struct CallView: View {
             .ignoresSafeArea(edges: .bottom)
         }.sheet(isPresented: $viewModel.showCallMetricsPopup) {
             if let metrics = viewModel.callQualityMetrics {
-                VStack(spacing: 16) {
-                    Text("Call Quality Metrics")
-                        .font(.headline)
-
-                    HStack {
-                        Text("Jitter:")
-                        Spacer()
-                        Text("\(metrics.jitter, specifier: "%.3f") s")
-                    }
-
-                    HStack {
-                        Text("MOS:")
-                        Spacer()
-                        Text("\(metrics.mos, specifier: "%.1f")")
-                    }
-
-                    HStack {
-                        Text("Quality:")
-                        Spacer()
-                        Text(metrics.quality.rawValue.capitalized)
-                    }
-
-                    Button("Close") {
+                CallQualityMetricsView(
+                    metrics: metrics,
+                    onClose: {
                         viewModel.showCallMetricsPopup = false
                     }
-                    .padding(.top)
-                }
-                .padding()
-                .background(Color(.systemBackground))
-                .cornerRadius(16)
-                .padding()
+                )
             }
         }
     }
