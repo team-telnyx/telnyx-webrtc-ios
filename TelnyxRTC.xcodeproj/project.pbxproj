@@ -66,6 +66,7 @@
 		99ADA9AE2D487DE5000C956A /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9AD2D487DE1000C956A /* ProfileViewModel.swift */; };
 		99ADA9B02D4886E7000C956A /* CallViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9AF2D4886E3000C956A /* CallViewModel.swift */; };
 		99ADA9B22D488D98000C956A /* HomeViewController+VoIPExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9B12D488D92000C956A /* HomeViewController+VoIPExtension.swift */; };
+		99B127D62DCE54500048CE0A /* CallQualityMetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B127D52DCE54500048CE0A /* CallQualityMetricsView.swift */; };
 		99B6DFF82CF522140010CA96 /* WebRTCStatsEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFF72CF522070010CA96 /* WebRTCStatsEvent.swift */; };
 		99B6DFFA2CF5226F0010CA96 /* WebRTCStatsTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFF92CF522610010CA96 /* WebRTCStatsTag.swift */; };
 		99B6DFFD2CF546310010CA96 /* DebugReportStartMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFFC2CF546220010CA96 /* DebugReportStartMessage.swift */; };
@@ -233,6 +234,7 @@
 		99ADA9AD2D487DE1000C956A /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
 		99ADA9AF2D4886E3000C956A /* CallViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallViewModel.swift; sourceTree = "<group>"; };
 		99ADA9B12D488D92000C956A /* HomeViewController+VoIPExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeViewController+VoIPExtension.swift"; sourceTree = "<group>"; };
+		99B127D52DCE54500048CE0A /* CallQualityMetricsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallQualityMetricsView.swift; sourceTree = "<group>"; };
 		99B6DFF72CF522070010CA96 /* WebRTCStatsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCStatsEvent.swift; sourceTree = "<group>"; };
 		99B6DFF92CF522610010CA96 /* WebRTCStatsTag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCStatsTag.swift; sourceTree = "<group>"; };
 		99B6DFFC2CF546220010CA96 /* DebugReportStartMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugReportStartMessage.swift; sourceTree = "<group>"; };
@@ -505,6 +507,7 @@
 				3BE84BA72D9C944A00CA1B70 /* DestinationToggle.swift */,
 				99FF7B0F2D4BC4F700DB1408 /* DTMFKeyboardView.swift */,
 				99ADA9A92D487AC4000C956A /* CallView.swift */,
+				99B127D52DCE54500048CE0A /* CallQualityMetricsView.swift */,
 				99ADA9A72D4878ED000C956A /* ProfileView.swift */,
 				998670412D4096A7001E1D01 /* HomeView.swift */,
 				9986703B2D3EAF62001E1D01 /* ErrorView.swift */,
@@ -899,9 +902,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -916,9 +923,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1111,6 +1122,7 @@
 				991A6D4A2D3AB36E00B29785 /* SipCredentialHeader.swift in Sources */,
 				991A6D4B2D3AB36E00B29785 /* SipCredentialRow.swift in Sources */,
 				995BF71C2CE7EC0600454076 /* SipCredentialsManager.swift in Sources */,
+				99B127D62DCE54500048CE0A /* CallQualityMetricsView.swift in Sources */,
 				998670382D3E9506001E1D01 /* Color+Extensions.swift in Sources */,
 				B368BEEB25EDDD060032AE52 /* AppDelegate.swift in Sources */,
 				99ADA9B22D488D98000C956A /* HomeViewController+VoIPExtension.swift in Sources */,

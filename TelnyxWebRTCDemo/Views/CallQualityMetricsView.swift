@@ -13,8 +13,8 @@ struct CallQualityMetricsView: View {
             
             // Main metrics
             VStack(spacing: 12) {
-                metricRow(title: "Jitter:", value: "\(metrics.jitter, specifier: "%.3f") s")
-                metricRow(title: "MOS:", value: "\(metrics.mos, specifier: "%.1f")")
+                metricRow(title: "Jitter:", value: "\(String(format: "%.3f", metrics.jitter)) s")
+                metricRow(title: "MOS:", value: "\(String(format: "%.1f", metrics.mos))")
                 metricRow(title: "Quality:", value: metrics.quality.rawValue.capitalized)
             }
             
@@ -70,7 +70,7 @@ struct CallQualityMetricsView: View {
                 .padding(.top, 4)
             
             // Display key stats
-            Group {
+            VStack(alignment: .leading, spacing: 8) {
                 if let packetsReceived = stats["packetsReceived"] as? Int {
                     audioStatRow(title: "Packets Received:", value: "\(packetsReceived)")
                 }
@@ -80,7 +80,7 @@ struct CallQualityMetricsView: View {
                 }
                 
                 if let jitter = stats["jitter"] as? Double {
-                    audioStatRow(title: "Jitter:", value: "\(jitter, specifier: "%.3f") s")
+                    audioStatRow(title: "Jitter:", value: "\(String(format: "%.3f", jitter)) s")
                 }
                 
                 if let bytesReceived = stats["bytesReceived"] as? Int {
