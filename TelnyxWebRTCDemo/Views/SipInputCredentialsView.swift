@@ -44,14 +44,15 @@ struct SipInputCredentialsView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading,
-               spacing: 12) {
+        VStack(alignment: .leading, spacing: 14) {
             if hasError {
                 ErrorView(errorMessage: errorMessage)
-            }
-            Toggle("Token Login", isOn: $isTokenLogin)
-                .toggleStyle(SwitchToggleStyle(tint: .black))
-                .padding(.bottom, 12)
+            }            
+            DestinationToggle(
+                isFirstOptionSelected: $isTokenLogin,
+                firstOption: "Credential Login",
+                secondOption: "Token Login"
+            )
             
             if isTokenLogin {
                 Text("Token")
@@ -94,6 +95,10 @@ struct SipInputCredentialsView: View {
                     TextField("Enter username", text: $username)
                         .padding(.horizontal, 10)
                         .frame(height: 40)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 4)
+                                .stroke(Color(hex: "#525252"), lineWidth: 1)
+                        )
                         .accessibilityIdentifier(AccessibilityIdentifiers.usernameTextField)
                 }
                 .background(RoundedRectangle(cornerRadius: 4)
@@ -107,18 +112,26 @@ struct SipInputCredentialsView: View {
                         TextField("Enter password", text: $password)
                             .padding(.horizontal, 10)
                             .frame(height: 40)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .stroke(Color(hex: "#525252"), lineWidth: 1)
+                            )
                             .accessibilityIdentifier(AccessibilityIdentifiers.passwordTextField)
                     } else {
                         SecureField("Enter password", text: $password)
                             .padding(.horizontal, 10)
                             .frame(height: 40)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .stroke(Color(hex: "#525252"), lineWidth: 1)
+                            )
                             .accessibilityIdentifier(AccessibilityIdentifiers.passwordTextField)
                     }
                     
                     Button(action: {
                         isPasswordVisible.toggle()
                     }) {
-                        Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
+                        Image(isPasswordVisible ? "Hide" : "View")
                             .foregroundColor(Color(hex: "#525252"))
                             .padding(.trailing, 10)
                     }
@@ -151,6 +164,8 @@ struct SipInputCredentialsView: View {
                     .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
             }
             
+            Spacer(minLength: 4)
+            
             HStack(spacing: 12) {
                 Button(action: {
                     let credential = SipCredential(username: isTokenLogin ? tokenCallerId : username,
@@ -161,20 +176,20 @@ struct SipInputCredentialsView: View {
                     onSignIn(credential, isEditMode, originalUsername)
                 }) {
                     Text(isEditMode ? "Update" : "Sign In")
-                        .font(.system(size: 16).bold())
+                        .font(.system(size: 16,weight: .semibold))
                         .foregroundColor(Color(hex: "#525252"))
                         .frame(width: 100)
                         .padding(.vertical, 12)
                         .background(Color(hex: "#F5F3E4"))
                         .cornerRadius(20)
-                        .accessibilityIdentifier(isEditMode ? 
-                                                AccessibilityIdentifiers.updateCredentialButton : 
-                                                AccessibilityIdentifiers.signInButton)
+                        .accessibilityIdentifier(isEditMode ?
+                                                 AccessibilityIdentifiers.updateCredentialButton :
+                                                    AccessibilityIdentifiers.signInButton)
                 }
                 
                 Button(action: { onCancel() }) {
                     Text("Cancel")
-                        .font(.system(size: 16))
+                        .font(.system(size: 16,weight: .semibold))
                         .foregroundColor(Color(hex: "#1D1D1D"))
                         .frame(width: 100)
                         .padding(.vertical, 12)
@@ -189,10 +204,9 @@ struct SipInputCredentialsView: View {
             .padding(.vertical, 12)
             .background(.white)
             Spacer()
-        }.padding(.horizontal, 5)
-
+        }
+        .padding(.horizontal, 5)
     }
-    
 }
 
 #Preview {
@@ -221,3 +235,5 @@ struct SipInputCredentialsView: View {
         }
     }
 }
+
+

@@ -39,7 +39,6 @@ struct SipCredentialsView: View {
             )
             if internalIsShowingCredentialsInput {
                 ScrollView {
-                    
                     SipInputCredentialsView(
                         username: credentialToEdit?.username ?? "",
                         password: credentialToEdit?.password ?? "",
@@ -114,9 +113,7 @@ struct SipCredentialsView: View {
                         }
                     )
                     .transition(.move(edge: .top))
-                    .frame(height: viewHeight)
-                    .background(Color.white)
-                    .cornerRadius(12)
+                    .background(.white)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 20)
                     .offset(y: 0)
@@ -126,8 +123,8 @@ struct SipCredentialsView: View {
                     .onDisappear {
                         viewHeight = 0
                     }
-                    Spacer()
                 }
+                .frame(maxWidth: .infinity, alignment: .top)
             } else {
                 List {
                     Section {
@@ -197,6 +194,7 @@ struct SipCredentialsView: View {
                     Button(action: { dismiss() }) {
                         Text("Cancel")
                             .font(.system(size: 16))
+                            .fontWeight(.semibold)
                             .foregroundColor(Color(hex: "#1D1D1D"))
                             .frame(width: 100)
                             .padding(.vertical, 12)
@@ -216,6 +214,7 @@ struct SipCredentialsView: View {
                     }) {
                         Text("Confirm")
                             .font(.system(size: 16))
+                            .fontWeight(.semibold)
                             .foregroundColor(.white)
                             .frame(width: 100)
                             .padding(.vertical, 12)

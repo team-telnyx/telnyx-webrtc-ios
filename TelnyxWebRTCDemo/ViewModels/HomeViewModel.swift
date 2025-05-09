@@ -1,6 +1,7 @@
 import SwiftUI
 import TelnyxRTC
 
+
 class HomeViewModel: ObservableObject {
     @Published var socketState: SocketState = .disconnected
     @Published var sessionId: String = "-"

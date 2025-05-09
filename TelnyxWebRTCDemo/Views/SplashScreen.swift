@@ -1,29 +1,8 @@
 import SwiftUI
 
 struct SplashScreen: View {
-    @State private var isActive = false
-    
     var body: some View {
-        if isActive {
-            HomeViewControllerWrapper()
-        } else {
-            VStack {
-                Image("telnyx-logo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 200)
-                    .accessibilityIdentifier(AccessibilityIdentifiers.splashLogo)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.white)
-            .onAppear {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    withAnimation {
-                        self.isActive = true
-                    }
-                }
-            }
-        }
+        HomeViewControllerWrapper()
     }
 }
 
