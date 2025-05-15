@@ -454,7 +454,7 @@ public class TxClient {
     }
     
     /// To end and control callKit active and conn
-    public func endCallFromCallkit(endAction:CXEndCallAction,callId:UUID? = nil) {
+    public func endCallFromCallkit(endAction: CXEndCallAction, callId:UUID? = nil) {
         self.endCallAction = endAction
         // Place the code you want to delay here
         if let call = self.calls[endAction.callUUID] {
@@ -463,7 +463,7 @@ public class TxClient {
             self.resetPushVariables()
             self.stopReconnectTimeout()
             endAction.fulfill()
-        } else if(self.calls[self.currentCallId] != nil) {
+        } else if self.calls[self.currentCallId] != nil  {
             Logger.log.i(message: "EndClient:: Ended Call")
             self.calls[self.currentCallId]?.hangup()
             self.resetPushVariables()
@@ -719,15 +719,14 @@ extension TxClient {
     ///                    (this should be gotten from payload.dictionaryPayload["metadata"] as? [String: Any])
     /// - Throws: Error during the connection process
     public func processVoIPNotification(txConfig: TxConfig,
-                                        serverConfiguration: TxServerConfiguration,pushMetaData:[String: Any]) throws {
+                                        serverConfiguration: TxServerConfiguration,
+                                        pushMetaData: [String: Any]) throws {
         
         
-        let rtc_id = (pushMetaData["voice_sdk_id"] as? String)
         
         // Check if we are already connected and logged in
         FileLogger.isCallFromPush = true
-
-        if(rtc_id == nil){
+        guard let rtc_id = pushMetaData["voice_sdk_id"] as? String else {
             Logger.log.e(message: "TxClient:: processVoIPNotification - pushMetaData is empty")
             throw TxError.clientConfigurationFailed(reason: .voiceSdkIsRequired)
         }
@@ -742,26 +741,33 @@ extension TxClient {
         
         let noActiveCalls = self.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
 
-        if (noActiveCalls && isConnected()) {
+        if noActiveCalls && isConnected() {
             Logger.log.i(message: "TxClient:: processVoIPNotification - No Active Calls disconnect")
             self.disconnect()
         }
         
-        if(noActiveCalls){
+        if noActiveCalls {
             do {
                 Logger.log.i(message: "TxClient:: No Active Calls Connecting Again")
                 try self.connectFromPush(txConfig: txConfig, serverConfiguration: pnServerConfig)
                 
                 // Create an initial call_object to handle early bye message
-                if let newCallId = (pushMetaData["call_id"] as? String) {
-                    self.calls[UUID(uuidString: newCallId)!] = Call(callId: UUID(uuidString: newCallId)! , sessionId: newCallId, socket: self.socket!, delegate: self, iceServers: self.serverConfiguration.webRTCIceServers, debug: self.txConfig?.debug ?? false, forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false)
+                if let newCallId = pushMetaData["call_id"] as? String,
+                   let newCallUUID = UUID(uuidString: newCallId),
+                   let socket = self.socket {
+                    self.calls[newCallUUID] = Call(callId: newCallUUID,
+                                                   sessionId: newCallId,
+                                                   socket: socket,
+                                                   delegate: self,
+                                                   iceServers: self.serverConfiguration.webRTCIceServers,
+                                                   debug: self.txConfig?.debug ?? false,
+                                                   forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false
+                    )
                 }
             } catch let error {
                 Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
             }
         }
-       
-    
         self.isCallFromPush = true
     }
 

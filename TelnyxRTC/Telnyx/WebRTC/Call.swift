@@ -77,6 +77,13 @@ enum CallDirection : String {
     case ATTACH = "attach"
 }
 
+/// Represents the pending action for a call when socket is not connected
+enum PendingCallAction {
+    case NONE
+    case PENDING_ANSWER
+    case PENDING_REJECT
+}
+
 enum SoundFileType : String {
     case RINGTONE = "ringtone"
     case RINGBACK = "ringback"
@@ -158,6 +165,9 @@ public class Call {
     weak var delegate: CallProtocol?
     var iceServers: [RTCIceServer]
 
+    /// Indicates if there is a pending action for this call when socket is not connected
+    var pendingAction: PendingCallAction = .NONE
+
     var remoteSdp: String?
     var callOptions: TxCallOptions?
     
@@ -233,7 +243,6 @@ public class Call {
 
     private var ringTonePlayer: AVAudioPlayer?
     private var ringbackPlayer: AVAudioPlayer?
-    
     
 
     // MARK: - Initializers
@@ -435,9 +444,10 @@ public class Call {
     private func endCall() {
         self.stopRingtone()
         self.stopRingbackTone()
-        self.statsReporter?.dispose()
         self.peer?.dispose()
+        self.statsReporter?.dispose()
         self.updateCallState(callState: .DONE)
+        self.pendingAction = .NONE
     }
     
     internal func endForAttachCall() {
@@ -481,6 +491,14 @@ extension Call {
     public func hangup() {
         Logger.log.i(message: "Call:: hangup()")
         guard let sessionId = self.sessionId, let callId = self.callInfo?.callId else { return }
+        
+        // If socket is not connected, mark the call as pending reject
+        guard let socket = self.socket, socket.isConnected else {
+            Logger.log.i(message: "Call:: Socket not connected, marking call as pending reject")
+            self.pendingAction = .PENDING_REJECT
+            return
+        }
+        
         let byeMessage = ByeMessage(sessionId: sessionId, callId: callId.uuidString, causeCode: .USER_BUSY)
         let message = byeMessage.encode() ?? ""
         self.socket?.sendMessage(message: message)
@@ -496,6 +514,15 @@ extension Call {
     public func answer(customHeaders:[String:String] = [:],debug:Bool = false) {
         self.stopRingtone()
         self.stopRingbackTone()
+        
+        // If socket is not connected, mark the call as pending answer
+        guard let socket = self.socket, socket.isConnected else {
+            Logger.log.i(message: "Call:: Socket not connected, marking call as pending answer")
+            self.pendingAction = .PENDING_ANSWER
+            self.answerCustomHeaders = customHeaders
+            return
+        }
+        
         //TODO: Create an error if there's no remote SDP
         guard let remoteSdp = self.remoteSdp else {
             return
@@ -756,8 +783,20 @@ extension Call : PeerDelegate {
 extension Call {
 
     internal func handleVertoMessage(message: Message,dataMessage: String,txClient:TxClient) {
-
         switch message.method {
+        case .INVITE:
+            // Check if we have a pending action for this call
+            if self.pendingAction == .PENDING_REJECT {
+                Logger.log.i(message: "Call:: Processing pending reject action")
+                self.hangup()
+                return
+            } else if self.pendingAction == .PENDING_ANSWER {
+                Logger.log.i(message: "Call:: Processing pending answer action")
+                self.answer(customHeaders: self.answerCustomHeaders ?? [:])
+                return
+            }
+            // Continue with normal INVITE processing
+            break
         case .BYE:
             //Close call
             self.endCall()
