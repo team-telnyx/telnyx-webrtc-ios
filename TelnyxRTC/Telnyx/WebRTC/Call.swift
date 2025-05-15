@@ -724,6 +724,7 @@ extension Call : PeerDelegate {
             self.socket?.sendMessage(message: message)
             self.updateCallState(callState: .CONNECTING)
             Logger.log.s(message: "Send invite >> \(message)")
+            self.playRingbackTone()
         }
         else if (self.direction == .ATTACH) {
             let attachCallOption = TxCallOptions(destinationNumber: callOptions.destinationNumber,attach: true,userVariables: callOptions.userVariables)
@@ -833,7 +834,6 @@ extension Call {
                 }
             }
             self.updateCallState(callState: .RINGING)
-            self.playRingbackTone()
             break
         default:
             Logger.log.w(message: "TxClient:: SocketDelegate Default method")
