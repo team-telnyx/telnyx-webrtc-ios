@@ -18,8 +18,15 @@ struct CallView: View {
     var body: some View {
         VStack {
             switch viewModel.callState {
-                case .DONE:
+                case .DONE(let reason):
                     callView
+                        .onAppear {
+                            // Show error popup if there's a termination reason
+                            if let reason = reason {
+                                viewModel.errorMessage = viewModel.formatTerminationReason(reason: reason)
+                                viewModel.showErrorPopup = true
+                            }
+                        }
                 case .NEW:
                     incomingCallView
             case .ACTIVE, .HELD, .CONNECTING, .RINGING, .RECONNECTING, .DROPPED:
@@ -46,6 +53,10 @@ struct CallView: View {
                         viewModel.showCallMetricsPopup = false
                     }
                 )
+            }
+        }.alert(viewModel.errorMessage, isPresented: $viewModel.showErrorPopup) {
+            Button("OK", role: .cancel) {
+                viewModel.showErrorPopup = false
             }
         }
     }

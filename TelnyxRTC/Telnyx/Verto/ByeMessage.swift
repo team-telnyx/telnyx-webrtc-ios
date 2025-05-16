@@ -17,7 +17,7 @@ enum CauseCode : Int {
 
 class ByeMessage : Message {
         
-    init(sessionId: String, callId: String, causeCode: CauseCode) {
+    init(sessionId: String, callId: String, causeCode: CauseCode, sipCode: Int? = nil, sipReason: String? = nil) {
         var params = [String: Any]()
         var dialogParams = [String: Any]()
         
@@ -26,7 +26,17 @@ class ByeMessage : Message {
         params["sessId"] = sessionId
         params["causeCode"] = causeCode.rawValue
         params["cause"] = ByeMessage.getCauseFromCode(causeCode: causeCode)
-        params["dialogParams"] =  dialogParams
+        
+        // Add SIP code and reason if provided
+        if let sipCode = sipCode {
+            params["sipCode"] = sipCode
+        }
+        
+        if let sipReason = sipReason {
+            params["sipReason"] = sipReason
+        }
+        
+        params["dialogParams"] = dialogParams
 
         super.init(params, method: .BYE)
     }

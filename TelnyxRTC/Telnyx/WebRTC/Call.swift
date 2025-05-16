@@ -10,6 +10,25 @@ import Foundation
 import WebRTC
 
 
+/// Data class to hold detailed reasons for call termination.
+public struct CallTerminationReason {
+    /// General cause description (e.g., "CALL_REJECTED").
+    public let cause: String?
+    /// Numerical code for the cause (e.g., 21).
+    public let causeCode: Int?
+    /// SIP response code (e.g., 403).
+    public let sipCode: Int?
+    /// SIP reason phrase (e.g., "Dialed number is not included in whitelisted countries").
+    public let sipReason: String?
+    
+    public init(cause: String? = nil, causeCode: Int? = nil, sipCode: Int? = nil, sipReason: String? = nil) {
+        self.cause = cause
+        self.causeCode = causeCode
+        self.sipCode = sipCode
+        self.sipReason = sipReason
+    }
+}
+
 /// `CallState` represents the state of the call
 public enum CallState: Equatable {
     /// New call has been created in the client.
@@ -23,7 +42,7 @@ public enum CallState: Equatable {
     /// Call has been held.
     case HELD
     /// Call has ended.
-    case DONE
+    case DONE(reason: CallTerminationReason? = nil)
     /// The active call is being recovered. Usually after a network switch or bad network
     case RECONNECTING(reason: Reason)
     /// The active call is dropped. Usually when the network is lost.
@@ -41,8 +60,27 @@ public enum CallState: Equatable {
         switch self {
         case let .RECONNECTING(reason), let .DROPPED(reason):
             return reason.rawValue
+        case let .DONE(terminationReason):
+            return terminationReason?.cause
         default:
             return nil
+        }
+    }
+    
+    public static func == (lhs: CallState, rhs: CallState) -> Bool {
+        switch (lhs, rhs) {
+        case (.NEW, .NEW), (.CONNECTING, .CONNECTING), (.RINGING, .RINGING),
+             (.ACTIVE, .ACTIVE), (.HELD, .HELD), (.ERROR, .ERROR):
+            return true
+        case let (.DONE(lhsReason), .DONE(rhsReason)):
+            // Consider DONE states equal regardless of reason for basic equality checks
+            return true
+        case let (.RECONNECTING(lhsReason), .RECONNECTING(rhsReason)):
+            return lhsReason == rhsReason
+        case let (.DROPPED(lhsReason), .DROPPED(rhsReason)):
+            return lhsReason == rhsReason
+        default:
+            return false
         }
     }
 }
@@ -61,7 +99,7 @@ public extension CallState {
             return "ACTIVE"
         case .HELD:
             return "HELD"
-        case .DONE:
+        case .DONE(_):
             return "DONE"
         case .RECONNECTING:
             return "RECONNECTING"
@@ -432,12 +470,12 @@ public class Call {
         })
     }
 
-    private func endCall() {
+    private func endCall(terminationReason: CallTerminationReason? = nil) {
         self.stopRingtone()
         self.stopRingbackTone()
         self.statsReporter?.dispose()
         self.peer?.dispose()
-        self.updateCallState(callState: .DONE)
+        self.updateCallState(callState: .DONE(reason: terminationReason))
     }
     
     internal func endForAttachCall() {
@@ -481,10 +519,17 @@ extension Call {
     public func hangup() {
         Logger.log.i(message: "Call:: hangup()")
         guard let sessionId = self.sessionId, let callId = self.callInfo?.callId else { return }
+        
+        // Create a termination reason for local hangup
+        let terminationReason = CallTerminationReason(
+            cause: "USER_BUSY",
+            causeCode: CauseCode.USER_BUSY.rawValue
+        )
+        
         let byeMessage = ByeMessage(sessionId: sessionId, callId: callId.uuidString, causeCode: .USER_BUSY)
         let message = byeMessage.encode() ?? ""
         self.socket?.sendMessage(message: message)
-        self.endCall()
+        self.endCall(terminationReason: terminationReason)
     }
 
     /// Starts the process to answer the incoming call.
@@ -760,8 +805,29 @@ extension Call {
 
         switch message.method {
         case .BYE:
-            //Close call
-            self.endCall()
+            // Extract termination reason details from the message if available
+            var terminationReason: CallTerminationReason? = nil
+            
+            if let params = message.params {
+                let cause = params["cause"] as? String
+                let causeCode = params["causeCode"] as? Int
+                let sipCode = params["sipCode"] as? Int
+                let sipReason = params["sipReason"] as? String
+                
+                // Only create a termination reason if we have at least one field
+                if cause != nil || causeCode != nil || sipCode != nil || sipReason != nil {
+                    terminationReason = CallTerminationReason(
+                        cause: cause,
+                        causeCode: causeCode,
+                        sipCode: sipCode,
+                        sipReason: sipReason
+                    )
+                }
+            }
+            
+            // Close call with termination reason
+            self.endCall(terminationReason: terminationReason)
+            
             if(txClient.sendFileLogs){
                 FileLogger.shared.log("Call:: BYE \(message)")
                 FileLogger.shared.sendLogFile()

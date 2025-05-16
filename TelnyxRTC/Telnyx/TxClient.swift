@@ -416,7 +416,12 @@ public class TxClient {
     }
 
     private var isCallsActive: Bool {
-        !self.calls.filter { $0.value.callState != .DONE || $0.value.callState != .NEW }.isEmpty
+        !self.calls.filter { 
+            if case .DONE = $0.value.callState {
+                return false
+            }
+            return $0.value.callState != .NEW
+        }.isEmpty
     }
 
     /// To check if TxClient is connected to Telnyx server.
@@ -740,7 +745,11 @@ extension TxClient {
             environment: serverConfiguration.environment,
             pushMetaData: pushMetaData)
         
-        let noActiveCalls = self.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
+        let noActiveCalls = self.calls.filter { 
+            if case .ACTIVE = $0.value.callState { return true }
+            if case .HELD = $0.value.callState { return true }
+            return false
+        }.isEmpty
 
         if (noActiveCalls && isConnected()) {
             Logger.log.i(message: "TxClient:: processVoIPNotification - No Active Calls disconnect")
@@ -813,12 +822,16 @@ extension TxClient: CallProtocol {
         self.delegate?.onCallStateUpdated(callState: call.callState, callId: callId)
 
         //Remove call if it has ended
-        if call.callState == .DONE ,
+        if case .DONE = call.callState,
            let callId = call.callInfo?.callId {
             Logger.log.i(message: "TxClient:: Remove call")
             self.calls.removeValue(forKey: callId)
-            //Forward call ended state
-            self.delegate?.onRemoteCallEnded(callId: callId)
+            //Forward call ended state with termination reason if available
+            if case let .DONE(reason) = call.callState {
+                self.delegate?.onRemoteCallEnded(callId: callId, reason: reason)
+            } else {
+                self.delegate?.onRemoteCallEnded(callId: callId)
+            }
             self._isSpeakerEnabled = false
         }
     }
@@ -966,14 +979,20 @@ extension TxClient : SocketDelegate {
               if let callId = pushMetaData?["call_id"] as? String {
                   Logger.log.i(message: "TxClient:: Attach Call ID \(String(describing: callId))")
                   FileLogger.shared.log("Error Recieved, Remote Call Ended Line 764")
-                  self.delegate?.onRemoteCallEnded(callId: UUID(uuidString: callId)!)
+                  // Create a termination reason for the error
+                  let terminationReason = CallTerminationReason(cause: "REMOTE_ERROR")
+                  self.delegate?.onRemoteCallEnded(callId: UUID(uuidString: callId)!, reason: terminationReason)
                   
                 }
                 return
             }
             let message : String = error["message"] as? String ?? "Unknown"
             let code : String = String(error["code"] as? Int ?? 0)
-            let noActiveCalls = self.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
+            let noActiveCalls = self.calls.filter { 
+                if case .ACTIVE = $0.value.callState { return true }
+                if case .HELD = $0.value.callState { return true }
+                return false
+            }.isEmpty
 
             let err = TxError.serverError(reason: .signalingServerError(message: message, code: code))
             self.delegate?.onClientError(error: err)
