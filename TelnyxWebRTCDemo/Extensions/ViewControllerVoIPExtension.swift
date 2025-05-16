@@ -112,8 +112,46 @@ extension ViewController : VoIPDelegate {
         }
     }
     
-    func onRemoteCallEnded(callId: UUID) {
-        print("ViewController:: TxClientDelegate onRemoteCallEnded() callId: \(callId)")
+    func onRemoteCallEnded(callId: UUID, reason: CallTerminationReason? = nil) {
+        print("ViewController:: TxClientDelegate onRemoteCallEnded() callId: \(callId), reason: \(reason?.cause ?? "None")")
+        
+        // Display error message if there's a termination reason
+        if let reason = reason {
+            DispatchQueue.main.async {
+                let message = formatTerminationReason(reason: reason)
+                self.showAlert(message: message)
+            }
+        }
+    }
+    
+    private func formatTerminationReason(reason: CallTerminationReason) -> String {
+        // If we have a SIP code and reason, use that
+        if let sipCode = reason.sipCode, let sipReason = reason.sipReason {
+            return "Call ended: \(sipReason) (SIP \(sipCode))"
+        }
+        
+        // If we have just a SIP code
+        if let sipCode = reason.sipCode {
+            return "Call ended with SIP code: \(sipCode)"
+        }
+        
+        // If we have a cause
+        if let cause = reason.cause {
+            switch cause {
+            case "USER_BUSY":
+                return "Call ended: User busy"
+            case "CALL_REJECTED":
+                return "Call ended: Call rejected"
+            case "UNALLOCATED_NUMBER":
+                return "Call ended: Invalid number"
+            case "NORMAL_CLEARING":
+                return "Call ended normally"
+            default:
+                return "Call ended: \(cause)"
+            }
+        }
+        
+        return "Call ended"
     }
     
     func onCallStateUpdated(callState: CallState, callId: UUID) {
@@ -132,7 +170,11 @@ extension ViewController : VoIPDelegate {
                         self.appDelegate.executeOutGoingCall()
                     }
                     break
-                case .DONE:
+                case .DONE(let reason):
+                    // Handle call termination reason if needed
+                    if let reason = reason {
+                        print("Call ended with reason: \(reason.cause ?? "Unknown"), SIP code: \(reason.sipCode ?? 0)")
+                    }
                     self.resetCallStates()
                     break
                 case .HELD:
