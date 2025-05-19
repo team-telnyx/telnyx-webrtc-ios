@@ -828,6 +828,7 @@ extension TxClient: CallProtocol {
         self.delegate?.onCallStateUpdated(callState: call.callState, callId: callId)
 
         // Remove call if it has ended
+        if case .DONE = call.callState,
            let callId = call.callInfo?.callId {
             Logger.log.i(message: "TxClient:: Remove call")
             self.calls.removeValue(forKey: callId)
