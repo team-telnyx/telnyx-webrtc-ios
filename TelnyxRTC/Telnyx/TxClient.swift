@@ -982,7 +982,6 @@ extension TxClient : SocketDelegate {
                   // Create a termination reason for the error
                   let terminationReason = CallTerminationReason(cause: "REMOTE_ERROR")
                   self.delegate?.onRemoteCallEnded(callId: UUID(uuidString: callId)!, reason: terminationReason)
-                  
                 }
                 return
             }

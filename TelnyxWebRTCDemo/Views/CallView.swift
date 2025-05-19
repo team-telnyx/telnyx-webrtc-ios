@@ -20,16 +20,9 @@ struct CallView: View {
             switch viewModel.callState {
                 case .DONE(let reason):
                     callView
-                        .onAppear {
-                            // Show error popup if there's a termination reason
-                            if let reason = reason {
-                                viewModel.errorMessage = viewModel.formatTerminationReason(reason: reason)
-                                viewModel.showErrorPopup = true
-                            }
-                        }
                 case .NEW:
                     incomingCallView
-            case .ACTIVE, .HELD, .CONNECTING, .RINGING, .RECONNECTING, .DROPPED:
+                case .ACTIVE, .HELD, .CONNECTING, .RINGING, .RECONNECTING, .DROPPED:
                     callingView
             }
         }
