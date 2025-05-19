@@ -751,19 +751,25 @@ extension TxClient {
             return false
         }.isEmpty
 
-        if (noActiveCalls && isConnected()) {
+        if noActiveCalls && isConnected() {
             Logger.log.i(message: "TxClient:: processVoIPNotification - No Active Calls disconnect")
             self.disconnect()
         }
         
-        if(noActiveCalls){
+        if noActiveCalls {
             do {
                 Logger.log.i(message: "TxClient:: No Active Calls Connecting Again")
                 try self.connectFromPush(txConfig: txConfig, serverConfiguration: pnServerConfig)
                 
                 // Create an initial call_object to handle early bye message
                 if let newCallId = (pushMetaData["call_id"] as? String) {
-                    self.calls[UUID(uuidString: newCallId)!] = Call(callId: UUID(uuidString: newCallId)! , sessionId: newCallId, socket: self.socket!, delegate: self, iceServers: self.serverConfiguration.webRTCIceServers, debug: self.txConfig?.debug ?? false, forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false)
+                    self.calls[UUID(uuidString: newCallId)!] = Call(callId: UUID(uuidString: newCallId)!,
+                                                                    sessionId: newCallId,
+                                                                    socket: self.socket!,
+                                                                    delegate: self,
+                                                                    iceServers: self.serverConfiguration.webRTCIceServers,
+                                                                    debug: self.txConfig?.debug ?? false,
+                                                                    forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false)
                 }
             } catch let error {
                 Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
@@ -818,11 +824,10 @@ extension TxClient: CallProtocol {
         Logger.log.i(message: "TxClient:: callStateUpdated()")
 
         guard let callId = call.callInfo?.callId else { return }
-        //Forward call state
+        // Forward call state
         self.delegate?.onCallStateUpdated(callState: call.callState, callId: callId)
 
-        //Remove call if it has ended
-        if case .DONE = call.callState,
+        // Remove call if it has ended
            let callId = call.callInfo?.callId {
             Logger.log.i(message: "TxClient:: Remove call")
             self.calls.removeValue(forKey: callId)
@@ -987,12 +992,6 @@ extension TxClient : SocketDelegate {
             }
             let message : String = error["message"] as? String ?? "Unknown"
             let code : String = String(error["code"] as? Int ?? 0)
-            let noActiveCalls = self.calls.filter { 
-                if case .ACTIVE = $0.value.callState { return true }
-                if case .HELD = $0.value.callState { return true }
-                return false
-            }.isEmpty
-
             let err = TxError.serverError(reason: .signalingServerError(message: message, code: code))
             self.delegate?.onClientError(error: err)
         }
