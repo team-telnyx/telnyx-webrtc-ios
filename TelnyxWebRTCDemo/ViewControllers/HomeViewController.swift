@@ -397,7 +397,7 @@ extension HomeViewController {
     
     func onRejectButton() {
         guard let callID = self.appDelegate.currentCall?.callInfo?.callId else { return }
-        self.appDelegate.executeEndCallAction(uuid:callID)
+        self.appDelegate.executeEndCallAction(uuid: callID)
     }
 }
 // MARK: - Handle call

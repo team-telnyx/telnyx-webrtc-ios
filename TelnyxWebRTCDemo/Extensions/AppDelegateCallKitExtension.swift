@@ -177,23 +177,23 @@ extension AppDelegate : CXProviderDelegate {
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         print("AppDelegate:: END call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
         
-        if(previousCall?.callState == .HELD){
+        if previousCall?.callState == .HELD {
             print("AppDelegate:: call held.. unholding call")
             previousCall?.unhold()
         }
         //Run when we want to end or accept/Decline
-        if(self.callKitUUID == action.callUUID){
+        if self.callKitUUID == action.callUUID {
             //request to end current call
             print("AppDelegate:: End Current Call")
             if let onGoingCall = self.previousCall {
                 self.currentCall = onGoingCall
                 self.callKitUUID = onGoingCall.callInfo?.callId
             }
-        }else {
+        } else {
             //request to end Previous Call
             print("AppDelegate:: End Previous Call")
         }
-        self.telnyxClient?.endCallFromCallkit(endAction:action)
+        self.telnyxClient?.endCallFromCallkit(endAction: action)
     }
 
     func providerDidReset(_ provider: CXProvider) {
