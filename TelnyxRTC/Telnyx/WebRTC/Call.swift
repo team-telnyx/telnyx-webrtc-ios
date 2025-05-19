@@ -523,7 +523,7 @@ extension Call {
         // Create a termination reason for local hangup
         // Using NORMAL_CLEARING for local hangups to prevent triggering termination popup
         let terminationReason = CallTerminationReason(
-            cause: "NORMAL_CLEARING",
+            cause: ByeMessage.getCauseFromCode(causeCode: CauseCode.NORMAL_CLEARING),
             causeCode: CauseCode.NORMAL_CLEARING.rawValue
         )
         
