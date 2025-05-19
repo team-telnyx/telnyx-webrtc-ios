@@ -117,7 +117,7 @@ extension HomeViewController : VoIPDelegate {
         // Display error message if there's a termination reason
         if let reason = reason {
             DispatchQueue.main.async {
-                let message = formatTerminationReason(reason: reason)
+                let message = self.formatTerminationReason(reason: reason)
                 // Show alert with the error message
                 let alert = UIAlertController(title: "Call Ended", message: message, preferredStyle: .alert)
                 alert.addAction(UIAlertAction(title: "OK", style: .default))

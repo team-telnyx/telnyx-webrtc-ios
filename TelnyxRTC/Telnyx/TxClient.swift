@@ -830,7 +830,7 @@ extension TxClient: CallProtocol {
             if case let .DONE(reason) = call.callState {
                 self.delegate?.onRemoteCallEnded(callId: callId, reason: reason)
             } else {
-                self.delegate?.onRemoteCallEnded(callId: callId)
+                self.delegate?.onRemoteCallEnded(callId: callId, reason: nil)
             }
             self._isSpeakerEnabled = false
         }
@@ -870,7 +870,7 @@ extension TxClient : SocketDelegate {
         self.reconnectTimeoutTimer?.schedule(deadline: .now() + (txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT))
         self.reconnectTimeoutTimer?.setEventHandler { [weak self] in
             Logger.log.i(message: "Reconnect TimeOut : after \(self?.txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT) secs")
-            self?.updateActiveCallsState(callState: CallState.DONE)
+            self?.updateActiveCallsState(callState: CallState.DONE(reason: nil))
             self?.disconnect()
             self?.delegate?.onClientError(error: TxError.callFailed(reason: .reconnectFailed))
         }

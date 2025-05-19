@@ -94,7 +94,7 @@ struct HomeView: View {
                             }
                         }
                     }
-                    if viewModel.callState == .NEW || case .DONE = viewModel.callState {
+                    if viewModel.callState == .NEW || .DONE(reason: nil) == viewModel.callState {
                         if viewModel.socketState == .disconnected {
                             Button(action: onConnect) {
                                 Text("Connect")

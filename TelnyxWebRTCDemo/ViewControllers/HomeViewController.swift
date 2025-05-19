@@ -174,8 +174,8 @@ extension HomeViewController {
             self.viewModel.socketState = !sessionId.isEmpty && isConnected ? .clientReady : isConnected ? .connected : .disconnected
             self.viewModel.isLoading = false
             self.viewModel.sessionId = sessionId.isEmpty ? "-" : sessionId
-            self.viewModel.callState = self.appDelegate.currentCall?.callState ?? .DONE
-            self.callViewModel.callState = self.appDelegate.currentCall?.callState ?? .DONE
+            self.viewModel.callState = self.appDelegate.currentCall?.callState ?? .DONE(reason: nil)
+            self.callViewModel.callState = self.appDelegate.currentCall?.callState ?? .DONE(reason: nil)
             self.callViewModel.isMuted = self.appDelegate.currentCall?.isMuted ?? false
             self.callViewModel.isSpeakerOn = self.telnyxClient?.isSpeakerEnabled ?? false
         }

@@ -76,7 +76,7 @@ public protocol TxClientDelegate: AnyObject {
     ///   - callId: The unique identifier of the ended call.
     ///   - reason: Optional termination reason containing details about why the call ended.
     /// Use this to clean up any call-related UI elements or state and potentially display error messages.
-    func onRemoteCallEnded(callId: UUID, reason: CallTerminationReason? = nil)
+    func onRemoteCallEnded(callId: UUID, reason: CallTerminationReason?)
 
     /// Called when a push notification triggers an incoming call.
     /// - Parameter call: The Call object created from the push notification data.
