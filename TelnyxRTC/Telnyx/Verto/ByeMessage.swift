@@ -17,12 +17,10 @@ enum CauseCode : Int {
     case CALL_REJECTED = 21
     case UNALLOCATED_NUMBER = 1
     case INCOMPATIBLE_DESTINATION = 88
-    case MANAGER_REQUEST = 16
     
     // Inbound Hangup Reasons
     case RECOVERY_ON_TIMER_EXPIRE = 102
     case MANDATORY_IE_MISSING = 96
-    case PROGRESS_TIMEOUT = 16
     case ALLOTTED_TIMEOUT = 602
     
     // Outbound Hangup Reasons
@@ -59,17 +57,15 @@ class ByeMessage : Message {
         super.init(params, method: .BYE)
     }
     
-    private static func getCauseFromCode(causeCode: CauseCode) -> String {
+    internal static func getCauseFromCode(causeCode: CauseCode) -> String {
         switch(causeCode) {
         case .USER_BUSY: return "USER_BUSY"
         case .NORMAL_CLEARING: return "NORMAL_CLEARING"
         case .CALL_REJECTED: return "CALL_REJECTED"
         case .UNALLOCATED_NUMBER: return "UNALLOCATED_NUMBER"
         case .INCOMPATIBLE_DESTINATION: return "INCOMPATIBLE_DESTINATION"
-        case .MANAGER_REQUEST: return "MANAGER_REQUEST"
         case .RECOVERY_ON_TIMER_EXPIRE: return "RECOVERY_ON_TIMER_EXPIRE"
         case .MANDATORY_IE_MISSING: return "MANDATORY_IE_MISSING"
-        case .PROGRESS_TIMEOUT: return "PROGRESS_TIMEOUT"
         case .ALLOTTED_TIMEOUT: return "ALLOTTED_TIMEOUT"
         case .NORMAL_TEMPORARY_FAILURE: return "NORMAL_TEMPORARY_FAILURE"
         case .INVALID_GATEWAY: return "INVALID_GATEWAY"
