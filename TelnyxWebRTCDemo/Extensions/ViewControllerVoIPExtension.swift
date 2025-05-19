@@ -27,7 +27,7 @@ extension ViewController : VoIPDelegate {
     
     func onSocketDisconnected() {
         print("ViewController:: TxClientDelegate onSocketDisconnected()")
-        let noActiveCalls = self.telnyxClient?.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
+        let noActiveCalls = self.telnyxClient?.calls.filter { $0.value.callState.isConsideredActive }.isEmpty
         
         if(noActiveCalls != true){
             self.reachability.whenReachable = { reachability in
@@ -59,7 +59,7 @@ extension ViewController : VoIPDelegate {
     
     func onClientError(error: Error) {
         print("ViewController:: TxClientDelegate onClientError() error: \(error)")
-        let noActiveCalls = self.telnyxClient?.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
+        let noActiveCalls = self.telnyxClient?.calls.filter { $0.value.callState.isConsideredActive }.isEmpty
         
         if noActiveCalls != true {
             return

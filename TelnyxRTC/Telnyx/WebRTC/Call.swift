@@ -86,6 +86,16 @@ public enum CallState: Equatable {
 }
 
 public extension CallState {
+    /// Returns true if the call is considered active (ACTIVE or HELD states)
+    var isConsideredActive: Bool {
+        switch self {
+        case .ACTIVE, .HELD:
+            return true
+        default:
+            return false
+        }
+    }
+    
     /// Returns the string representation of the enum case.
     var value: String {
         switch self {
@@ -729,7 +739,7 @@ extension Call {
 
         if (self.callState == .ACTIVE) {
             self.updateCallState(callState: .HELD)
-        } else {
+        } else if (self.callState == .HELD) {
             self.updateCallState(callState: .ACTIVE)
         }
         Logger.log.s(message: "Call:: toggleHold()")

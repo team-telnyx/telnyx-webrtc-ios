@@ -31,7 +31,7 @@ extension HomeViewController : VoIPDelegate {
     
     func onClientError(error: Error) {
         print("ViewController:: TxClientDelegate onClientError() error: \(error)")
-        let noActiveCalls = self.telnyxClient?.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
+        let noActiveCalls = self.telnyxClient?.calls.filter { $0.value.callState.isConsideredActive }.isEmpty
         
         // Stop the connection timer if it's running
         stopConnectionTimer()

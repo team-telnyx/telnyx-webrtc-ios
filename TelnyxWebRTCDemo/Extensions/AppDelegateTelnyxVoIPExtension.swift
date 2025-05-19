@@ -129,7 +129,7 @@ extension AppDelegate: TxClientDelegate {
         print("AppDelegate:: TxClientDelegate onCallStateUpdated() callKitUUID [\(String(describing: self.callKitUUID))] callId [\(callId)]")
         self.voipDelegate?.onCallStateUpdated(callState: callState, callId: callId)
         
-        if(callState == .ACTIVE){
+        if(callState.isConsideredActive){
             // check if custom headers was passed for answered message
             let headers = self.currentCall?.answerCustomHeaders
             print("Custom Headers: \(headers as AnyObject)")
