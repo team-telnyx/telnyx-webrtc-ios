@@ -70,7 +70,7 @@ public enum CallState: Equatable {
     public static func == (lhs: CallState, rhs: CallState) -> Bool {
         switch (lhs, rhs) {
         case (.NEW, .NEW), (.CONNECTING, .CONNECTING), (.RINGING, .RINGING),
-             (.ACTIVE, .ACTIVE), (.HELD, .HELD), (.ERROR, .ERROR):
+             (.ACTIVE, .ACTIVE), (.HELD, .HELD):
             return true
         case let (.DONE(lhsReason), .DONE(rhsReason)):
             // Consider DONE states equal regardless of reason for basic equality checks

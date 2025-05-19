@@ -267,9 +267,9 @@ struct HomeView: View {
             return (Color(hex: "#3434EF"), "Ringing")
         case .CONNECTING:
             return (Color(hex: "#008563"), "Connecting")
-        case .DROPPED:
+        case .DROPPED(_):
             return (Color(hex: "#D40000"), "Dropped")
-        case .RECONNECTING:
+        case .RECONNECTING(_):
             return (Color(hex: "#CF7E20"), "Reconnecting")
         case .ACTIVE:
             return (Color(hex: "#008563"), "Active")
