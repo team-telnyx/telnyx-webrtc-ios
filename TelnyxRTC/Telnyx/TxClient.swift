@@ -980,12 +980,14 @@ extension TxClient : SocketDelegate {
         if let error = vertoMessage.serverError {
             if(attachCallId == vertoMessage.id){
                 // Call failed from remote end
-              if let callId = pushMetaData?["call_id"] as? String {
+              if let callId = pushMetaData?["call_id"] as? String,
+                let callUUID = UUID(uuidString: callId) {
                   Logger.log.i(message: "TxClient:: Attach Call ID \(String(describing: callId))")
                   FileLogger.shared.log("Error Recieved, Remote Call Ended Line 764")
                   // Create a termination reason for the error
                   let terminationReason = CallTerminationReason(cause: "REMOTE_ERROR")
-                  self.delegate?.onRemoteCallEnded(callId: UUID(uuidString: callId)!, reason: terminationReason)
+                  self.delegate?.onRemoteCallEnded(callId: callUUID, reason: terminationReason)
+                  self.delegate?.onCallStateUpdated(callState: .DONE(reason: terminationReason), callId: callUUID)
                 }
                 return
             }
