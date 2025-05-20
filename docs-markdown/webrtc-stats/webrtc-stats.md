@@ -34,10 +34,16 @@ The SDK provides real-time call quality metrics through the `onCallQualityChange
 let call = try telnyxClient.newCall(callerName: "Caller name",
                                    callerNumber: "155531234567",
                                    destinationNumber: "18004377950",
-                                   callId: UUID.init(),debug:true)
+                                   callId: UUID.init(),
+                                   debug:true) // Enable Call Quality 
                                    
 //When accepting a call
-telnyxClient?.answerFromCallkit(answerAction: action,debug:true) or call?.answer(debug:true)
+telnyxClient?.answerFromCallkit(answerAction: action,
+                                debug:true)  // Enable Call Quality
+
+or 
+
+call?.answer(debug:true) // Enable Call Quality
 
 // Set the onCallQualityChange callback
 call.onCallQualityChange = { metrics in
