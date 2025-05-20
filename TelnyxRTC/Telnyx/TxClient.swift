@@ -746,9 +746,7 @@ extension TxClient {
             pushMetaData: pushMetaData)
         
         let noActiveCalls = self.calls.filter { 
-            if case .ACTIVE = $0.value.callState { return true }
-            if case .HELD = $0.value.callState { return true }
-            return false
+            $0.value.callState.isConsideredActive
         }.isEmpty
 
         if noActiveCalls && isConnected() {
