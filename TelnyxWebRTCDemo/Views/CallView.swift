@@ -47,10 +47,6 @@ struct CallView: View {
                     }
                 )
             }
-        }.alert(viewModel.errorMessage, isPresented: $viewModel.showErrorPopup) {
-            Button("OK", role: .cancel) {
-                viewModel.showErrorPopup = false
-            }
         }
     }
     

@@ -10,6 +10,5 @@ class CallViewModel: ObservableObject {
     @Published var showDTMFKeyboard: Bool = false
     @Published var showCallMetricsPopup = false
     @Published var callQualityMetrics: CallQualityMetrics? = nil
-    @Published var showErrorPopup = false
     @Published var errorMessage: String = ""
 }
