@@ -57,8 +57,8 @@ extension HomeViewController : VoIPDelegate {
                         
                     case .callFailed(let reason):
                         print("Call Failure: \(reason.localizedDescription ?? "Unknown reason")")
-                    self.showAlert(message: reason.localizedDescription ?? "")
-                        
+                        self.showAlert(message: reason.localizedDescription ?? "")
+
                     case .serverError(let reason):
                         self.telnyxClient?.disconnect()
                         self.viewModel.isLoading = false
@@ -68,6 +68,9 @@ extension HomeViewController : VoIPDelegate {
                     case .signalingServerError(let causeCode, let message):
                         print("Signaling Server Error: \(message) (Code: \(causeCode))")
                         // Display a popup with the error message
+                        self.telnyxClient?.disconnect()
+                        self.viewModel.socketState = .disconnected
+                        self.viewModel.isLoading = false
                         self.showErrorPopup(title: "Signaling Server Error", message: self.formatSignalingErrorMessage(causeCode: causeCode, message: message))
                     }
                 print("ERROR: client error \(error)")
