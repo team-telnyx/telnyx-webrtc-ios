@@ -978,7 +978,7 @@ extension TxClient : SocketDelegate {
 
         //Check if server is sending an error code
         if let error = vertoMessage.serverError {
-            if(attachCallId == vertoMessage.id){
+            if attachCallId == vertoMessage.id {
                 // Call failed from remote end
               if let callId = pushMetaData?["call_id"] as? String,
                 let callUUID = UUID(uuidString: callId) {
