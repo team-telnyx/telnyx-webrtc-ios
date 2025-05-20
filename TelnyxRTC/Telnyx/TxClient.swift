@@ -993,9 +993,10 @@ extension TxClient : SocketDelegate {
             }
             let message: String = error["message"] as? String ?? "Unknown"
             let codeInt: Int = error["code"] as? Int ?? 0
+            let code: String = String(codeInt)
             
-            // Create the new signalingServerError with causeCode and message
-            let err = TxError.signalingServerError(causeCode: codeInt, message: message)
+            // Use the existing ServerErrorReason.signalingServerError approach
+            let err = TxError.serverError(reason: .signalingServerError(message: message, code: code))
             self.delegate?.onClientError(error: err)
         }
 

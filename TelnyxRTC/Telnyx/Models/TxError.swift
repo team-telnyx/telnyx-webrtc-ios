@@ -53,19 +53,6 @@ public enum TxError : Error {
         case gatewayNotRegistered
     }
     
-    /// Signaling server error with cause code and message
-    public struct SignalingServerError {
-        /// The error code from the signaling server
-        public let causeCode: Int
-        /// The error message from the signaling server
-        public let message: String
-        
-        public init(causeCode: Int, message: String) {
-            self.causeCode = causeCode
-            self.message = message
-        }
-    }
-
     /// Socket connection failures.
     case socketConnectionFailed(reason: SocketFailureReason)
     /// There's an invalid parameter when setting up the SDK
@@ -74,8 +61,6 @@ public enum TxError : Error {
     case callFailed(reason: CallFailureReason)
     /// When the signaling server sends an error
     case serverError(reason: ServerErrorReason)
-    /// When the signaling server sends an error with a cause code and message
-    case signalingServerError(causeCode: Int, message: String)
 }
 
 // MARK: - Underlying errors
@@ -144,8 +129,6 @@ extension TxError: LocalizedError {
             return "Call failed: \(reason.localizedDescription ?? "No description.")"
         case let .serverError(reason):
             return reason.errorMessage
-        case let .signalingServerError(causeCode, message):
-            return "Signaling server error: \(message) (Code: \(causeCode))"
         }
     }
 }
