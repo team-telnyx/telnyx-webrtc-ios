@@ -531,12 +531,13 @@ extension Call {
         guard let sessionId = self.sessionId, let callId = self.callInfo?.callId else { return }
         
         // Create a termination reason for local hangup
+        // Use NORMAL_CLEARING instead of USER_BUSY to prevent triggering the termination popup
         let terminationReason = CallTerminationReason(
-            cause: ByeMessage.getCauseFromCode(causeCode: CauseCode.USER_BUSY),
-            causeCode: CauseCode.USER_BUSY.rawValue
+            cause: ByeMessage.getCauseFromCode(causeCode: CauseCode.NORMAL_CLEARING),
+            causeCode: CauseCode.NORMAL_CLEARING.rawValue
         )
         
-        let byeMessage = ByeMessage(sessionId: sessionId, callId: callId.uuidString, causeCode: .USER_BUSY)
+        let byeMessage = ByeMessage(sessionId: sessionId, callId: callId.uuidString, causeCode: .NORMAL_CLEARING)
         let message = byeMessage.encode() ?? ""
         self.socket?.sendMessage(message: message)
         self.endCall(terminationReason: terminationReason)

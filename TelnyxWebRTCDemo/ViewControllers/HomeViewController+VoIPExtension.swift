@@ -157,16 +157,8 @@ extension HomeViewController : VoIPDelegate {
     func onRemoteCallEnded(callId: UUID, reason: CallTerminationReason? = nil) {
         print("ViewController:: TxClientDelegate onRemoteCallEnded() callId: \(callId), reason: \(reason?.cause ?? "None")")
         
-        // Display error message if there's a termination reason
-        if let reason = reason {
-            DispatchQueue.main.async {
-                let message = self.formatTerminationReason(reason: reason)
-                // Show alert with the error message
-                let alert = UIAlertController(title: "Call Ended", message: message, preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "OK", style: .default))
-                self.present(alert, animated: true)
-            }
-        }
+        // We no longer show a popup here as the termination reason is displayed inline in the UI
+        // The call state will be updated through onCallStateUpdated with the termination reason
     }
     
     private func formatTerminationReason(reason: CallTerminationReason) -> String {
