@@ -64,6 +64,11 @@ extension HomeViewController : VoIPDelegate {
                         self.viewModel.isLoading = false
                         self.viewModel.socketState = .disconnected
                         print("Server Error: \(reason.localizedDescription)")
+                        
+                    case .signalingServerError(let causeCode, let message):
+                        print("Signaling Server Error: \(message) (Code: \(causeCode))")
+                        // Display a popup with the error message
+                        self.showErrorPopup(title: "Signaling Server Error", message: self.formatSignalingErrorMessage(causeCode: causeCode, message: message))
                     }
                 print("ERROR: client error \(error)")
             }
@@ -79,6 +84,40 @@ extension HomeViewController : VoIPDelegate {
             DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
                 alert.dismiss(animated: true)
             }
+        }
+    }
+    
+    func showErrorPopup(title: String, message: String) {
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(alert, animated: true)
+        }
+    }
+    
+    /// Formats a signaling server error message based on the cause code
+    /// - Parameters:
+    ///   - causeCode: The error code from the signaling server
+    ///   - message: The error message from the signaling server
+    /// - Returns: A user-friendly error message
+    func formatSignalingErrorMessage(causeCode: Int, message: String) -> String {
+        // Map error codes to user-friendly messages
+        switch causeCode {
+        case -32000:
+            return "Token registration error: \(message)"
+        case -32001:
+            return "Credential registration error: \(message)"
+        case -32002:
+            return "Codec error: \(message)"
+        case -32003:
+            return "Gateway registration timeout: \(message)"
+        case -32004:
+            return "Gateway registration failed: \(message)"
+        default:
+            if message.contains("Call not found") {
+                return "Call not found: The specified call cannot be found"
+            }
+            return message
         }
     }
     

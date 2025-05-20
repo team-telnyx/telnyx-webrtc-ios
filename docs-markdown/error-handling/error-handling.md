@@ -93,7 +93,8 @@ The `onClientError` callback is triggered in the following scenarios:
    - Error Type: `TxError.serverError(reason: .gatewayNotRegistered)`
 
 2. **Server Error Messages**: When the server sends an error message through the WebSocket connection.
-   - Error Type: `TxError.serverError(reason: .signalingServerError(message: String, code: String))`
+   - Error Type: `TxError.serverError(reason: .signalingServerError(message: String, code: String))` (Legacy)
+   - Error Type: `TxError.signalingServerError(causeCode: Int, message: String)` (New)
 
 3. **Socket Connection Errors**: When there are issues with the WebSocket connection.
    - These errors are propagated through the Socket class to the TxClient.
@@ -104,7 +105,7 @@ The SDK uses the `TxError` enum to represent different types of errors that can 
 
 ### Server Errors
 
-Server errors are represented by the `TxError.serverError` case with a `ServerErrorReason` enum:
+Server errors are represented by the `TxError.serverError` case with a `ServerErrorReason` enum or the new `TxError.signalingServerError` case:
 
 ```swift
 public enum ServerErrorReason {
@@ -113,15 +114,29 @@ public enum ServerErrorReason {
     /// Gateway is not registered.
     case gatewayNotRegistered
 }
+
+/// When the signaling server sends an error with a cause code and message
+case signalingServerError(causeCode: Int, message: String)
 ```
 
 #### Signaling Server Errors
 
 These errors occur when the Telnyx signaling server returns an error response. The error includes:
 - A message describing the error
-- An error code
+- An error code (as an integer in the new format)
 
-Common signaling server errors include authentication failures, invalid requests, and service unavailability.
+Common signaling server errors include:
+
+| ERROR CODE | ERROR MESSAGE | DESCRIPTION |
+|------------|---------------|-------------|
+| -32000 | Token registration error | Error during token registration |
+| -32001 | Credential registration error | Error during credential registration |
+| -32002 | Codec error | Error related to codec operation |
+| -32003 | Gateway registration timeout | Gateway registration timed out |
+| -32004 | Gateway registration failed | Gateway registration failed |
+| N/A | Call not found | The specified call cannot be found |
+
+These errors typically occur during authentication, call setup, or when interacting with the signaling server.
 
 #### Gateway Not Registered Errors
 
@@ -194,7 +209,26 @@ To effectively handle errors in your application:
                case .gatewayNotRegistered:
                    // Handle gateway registration failure
                case .signalingServerError(let message, let code):
-                   // Handle signaling server errors
+                   // Handle signaling server errors (legacy format)
+               }
+           case .signalingServerError(let causeCode, let message):
+               // Handle signaling server errors with cause code
+               switch causeCode {
+               case -32000:
+                   // Handle token registration error
+               case -32001:
+                   // Handle credential registration error
+               case -32002:
+                   // Handle codec error
+               case -32003:
+                   // Handle gateway registration timeout
+               case -32004:
+                   // Handle gateway registration failed
+               default:
+                   // Handle other signaling server errors
+                   if message.contains("Call not found") {
+                       // Handle call not found error
+                   }
                }
            case .socketConnectionFailed(let reason):
                // Handle socket connection failures
