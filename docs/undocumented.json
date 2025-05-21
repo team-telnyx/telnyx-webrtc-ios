@@ -1,6 +1,13 @@
 {
   "warnings": [
     {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/CallQualityMetrics.swift",
+      "line": 51,
+      "symbol": "CallQualityMetrics.init(jitter:rtt:mos:quality:inboundAudio:outboundAudio:remoteInboundAudio:remoteOutboundAudio:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxConfig.swift",
       "line": 11,
       "symbol": "PushEnvironment",
@@ -198,7 +205,7 @@
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/TxClient.swift",
-      "line": 156,
+      "line": 157,
       "symbol": "TxClient.isSpeakerEnabled",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
@@ -233,28 +240,35 @@
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Call.swift",
-      "line": 34,
+      "line": 24,
+      "symbol": "CallTerminationReason.init(cause:causeCode:sipCode:sipReason:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Call.swift",
+      "line": 53,
       "symbol": "CallState.Reason.networkSwitch",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Call.swift",
-      "line": 35,
+      "line": 54,
       "symbol": "CallState.Reason.networkLost",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Call.swift",
-      "line": 36,
+      "line": 55,
       "symbol": "CallState.Reason.serverError",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Stats/WebRTCStatsReporter.swift",
-      "line": 324,
+      "line": 429,
       "symbol": "WebRTCStatsReporter.dispose()",
       "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"

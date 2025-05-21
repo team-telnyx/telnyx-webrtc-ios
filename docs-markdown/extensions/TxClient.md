@@ -23,7 +23,7 @@ This function can be used to access any active call tracked by the SDK.
 | ---- | ----------- |
 | callId | The unique identifier of a call. |
 
-### `newCall(callerName:callerNumber:destinationNumber:callId:clientState:customHeaders:)`
+### `newCall(callerName:callerNumber:destinationNumber:callId:clientState:customHeaders:debug:)`
 
 ```swift
 public func newCall(callerName: String,
@@ -31,7 +31,8 @@ public func newCall(callerName: String,
                     destinationNumber: String,
                     callId: UUID,
                     clientState: String? = nil,
-                    customHeaders:[String:String] = [:]) throws -> Call
+                    customHeaders:[String:String] = [:],
+                    debug:Bool = false) throws -> Call
 ```
 
 Creates a new Call and starts the call sequence, negotiate the ICE Candidates and sends the invite.

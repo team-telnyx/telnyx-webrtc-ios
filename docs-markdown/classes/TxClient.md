@@ -271,16 +271,17 @@ public func isConnected() -> Bool
 To check if TxClient is connected to Telnyx server.
 - Returns: `true` if TxClient socket is connected, `false` otherwise.
 
-### `answerFromCallkit(answerAction:customHeaders:)`
+### `answerFromCallkit(answerAction:customHeaders:debug:)`
 
 ```swift
-public func answerFromCallkit(answerAction:CXAnswerCallAction,customHeaders:[String:String] = [:])
+public func answerFromCallkit(answerAction:CXAnswerCallAction,customHeaders:[String:String] = [:],debug:Bool = false)
 ```
 
 To answer and control callKit active flow
 - Parameters:
     - answerAction : `CXAnswerCallAction` from callKit
     - customHeaders: (Optional)
+    - debug:  (Optional) to enable quality metrics for call
 
 #### Parameters
 
@@ -288,6 +289,7 @@ To answer and control callKit active flow
 | ---- | ----------- |
 | answerAction | `CXAnswerCallAction` from callKit |
 | customHeaders | (Optional) |
+| debug | (Optional) to enable quality metrics for call |
 
 ### `endCallFromCallkit(endAction:callId:)`
 

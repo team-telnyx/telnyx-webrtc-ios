@@ -141,21 +141,24 @@ You can use this object to answer or reject the call.
 | ---- | ----------- |
 | call | The Call object representing the incoming call. You can use this object to answer or reject the call. |
 
-### `onRemoteCallEnded(callId:)`
+### `onRemoteCallEnded(callId:reason:)`
 
 ```swift
-func onRemoteCallEnded(callId: UUID)
+func onRemoteCallEnded(callId: UUID, reason: CallTerminationReason?)
 ```
 
 Called when a remote party ends the call.
-- Parameter callId: The unique identifier of the ended call.
-Use this to clean up any call-related UI elements or state.
+- Parameters:
+  - callId: The unique identifier of the ended call.
+  - reason: Optional termination reason containing details about why the call ended.
+Use this to clean up any call-related UI elements or state and potentially display error messages.
 
 #### Parameters
 
 | Name | Description |
 | ---- | ----------- |
-| callId | The unique identifier of the ended call. Use this to clean up any call-related UI elements or state. |
+| callId | The unique identifier of the ended call. |
+| reason | Optional termination reason containing details about why the call ended. Use this to clean up any call-related UI elements or state and potentially display error messages. |
 
 ### `onPushCall(call:)`
 
