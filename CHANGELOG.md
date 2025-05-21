@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [2.0.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.0.0) (2025-05-21)
+
+### Features
+- WEBRTC-2686: Expose Call Termination Reasons in SDK and Surface Error Messages
+
+### Fixes
+- Fix Ringback Tone for parked calls
+
+
 ## [1.2.3](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/1.2.3) (2025-05-02)
 
 ### Enhancements
