@@ -1,0 +1,82 @@
+# This workflow automates the creation of a GitHub Release for the SDK.
+#
+# 📋 Steps:
+# 1. Checks out the `main` branch of the repository.
+# 2. Identifies the latest Git tag to determine the last released version.
+# 3. Retrieves the list of commits from the last tag up to the current `main` HEAD.
+# 4. Lists all merged pull requests into `main` using the GitHub CLI.
+# 5. Filters PRs to include only those whose merge commit is in the new commits.
+# 6. Generates a changelog with the PR titles and numbers since the last tag.
+# 7. Prints the generated changelog to the console for debugging.
+# 8. Creates a new GitHub Release with the specified version tag,
+#    using the changelog as the release body content.
+name: release-03-create-gh-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release Version'
+        required: true
+        default: '0.0.0'
+
+jobs:
+  release_create_github_release:
+    runs-on: macos-latest
+
+    steps:
+    - name: 🔄 Checkout main branch
+      uses: actions/checkout@v2
+      with:
+        ref: main
+
+    - name: 🏷️ Get last created TAG
+      id: get-last-tag
+      run: echo "LAST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_ENV
+
+    - name: 📝 Generate changelog from PRs since last tag
+      id: generate-changelog
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "Last tag: $LAST_TAG"
+
+        # Get commits from last tag to main
+        COMMITS=$(git log --pretty=format:"%H" "$LAST_TAG"..main)
+
+        # List merged PRs on main with title, number, and merge commit SHA
+        gh pr list --state merged --base main --json title,number,mergeCommit --jq '.' > pr_data.json
+
+        CHANGELOG=""
+
+        # Loop through PRs and check if merge commit SHA is in commits range
+        for row in $(jq -c '.[]' pr_data.json); do
+          TITLE=$(echo $row | jq -r '.title')
+          NUMBER=$(echo $row | jq -r '.number')
+          SHA=$(echo $row | jq -r '.mergeCommit.oid')
+
+          if echo "$COMMITS" | grep -q "$SHA"; then
+            CHANGELOG+="- PR #$NUMBER: $TITLE\n"
+          fi
+        done
+
+        # Save changelog to file and set output for next steps
+        echo -e "$CHANGELOG" > changelog.txt
+
+        echo "changelog<<EOF" >> $GITHUB_OUTPUT
+        echo -e "$CHANGELOG" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: 📄 Print changelog
+      run: cat changelog.txt
+
+    - name: 🚀 Create GitHub Release
+      uses: zendesk/action-create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.event.inputs.version }}
+        release_name: Release ${{ github.event.inputs.version }}
+        body: ${{ steps.generate-changelog.outputs.changelog }}
+        draft: false
+        prerelease: false

@@ -1,5 +1,15 @@
-#This workflow deploy the latest release configured inside the .podspec file to cocoapods
-name: release_03_deploy_cocoapods
+# This workflow deploys the latest SDK version to CocoaPods using the `.podspec` configuration.
+#
+# 📋 Steps:
+# 1. Checks out the repository with full history to ensure access to tags.
+# 2. Sets up Ruby 2.7.4 and installs dependencies using Bundler.
+# 3. Installs Fastlane, which is used for changelog generation.
+# 4. Retrieves the second-to-last created Git tag to use as the base for the changelog.
+# 5. Generates a changelog using Fastlane based on commits since the last release tag.
+# 6. Reads and prints the changelog contents for visibility in the job logs.
+# 7. Runs `pod lib lint` to validate the `.podspec` file.
+# 8. Publishes the SDK to the CocoaPods trunk using the `pod trunk push` command with authentication.
+name: release-04-deploy-cocoapods
 on:
    # Allows you to run this workflow manually from the Actions tab
    workflow_dispatch:

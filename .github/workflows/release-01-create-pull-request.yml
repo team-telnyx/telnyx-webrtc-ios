@@ -1,4 +1,18 @@
-name: 🚀 release_01_create_pull_request
+# This workflow automates the creation of a release pull request for the SDK.
+#
+# 📋 Steps:
+# 1. Checks out the repository with full history and tags.
+# 2. Fetches all Git tags to determine the latest released version.
+# 3. Determines the previous version tag (semver-based).
+# 4. Collects merged pull requests since the previous tag using GitHub CLI.
+# 5. Filters PRs based on their merge commits being included since the last tag.
+# 6. Formats the filtered PRs into a changelog.
+# 7. Reads a custom pull request template (if available) for consistent release messaging.
+# 8. Updates the SDK version using a script.
+# 9. Cleans up temporary files used during changelog generation.
+# 10. Automatically creates a release pull request targeting the `main` branch,
+#     including the changelog and custom template in the PR body.
+name: 🚀 release-01-create-pull-request
 
 on:
   workflow_dispatch:
@@ -95,7 +109,7 @@ jobs:
           ---
 
           ${{ steps.pr_template.outputs.template }}
-        branch: releases/RELEASE-${{ github.event.inputs.version }}
+        branch: release/${{ github.event.inputs.version }}
         base: main
         delete-branch: true
         labels: auto-generated
