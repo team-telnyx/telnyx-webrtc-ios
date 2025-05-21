@@ -13,7 +13,7 @@
 #    targeting the base branch and including only changes in `docs/` and `docs-markdown/`.
 # 10. Labels the PR as "documentation" and "auto-generated" and deletes the branch after merge.
 
-name: 📚 release-02-generate-docs
+name: release-02-generate-docs
 
 on:
   workflow_dispatch:

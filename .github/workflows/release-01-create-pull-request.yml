@@ -12,7 +12,7 @@
 # 9. Cleans up temporary files used during changelog generation.
 # 10. Automatically creates a release pull request targeting the `main` branch,
 #     including the changelog and custom template in the PR body.
-name: 🚀 release-01-create-pull-request
+name: release-01-create-pull-request
 
 on:
   workflow_dispatch:
