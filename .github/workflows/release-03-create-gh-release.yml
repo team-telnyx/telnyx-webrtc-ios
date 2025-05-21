@@ -1,15 +1,12 @@
 # This workflow automates the creation of a GitHub Release for the SDK.
 #
 # 📋 Steps:
-# 1. Checks out the `main` branch of the repository.
-# 2. Identifies the latest Git tag to determine the last released version.
-# 3. Retrieves the list of commits from the last tag up to the current `main` HEAD.
-# 4. Lists all merged pull requests into `main` using the GitHub CLI.
-# 5. Filters PRs to include only those whose merge commit is in the new commits.
-# 6. Generates a changelog with the PR titles and numbers since the last tag.
-# 7. Prints the generated changelog to the console for debugging.
-# 8. Creates a new GitHub Release with the specified version tag,
-#    using the changelog as the release body content.
+# 1. Checks out the `main` branch.
+# 2. Gets the latest semver tag (e.g. 2.3.4).
+# 3. Gets all commits from that tag to HEAD.
+# 4. Lists all PRs merged into `main` and checks which are in that commit range.
+# 5. Generates a changelog with the PRs.
+# 6. Creates a GitHub release using the changelog.
 
 name: release-03-create-gh-release
 
@@ -30,48 +27,33 @@ jobs:
       uses: actions/checkout@v2
       with:
         ref: main
+        fetch-depth: 0  # needed to access tags and full history
 
-    - name: 🏷️ Get last created TAG
-      id: get-last-tag
+    - name: 🔖 Get latest tag before new version
+      id: get-previous-tag
       run: |
-        LAST_TAG=$(git tag --sort=-creatordate | head -n 1)
-        echo "Last tag: $LAST_TAG"
-        echo "LAST_TAG=$LAST_TAG" >> $GITHUB_ENV
-        echo "last_tag=$LAST_TAG" >> $GITHUB_OUTPUT
+        PREVIOUS_TAG=$(git tag --sort=-v:refname | grep -E '^([0-9]+\.){2}[0-9]+$' | head -n 1)
+        echo "Previous tag: $PREVIOUS_TAG"
+        echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
 
-    - name: ❗ Fail if no tag is found
-      if: steps.get-last-tag.outputs.last_tag == ''
-      run: |
-        echo "❌ No Git tag found. Aborting release generation."
-        exit 1
-
-    - name: 📝 Generate changelog from PRs since last tag
-      id: generate-changelog
+    - name: 📋 Generate changelog from merged PRs
+      id: pr_list
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        echo "Last tag: ${{ steps.get-last-tag.outputs.last_tag }}"
+        git log --pretty=format:"%H" ${{ steps.get-previous-tag.outputs.previous_tag }}..HEAD > commits.txt
+        gh pr list --state merged --base main --json title,number,mergeCommit \
+          --jq ".[] | [.title, .number, .mergeCommit.oid] | @tsv" > pr_data.tsv
 
-        COMMITS=$(git log --pretty=format:"%H" "${{ steps.get-last-tag.outputs.last_tag }}"..main)
-
-        gh pr list --state merged --base main --json title,number,mergeCommit --jq '.' > pr_data.json
-
-        CHANGELOG=""
-
-        for row in $(jq -c '.[]' pr_data.json); do
-          TITLE=$(echo $row | jq -r '.title')
-          NUMBER=$(echo $row | jq -r '.number')
-          SHA=$(echo $row | jq -r '.mergeCommit.oid')
-
-          if echo "$COMMITS" | grep -q "$SHA"; then
-            CHANGELOG+="- PR #$NUMBER: $TITLE\n"
+        touch changelog.txt
+        while IFS=$'\t' read -r title number commit; do
+          if grep -q "$commit" commits.txt; then
+            echo "- PR #$number: $title" >> changelog.txt
           fi
-        done
-
-        echo -e "$CHANGELOG" > changelog.txt
+        done < pr_data.tsv
 
         echo "changelog<<EOF" >> $GITHUB_OUTPUT
-        echo -e "$CHANGELOG" >> $GITHUB_OUTPUT
+        cat changelog.txt >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
 
     - name: 📄 Print changelog
@@ -84,6 +66,6 @@ jobs:
       with:
         tag_name: ${{ github.event.inputs.version }}
         release_name: Release ${{ github.event.inputs.version }}
-        body: ${{ steps.generate-changelog.outputs.changelog }}
+        body: ${{ steps.pr_list.outputs.changelog }}
         draft: false
         prerelease: false
