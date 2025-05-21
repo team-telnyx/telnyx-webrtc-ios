@@ -56,20 +56,10 @@ jobs:
       run: |
         git config push.autoSetupRemote true
 
-    - name: 🌿 Create documentation branch
+    - name: 🌿 Create documentation branch name
       run: |
         DOC_BRANCH="docs/$(echo '${{ github.event.inputs.base_branch }}' | sed 's/\//-/g')-$(date +'%Y%m%d%H%M%S')"
         echo "doc_branch=$DOC_BRANCH" >> $GITHUB_ENV
-        git checkout -b $DOC_BRANCH
-
-    - name: ✅ Commit generated documentation
-      run: |
-        git add docs/ docs-markdown/
-        git commit -m "📝 docs: Regenerate SDK documentation using Fastlane, Jazzy & SourceDocs"
-
-    - name: 📤 Push documentation branch
-      run: |
-        git push origin ${{ env.doc_branch }}
 
     - name: 🚀 Create Pull Request
       uses: peter-evans/create-pull-request@v7
@@ -94,6 +84,9 @@ jobs:
           Changes include regenerated `.html` and Markdown files under:
           - `docs/`
           - `docs-markdown/`
-
+        add-paths: |
+          docs/
+          docs-markdown/
+        delete-branch: true
         labels: "documentation, auto-generated"
         draft: false

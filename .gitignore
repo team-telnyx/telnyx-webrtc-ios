@@ -28,3 +28,9 @@ reports/
 build/*
 
 TelnyxWebRTCDemo/GoogleService-Info.plist
+
+# pipelines
+.bundle/
+Gemfile.lock
+*.swp
+.DS_Store
