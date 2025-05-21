@@ -16,10 +16,10 @@ Hangup or reject an incoming call.
 ### Example:
     call.hangup()
 
-### `answer(customHeaders:)`
+### `answer(customHeaders:debug:)`
 
 ```swift
-public func answer(customHeaders:[String:String] = [:])
+public func answer(customHeaders:[String:String] = [:],debug:Bool = false)
 ```
 
 Starts the process to answer the incoming call.
