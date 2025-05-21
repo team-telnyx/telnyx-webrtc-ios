@@ -53,9 +53,9 @@ jobs:
       run: |
         TEMPLATE_FILE=".github/pr-templates/release.md"
         if [ -f "$TEMPLATE_FILE" ]; then
-          echo template<<EOF >> $GITHUB_OUTPUT
+          echo "template<<EOF" >> $GITHUB_OUTPUT
           cat "$TEMPLATE_FILE" >> $GITHUB_OUTPUT
-          echo EOF >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
         else
           echo "template=_" >> $GITHUB_OUTPUT
         fi
