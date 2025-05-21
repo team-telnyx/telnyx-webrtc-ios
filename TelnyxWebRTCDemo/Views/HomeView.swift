@@ -94,7 +94,7 @@ struct HomeView: View {
                             }
                         }
                     }
-                    if viewModel.callState == .NEW || viewModel.callState == .DONE {
+                    if viewModel.callState == .NEW || .DONE(reason: nil) == viewModel.callState {
                         if viewModel.socketState == .disconnected {
                             Button(action: onConnect) {
                                 Text("Connect")
@@ -261,16 +261,19 @@ struct HomeView: View {
     
     private func callStateInfo(for state: CallState) -> (color: Color, text: String) {
         switch state {
-        case .DONE:
-            return (Color.gray, "Done")
+        case .DONE(let reason):
+            if let reason = reason, let cause = reason.cause {
+                return (Color.gray, "DONE - \(cause)")
+            }
+            return (Color.gray, "DONE")
         case .RINGING:
             return (Color(hex: "#3434EF"), "Ringing")
         case .CONNECTING:
             return (Color(hex: "#008563"), "Connecting")
-        case .DROPPED:
-            return (Color(hex: "#D40000"), "Dropped")
-        case .RECONNECTING:
-            return (Color(hex: "#CF7E20"), "Reconnecting")
+        case .DROPPED(let reason):
+            return (Color(hex: "#D40000"), "Dropped - \(reason.rawValue)")
+        case .RECONNECTING(let reason):
+            return (Color(hex: "#CF7E20"), "Reconnecting - \(reason.rawValue)")
         case .ACTIVE:
             return (Color(hex: "#008563"), "Active")
         case .NEW:

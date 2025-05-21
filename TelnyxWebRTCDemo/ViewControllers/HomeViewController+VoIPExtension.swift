@@ -31,7 +31,7 @@ extension HomeViewController : VoIPDelegate {
     
     func onClientError(error: Error) {
         print("ViewController:: TxClientDelegate onClientError() error: \(error)")
-        let noActiveCalls = self.telnyxClient?.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
+        let noActiveCalls = self.telnyxClient?.calls.filter { $0.value.callState.isConsideredActive }.isEmpty
         
         // Stop the connection timer if it's running
         stopConnectionTimer()
@@ -57,13 +57,22 @@ extension HomeViewController : VoIPDelegate {
                         
                     case .callFailed(let reason):
                         print("Call Failure: \(reason.localizedDescription ?? "Unknown reason")")
-                    self.showAlert(message: reason.localizedDescription ?? "")
-                        
+                        self.showAlert(message: reason.localizedDescription ?? "")
+
                     case .serverError(let reason):
                         self.telnyxClient?.disconnect()
                         self.viewModel.isLoading = false
                         self.viewModel.socketState = .disconnected
-                        print("Server Error: \(reason.localizedDescription)")
+                        
+                        // Check if it's a signaling server error
+                        if case .signalingServerError(let message, let code) = reason {
+                            print("Signaling Server Error: \(message) (Code: \(code))")
+                            // Display a popup with the error message
+                            let codeInt = Int(code) ?? 0
+                            self.showErrorPopup(title: "Signaling Server Error", message: self.formatSignalingErrorMessage(causeCode: codeInt, message: message))
+                        } else {
+                            print("Server Error: \(reason.localizedDescription)")
+                        }
                     }
                 print("ERROR: client error \(error)")
             }
@@ -79,6 +88,40 @@ extension HomeViewController : VoIPDelegate {
             DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
                 alert.dismiss(animated: true)
             }
+        }
+    }
+    
+    func showErrorPopup(title: String, message: String) {
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(alert, animated: true)
+        }
+    }
+    
+    /// Formats a signaling server error message based on the cause code
+    /// - Parameters:
+    ///   - causeCode: The error code from the signaling server
+    ///   - message: The error message from the signaling server
+    /// - Returns: A user-friendly error message
+    func formatSignalingErrorMessage(causeCode: Int, message: String) -> String {
+        // Map error codes to user-friendly messages
+        switch causeCode {
+        case -32000:
+            return "Token registration error: \(message)"
+        case -32001:
+            return "Credential registration error: \(message)"
+        case -32002:
+            return "Codec error: \(message)"
+        case -32003:
+            return "Gateway registration timeout: \(message)"
+        case -32004:
+            return "Gateway registration failed: \(message)"
+        default:
+            if message.contains("Call not found") {
+                return "Call not found: The specified call cannot be found"
+            }
+            return message
         }
     }
     
@@ -111,8 +154,41 @@ extension HomeViewController : VoIPDelegate {
         }
     }
     
-    func onRemoteCallEnded(callId: UUID) {
-        print("ViewController:: TxClientDelegate onRemoteCallEnded() callId: \(callId)")
+    func onRemoteCallEnded(callId: UUID, reason: CallTerminationReason? = nil) {
+        print("ViewController:: TxClientDelegate onRemoteCallEnded() callId: \(callId), reason: \(reason?.cause ?? "None")")
+        
+        // We no longer show a popup here as the termination reason is displayed inline in the UI
+        // The call state will be updated through onCallStateUpdated with the termination reason
+    }
+    
+    private func formatTerminationReason(reason: CallTerminationReason) -> String {
+        // If we have a SIP code and reason, use that
+        if let sipCode = reason.sipCode, let sipReason = reason.sipReason {
+            return "\(sipReason) (SIP \(sipCode))"
+        }
+        
+        // If we have just a SIP code
+        if let sipCode = reason.sipCode {
+            return "Call ended with SIP code: \(sipCode)"
+        }
+        
+        // If we have a cause
+        if let cause = reason.cause {
+            switch cause {
+            case "USER_BUSY":
+                return "Call ended: User busy"
+            case "CALL_REJECTED":
+                return "Call ended: Call rejected"
+            case "UNALLOCATED_NUMBER":
+                return "Call ended: Invalid number"
+            case "NORMAL_CLEARING":
+                return "Call ended normally"
+            default:
+                return "Call ended: \(cause)"
+            }
+        }
+        
+        return "Call ended"
     }
     
     func onCallStateUpdated(callState: CallState, callId: UUID) {
@@ -141,7 +217,11 @@ extension HomeViewController : VoIPDelegate {
                         self.appDelegate.executeOutGoingCall()
                     }
                     break
-                case .DONE:
+                case .DONE(let reason):
+                    // Handle call termination reason if needed
+                    if let reason = reason {
+                        print("Call ended with reason: \(reason.cause ?? "Unknown"), SIP code: \(reason.sipCode ?? 0)")
+                    }
                     // self.resetCallStates()
                     break
                 case .HELD:

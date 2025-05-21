@@ -267,9 +267,20 @@ extension ViewController: TxClientDelegate {
           break
       case .ACTIVE:
           break
-      case .DONE:
+      case .DONE(let reason):
+          // The DONE state may include a termination reason with details about why the call ended
+          if let reason = reason {
+              print("Call ended with reason: \(reason.cause ?? "Unknown")")
+              print("SIP code: \(reason.sipCode ?? 0), SIP reason: \(reason.sipReason ?? "None")")
+          }
           break
       case .HELD:
+          break
+      case .RECONNECTING(let reason):
+          print("Call reconnecting: \(reason.rawValue)")
+          break
+      case .DROPPED(let reason):
+          print("Call dropped: \(reason.rawValue)")
           break
       }
     }
@@ -331,6 +342,52 @@ This is a general example: In order to fully support inbound calls you will need
 
 ---
 </br>
+
+## Call Termination Reasons
+
+When a call ends, the SDK provides detailed information about why the call was terminated through the `CallTerminationReason` structure. This information is available in the `DONE` state of the call.
+
+### CallTerminationReason Structure
+
+The `CallTerminationReason` structure contains the following fields:
+
+- `cause`: A string describing the general cause of the call termination (e.g., "CALL_REJECTED", "USER_BUSY")
+- `causeCode`: A numerical code corresponding to the cause
+- `sipCode`: The SIP response code (e.g., 403, 404)
+- `sipReason`: The SIP reason phrase (e.g., "Dialed number is not included in whitelisted countries")
+
+### Accessing Call Termination Reasons
+
+You can access the termination reason in the `onCallStateUpdated` delegate method:
+
+```swift
+func onCallStateUpdated(callState: CallState, callId: UUID) {
+    switch callState {
+    case .DONE(let reason):
+        if let reason = reason {
+            // Access termination details
+            let cause = reason.cause
+            let sipCode = reason.sipCode
+            let sipReason = reason.sipReason
+            
+            // Display or log the information
+            print("Call ended: \(cause ?? "Unknown"), SIP: \(sipCode ?? 0) \(sipReason ?? "")")
+        }
+        break
+    // Handle other states...
+    }
+}
+```
+
+### Common Termination Causes
+
+The SDK provides various termination causes, including:
+
+- `NORMAL_CLEARING`: Call ended normally
+- `USER_BUSY`: The called party is busy
+- `CALL_REJECTED`: The call was rejected
+- `UNALLOCATED_NUMBER`: The dialed number is invalid
+- `INCOMPATIBLE_DESTINATION`: The destination cannot handle the call type
 
 ## WebRTC Statistics
 

@@ -67,9 +67,23 @@ extension AppDelegate: TxClientDelegate {
         print("Custom Headers onPushCall: \(headers as AnyObject)")
     }
     
-    func onRemoteCallEnded(callId: UUID) {
-        print("AppDelegate:: TxClientDelegate onRemoteCallEnded() callKitUUID [\(String(describing: self.callKitUUID))] callId [\(callId)]")
-        reportCallEnd(callId: callId)
+    func onRemoteCallEnded(callId: UUID, reason: CallTerminationReason? = nil) {
+        print("AppDelegate:: TxClientDelegate onRemoteCallEnded() callKitUUID [\(String(describing: self.callKitUUID))] callId [\(callId)], reason: \(reason?.cause ?? "None")")
+        
+        // If we have a SIP code, use it for the disconnect cause
+        var disconnectCause = CXCallEndedReason.remoteEnded
+        if let sipCode = reason?.sipCode {
+            if sipCode == 486 || sipCode == 600 {
+                disconnectCause = .unanswered
+            } else if sipCode == 403 {
+                disconnectCause = .failed
+            } else if sipCode == 404 {
+                disconnectCause = .failed
+            }
+        }
+        
+        reportCallEnd(callId: callId, reason: disconnectCause)
+        
         if (previousCall?.callInfo?.callId == callId) {
             self.previousCall = nil
         }
@@ -77,12 +91,12 @@ extension AppDelegate: TxClientDelegate {
         if (currentCall?.callInfo?.callId == callId) {
             self.currentCall = nil
         }
-        self.voipDelegate?.onRemoteCallEnded(callId: callId)
+        self.voipDelegate?.onRemoteCallEnded(callId: callId, reason: reason)
     }
     
-    func reportCallEnd(callId:UUID){
+    func reportCallEnd(callId:UUID, reason: CXCallEndedReason = .remoteEnded){
          if let provider = self.callKitProvider {
-            provider.reportCall(with: callId, endedAt: Date(), reason: .remoteEnded)
+            provider.reportCall(with: callId, endedAt: Date(), reason: reason)
         }
         
         /*let endCallAction = CXEndCallAction(call: callId)
@@ -115,13 +129,13 @@ extension AppDelegate: TxClientDelegate {
         print("AppDelegate:: TxClientDelegate onCallStateUpdated() callKitUUID [\(String(describing: self.callKitUUID))] callId [\(callId)]")
         self.voipDelegate?.onCallStateUpdated(callState: callState, callId: callId)
         
-        if(callState == .ACTIVE){
+        if callState.isConsideredActive {
             // check if custom headers was passed for answered message
             let headers = self.currentCall?.answerCustomHeaders
             print("Custom Headers: \(headers as AnyObject)")
         }
         
-        if callState == .DONE {
+        if case .DONE = callState {
             if let currentCallId = self.currentCall?.callInfo?.callId,
                currentCallId == callId {
                // self.currentCall = nil // clear current call

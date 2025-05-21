@@ -416,7 +416,12 @@ public class TxClient {
     }
 
     private var isCallsActive: Bool {
-        !self.calls.filter { $0.value.callState != .DONE || $0.value.callState != .NEW }.isEmpty
+        !self.calls.filter { 
+            if case .DONE = $0.value.callState {
+                return false
+            }
+            return $0.value.callState != .NEW
+        }.isEmpty
     }
 
     /// To check if TxClient is connected to Telnyx server.
@@ -740,21 +745,29 @@ extension TxClient {
             environment: serverConfiguration.environment,
             pushMetaData: pushMetaData)
         
-        let noActiveCalls = self.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
+        let noActiveCalls = self.calls.filter { 
+            $0.value.callState.isConsideredActive
+        }.isEmpty
 
-        if (noActiveCalls && isConnected()) {
+        if noActiveCalls && isConnected() {
             Logger.log.i(message: "TxClient:: processVoIPNotification - No Active Calls disconnect")
             self.disconnect()
         }
         
-        if(noActiveCalls){
+        if noActiveCalls {
             do {
                 Logger.log.i(message: "TxClient:: No Active Calls Connecting Again")
                 try self.connectFromPush(txConfig: txConfig, serverConfiguration: pnServerConfig)
                 
                 // Create an initial call_object to handle early bye message
                 if let newCallId = (pushMetaData["call_id"] as? String) {
-                    self.calls[UUID(uuidString: newCallId)!] = Call(callId: UUID(uuidString: newCallId)! , sessionId: newCallId, socket: self.socket!, delegate: self, iceServers: self.serverConfiguration.webRTCIceServers, debug: self.txConfig?.debug ?? false, forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false)
+                    self.calls[UUID(uuidString: newCallId)!] = Call(callId: UUID(uuidString: newCallId)!,
+                                                                    sessionId: newCallId,
+                                                                    socket: self.socket!,
+                                                                    delegate: self,
+                                                                    iceServers: self.serverConfiguration.webRTCIceServers,
+                                                                    debug: self.txConfig?.debug ?? false,
+                                                                    forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false)
                 }
             } catch let error {
                 Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
@@ -809,16 +822,20 @@ extension TxClient: CallProtocol {
         Logger.log.i(message: "TxClient:: callStateUpdated()")
 
         guard let callId = call.callInfo?.callId else { return }
-        //Forward call state
+        // Forward call state
         self.delegate?.onCallStateUpdated(callState: call.callState, callId: callId)
 
-        //Remove call if it has ended
-        if call.callState == .DONE ,
+        // Remove call if it has ended
+        if case .DONE = call.callState,
            let callId = call.callInfo?.callId {
             Logger.log.i(message: "TxClient:: Remove call")
             self.calls.removeValue(forKey: callId)
-            //Forward call ended state
-            self.delegate?.onRemoteCallEnded(callId: callId)
+            //Forward call ended state with termination reason if available
+            if case let .DONE(reason) = call.callState {
+                self.delegate?.onRemoteCallEnded(callId: callId, reason: reason)
+            } else {
+                self.delegate?.onRemoteCallEnded(callId: callId, reason: nil)
+            }
             self._isSpeakerEnabled = false
         }
     }
@@ -857,7 +874,7 @@ extension TxClient : SocketDelegate {
         self.reconnectTimeoutTimer?.schedule(deadline: .now() + (txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT))
         self.reconnectTimeoutTimer?.setEventHandler { [weak self] in
             Logger.log.i(message: "Reconnect TimeOut : after \(self?.txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT) secs")
-            self?.updateActiveCallsState(callState: CallState.DONE)
+            self?.updateActiveCallsState(callState: CallState.DONE(reason: nil))
             self?.disconnect()
             self?.delegate?.onClientError(error: TxError.callFailed(reason: .reconnectFailed))
         }
@@ -961,20 +978,24 @@ extension TxClient : SocketDelegate {
 
         //Check if server is sending an error code
         if let error = vertoMessage.serverError {
-            if(attachCallId == vertoMessage.id){
+            if attachCallId == vertoMessage.id {
                 // Call failed from remote end
-              if let callId = pushMetaData?["call_id"] as? String {
+              if let callId = pushMetaData?["call_id"] as? String,
+                let callUUID = UUID(uuidString: callId) {
                   Logger.log.i(message: "TxClient:: Attach Call ID \(String(describing: callId))")
                   FileLogger.shared.log("Error Recieved, Remote Call Ended Line 764")
-                  self.delegate?.onRemoteCallEnded(callId: UUID(uuidString: callId)!)
-                  
+                  // Create a termination reason for the error
+                  let terminationReason = CallTerminationReason(cause: "REMOTE_ERROR")
+                  self.delegate?.onRemoteCallEnded(callId: callUUID, reason: terminationReason)
+                  self.delegate?.onCallStateUpdated(callState: .DONE(reason: terminationReason), callId: callUUID)
                 }
                 return
             }
-            let message : String = error["message"] as? String ?? "Unknown"
-            let code : String = String(error["code"] as? Int ?? 0)
-            let noActiveCalls = self.calls.filter { $0.value.callState == .ACTIVE || $0.value.callState == .HELD }.isEmpty
-
+            let message: String = error["message"] as? String ?? "Unknown"
+            let codeInt: Int = error["code"] as? Int ?? 0
+            let code: String = String(codeInt)
+            
+            // Use the existing ServerErrorReason.signalingServerError approach
             let err = TxError.serverError(reason: .signalingServerError(message: message, code: code))
             self.delegate?.onClientError(error: err)
         }

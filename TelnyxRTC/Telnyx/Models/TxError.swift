@@ -52,7 +52,7 @@ public enum TxError : Error {
         /// Gateway is not registered.
         case gatewayNotRegistered
     }
-
+    
     /// Socket connection failures.
     case socketConnectionFailed(reason: SocketFailureReason)
     /// There's an invalid parameter when setting up the SDK

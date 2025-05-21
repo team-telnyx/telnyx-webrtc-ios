@@ -5,17 +5,77 @@ This document provides a comprehensive overview of error handling in the Telnyx 
 ## Table of Contents
 
 1. [Introduction](#introduction)
-2. [The `onClientError` Callback](#the-onclienterror-callback)
-3. [Error Types](#error-types)
+2. [Error Constants Reference](#error-constants-reference)
+3. [Call Termination Reasons](#call-termination-reasons)
+4. [The `onClientError` Callback](#the-onclienterror-callback)
+5. [Error Types](#error-types)
    - [Server Errors](#server-errors)
    - [Local Errors](#local-errors)
    - [Socket Connection Errors](#socket-connection-errors)
-4. [Reconnection Process](#reconnection-process)
-5. [Best Practices](#best-practices)
+6. [Reconnection Process](#reconnection-process)
+7. [Best Practices](#best-practices)
 
 ## Introduction
 
 The Telnyx WebRTC iOS SDK provides robust error handling mechanisms to help developers manage various error scenarios that may occur during the lifecycle of a WebRTC connection. Understanding these error handling mechanisms is crucial for building reliable applications that can gracefully recover from failures.
+
+## Error Constants Reference
+
+The following table lists all error constants used in the Telnyx WebRTC iOS SDK:
+
+| ERROR MESSAGE | ERROR CODE | DESCRIPTION |
+|---------------|------------|-------------|
+| Token registration error | -32000 | Error during token registration |
+| Credential registration error | -32001 | Error during credential registration |
+| Codec error | -32002 | Error related to codec operation |
+| Gateway registration timeout | -32003 | Gateway registration timed out |
+| Gateway registration failed | -32004 | Gateway registration failed |
+| Call not found | N/A | The specified call cannot be found |
+
+## Call Termination Reasons
+
+The SDK now provides detailed information about why a call has ended through the `CallState.DONE(reason: CallTerminationReason?)` state. The `CallTerminationReason` structure contains the following fields:
+
+| FIELD | TYPE | DESCRIPTION |
+|-------|------|-------------|
+| cause | String? | General cause description (e.g., "CALL_REJECTED", "USER_BUSY") |
+| causeCode | Int? | Numerical code for the cause (e.g., 21 for CALL_REJECTED) |
+| sipCode | Int? | SIP response code (e.g., 403, 404) |
+| sipReason | String? | SIP reason phrase (e.g., "Dialed number is not included in whitelisted countries") |
+
+### Common Cause Values
+
+| CAUSE | DESCRIPTION |
+|-------|-------------|
+| CALL_REJECTED | The call was rejected by the remote party |
+| UNALLOCATED_NUMBER | The dialed number is invalid or does not exist |
+| USER_BUSY | The remote user is busy |
+| NORMAL_CLEARING | Normal call termination |
+
+### Example Usage
+
+```swift
+func onCallStateUpdated(callState: CallState) {
+    switch callState {
+    case .DONE(let reason):
+        if let reason = reason {
+            if let sipCode = reason.sipCode, let sipReason = reason.sipReason {
+                // Handle specific SIP error
+                print("Call failed with SIP code \(sipCode): \(sipReason)")
+            } else if let cause = reason.cause {
+                // Handle general cause
+                print("Call ended: \(cause)")
+            }
+        } else {
+            // Normal call end
+            print("Call ended normally")
+        }
+    // Handle other states...
+    default:
+        break
+    }
+}
+```
 
 ## The `onClientError` Callback
 
@@ -33,7 +93,8 @@ The `onClientError` callback is triggered in the following scenarios:
    - Error Type: `TxError.serverError(reason: .gatewayNotRegistered)`
 
 2. **Server Error Messages**: When the server sends an error message through the WebSocket connection.
-   - Error Type: `TxError.serverError(reason: .signalingServerError(message: String, code: String))`
+   - Error Type: `TxError.serverError(reason: .signalingServerError(message: String, code: String))` (Legacy)
+   - Error Type: `TxError.signalingServerError(causeCode: Int, message: String)` (New)
 
 3. **Socket Connection Errors**: When there are issues with the WebSocket connection.
    - These errors are propagated through the Socket class to the TxClient.
@@ -44,7 +105,7 @@ The SDK uses the `TxError` enum to represent different types of errors that can 
 
 ### Server Errors
 
-Server errors are represented by the `TxError.serverError` case with a `ServerErrorReason` enum:
+Server errors are represented by the `TxError.serverError` case with a `ServerErrorReason` enum or the new `TxError.signalingServerError` case:
 
 ```swift
 public enum ServerErrorReason {
@@ -53,15 +114,29 @@ public enum ServerErrorReason {
     /// Gateway is not registered.
     case gatewayNotRegistered
 }
+
+/// When the signaling server sends an error with a cause code and message
+case signalingServerError(causeCode: Int, message: String)
 ```
 
 #### Signaling Server Errors
 
 These errors occur when the Telnyx signaling server returns an error response. The error includes:
 - A message describing the error
-- An error code
+- An error code (as an integer in the new format)
 
-Common signaling server errors include authentication failures, invalid requests, and service unavailability.
+Common signaling server errors include:
+
+| ERROR CODE | ERROR MESSAGE | DESCRIPTION |
+|------------|---------------|-------------|
+| -32000 | Token registration error | Error during token registration |
+| -32001 | Credential registration error | Error during credential registration |
+| -32002 | Codec error | Error related to codec operation |
+| -32003 | Gateway registration timeout | Gateway registration timed out |
+| -32004 | Gateway registration failed | Gateway registration failed |
+| N/A | Call not found | The specified call cannot be found |
+
+These errors typically occur during authentication, call setup, or when interacting with the signaling server.
 
 #### Gateway Not Registered Errors
 
@@ -134,7 +209,26 @@ To effectively handle errors in your application:
                case .gatewayNotRegistered:
                    // Handle gateway registration failure
                case .signalingServerError(let message, let code):
-                   // Handle signaling server errors
+                   // Handle signaling server errors (legacy format)
+               }
+           case .signalingServerError(let causeCode, let message):
+               // Handle signaling server errors with cause code
+               switch causeCode {
+               case -32000:
+                   // Handle token registration error
+               case -32001:
+                   // Handle credential registration error
+               case -32002:
+                   // Handle codec error
+               case -32003:
+                   // Handle gateway registration timeout
+               case -32004:
+                   // Handle gateway registration failed
+               default:
+                   // Handle other signaling server errors
+                   if message.contains("Call not found") {
+                       // Handle call not found error
+                   }
                }
            case .socketConnectionFailed(let reason):
                // Handle socket connection failures
@@ -193,6 +287,7 @@ To effectively handle errors in your application:
    - **Call States During Reconnection**:
      - When network is lost during a call, the call state changes to `DROPPED` with reason `.networkLost`
      - During reconnection attempts, the call state changes to `RECONNECTING` with reason `.networkSwitch`
+     - When a call ends with an error, the call state changes to `DONE` with a `CallTerminationReason` containing details
      - Your UI should reflect these states to keep users informed
      - Example implementation:
        ```swift
@@ -207,6 +302,20 @@ To effectively handle errors in your application:
                if reason == .networkLost {
                    // Show network lost UI
                    showNetworkLostIndicator()
+               }
+           case .DONE(let terminationReason):
+               if let reason = terminationReason {
+                   // Show call termination reason
+                   if let sipCode = reason.sipCode, let sipReason = reason.sipReason {
+                       showErrorMessage("Call failed: \(sipReason) (SIP \(sipCode))")
+                   } else if let cause = reason.cause {
+                       showErrorMessage("Call ended: \(cause)")
+                   } else {
+                       hideCallUI()
+                   }
+               } else {
+                   // Normal call end
+                   hideCallUI()
                }
            case .ACTIVE:
                // Call is active again after reconnection

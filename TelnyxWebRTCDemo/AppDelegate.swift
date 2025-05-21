@@ -20,7 +20,7 @@ protocol VoIPDelegate: AnyObject {
     func onSessionUpdated(sessionId: String)
     func onCallStateUpdated(callState: CallState, callId: UUID)
     func onIncomingCall(call: Call)
-    func onRemoteCallEnded(callId: UUID)
+    func onRemoteCallEnded(callId: UUID, reason: CallTerminationReason?)
     func executeCall(callUUID: UUID, completionHandler: @escaping (_ success: Call?) -> Void)
 }
 

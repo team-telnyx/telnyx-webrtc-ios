@@ -119,6 +119,7 @@ extension TelnyxRTCMulticallTests {
 
 // MARK: - TxClientDelegate
 extension TelnyxRTCMulticallTests : TxClientDelegate {
+    
     func onPushDisabled(success: Bool, message: String) {
         print("TelnyxRTCMulticallTests :: TxClientDelegate onPushDisabled()")
     }
@@ -159,8 +160,8 @@ extension TelnyxRTCMulticallTests : TxClientDelegate {
         print("TelnyxRTCMulticallTests :: TxClientDelegate onIncomingCall()")
     }
 
-    func onRemoteCallEnded(callId: UUID) {
-        print("TelnyxRTCMulticallTests :: TxClientDelegate onRemoteCallEnded()")
+    func onRemoteCallEnded(callId: UUID, reason: TelnyxRTC.CallTerminationReason?) {
+        print("TelnyxRTCMulticallTests :: TxClientDelegate onRemoteCallEnded() \(String(describing: reason))")
         print("testMultipleOutgoingCalls() remove from myCallArray: \(myCallArray.count)")
         myCallArray.removeValue(forKey: callId)
     }

@@ -3,6 +3,7 @@ import TelnyxRTC
 import XCTest
 
 class RTCTestDelegate : TxClientDelegate {
+    
     func onPushDisabled(success: Bool, message: String) {}
     
     
@@ -26,7 +27,7 @@ class RTCTestDelegate : TxClientDelegate {
     
     func onIncomingCall(call: Call) {}
     
-    func onRemoteCallEnded(callId: UUID) {}
+    func onRemoteCallEnded(callId: UUID, reason: TelnyxRTC.CallTerminationReason?) { }
     
     func onPushCall(call: Call) {}
 }

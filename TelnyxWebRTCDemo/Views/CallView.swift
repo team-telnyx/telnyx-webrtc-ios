@@ -18,11 +18,11 @@ struct CallView: View {
     var body: some View {
         VStack {
             switch viewModel.callState {
-                case .DONE:
+                case .DONE(let reason):
                     callView
                 case .NEW:
                     incomingCallView
-            case .ACTIVE, .HELD, .CONNECTING, .RINGING, .RECONNECTING, .DROPPED:
+                case .ACTIVE, .HELD, .CONNECTING, .RINGING, .RECONNECTING, .DROPPED:
                     callingView
             }
         }
