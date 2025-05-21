@@ -50,15 +50,25 @@ jobs:
 
     - name: 📝 Read custom release PR template
       id: pr_template
+      shell: bash
       run: |
         TEMPLATE_FILE=".github/pr-templates/release.md"
+        echo "DEBUG: Looking for template at $TEMPLATE_FILE"
+
         if [ -f "$TEMPLATE_FILE" ]; then
-          echo "template<<EOF" >> $GITHUB_OUTPUT
-          cat "$TEMPLATE_FILE" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "DEBUG: Template file found. Contents below:"
+          cat "$TEMPLATE_FILE"
+
+          {
+            echo "template<<EOF"
+            cat "$TEMPLATE_FILE"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
         else
-          echo "template=_" >> $GITHUB_OUTPUT
+          echo "DEBUG: Template file not found. Using default fallback."
+          echo "template=_" >> "$GITHUB_OUTPUT"
         fi
+
 
     - name: 🛠 Update SDK version
       shell: bash
