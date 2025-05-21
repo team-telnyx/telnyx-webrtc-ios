@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>TxLogger Protocol Reference</title>
+    <title>CallQuality Enumeration Reference</title>
     <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
     <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
     <meta charset='utf-8'>
@@ -13,8 +13,8 @@
     <script src="../js/jazzy.search.js" defer></script>
   </head>
   <body>
-    <a name="//apple_ref/swift/Protocol/TxLogger" class="dashAnchor"></a>
-    <a title="TxLogger Protocol Reference"></a>
+    <a name="//apple_ref/swift/Enum/CallQuality" class="dashAnchor"></a>
+    <a title="CallQuality Enumeration Reference"></a>
     <header>
       <div class="content-wrapper">
         <p><a href="../index.html">TelnyxRTC 2.0.0 Docs</a> (80% documented)</p>
@@ -29,9 +29,9 @@
       <p id="breadcrumbs">
         <a href="../index.html">TelnyxRTC</a>
         <img id="carat" src="../img/carat.png" alt=""/>
-        <a href="../Protocols.html">Protocols</a>
+        <a href="../Enums.html">Enumerations</a>
         <img id="carat" src="../img/carat.png" alt=""/>
-        TxLogger Protocol Reference
+        CallQuality Enumeration Reference
       </p>
     </div>
     <div class="content-wrapper">
@@ -137,16 +137,15 @@
       <article class="main-content">
         <section>
           <section class="section">
-            <h1>TxLogger</h1>
+            <h1>CallQuality</h1>
               <div class="declaration">
                 <div class="language">
                   
-                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">TxLogger</span></code></pre>
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">CallQuality</span> <span class="p">:</span> <span class="kt">String</span></code></pre>
 
                 </div>
               </div>
-            <p>Protocol defining the interface for custom logging in the Telnyx SDK.
-Implement this protocol to create a custom logger that can receive and handle logs from the SDK.</p>
+            <p>Quality rating for a WebRTC call based on MOS score</p>
 
           </section>
           <section class="section task-group-section">
@@ -155,9 +154,9 @@ Implement this protocol to create a custom logger that can receive and handle lo
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC8TxLoggerP3log5level7messageyAA8LogLevelO_SStF"></a>
-                    <a name="//apple_ref/swift/Method/log(level:message:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC8TxLoggerP3log5level7messageyAA8LogLevelO_SStF">log(level:<wbr>message:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC11CallQualityO9excellentyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/excellent" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC11CallQualityO9excellentyA2CmF">excellent</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -165,47 +164,151 @@ Implement this protocol to create a custom logger that can receive and handle lo
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Called when a log message needs to be processed.</p>
+                        <p>MOS &gt; 4.2</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">log</span><span class="p">(</span><span class="nv">level</span><span class="p">:</span> <span class="kt"><a href="../Enums/LogLevel.html">LogLevel</a></span><span class="p">,</span> <span class="nv">message</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span></code></pre>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">excellent</span></code></pre>
 
                         </div>
                       </div>
-                      <div>
-                        <h4>Parameters</h4>
-                        <table class="graybox">
-                          <tbody>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>level</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>The severity level of the log message</p>
-                                </div>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>message</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>The actual log message</p>
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC11CallQualityO4goodyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/good" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC11CallQualityO4goodyA2CmF">good</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>4.1 &lt;= MOS &lt;= 4.2</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">good</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC11CallQualityO4fairyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/fair" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC11CallQualityO4fairyA2CmF">fair</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>3.7 &lt;= MOS &lt;= 4.0</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">fair</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC11CallQualityO4pooryA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/poor" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC11CallQualityO4pooryA2CmF">poor</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>3.1 &lt;= MOS &lt;= 3.6</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">poor</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC11CallQualityO3badyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/bad" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC11CallQualityO3badyA2CmF">bad</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>MOS &lt;= 3.0</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">bad</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC11CallQualityO7unknownyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/unknown" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC11CallQualityO7unknownyA2CmF">unknown</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Unable to calculate quality</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">unknown</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>

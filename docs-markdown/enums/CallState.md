@@ -49,10 +49,10 @@ case HELD
 
 Call has been held.
 
-### `DONE`
+### `DONE(reason:)`
 
 ```swift
-case DONE
+case DONE(reason: CallTerminationReason? = nil)
 ```
 
 Call has ended.
@@ -81,3 +81,16 @@ public func getReason() -> String?
 ```
 
 Helper function to get the reason for the state (if applicable).
+
+### `==(_:_:)`
+
+```swift
+public static func == (lhs: CallState, rhs: CallState) -> Bool
+```
+
+#### Parameters
+
+| Name | Description |
+| ---- | ----------- |
+| lhs | A value to compare. |
+| rhs | Another value to compare. |

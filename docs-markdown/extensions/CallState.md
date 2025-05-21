@@ -6,6 +6,14 @@ public extension CallState
 ```
 
 ## Properties
+### `isConsideredActive`
+
+```swift
+var isConsideredActive: Bool
+```
+
+Returns true if the call is considered active (ACTIVE or HELD states)
+
 ### `value`
 
 ```swift
