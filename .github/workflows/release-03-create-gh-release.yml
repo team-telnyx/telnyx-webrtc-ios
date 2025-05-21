@@ -10,6 +10,7 @@
 # 7. Prints the generated changelog to the console for debugging.
 # 8. Creates a new GitHub Release with the specified version tag,
 #    using the changelog as the release body content.
+
 name: release-03-create-gh-release
 
 on:
@@ -32,24 +33,31 @@ jobs:
 
     - name: 🏷️ Get last created TAG
       id: get-last-tag
-      run: echo "LAST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_ENV
+      run: |
+        LAST_TAG=$(git tag --sort=-creatordate | head -n 1)
+        echo "Last tag: $LAST_TAG"
+        echo "LAST_TAG=$LAST_TAG" >> $GITHUB_ENV
+        echo "last_tag=$LAST_TAG" >> $GITHUB_OUTPUT
+
+    - name: ❗ Fail if no tag is found
+      if: steps.get-last-tag.outputs.last_tag == ''
+      run: |
+        echo "❌ No Git tag found. Aborting release generation."
+        exit 1
 
     - name: 📝 Generate changelog from PRs since last tag
       id: generate-changelog
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        echo "Last tag: $LAST_TAG"
+        echo "Last tag: ${{ steps.get-last-tag.outputs.last_tag }}"
 
-        # Get commits from last tag to main
-        COMMITS=$(git log --pretty=format:"%H" "$LAST_TAG"..main)
+        COMMITS=$(git log --pretty=format:"%H" "${{ steps.get-last-tag.outputs.last_tag }}"..main)
 
-        # List merged PRs on main with title, number, and merge commit SHA
         gh pr list --state merged --base main --json title,number,mergeCommit --jq '.' > pr_data.json
 
         CHANGELOG=""
 
-        # Loop through PRs and check if merge commit SHA is in commits range
         for row in $(jq -c '.[]' pr_data.json); do
           TITLE=$(echo $row | jq -r '.title')
           NUMBER=$(echo $row | jq -r '.number')
@@ -60,7 +68,6 @@ jobs:
           fi
         done
 
-        # Save changelog to file and set output for next steps
         echo -e "$CHANGELOG" > changelog.txt
 
         echo "changelog<<EOF" >> $GITHUB_OUTPUT
