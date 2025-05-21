@@ -1,0 +1,30 @@
+Added webrtc-stats.md	228	ee0bd557a4ed696b051a4517ccac073b8463e3c9
+WEBRTC-2686: Expose Call Termination Reasons in SDK and Surface Error Messages in Demo App	227	d2763e7a3865b04299bba3fca7a24d6de4bc060e
+Fix Ringback Tone for parked calls	226	d759fff24232f62e85db9f335968f828c789ec97
+[Sample App] Release 1.3.0	224	55f1504be754f2af80e21cf95ea3c10e1cb7f0b1
+[WEBRTC-2679] [chore] Update PR Template	222	28ff4999a238dbdc7d05254894a991852deccea9
+Release v1.2.3	221	b7ea6f7515d6f64de164278a0bfa888bbcc19e82
+WEBRTC-2636: [iOS] WebRTC Stats Exposure on Call Level	219	035755c168a2d2e3f9e71528c8dec9abbc33923c
+[docs] Update generated HTML and Markdown documentation	211	e530ea718899c0e06deb0e6a4e774aa704ab3204
+WEBRTC-2558: [iOS] Voice SDK - Release 1.2.2	210	74a2e9926448d3585c9153a895f0997c2f451fe8
+Release v1.2.2	209	206e770ac1b716c50c4a4e0507b65b3e9e6f9305
+[WEBRTC-2557] [Feature] [Sample App] Implement connection timeout logic in sample app	208	9fa46314f259915f9e19743edb298f53d580891d
+[WEBRTC-2530] [Feature] Reconnection timeout	207	9b7ef30f841487147d441b6e3a18002b682ffafd
+WEBRTC-2545: Fix build demo app [Release mode]	206	52833ec64f7fa7604e3e2aa65e4a2406685009f1
+[docs] Update generated HTML and Markdown documentation	205	7ddc7c3132677cc33d6e8a758ee31d4e29e5f967
+WEBRTC-2521: Add changelog entry for version 1.2.1	204	117863e4df452b257a160e65b4eb4654a9f2a1e9
+Release v1.2.1	203	ed79f06eb85a5dfcfcc0bee38796801823f81c26
+WEBRTC-2531: [IOS] Trouble Shooting Push Notification	201	998db791a7f00c1f76f84058f65b1512cfcaa5da
+[ENGDESK-39012] [docs] Improve style of error handling title	198	0f4f08ffd65d14bdef0ab35de7edeae988488fbc
+[docs] Update generated HTML and Markdown documentation	197	41a4cc8c9ac35b7d0ea0711a3ab9aa970edb0e1b
+[docs] Changelog 1.2.0	196	a62f2964869774b824bb1c21f1e7557741dd33d9
+WEBRTC-2525: [iOS] [WebRTC Demo App] Implement Edit credential feature	195	68d33839f5429a0b7345a316d2ee9c00491a0f62
+[docs] Update generated HTML and Markdown documentation	194	e86895ec1b17caff9ad41b0e6c493750c577782b
+WEBRTC-2528: [iOS] Add docs on how to run UI Tests	193	d9c8edefb3b8678cea7332a51f53c6b2388d094a
+ENGDESK-39012: Add table of contents with links to error handling and push notifications documentation	192	2a4f68622e5cd75fa914f81699585a5561fa448e
+[WEBRTC-2508] [Feat] Sample App renamed to Telnyx WebRTC	191	c77ca86a2ee1d37d87652387dd62204af2e726eb
+ENGDESK-39012: Create documentation on error handling in SDK	190	6ea71c279d4196b20242c6732eb4e331525f6626
+Release v1.2.0	189	dda765ec15fba4f6e1df818483deef2593542485
+WEBRTC-2521: Disabling Webrtc Stats while socket connection is recovering	188	3c9ab4baf14361db7e91b7e6a0c9500c58f1e821
+[WEBRTC-2492] [Fix] Network Switch	187	805fc175ea413a4d3461cb821f76d2b4d33af3af
+[WEBRTC-2480] [Feature]: Add custom log implementation	186	f324148e0cd589f09a15e80013bed60162fb2508
