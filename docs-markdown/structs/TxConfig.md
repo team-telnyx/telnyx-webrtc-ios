@@ -92,6 +92,14 @@ which prevents the "local network access" permission popup from appearing.
         as all media will be relayed through TURN servers.
 - Important: This setting is disabled by default to maintain optimal call quality.
 
+### `enableQualityMetrics`
+
+```swift
+public internal(set) var enableQualityMetrics: Bool = false
+```
+
+Controls whether the SDK should deliver call quality metrics
+
 ### `reconnectTimeout`
 
 ```swift
@@ -114,7 +122,7 @@ Custom logger implementation for handling SDK logs
 If not provided, the default logger will be used
 
 ## Methods
-### `init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:reconnectTimeOut:)`
+### `init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:reconnectTimeOut:)`
 
 ```swift
 public init(sipUser: String, password: String,
@@ -127,6 +135,7 @@ public init(sipUser: String, password: String,
             reconnectClient: Bool = true,
             debug: Bool = false,
             forceRelayCandidate: Bool = false,
+            enableQualityMetrics: Bool = false,
             reconnectTimeOut: Double = DEFAULT_TIMEOUT
 )
 ```
@@ -155,7 +164,7 @@ Constructor for the Telnyx SDK configuration using SIP credentials.
 | customLogger | (Optional) Custom logger implementation for handling SDK logs. If not provided, the default logger will be used |
 | reconnectTimeOut | (Optional) Maximum time in seconds the SDK will attempt to reconnect a call after network disruption. Default is 60 seconds. |
 
-### `init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:reconnectTimeOut:)`
+### `init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:reconnectTimeOut:)`
 
 ```swift
 public init(token: String,
@@ -168,6 +177,7 @@ public init(token: String,
             reconnectClient: Bool = true,
             debug: Bool = false,
             forceRelayCandidate: Bool = false,
+            enableQualityMetrics: Bool = false,
             reconnectTimeOut: Double = DEFAULT_TIMEOUT
 )
 ```

@@ -70,6 +70,15 @@ class CallHandler: TxClientDelegate {
 ```
 
 ## Properties
+### `onCallQualityChange`
+
+```swift
+public var onCallQualityChange: ((CallQualityMetrics) -> Void)?
+```
+
+Callback for real-time call quality metrics
+This is triggered whenever new WebRTC statistics are available
+
 ### `inviteCustomHeaders`
 
 ```swift
@@ -126,6 +135,14 @@ public internal(set) var debug: Bool = false
 Enables WebRTC statistics reporting for debugging purposes.
 When true, the SDK will collect and send WebRTC statistics to Telnyx servers.
 This is useful for troubleshooting call quality issues.
+
+### `enableQualityMetrics`
+
+```swift
+public internal(set) var enableQualityMetrics: Bool = false
+```
+
+Enables CallQuality Metrics for Call
 
 ### `forceRelayCandidate`
 

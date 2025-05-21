@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>TxLogger Protocol Reference</title>
+    <title>MOSCalculator Class Reference</title>
     <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
     <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
     <meta charset='utf-8'>
@@ -13,8 +13,8 @@
     <script src="../js/jazzy.search.js" defer></script>
   </head>
   <body>
-    <a name="//apple_ref/swift/Protocol/TxLogger" class="dashAnchor"></a>
-    <a title="TxLogger Protocol Reference"></a>
+    <a name="//apple_ref/swift/Class/MOSCalculator" class="dashAnchor"></a>
+    <a title="MOSCalculator Class Reference"></a>
     <header>
       <div class="content-wrapper">
         <p><a href="../index.html">TelnyxRTC 2.0.0 Docs</a> (80% documented)</p>
@@ -29,9 +29,9 @@
       <p id="breadcrumbs">
         <a href="../index.html">TelnyxRTC</a>
         <img id="carat" src="../img/carat.png" alt=""/>
-        <a href="../Protocols.html">Protocols</a>
+        <a href="../Classes.html">Classes</a>
         <img id="carat" src="../img/carat.png" alt=""/>
-        TxLogger Protocol Reference
+        MOSCalculator Class Reference
       </p>
     </div>
     <div class="content-wrapper">
@@ -137,16 +137,15 @@
       <article class="main-content">
         <section>
           <section class="section">
-            <h1>TxLogger</h1>
+            <h1>MOSCalculator</h1>
               <div class="declaration">
                 <div class="language">
                   
-                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">TxLogger</span></code></pre>
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">MOSCalculator</span></code></pre>
 
                 </div>
               </div>
-            <p>Protocol defining the interface for custom logging in the Telnyx SDK.
-Implement this protocol to create a custom logger that can receive and handle logs from the SDK.</p>
+            <p>Utility class for calculating Mean Opinion Score (MOS) and call quality metrics</p>
 
           </section>
           <section class="section task-group-section">
@@ -155,9 +154,9 @@ Implement this protocol to create a custom logger that can receive and handle lo
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC8TxLoggerP3log5level7messageyAA8LogLevelO_SStF"></a>
-                    <a name="//apple_ref/swift/Method/log(level:message:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC8TxLoggerP3log5level7messageyAA8LogLevelO_SStF">log(level:<wbr>message:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC13MOSCalculatorC12calculateMOS6jitter3rtt15packetsReceived0H4LostS2d_SdS2itFZ"></a>
+                    <a name="//apple_ref/swift/Method/calculateMOS(jitter:rtt:packetsReceived:packetsLost:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC13MOSCalculatorC12calculateMOS6jitter3rtt15packetsReceived0H4LostS2d_SdS2itFZ">calculateMOS(jitter:<wbr>rtt:<wbr>packetsReceived:<wbr>packetsLost:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -165,14 +164,14 @@ Implement this protocol to create a custom logger that can receive and handle lo
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Called when a log message needs to be processed.</p>
+                        <p>Calculates the Mean Opinion Score (MOS) based on WebRTC statistics</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">log</span><span class="p">(</span><span class="nv">level</span><span class="p">:</span> <span class="kt"><a href="../Enums/LogLevel.html">LogLevel</a></span><span class="p">,</span> <span class="nv">message</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">calculateMOS</span><span class="p">(</span><span class="nv">jitter</span><span class="p">:</span> <span class="kt">Double</span><span class="p">,</span> <span class="nv">rtt</span><span class="p">:</span> <span class="kt">Double</span><span class="p">,</span> <span class="nv">packetsReceived</span><span class="p">:</span> <span class="kt">Int</span><span class="p">,</span> <span class="nv">packetsLost</span><span class="p">:</span> <span class="kt">Int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Double</span></code></pre>
 
                         </div>
                       </div>
@@ -183,29 +182,107 @@ Implement this protocol to create a custom logger that can receive and handle lo
                             <tr>
                               <td>
                                 <code>
-                                <em>level</em>
+                                <em>jitter</em>
                                 </code>
                               </td>
                               <td>
                                 <div>
-                                  <p>The severity level of the log message</p>
+                                  <p>Jitter in milliseconds</p>
                                 </div>
                               </td>
                             </tr>
                             <tr>
                               <td>
                                 <code>
-                                <em>message</em>
+                                <em>rtt</em>
                                 </code>
                               </td>
                               <td>
                                 <div>
-                                  <p>The actual log message</p>
+                                  <p>Round-trip time in milliseconds</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>packetsReceived</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Number of packets received</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>packetsLost</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Number of packets lost</p>
                                 </div>
                               </td>
                             </tr>
                           </tbody>
                         </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>MOS score between 1.0 and 5.0</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC13MOSCalculatorC10getQuality3mosAA04CallE0OSd_tFZ"></a>
+                    <a name="//apple_ref/swift/Method/getQuality(mos:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC13MOSCalculatorC10getQuality3mosAA04CallE0OSd_tFZ">getQuality(mos:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Determines call quality based on MOS score</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">getQuality</span><span class="p">(</span><span class="nv">mos</span><span class="p">:</span> <span class="kt">Double</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Enums/CallQuality.html">CallQuality</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>mos</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Mean Opinion Score</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Call quality rating</p>
                       </div>
                     </section>
                   </div>
