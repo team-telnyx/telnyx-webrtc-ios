@@ -16,7 +16,7 @@
     <a title="TelnyxRTC  Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="index.html">TelnyxRTC 1.2.2 Docs</a> (78% documented)</p>
+        <p><a href="index.html">TelnyxRTC 2.0.0 Docs</a> (80% documented)</p>
         <div class="header-right">
           <form role="search" action="search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -42,6 +42,9 @@
                 <a href="Classes/FileLogger.html">FileLogger</a>
               </li>
               <li class="nav-group-task">
+                <a href="Classes/MOSCalculator.html">MOSCalculator</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="Classes/TxClient.html">TxClient</a>
               </li>
               <li class="nav-group-task">
@@ -52,6 +55,9 @@
           <li class="nav-group-name">
             <a href="Enums.html">Enumerations</a>
             <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="Enums/CallQuality.html">CallQuality</a>
+              </li>
               <li class="nav-group-task">
                 <a href="Enums/CallState.html">CallState</a>
               </li>
@@ -99,6 +105,12 @@
             <a href="Structs.html">Structures</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
+                <a href="Structs/CallQualityMetrics.html">CallQualityMetrics</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/CallTerminationReason.html">CallTerminationReason</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="Structs/TxCallInfo.html">TxCallInfo</a>
               </li>
               <li class="nav-group-task">
@@ -138,7 +150,14 @@
 <li><a href="#telnyx-client-delegate">Telnyx Client Delegate</a></li>
 <li><a href="#calls">Calls</a></li>
 </ul></li>
-<li><a href="#webrtc-statistics">WebRTC Statistics</a></li>
+<li><a href="#webrtc-statistics">WebRTC Statistics</a>
+
+<ul>
+<li><a href="#enabling-webrtc-statistics">Enabling WebRTC Statistics</a></li>
+<li><a href="#understanding-webrtc-statistics">Understanding WebRTC Statistics</a></li>
+<li><a href="#real-time-call-quality-monitoring">Real-time Call Quality Monitoring</a></li>
+<li><a href="#important-notes">Important Notes</a></li>
+</ul></li>
 <li><a href="#custom-logging">Custom Logging</a></li>
 <li><a href="#push-notifications-setup">Push Notifications Setup</a></li>
 </ul>
@@ -396,9 +415,20 @@ telnyxClient.delegate = self
           break
       case .ACTIVE:
           break
-      case .DONE:
+      case .DONE(let reason):
+          // The DONE state may include a termination reason with details about why the call ended
+          if let reason = reason {
+              print("Call ended with reason: \(reason.cause ?? "Unknown")")
+              print("SIP code: \(reason.sipCode ?? 0), SIP reason: \(reason.sipReason ?? "None")")
+          }
           break
       case .HELD:
+          break
+      case .RECONNECTING(let reason):
+          print("Call reconnecting: \(reason.rawValue)")
+          break
+      case .DROPPED(let reason):
+          print("Call dropped: \(reason.rawValue)")
           break
       }
     }
@@ -454,6 +484,50 @@ extension ViewController: TxClientDelegate {
 <hr>
 
 <p></br></p>
+<h2 id='call-termination-reasons' class='heading'>Call Termination Reasons</h2>
+
+<p>When a call ends, the SDK provides detailed information about why the call was terminated through the <code><a href="Structs/CallTerminationReason.html">CallTerminationReason</a></code> structure. This information is available in the <code>DONE</code> state of the call.</p>
+<h3 id='callterminationreason-structure' class='heading'>CallTerminationReason Structure</h3>
+
+<p>The <code><a href="Structs/CallTerminationReason.html">CallTerminationReason</a></code> structure contains the following fields:</p>
+
+<ul>
+<li><code>cause</code>: A string describing the general cause of the call termination (e.g., &ldquo;CALL_REJECTED&rdquo;, &ldquo;USER_BUSY&rdquo;)</li>
+<li><code>causeCode</code>: A numerical code corresponding to the cause</li>
+<li><code>sipCode</code>: The SIP response code (e.g., 403, 404)</li>
+<li><code>sipReason</code>: The SIP reason phrase (e.g., &ldquo;Dialed number is not included in whitelisted countries&rdquo;)</li>
+</ul>
+<h3 id='accessing-call-termination-reasons' class='heading'>Accessing Call Termination Reasons</h3>
+
+<p>You can access the termination reason in the <code>onCallStateUpdated</code> delegate method:</p>
+<pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">onCallStateUpdated</span><span class="p">(</span><span class="nv">callState</span><span class="p">:</span> <span class="kt">CallState</span><span class="p">,</span> <span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">switch</span> <span class="n">callState</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="o">.</span><span class="kt">DONE</span><span class="p">(</span><span class="k">let</span> <span class="nv">reason</span><span class="p">):</span>
+        <span class="k">if</span> <span class="k">let</span> <span class="nv">reason</span> <span class="o">=</span> <span class="n">reason</span> <span class="p">{</span>
+            <span class="c1">// Access termination details</span>
+            <span class="k">let</span> <span class="nv">cause</span> <span class="o">=</span> <span class="n">reason</span><span class="o">.</span><span class="n">cause</span>
+            <span class="k">let</span> <span class="nv">sipCode</span> <span class="o">=</span> <span class="n">reason</span><span class="o">.</span><span class="n">sipCode</span>
+            <span class="k">let</span> <span class="nv">sipReason</span> <span class="o">=</span> <span class="n">reason</span><span class="o">.</span><span class="n">sipReason</span>
+
+            <span class="c1">// Display or log the information</span>
+            <span class="nf">print</span><span class="p">(</span><span class="s">"Call ended: </span><span class="se">\(</span><span class="n">cause</span> <span class="p">??</span> <span class="s">"Unknown"</span><span class="se">)</span><span class="s">, SIP: </span><span class="se">\(</span><span class="n">sipCode</span> <span class="p">??</span> <span class="mi">0</span><span class="se">)</span><span class="s"> </span><span class="se">\(</span><span class="n">sipReason</span> <span class="p">??</span> <span class="s">""</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="k">break</span>
+    <span class="c1">// Handle other states...</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id='common-termination-causes' class='heading'>Common Termination Causes</h3>
+
+<p>The SDK provides various termination causes, including:</p>
+
+<ul>
+<li><code>NORMAL_CLEARING</code>: Call ended normally</li>
+<li><code>USER_BUSY</code>: The called party is busy</li>
+<li><code>CALL_REJECTED</code>: The call was rejected</li>
+<li><code>UNALLOCATED_NUMBER</code>: The dialed number is invalid</li>
+<li><code>INCOMPATIBLE_DESTINATION</code>: The destination cannot handle the call type</li>
+</ul>
 <h2 id='webrtc-statistics' class='heading'>WebRTC Statistics</h2>
 
 <p>The SDK provides WebRTC statistics functionality to assist with troubleshooting and monitoring call quality. This feature is controlled through the <code>debug</code> flag in the <code><a href="Classes/TxClient.html">TxClient</a></code> configuration.</p>
@@ -475,6 +549,166 @@ extension ViewController: TxClientDelegate {
 <li>Statistics are linked to the SIP credential used for testing</li>
 <li>The logs help the Telnyx support team diagnose issues and optimize call quality</li>
 </ul>
+<h3 id='real-time-call-quality-monitoring' class='heading'>Real-time Call Quality Monitoring</h3>
+
+<p>The SDK provides real-time call quality metrics through the <code>onCallQualityChange</code> callback on the <code><a href="Classes/Call.html">Call</a></code> object. This allows you to monitor call quality in real-time and provide feedback to users.</p>
+<h4 id='using-oncallqualitychanged' class='heading'>Using onCallQualityChanged</h4>
+<pre class="highlight plaintext"><code>// When creating a new call set debug to true for CallQualityMetrics
+let call = try telnyxClient.newCall(callerName: "Caller name",
+                                   callerNumber: "155531234567",
+                                   destinationNumber: "18004377950",
+                                   callId: UUID.init(),debug:true)
+
+//When accepting a call
+telnyxClient?.answerFromCallkit(answerAction: action,debug:true) or call?.answer(debug:true)
+
+// Set the onCallQualityChange callback
+call.onCallQualityChange = { metrics in
+    // Handle call quality metrics
+    print("Call quality: \(metrics.quality.rawValue)")
+    print("MOS score: \(metrics.mos)")
+    print("Jitter: \(metrics.jitter * 1000) ms")
+    print("Round-trip time: \(metrics.rtt * 1000) ms")
+
+    // Update UI based on call quality
+    switch metrics.quality {
+    case .excellent, .good:
+        // Show excellent/good quality indicator
+        self.qualityIndicator.backgroundColor = .green
+    case .fair:
+        // Show fair quality indicator
+        self.qualityIndicator.backgroundColor = .yellow
+    case .poor, .bad:
+        // Show poor/bad quality indicator
+        self.qualityIndicator.backgroundColor = .red
+        // Optionally show a message to the user
+    case .unknown:
+        // Quality couldn't be determined
+        self.qualityIndicator.backgroundColor = .gray
+    }
+}
+</code></pre>
+<h4 id='callqualitymetrics-properties' class='heading'>CallQualityMetrics Properties</h4>
+
+<p>The <code><a href="Structs/CallQualityMetrics.html">CallQualityMetrics</a></code> object provides the following properties:</p>
+
+<table><thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code>jitter</code></td>
+<td>Double</td>
+<td>Jitter in seconds (multiply by 1000 for milliseconds)</td>
+</tr>
+<tr>
+<td><code>rtt</code></td>
+<td>Double</td>
+<td>Round-trip time in seconds (multiply by 1000 for milliseconds)</td>
+</tr>
+<tr>
+<td><code>mos</code></td>
+<td>Double</td>
+<td>Mean Opinion Score (1.0-5.0)</td>
+</tr>
+<tr>
+<td><code>quality</code></td>
+<td>CallQuality</td>
+<td>Call quality rating based on MOS</td>
+</tr>
+<tr>
+<td><code>inboundAudio</code></td>
+<td>[String: Any]?</td>
+<td>Inbound audio statistics</td>
+</tr>
+<tr>
+<td><code>outboundAudio</code></td>
+<td>[String: Any]?</td>
+<td>Outbound audio statistics</td>
+</tr>
+<tr>
+<td><code>remoteInboundAudio</code></td>
+<td>[String: Any]?</td>
+<td>Remote inbound audio statistics</td>
+</tr>
+<tr>
+<td><code>remoteOutboundAudio</code></td>
+<td>[String: Any]?</td>
+<td>Remote outbound audio statistics</td>
+</tr>
+</tbody></table>
+<h4 id='callquality-enum' class='heading'>CallQuality Enum</h4>
+
+<p>The <code><a href="Enums/CallQuality.html">CallQuality</a></code> enum provides the following values:</p>
+
+<table><thead>
+<tr>
+<th>Value</th>
+<th>MOS Range</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code>.excellent</code></td>
+<td>MOS &gt; 4.2</td>
+<td>Excellent call quality</td>
+</tr>
+<tr>
+<td><code>.good</code></td>
+<td>4.1 &lt;= MOS &lt;= 4.2</td>
+<td>Good call quality</td>
+</tr>
+<tr>
+<td><code>.fair</code></td>
+<td>3.7 &lt;= MOS &lt;= 4.0</td>
+<td>Fair call quality</td>
+</tr>
+<tr>
+<td><code>.poor</code></td>
+<td>3.1 &lt;= MOS &lt;= 3.6</td>
+<td>Poor call quality</td>
+</tr>
+<tr>
+<td><code>.bad</code></td>
+<td>MOS &lt;= 3.0</td>
+<td>Bad call quality</td>
+</tr>
+<tr>
+<td><code>.unknown</code></td>
+<td>N/A</td>
+<td>Unable to calculate quality</td>
+</tr>
+</tbody></table>
+<h4 id='best-practices-for-call-quality-monitoring' class='heading'>Best Practices for Call Quality Monitoring</h4>
+
+<ol>
+<li><p><strong>User Feedback</strong>: </p>
+
+<ul>
+<li>Consider showing a visual indicator of call quality to users</li>
+<li>For poor quality calls, provide suggestions (e.g., &ldquo;Try moving to an area with better connectivity&rdquo;)</li>
+</ul></li>
+<li><p><strong>Logging</strong>:</p>
+
+<ul>
+<li>Log quality metrics for later analysis</li>
+<li>Track quality trends over time to identify patterns</li>
+</ul></li>
+<li><p><strong>Adaptive Behavior</strong>:</p>
+
+<ul>
+<li>Implement adaptive behaviors based on call quality</li>
+<li>For example, suggest switching to audio-only if video quality is poor</li>
+</ul></li>
+<li><p><strong>Performance Considerations</strong>:</p>
+
+<ul>
+<li>The callback is triggered periodically (approximately every 2 seconds)</li>
+</ul></li>
+</ol>
 <h3 id='important-notes' class='heading'>Important Notes</h3>
 
 <ol>
@@ -1014,7 +1248,7 @@ user interface until there are no more active sessions.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-03-20)</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-05-21)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>
