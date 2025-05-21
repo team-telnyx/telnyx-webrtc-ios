@@ -1,0 +1,99 @@
+name: 📚 release_test_docs
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_branch:
+        description: '📌 Base branch for documentation PR (e.g., release/2.0.0)'
+        required: true
+        default: 'main'
+
+jobs:
+  generate_docs:
+    name: 🛠️ Generate Docs
+    runs-on: macos-latest
+
+    steps:
+    - name: 🔄 Checkout base branch
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.inputs.base_branch }}
+
+    - name: 🧰 Select the latest Xcode version
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.4.0'
+
+    - name: 💎 Setup Ruby 3.3.0
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 3.3.0
+        bundler-cache: true
+
+    - name: 📦 Install Fastlane and Jazzy
+      run: |
+        gem install fastlane
+        gem install jazzy
+
+    - name: 📦 Install SourceDocs
+      run: |
+        brew install sourcedocs
+
+    - name: 📦 Install dependencies (CocoaPods)
+      run: |
+        pod install
+
+    - name: 📝 Run Fastlane to generate full documentation
+      run: |
+        fastlane generate_full_docs
+
+    - name: 👤 Setup Git user
+      run: |
+        git config user.name TelnyxIntegrations
+        git config user.email integrations@telnyx.com
+
+    - name: ⚙️ Configure git push settings
+      run: |
+        git config push.autoSetupRemote true
+
+    - name: 🌿 Create documentation branch
+      run: |
+        DOC_BRANCH="docs/$(echo '${{ github.event.inputs.base_branch }}' | sed 's/\//-/g')-$(date +'%Y%m%d%H%M%S')"
+        echo "doc_branch=$DOC_BRANCH" >> $GITHUB_ENV
+        git checkout -b $DOC_BRANCH
+
+    - name: ✅ Commit generated documentation
+      run: |
+        git add docs/ docs-markdown/
+        git commit -m "📝 docs: Regenerate SDK documentation using Fastlane, Jazzy & SourceDocs"
+
+    - name: 📤 Push documentation branch
+      run: |
+        git push origin ${{ env.doc_branch }}
+
+    - name: 🚀 Create Pull Request
+      uses: peter-evans/create-pull-request@v7
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        committer: TelnyxIntegrations <integrations@telnyx.com>
+        base: ${{ github.event.inputs.base_branch }}
+        branch: ${{ env.doc_branch }}
+        title: "📝 [Docs] Update generated SDK documentation"
+        commit-message: "📝 docs: Regenerate SDK documentation for `${{ github.event.inputs.base_branch }}`"
+        body: |
+          This pull request updates the auto-generated SDK documentation.
+
+          ✨ Generated with:
+          - Fastlane
+          - Jazzy
+          - SourceDocs
+
+          🔀 Base branch: `${{ github.event.inputs.base_branch }}`  
+          🆕 Docs branch: `${{ env.doc_branch }}`
+
+          Changes include regenerated `.html` and Markdown files under:
+          - `docs/`
+          - `docs-markdown/`
+
+        labels: "documentation, auto-generated"
+        draft: false

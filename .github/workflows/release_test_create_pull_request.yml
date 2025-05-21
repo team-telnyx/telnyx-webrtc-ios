@@ -1,0 +1,88 @@
+name: 🚀 release_01_create_pull_request
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '📦 SDK Version'
+        required: true
+        default: '0.0.0'
+
+jobs:
+  create_release_pr:
+    runs-on: macos-latest
+
+    steps:
+    - name: 📥 Checkout repository with full history and tags
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: 🔄 Fetch tags
+      run: git fetch --tags
+
+    - name: 🔖 Get latest tag before new version
+      id: get-previous-tag
+      run: |
+        PREVIOUS_TAG=$(git tag --sort=-v:refname | grep -E '^([0-9]+\.){2}[0-9]+$' | head -n 1)
+        echo "Previous tag: $PREVIOUS_TAG"
+        echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+
+    - name: 📋 Generate changelog from merged PRs
+      id: pr_list
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git log --pretty=format:"%H" ${{ steps.get-previous-tag.outputs.previous_tag }}..HEAD > commits.txt
+        gh pr list --state merged --base main --json title,number,mergeCommit \
+          --jq ".[] | [.title, .number, .mergeCommit.oid] | @tsv" > pr_data.tsv
+
+        touch changelog.txt
+        while IFS=$'\t' read -r title number commit; do
+          if grep -q "$commit" commits.txt; then
+            echo "- PR #$number: $title" >> changelog.txt
+          fi
+        done < pr_data.tsv
+
+        echo "changelog<<EOF" >> $GITHUB_OUTPUT
+        cat changelog.txt >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: 📝 Read custom release PR template
+      id: pr_template
+      run: |
+        TEMPLATE_FILE=".github/pr-templates/release.md"
+        if [ -f "$TEMPLATE_FILE" ]; then
+          echo "template<<EOF" >> $GITHUB_OUTPUT
+          cat "$TEMPLATE_FILE" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        else
+          echo "template=_" >> $GITHUB_OUTPUT
+        fi
+
+    - name: 🛠 Update SDK version
+      shell: bash
+      env:
+        SDK_VERSION: ${{ github.event.inputs.version }}
+      run: |
+        sh scripts/setup_version.sh -v "$SDK_VERSION"
+
+    - name: 🚀 Create Pull Request
+      uses: peter-evans/create-pull-request@v3.10.1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: "🚀 chore: release v${{ github.event.inputs.version }}"
+        title: "📦 Release v${{ github.event.inputs.version }}"
+        body: |
+          📦 Auto-created Pull Request for SDK release **v${{ github.event.inputs.version }}**
+
+          ### 📋 Changes since last release (**${{ steps.get-previous-tag.outputs.previous_tag }}**):
+          ${{ steps.pr_list.outputs.changelog }}
+
+          ---
+
+          ${{ steps.pr_template.outputs.template }}
+        branch: releases/RELEASE-${{ github.event.inputs.version }}
+        base: main
+        delete-branch: true
+        labels: auto-generated
