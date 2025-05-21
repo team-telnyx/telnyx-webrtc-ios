@@ -1,0 +1,20 @@
+current directory: /Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/vendor/bundle/ruby/3.3.0/gems/sysrandom-1.0.5/ext/sysrandom
+/Users/runner/hostedtoolcache/Ruby/3.3.0/arm64/bin/ruby extconf.rb
+creating Makefile
+
+current directory: /Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/vendor/bundle/ruby/3.3.0/gems/sysrandom-1.0.5/ext/sysrandom
+make DESTDIR\= sitearchdir\=./.gem.20250521-1632-bkp8cg sitelibdir\=./.gem.20250521-1632-bkp8cg clean
+
+current directory: /Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/vendor/bundle/ruby/3.3.0/gems/sysrandom-1.0.5/ext/sysrandom
+make DESTDIR\= sitearchdir\=./.gem.20250521-1632-bkp8cg sitelibdir\=./.gem.20250521-1632-bkp8cg
+compiling randombytes_sysrandom.c
+compiling sysrandom_ext.c
+linking shared-object sysrandom_ext.bundle
+ld: warning: -multiply_defined is obsolete
+
+current directory: /Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/vendor/bundle/ruby/3.3.0/gems/sysrandom-1.0.5/ext/sysrandom
+make DESTDIR\= sitearchdir\=./.gem.20250521-1632-bkp8cg sitelibdir\=./.gem.20250521-1632-bkp8cg install
+/usr/bin/install -c -m 0755 sysrandom_ext.bundle ./.gem.20250521-1632-bkp8cg
+
+current directory: /Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/vendor/bundle/ruby/3.3.0/gems/sysrandom-1.0.5/ext/sysrandom
+make DESTDIR\= sitearchdir\=./.gem.20250521-1632-bkp8cg sitelibdir\=./.gem.20250521-1632-bkp8cg clean

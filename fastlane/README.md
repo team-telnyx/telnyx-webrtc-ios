@@ -67,7 +67,7 @@ Generate HTML and Markdown documentation
 [bundle exec] fastlane build_for_testing
 ```
 
-
+Builds the app and tests in build-for-testing mode to be executed later on devices or in Firebase Test Lab.
 
 ----
 
