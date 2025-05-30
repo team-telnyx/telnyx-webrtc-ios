@@ -19,7 +19,8 @@ class LoginMessage : Message {
          pushNotificationProvider: String? = nil,
          startFromPush: Bool = false,
          pushEnvironment:PushEnvironment? = nil,
-         sessionId:String
+         sessionId:String,
+         declinePush: Bool = false
     ) {
         
         var params = [String: Any]()
@@ -54,6 +55,9 @@ class LoginMessage : Message {
         
         var loginParams = [String: Any]()
         loginParams["attach_call"] = true.description
+        if declinePush {
+            loginParams["decline_push"] = "true"
+        }
         params["loginParams"] = loginParams
 
         
@@ -67,7 +71,8 @@ class LoginMessage : Message {
          pushNotificationProvider: String? = nil,
          startFromPush: Bool = false,
          pushEnvironment:PushEnvironment? = nil,
-         sessionId:String
+         sessionId:String,
+         declinePush: Bool = false
     ) {
         var params = [String: Any]()
         params["login_token"] = token
@@ -76,6 +81,9 @@ class LoginMessage : Message {
         params["sessid"] = sessionId
         var loginParams = [String: Any]()
         loginParams["attach_call"] = true.description
+        if declinePush {
+            loginParams["decline_push"] = "true"
+        }
         params["loginParams"] = loginParams
 
         //Setup push variables
