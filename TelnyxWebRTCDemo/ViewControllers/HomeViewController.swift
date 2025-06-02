@@ -64,6 +64,10 @@ class HomeViewController: UIViewController {
             },
             onDTMF: { [weak self] key in
                 self?.appDelegate.currentCall?.dtmf(dtmf: key)
+            },
+            onRedial: { [weak self] phoneNumber in
+                self?.callViewModel.sipAddress = phoneNumber
+                self?.onCallButton()
             }
         )
         
