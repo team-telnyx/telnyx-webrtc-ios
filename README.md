@@ -439,7 +439,6 @@ call.onCallQualityChange = { metrics in
 #### CallQualityMetrics Properties
 
 The `CallQualityMetrics` object provides the following properties:
-The `CallQualityMetrics` object provides the following properties:
 
 | Property             | Type            | Description                                                  |
 |----------------------|-----------------|--------------------------------------------------------------|
