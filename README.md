@@ -440,31 +440,28 @@ call.onCallQualityChange = { metrics in
 
 The `CallQualityMetrics` object provides the following properties:
 
-| Property             | Type            | Description                                                  |
-|----------------------|-----------------|--------------------------------------------------------------|
-| `jitter`             | `Double`        | Jitter in seconds (multiply by 1000 for milliseconds)        |
-| `rtt`                | `Double`        | Round-trip time in seconds (multiply by 1000 for milliseconds)|
-| `mos`                | `Double`        | Mean Opinion Score (1.0–5.0)                                 |
-| `quality`            | `CallQuality`   | Call quality rating based on MOS                             |
-| `inboundAudio`       | `Dict<string, any>` | Inbound audio statistics                             |
-| `outboundAudio`      | `Dict<string, any>` | Outbound audio statistics                            |
-| `remoteInboundAudio` | `Dict<string, any>` | Remote inbound audio statistics                      |
-| `remoteOutboundAudio`| `Dict<string, any>` | Remote outbound audio statistics                     |
+| Property             | Type            | Description |
+|----------------------|-----------------|-------------|
+| `jitter`             | Double          | Jitter in seconds (multiply by 1000 for milliseconds) |
+| `rtt`                | Double          | Round-trip time in seconds (multiply by 1000 for milliseconds) |
+| `mos`                | Double          | Mean Opinion Score (1.0-5.0) |
+| `quality`            | CallQuality     | Call quality rating based on MOS |
+| `inboundAudio`       | [String: Any]?  | Inbound audio statistics |
+| `outboundAudio`      | [String: Any]?  | Outbound audio statistics |
+| `remoteInboundAudio` | [String: Any]?  | Remote inbound audio statistics |
+| `remoteOutboundAudio`| [String: Any]?  | Remote outbound audio statistics |
 
 
 
 #### CallQuality Enum
-
-The `CallQuality` enum provides the following values:
-
-| Value         | MOS Range        | Description               |
-|---------------|------------------|---------------------------|
-| `.excellent`  | MOS > 4.2        | Excellent call quality    |
-| `.good`       | 4.1 ≤ MOS ≤ 4.2  | Good call quality         |
-| `.fair`       | 3.7 ≤ MOS ≤ 4.0  | Fair call quality         |
-| `.poor`       | 3.1 ≤ MOS ≤ 3.6  | Poor call quality         |
-| `.bad`        | MOS ≤ 3.0        | Bad call quality          |
-| `.unknown`    | N/A              | Unable to calculate quality |
+| Value         | MOS Range       | Description |
+|---------------|-----------------|-------------|
+| `.excellent`  | MOS > 4.2       | Excellent call quality |
+| `.good`       | 4.1 ≤ MOS ≤ 4.2 | Good call quality |
+| `.fair`       | 3.7 ≤ MOS ≤ 4.0 | Fair call quality |
+| `.poor`       | 3.1 ≤ MOS ≤ 3.6 | Poor call quality |
+| `.bad`        | MOS ≤ 3.0       | Bad call quality |
+| `.unknown`    | N/A             | Unable to calculate quality |
 
 
 #### Best Practices for Call Quality Monitoring
