@@ -36,23 +36,7 @@ Enable Telnyx real-time communication services on iOS.
 
 7.  Select target `TelnyxWebRTCDemo` to run the demo app. The SDK should be manually built in order to get the app running (Step 5)
 
-8. Enjoy 😎
 
-
-<table>
-  <tr>
-    <td>Credentials</td>
-     <td>Outbound call</td>
-     <td>Incoming call</td>
-  </tr>
-  <tr>
-    <td><img src="https://user-images.githubusercontent.com/75636882/116748486-eaf53a00-a9d5-11eb-9093-968e8f2bde6e.gif" width="270"/></td>
-    <td><img src="https://user-images.githubusercontent.com/75636882/116748473-e597ef80-a9d5-11eb-94a3-2a4a044ea4ff.gif" width="270"/></td>
-    <td><img src="https://user-images.githubusercontent.com/75636882/116748481-e92b7680-a9d5-11eb-9fb5-6fe4cb10b797.gif" width="270"/></td>
-  </tr>
- </table>
-  
------
 
 
 ## SIP Credentials
@@ -825,16 +809,11 @@ func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
 When the `answerFromPush(answerAction: action)` is called, Callkit sets the call state to `connecting` to alert the user that the call is being connected. 
 Once the call is active, the timer starts.
 
-<table align="center">
-        <tr>
-           <td>Connecting State</td>
-           <td>Active call</td>
-        </tr>
-        <tr>
-          <td><img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/13e9efd0-07e2-4a7e-9e7a-b2484b96be47" width="270"/></td>
-          <td><img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/89d506a5-bf97-42f2-bd64-5aa54b202db8" width="270"/></td>
-        </tr>
-</table>
+| Connecting State | Active Call |
+|------------------|-------------|
+| <img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/13e9efd0-07e2-4a7e-9e7a-b2484b96be47" width="270"/> | <img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/89d506a5-bf97-42f2-bd64-5aa54b202db8" width="270"/> |
+
+
    
 The previous SDK versions requires handling the websocket connection state on the client side. It can be done in the following way:
 
