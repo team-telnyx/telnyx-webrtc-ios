@@ -17,14 +17,14 @@ public class CallHistoryDatabase: ObservableObject {
     public static let shared = CallHistoryDatabase()
     
     /// Published property to notify UI of changes
-    @Published public var callHistory: [CallHistoryEntry] = []
+    @Published public var callHistory: [CallHistoryEntity] = []
     
     /// Maximum number of call history entries per profile
     private let maxHistoryCount = 20
     
     /// Core Data persistent container
     private lazy var persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "CallHistory")
+        let container = NSPersistentContainer(name: "AppModel")
         container.loadPersistentStores { _, error in
             if let error = error {
                 print("CallHistoryDatabase: Failed to load Core Data stack: \(error)")
@@ -73,22 +73,35 @@ public class CallHistoryDatabase: ObservableObject {
         backgroundContext.perform { [weak self] in
             guard let self = self else { return }
             
-            let entry = CallHistoryEntry(context: self.backgroundContext)
-            entry.callId = callId
-            entry.phoneNumber = phoneNumber
-            entry.callerName = callerName
-            entry.direction = direction.rawValue
-            entry.timestamp = Date()
-            entry.duration = duration
-            entry.callStatus = status.rawValue
-            entry.profileId = profileId
-            entry.metadata = metadata
-            
+            // Create the entry in the background context
+            let entry = CallHistoryEntity(context: self.backgroundContext)
+            // Check that the object is valid (not deleted) before mutating it
+             if !entry.isDeleted {
+                 // Safe to mutate
+                 print("Entering mutation for: \(entry)")
+                 entry.callId = callId
+                 entry.phoneNumber = phoneNumber
+                 entry.callerName = callerName
+                 entry.direction = direction.rawValue
+                 entry.timestamp = Date()
+                 entry.duration = duration
+                 entry.callStatus = status.rawValue
+                 entry.profileId = profileId
+                 entry.metadata = metadata
+                 print("Entering mutation for: \(entry)")
+
+             } else {
+                 print("Attempted to mutate a deleted object: \(entry)")
+             }
+
+            // Save context in the background
             self.saveContext(self.backgroundContext)
-            self.enforceHistoryLimit(for: profileId)
             
+        
+            
+            // Safely update the main thread UI
             DispatchQueue.main.async {
-                self.loadCallHistory()
+                //self.loadCallHistory()
             }
         }
     }
@@ -102,7 +115,7 @@ public class CallHistoryDatabase: ObservableObject {
         backgroundContext.perform { [weak self] in
             guard let self = self else { return }
             
-            let request: NSFetchRequest<CallHistoryEntry> = CallHistoryEntry.fetchRequest()
+            let request: NSFetchRequest<CallHistoryEntity> = CallHistoryEntity.fetchRequest()
             request.predicate = NSPredicate(format: "callId == %@", callId as CVarArg)
             
             do {
@@ -129,8 +142,8 @@ public class CallHistoryDatabase: ObservableObject {
     /// Get call history for a specific profile
     /// - Parameter profileId: Profile identifier
     /// - Returns: Array of call history entries
-    public func getCallHistory(for profileId: String) -> [CallHistoryEntry] {
-        let request: NSFetchRequest<CallHistoryEntry> = CallHistoryEntry.fetchRequest()
+    public func getCallHistory(for profileId: String) -> [CallHistoryEntity] {
+        let request: NSFetchRequest<CallHistoryEntity> = CallHistoryEntity.fetchRequest()
         request.predicate = NSPredicate(format: "profileId == %@", profileId)
         request.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
         request.fetchLimit = maxHistoryCount
@@ -145,12 +158,14 @@ public class CallHistoryDatabase: ObservableObject {
     
     /// Get all call history entries
     /// - Returns: Array of all call history entries
-    public func getAllCallHistory() -> [CallHistoryEntry] {
-        let request: NSFetchRequest<CallHistoryEntry> = CallHistoryEntry.fetchRequest()
+    public func getAllCallHistory() -> [CallHistoryEntity] {
+        let request: NSFetchRequest<CallHistoryEntity> = CallHistoryEntity.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
         
         do {
-            return try viewContext.fetch(request)
+            let call = try viewContext.fetch(request)
+            print("\(call)")
+            return call
         } catch {
             print("CallHistoryDatabase: Failed to fetch all call history: \(error)")
             return []
@@ -160,10 +175,11 @@ public class CallHistoryDatabase: ObservableObject {
     /// Clear call history for a specific profile
     /// - Parameter profileId: Profile identifier
     public func clearCallHistory(for profileId: String) {
+        return
         backgroundContext.perform { [weak self] in
             guard let self = self else { return }
             
-            let request: NSFetchRequest<CallHistoryEntry> = CallHistoryEntry.fetchRequest()
+            let request: NSFetchRequest<CallHistoryEntity> = CallHistoryEntity.fetchRequest()
             request.predicate = NSPredicate(format: "profileId == %@", profileId)
             
             do {
@@ -185,10 +201,11 @@ public class CallHistoryDatabase: ObservableObject {
     /// Delete a specific call history entry
     /// - Parameter callId: Call identifier to delete
     public func deleteCallHistoryEntry(callId: UUID) {
+        return
         backgroundContext.perform { [weak self] in
             guard let self = self else { return }
             
-            let request: NSFetchRequest<CallHistoryEntry> = CallHistoryEntry.fetchRequest()
+            let request: NSFetchRequest<CallHistoryEntity> = CallHistoryEntity.fetchRequest()
             request.predicate = NSPredicate(format: "callId == %@", callId as CVarArg)
             
             do {
@@ -229,7 +246,7 @@ public class CallHistoryDatabase: ObservableObject {
     /// Enforce the maximum history limit for a profile
     /// - Parameter profileId: Profile identifier
     private func enforceHistoryLimit(for profileId: String) {
-        let request: NSFetchRequest<CallHistoryEntry> = CallHistoryEntry.fetchRequest()
+        let request: NSFetchRequest<CallHistoryEntity> = CallHistoryEntity.fetchRequest()
         request.predicate = NSPredicate(format: "profileId == %@", profileId)
         request.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
         
@@ -248,10 +265,31 @@ public class CallHistoryDatabase: ObservableObject {
     }
 }
 
-// MARK: - CallHistoryEntry Extensions
 
-extension CallHistoryEntry {
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<CallHistoryEntry> {
-        return NSFetchRequest<CallHistoryEntry>(entityName: "CallHistoryEntry")
+extension CallHistoryEntity {
+    
+    /// Convenience computed property for call direction
+    public var isIncoming: Bool {
+        return direction == "incoming"
     }
+
+    /// Convenience computed property for call direction
+    public var isOutgoing: Bool {
+        return direction == "outgoing"
+    }
+    
+    /// Formatted duration string (e.g., "1:23")
+     public var formattedDuration: String {
+         let minutes = duration / 60
+         let seconds = duration % 60
+         return String(format: "%d:%02d", minutes, seconds)
+     }
+
+     /// Formatted timestamp for display
+     public var formattedTimestamp: String {
+         let formatter = DateFormatter()
+         formatter.dateStyle = .short
+         formatter.timeStyle = .short
+         return formatter.string(from: timestamp ?? Date())
+     }
 }

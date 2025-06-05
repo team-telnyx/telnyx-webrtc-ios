@@ -1,3 +1,11 @@
+//
+//  CallDirection.swift
+//  TelnyxRTC
+//
+//  Created by Isaac Akakpo on 2025-06-05.
+//
+
+
 /// Call direction enumeration
 public enum CallDirection: String, CaseIterable {
     case incoming = "incoming"

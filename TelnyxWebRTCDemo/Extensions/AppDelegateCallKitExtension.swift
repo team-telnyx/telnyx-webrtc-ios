@@ -173,14 +173,11 @@ extension AppDelegate : CXProviderDelegate {
                 print("AppDelegate:: performVoiceCall() successful")
                 self.isCallOutGoing = true
                 
-                // Track outgoing call in call history
-                if let destinationNumber = call.callOptions?.destinationNumber {
-                    CallHistoryManager.shared.handleStartCallAction(
-                        action: action,
-                        phoneNumber: destinationNumber,
-                        callerName: call.callInfo?.callerName
-                    )
-                }
+                CallHistoryManager.shared.handleStartCallAction(
+                    action: action,
+                    phoneNumber: "",
+                    callerName: action.handle.value
+                )
             } else {
                 print("AppDelegate:: performVoiceCall() failed")
                 // Track failed call
@@ -314,11 +311,11 @@ extension AppDelegate : CXProviderDelegate {
                                     logLevel: .all,
                                     reconnectClient: true,
                                     // Enable WebRTC stats debug
-                                    debug: true,
+                                    debug: false,
                                     // Force relay candidate
                                     forceRelayCandidate: false,
                                     // Enable Call Quality Metrics
-                                    enableQualityMetrics: true)
+                                    enableQualityMetrics: false)
             
             do {
                 try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)
@@ -340,7 +337,7 @@ extension AppDelegate : CXProviderDelegate {
                                     logLevel: .all,
                                     reconnectClient: true,
                                     // Enable WebRTC stats debug
-                                    debug: true,
+                                    debug: false,
                                     // Force relay candidate
                                     forceRelayCandidate: false,
                                     // Enable Call Quality Metrics

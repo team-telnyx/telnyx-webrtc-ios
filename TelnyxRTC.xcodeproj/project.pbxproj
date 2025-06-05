@@ -19,6 +19,11 @@
 		3B72695D2A9396BF00D2A602 /* DisablePushMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B72695C2A9396BF00D2A602 /* DisablePushMessage.swift */; };
 		3B758F1A2BF44D7800D50069 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3B758F192BF44D7800D50069 /* PrivacyInfo.xcprivacy */; };
 		3B758F1E2BF97E8C00D50069 /* FileLoger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B758F1D2BF97E8C00D50069 /* FileLoger.swift */; };
+		3B7D297D2DEF2E4E0094EB90 /* CallHistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B7D297C2DEF2E4E0094EB90 /* CallHistoryManager.swift */; };
+		3B7D29822DEF2F500094EB90 /* CallHistoryDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B7D297F2DEF2F500094EB90 /* CallHistoryDatabase.swift */; };
+		3B7D29852DF04D5B0094EB90 /* CallHistoryBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B7D29842DF04D5B0094EB90 /* CallHistoryBottomSheet.swift */; };
+		3B7D298C2DF19F0D0094EB90 /* AppModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 3B7D298A2DF19F0D0094EB90 /* AppModel.xcdatamodeld */; };
+		3B7D29922DF1AFE80094EB90 /* CallDirection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B7D29912DF1AFE80094EB90 /* CallDirection.swift */; };
 		3B91C0F52BE3A44600A03067 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3B91C0F42BE3A44600A03067 /* PrivacyInfo.xcprivacy */; };
 		3BABEA392D5F595A00B7C79C /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BABEA382D5F595A00B7C79C /* NetworkMonitor.swift */; };
 		3BC03B4E2CC25F5F00FD2B29 /* Reachability.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B0F56CC2C7F1CCA0011A48A /* Reachability.framework */; };
@@ -189,6 +194,11 @@
 		3B72695C2A9396BF00D2A602 /* DisablePushMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisablePushMessage.swift; sourceTree = "<group>"; };
 		3B758F192BF44D7800D50069 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		3B758F1D2BF97E8C00D50069 /* FileLoger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileLoger.swift; sourceTree = "<group>"; };
+		3B7D297C2DEF2E4E0094EB90 /* CallHistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallHistoryManager.swift; sourceTree = "<group>"; };
+		3B7D297F2DEF2F500094EB90 /* CallHistoryDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallHistoryDatabase.swift; sourceTree = "<group>"; };
+		3B7D29842DF04D5B0094EB90 /* CallHistoryBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallHistoryBottomSheet.swift; sourceTree = "<group>"; };
+		3B7D298B2DF19F0D0094EB90 /* AppModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = AppModel.xcdatamodel; sourceTree = "<group>"; };
+		3B7D29912DF1AFE80094EB90 /* CallDirection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallDirection.swift; sourceTree = "<group>"; };
 		3B91C0F42BE3A44600A03067 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		3BABEA382D5F595A00B7C79C /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		3BE84BA72D9C944A00CA1B70 /* DestinationToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DestinationToggle.swift; sourceTree = "<group>"; };
@@ -382,6 +392,8 @@
 		995BF7142CE7EB0B00454076 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				3B7D29912DF1AFE80094EB90 /* CallDirection.swift */,
+				3B7D297F2DEF2F500094EB90 /* CallHistoryDatabase.swift */,
 				995BF7152CE7EB2200454076 /* SipUserCredential.swift */,
 			);
 			path = Models;
@@ -390,6 +402,7 @@
 		995BF71D2CE7EC5000454076 /* Managers */ = {
 			isa = PBXGroup;
 			children = (
+				3B7D297C2DEF2E4E0094EB90 /* CallHistoryManager.swift */,
 				995BF71A2CE7EBF800454076 /* SipCredentialsManager.swift */,
 			);
 			path = Managers;
@@ -504,6 +517,7 @@
 		B309D1FB25F028F100A2AADF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				3B7D29842DF04D5B0094EB90 /* CallHistoryBottomSheet.swift */,
 				3BE84BA72D9C944A00CA1B70 /* DestinationToggle.swift */,
 				99FF7B0F2D4BC4F700DB1408 /* DTMFKeyboardView.swift */,
 				99ADA9A92D487AC4000C956A /* CallView.swift */,
@@ -612,6 +626,7 @@
 				B368BEF525EDDD070032AE52 /* LaunchScreen.storyboard */,
 				B368BEF825EDDD070032AE52 /* Info.plist */,
 				3B758F192BF44D7800D50069 /* PrivacyInfo.xcprivacy */,
+				3B7D298A2DF19F0D0094EB90 /* AppModel.xcdatamodeld */,
 			);
 			path = TelnyxWebRTCDemo;
 			sourceTree = "<group>";
@@ -1105,10 +1120,12 @@
 				998670422D4096AA001E1D01 /* HomeView.swift in Sources */,
 				B3AF24AA25EE84570062EDA9 /* UIViewControllerExtension.swift in Sources */,
 				995BF7202CE8175B00454076 /* SipCredentialsViewController.swift in Sources */,
+				3B7D29922DF1AFE80094EB90 /* CallDirection.swift in Sources */,
 				B3B8F53726E7D4EF0007B583 /* AppDelegateTelnyxVoIPExtension.swift in Sources */,
 				9986703E2D3EC7A3001E1D01 /* View+Extensions.swift in Sources */,
 				9986703A2D3E9DCE001E1D01 /* SipInputCredentialsView.swift in Sources */,
 				99FF7B102D4BC4F700DB1408 /* DTMFKeyboardView.swift in Sources */,
+				3B7D29852DF04D5B0094EB90 /* CallHistoryBottomSheet.swift in Sources */,
 				991A6D442D3A96C100B29785 /* SplashScreen.swift in Sources */,
 				99ADA9A82D4878FA000C956A /* ProfileView.swift in Sources */,
 				998670402D40849C001E1D01 /* HomeViewController.swift in Sources */,
@@ -1121,11 +1138,14 @@
 				991A6D492D3AB36E00B29785 /* SipCredentialsView.swift in Sources */,
 				991A6D4A2D3AB36E00B29785 /* SipCredentialHeader.swift in Sources */,
 				991A6D4B2D3AB36E00B29785 /* SipCredentialRow.swift in Sources */,
+				3B7D298C2DF19F0D0094EB90 /* AppModel.xcdatamodeld in Sources */,
 				995BF71C2CE7EC0600454076 /* SipCredentialsManager.swift in Sources */,
 				99B127D62DCE54500048CE0A /* CallQualityMetricsView.swift in Sources */,
 				998670382D3E9506001E1D01 /* Color+Extensions.swift in Sources */,
+				3B7D29822DEF2F500094EB90 /* CallHistoryDatabase.swift in Sources */,
 				B368BEEB25EDDD060032AE52 /* AppDelegate.swift in Sources */,
 				99ADA9B22D488D98000C956A /* HomeViewController+VoIPExtension.swift in Sources */,
+				3B7D297D2DEF2E4E0094EB90 /* CallHistoryManager.swift in Sources */,
 				99FF7B122D4BC71800DB1408 /* DTMFKeyboardViewModel.swift in Sources */,
 				99ADA94E2D47C9B6000C956A /* HomeViewModel.swift in Sources */,
 				9986703C2D3EAF64001E1D01 /* ErrorView.swift in Sources */,
@@ -1562,6 +1582,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		3B7D298A2DF19F0D0094EB90 /* AppModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				3B7D298B2DF19F0D0094EB90 /* AppModel.xcdatamodel */,
+			);
+			currentVersion = 3B7D298B2DF19F0D0094EB90 /* AppModel.xcdatamodel */;
+			path = AppModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = B368BEB725EDDB610032AE52 /* Project object */;
 }

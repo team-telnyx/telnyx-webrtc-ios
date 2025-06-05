@@ -25,7 +25,7 @@ public struct CallHistoryBottomSheet: View {
     public let onClearHistory: () -> Void
     
     @State private var showingClearAlert = false
-    @State private var filteredHistory: [CallHistoryEntry] = []
+    @State private var filteredHistory: [CallHistoryEntity] = []
     
     public init(
         profileId: String,
@@ -153,7 +153,7 @@ public struct CallHistoryBottomSheet: View {
     private func deleteEntries(at offsets: IndexSet) {
         for index in offsets {
             let entry = filteredHistory[index]
-            database.deleteCallHistoryEntry(callId: entry.callId)
+            database.deleteCallHistoryEntry(callId: entry.callId ?? UUID())
         }
     }
 }
@@ -161,7 +161,7 @@ public struct CallHistoryBottomSheet: View {
 // MARK: - Call History Row
 
 struct CallHistoryRow: View {
-    let entry: CallHistoryEntry
+    let entry: CallHistoryEntity
     let onRedial: (String, String?) -> Void
     
     var body: some View {
@@ -172,7 +172,7 @@ struct CallHistoryRow: View {
             // Call Information
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text(entry.callerName ?? entry.phoneNumber)
+                    Text((entry.callerName ?? entry.phoneNumber) ?? "")
                         .font(.body)
                         .fontWeight(.medium)
                         .foregroundColor(.primary)
@@ -186,7 +186,7 @@ struct CallHistoryRow: View {
                 
                 HStack {
                     if entry.callerName != nil {
-                        Text(entry.phoneNumber)
+                        Text(entry.phoneNumber ?? "")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -201,14 +201,14 @@ struct CallHistoryRow: View {
                 }
                 
                 // Call Status
-                Text(entry.callStatus.capitalized)
+                Text(entry.callStatus?.capitalized ?? "")
                     .font(.caption)
                     .foregroundColor(statusColor)
             }
             
             // Redial Button
             Button(action: {
-                onRedial(entry.phoneNumber, entry.callerName)
+                onRedial(entry.phoneNumber ?? "", entry.callerName)
             }) {
                 Image(systemName: "phone.fill")
                     .font(.system(size: 16))

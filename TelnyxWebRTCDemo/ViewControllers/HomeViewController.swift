@@ -361,7 +361,7 @@ extension HomeViewController {
                                 logLevel: .all,
                                 reconnectClient: true,
                                 // Enable webrtc stats debug
-                                debug: true,
+                                debug: false,
                                 // Force relay candidate
                                 forceRelayCandidate: false,
                                 // Enable Call Quality Metrics
@@ -377,11 +377,11 @@ extension HomeViewController {
                                 logLevel: .all,
                                 reconnectClient: true,
                                 // Enable webrtc stats debug
-                                debug: true,
+                                debug: false,
                                 // Force relay candidate.
                                 forceRelayCandidate: false,
                                 // Enable Call Quality Metrics
-                                enableQualityMetrics: true)
+                                enableQualityMetrics: false)
         }
         
         guard let config = txConfig else {

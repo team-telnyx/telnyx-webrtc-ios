@@ -1,2 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23605" systemVersion="24F74" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier=""/>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23605" systemVersion="24F74" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="CallHistoryEntity" representedClassName="CallHistoryEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="callerName" optional="YES" attributeType="String"/>
+        <attribute name="callId" attributeType="UUID" usesScalarValueType="NO"  optional="NO"/>
+        <attribute name="callStatus" attributeType="String"/>
+        <attribute name="direction" attributeType="String"/>
+        <attribute name="duration" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="metadata" optional="YES" attributeType="String"/>
+        <attribute name="phoneNumber" attributeType="String" optional="NO"/>
+        <attribute name="profileId" attributeType="String"/>
+        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO" optional="NO"/>
+    </entity>
+</model>

@@ -46,6 +46,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Configure for UI testing if needed
         TestConfiguration.configureForTesting()
         
+        //CallHistoryManager.shared.initLoad()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 6) {
+            CallHistoryManager.shared.samopleAdd()
+            //CallHistoryManager.shared.initLoad()
+        }
         // Create window
         window = UIWindow(frame: UIScreen.main.bounds)
         

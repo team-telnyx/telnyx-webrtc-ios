@@ -256,7 +256,7 @@ extension HomeViewController : VoIPDelegate {
             let call = try telnyxClient?.newCall(callerName: sipCred.callerName ?? "",
                                                  callerNumber: sipCred.callerNumber ?? "",
                                                  destinationNumber: destinationNumber,
-                                                 callId: callUUID,customHeaders: headers,debug: true)
+                                                 callId: callUUID,customHeaders: headers,debug: false)
             completionHandler(call)
         } catch let error {
             print("HomeViewController:: executeCall Error \(error)")

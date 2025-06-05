@@ -101,6 +101,26 @@ public class CallHistoryManager: ObservableObject {
         print("CallHistoryManager: Tracked call end - \(callId) (\(status.rawValue), \(duration)s)")
     }
     
+    public func samopleAdd(){
+        database.addCallHistoryEntry(
+            callId: UUID(),
+            phoneNumber: "232403040304",
+            callerName: "TestAdd",
+            direction: CallDirection.incoming,
+            duration: Int32(677),
+            status: CallStatus.answered,
+            profileId: "DSD"
+        )
+        
+        print("Added Sample")
+    }
+    
+    public func initLoad() {
+        database.getAllCallHistory().forEach {
+            print("CallHistoryManager: Loaded call history - \($0)")
+        }
+    }
+    
     /// Update call status for an active call
     /// - Parameters:
     ///   - callId: Unique call identifier
@@ -202,7 +222,8 @@ public class CallHistoryManager: ObservableObject {
     
     /// Get call history for current profile
     /// - Returns: Array of call history entries
-    public func getCallHistory() -> [CallHistoryEntry] {
+    public func getCallHistory() -> [CallHistoryEntity] {
+        return []
         return database.getCallHistory(for: currentProfileId)
     }
     

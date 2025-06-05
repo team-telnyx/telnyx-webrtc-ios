@@ -44,16 +44,6 @@ extension AppDelegate: TxClientDelegate {
         self.voipDelegate?.onSessionUpdated(sessionId: sessionId)
     }
     
-    func onCallStateUpdated(callState: CallState, callId: UUID) {
-        print("AppDelegate:: TxClientDelegate onCallStateUpdated() callState: \(callState), callId: \(callId)")
-        
-        // Track call state changes in call history
-        if let call = self.telnyxClient?.calls[callId] {
-            CallHistoryManager.shared.handleCallStateChange(call: call, previousState: nil)
-        }
-        
-        self.voipDelegate?.onCallStateUpdated(callState: callState, callId: callId)
-    }
     
     func onIncomingCall(call: Call) {
         guard let callId = call.callInfo?.callId else {
@@ -144,6 +134,11 @@ extension AppDelegate: TxClientDelegate {
             // check if custom headers was passed for answered message
             let headers = self.currentCall?.answerCustomHeaders
             print("Custom Headers: \(headers as AnyObject)")
+        }
+        
+        // Track call state changes in call history
+        if let call = self.telnyxClient?.calls[callId] {
+           // CallHistoryManager.shared.handleCallStateChange(call: call, previousState: nil)
         }
         
         if case .DONE = callState {
