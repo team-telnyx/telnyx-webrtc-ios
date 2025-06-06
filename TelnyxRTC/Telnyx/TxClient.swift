@@ -498,23 +498,24 @@ public class TxClient {
     public func answerFromCallkit(answerAction:CXAnswerCallAction,customHeaders:[String:String] = [:],debug:Bool = false) {
         self.answerCallAction = answerAction
         
-        // New flow: Check if we have stored config and need to login first
-        if storedTxConfig != nil && txConfig == nil {
-            Logger.log.i(message: "TxClient:: answerFromCallkit - Need to login first")
+        // Check if the call was initiated by a push notification
+        if isCallFromPush {
+            Logger.log.i(message: "TxClient:: answerFromCallkit - Call initiated by push notification")
             /// Let's Keep track of the `customHeaders` passed
             pendingAnswerHeaders = customHeaders
             /// Set call quality metrics
             self.enableQualityMetrics = debug
             
-            // If socket is connected, perform login and auto-accept upon receiving INVITE
+            // Start the login process by sending a login message with decline_push: false
+            // Automatically accept the call once the INVITE is received
             if isConnected() {
-                Logger.log.i(message: "TxClient:: answerFromCallkit - Socket connected, performing login")
+                Logger.log.i(message: "TxClient:: answerFromCallkit - Socket connected, performing login with decline_push: false")
                 performLogin(declinePush: false)
             } else {
-                // If socket is not connected, connect and wait for INVITE to auto-accept
                 Logger.log.i(message: "TxClient:: answerFromCallkit - Socket not connected, connecting first")
                 do {
-                    try connectFromPush(txConfig: storedTxConfig!, serverConfiguration: storedServerConfiguration!)
+                    try connectSocketOnly(serverConfiguration: storedServerConfiguration!)
+                    // Login will happen in onSocketConnected
                 } catch let error {
                     Logger.log.e(message: "TxClient:: answerFromCallkit connect error \(error.localizedDescription)")
                     answerCallAction?.fail()
@@ -523,8 +524,7 @@ public class TxClient {
             return
         }
         
-        ///answer call if currentPushCall is not nil
-        ///This means the client has connected and we can safely answer
+        // If already connected and there's a pending INVITE, immediately accept the call
         if(self.calls[currentCallId] != nil){
             self.calls[currentCallId]?.answer(customHeaders: customHeaders,debug: debug)
             answerCallAction?.fulfill()
@@ -544,33 +544,26 @@ public class TxClient {
         storedTxConfig = nil
         storedServerConfiguration = nil
         pendingCallDecline = false
+        isCallFromPush = false
     }
     
     /// To end and control callKit active and conn
     public func endCallFromCallkit(endAction:CXEndCallAction,callId:UUID? = nil) {
         self.endCallAction = endAction
         
-        // New flow: Check if we have stored config and need to handle decline_push
-        if storedTxConfig != nil && txConfig == nil {
-            Logger.log.i(message: "TxClient:: endCallFromCallkit - Handling decline_push flow")
+        // Check if the call was initiated by a push notification
+        if isCallFromPush {
+            Logger.log.i(message: "TxClient:: endCallFromCallkit - Call initiated by push notification, sending decline_push")
             self.pendingCallDecline = true
             
-            // If socket is connected, perform login with decline_push: true
+            // Send a login message with decline_push: true to silently reject the call
             if isConnected() {
-                Logger.log.i(message: "TxClient:: endCallFromCallkit - Socket connected, performing login with decline_push")
+                Logger.log.i(message: "TxClient:: endCallFromCallkit - Socket connected, performing login with decline_push: true")
                 performLogin(declinePush: true)
-                // Remove pending call from internal list and disconnect after login
-                if let callUUID = endAction.callUUID as UUID?, self.calls[callUUID] != nil {
-                    self.calls.removeValue(forKey: callUUID)
-                }
-                // Disconnect will happen after login response
             } else {
-                // If socket is not connected, connect and login with decline_push: true, then disconnect
-                Logger.log.i(message: "TxClient:: endCallFromCallkit - Socket not connected, connecting with decline_push")
+                Logger.log.i(message: "TxClient:: endCallFromCallkit - Socket not connected, connecting first")
                 do {
-                    // Set the stored config as current config for connection
-                    self.txConfig = storedTxConfig
-                    try connectFromPush(txConfig: storedTxConfig!, serverConfiguration: storedServerConfiguration!)
+                    try connectSocketOnly(serverConfiguration: storedServerConfiguration!)
                     // Login with decline_push will happen in onSocketConnected
                 } catch let error {
                     Logger.log.e(message: "TxClient:: endCallFromCallkit connect error \(error.localizedDescription)")
@@ -590,7 +583,8 @@ public class TxClient {
             return
         }
         
-        // Original flow
+        // If the call was not initiated by push and there's an active call (currentCall exists)
+        // Perform a standard call rejection
         if let call = self.calls[endAction.callUUID] {
             Logger.log.i(message: "EndClient:: Ended Call with Id \(endAction.callUUID)")
             call.hangup()
@@ -1060,18 +1054,20 @@ extension TxClient : SocketDelegate {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected()")
         self.delegate?.onSocketConnected()
 
-        // In the new push flow, we only connect the socket but don't login automatically
-        // Login will happen when answerFromCallkit or endCallFromCallkit is called
-        if storedTxConfig != nil && txConfig == nil {
-            Logger.log.i(message: "TxClient:: Socket connected from push - waiting for user action before login")
-            return
-        }
-        
-        // Handle decline_push case when connecting after endCallFromCallkit
-        if pendingCallDecline && txConfig != nil {
-            Logger.log.i(message: "TxClient:: Socket connected for decline_push flow")
-            performLogin(declinePush: true)
-            return
+        // Handle push notification flows
+        if isCallFromPush {
+            if pendingCallDecline {
+                Logger.log.i(message: "TxClient:: Socket connected for decline_push flow")
+                performLogin(declinePush: true)
+                return
+            } else if answerCallAction != nil {
+                Logger.log.i(message: "TxClient:: Socket connected for answer flow")
+                performLogin(declinePush: false)
+                return
+            } else {
+                Logger.log.i(message: "TxClient:: Socket connected from push - waiting for user action before login")
+                return
+            }
         }
 
         // Get push token and push provider if available
