@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [2.0.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.0.1) (2024-03-26)
+## [2.0.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.0.1) (2025-05-26)
 
 ### Bug Fixes
 - Fixed initialization of `reconnectTimeOut` parameter in `TxConfig` that was not being properly assigned during configuration
