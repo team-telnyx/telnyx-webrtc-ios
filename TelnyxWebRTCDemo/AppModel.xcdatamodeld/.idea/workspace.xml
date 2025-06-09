@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="947e39d4-0508-4751-96e9-3aaa4625d2c1" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../../TelnyxRTC.xcodeproj/project.pbxproj" beforeDir="false" afterPath="$PROJECT_DIR$/../../TelnyxRTC.xcodeproj/project.pbxproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AppDelegate.swift" beforeDir="false" afterPath="$PROJECT_DIR$/../AppDelegate.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/AppModel.xcdatamodel/contents" beforeDir="false" afterPath="$PROJECT_DIR$/AppModel.xcdatamodel/contents" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Extensions/AppDelegateCallKitExtension.swift" beforeDir="false" afterPath="$PROJECT_DIR$/../Extensions/AppDelegateCallKitExtension.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Extensions/AppDelegateTelnyxVoIPExtension.swift" beforeDir="false" afterPath="$PROJECT_DIR$/../Extensions/AppDelegateTelnyxVoIPExtension.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Managers/CallHistoryManager.swift" beforeDir="false" afterPath="$PROJECT_DIR$/../Managers/CallHistoryManager.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Models/CallDirection.swift" beforeDir="false" afterPath="$PROJECT_DIR$/../Models/CallDirection.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Models/CallHistoryDatabase.swift" beforeDir="false" afterPath="$PROJECT_DIR$/../Models/CallHistoryDatabase.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Models/CallHistoryEntity.xcdatamodeld/.lh/.lhignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Models/CallHistoryEntity.xcdatamodeld/Contents" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViewControllers/HomeViewController+VoIPExtension.swift" beforeDir="false" afterPath="$PROJECT_DIR$/../ViewControllers/HomeViewController+VoIPExtension.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViewControllers/HomeViewController.swift" beforeDir="false" afterPath="$PROJECT_DIR$/../ViewControllers/HomeViewController.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Views/CallHistoryBottomSheet.swift" beforeDir="false" afterPath="$PROJECT_DIR$/../Views/CallHistoryBottomSheet.swift" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;develNerd&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:team-telnyx/telnyx-webrtc-ios.git&quot;,
+    &quot;accountId&quot;: &quot;c5c249f5-103d-4a4f-8d00-bae29d91e53a&quot;
+  }
+}</component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="2y5GLrGFqpFqKB31EuYWc1pUhld" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "cidr.known.project.marker": "true",
+    "dart.analysis.tool.window.visible": "false",
+    "git-widget-placeholder": "#240 on feature/WEBRTC-2742-call-history",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "SDK Location",
+    "project.structure.proportion": "0.17",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "AndroidSdkUpdater",
+    "show.migrate.to.gradle.popup": "false",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RunManager">
+    <configuration default="true" type="Application" factoryName="Application">
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.25410.129" />
+        <option value="bundled-js-predefined-d6986cc7102b-6a121458b545-JavaScript-IU-251.25410.129" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="947e39d4-0508-4751-96e9-3aaa4625d2c1" name="Changes" comment="" />
+      <created>1748090502363</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1748090502363</updated>
+      <workItem from="1748090503382" duration="540000" />
+      <workItem from="1749116970395" duration="284000" />
+      <workItem from="1749117342813" duration="5881000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

@@ -44,6 +44,7 @@ extension AppDelegate: TxClientDelegate {
         self.voipDelegate?.onSessionUpdated(sessionId: sessionId)
     }
     
+    
     func onIncomingCall(call: Call) {
         guard let callId = call.callInfo?.callId else {
             print("AppDelegate:: TxClientDelegate onIncomingCall() Error unknown call UUID")
@@ -134,11 +135,15 @@ extension AppDelegate: TxClientDelegate {
             let headers = self.currentCall?.answerCustomHeaders
             print("Custom Headers: \(headers as AnyObject)")
         }
+        // Track call state changes in call history
+        if let call = self.telnyxClient?.calls[callId] {
+            CallHistoryManager.shared.handleCallStateChange(call: call, previousState: nil)
+        }
         
         if case .DONE = callState {
             if let currentCallId = self.currentCall?.callInfo?.callId,
                currentCallId == callId {
-               // self.currentCall = nil // clear current call
+               self.currentCall = nil // clear current call
             }
         }
     }
