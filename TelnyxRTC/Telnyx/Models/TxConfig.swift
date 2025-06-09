@@ -102,6 +102,7 @@ public struct TxConfig {
         self.customLogger = customLogger
         self.reconnectClient = reconnectClient
         self.enableQualityMetrics = enableQualityMetrics
+        self.reconnectTimeout = reconnectTimeOut
         Logger.log.verboseLevel = logLevel
         Logger.log.customLogger = customLogger ?? TxDefaultLogger()
     }
@@ -142,6 +143,7 @@ public struct TxConfig {
         self.enableQualityMetrics = enableQualityMetrics
         self.customLogger = customLogger
         self.reconnectClient = reconnectClient
+        self.reconnectTimeout = reconnectTimeOut
         Logger.log.verboseLevel = logLevel
         Logger.log.customLogger = customLogger ?? TxDefaultLogger()
     }

@@ -3,3 +3,4 @@
 - PR #226: Fix Ringback Tone for parked calls
 - PR #224: [Sample App] Release 1.3.0
 - PR #222: [WEBRTC-2679] [chore] Update PR Template
+- PR #235: Fix ReconnectTimeOut Functinality
