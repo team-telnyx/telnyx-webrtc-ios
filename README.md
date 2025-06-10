@@ -972,7 +972,3 @@ For more information you can:
 Find official documentation [here](https://developers.telnyx.com/docs/voice/webrtc/ios-sdk)
 
 Questions? Comments? Building something rad? <a href="https://joinslack.telnyx.com/">Join our Slack channel</a> and share.
-
-## License
-
-[`MIT Licence`](./LICENSE) © [Telnyx](https://github.com/team-telnyx)
