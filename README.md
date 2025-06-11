@@ -975,4 +975,4 @@ Questions? Comments? Building something rad? <a href="https://joinslack.telnyx.c
 
 ## License
 
-[`MIT Licence`](./LICENSE) © [Telnyx](https://github.com/team-telnyx)
+[`MIT Licence`](https://github.com/team-telnyx/telnyx-webrtc-ios/blob/main/LICENSE) © [Telnyx](https://github.com/team-telnyx)
