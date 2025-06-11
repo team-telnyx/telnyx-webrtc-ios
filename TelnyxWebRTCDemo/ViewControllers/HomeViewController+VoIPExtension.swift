@@ -252,6 +252,13 @@ extension HomeViewController : VoIPDelegate {
                                                  callerNumber: sipCred.callerNumber ?? "",
                                                  destinationNumber: destinationNumber,
                                                  callId: callUUID,customHeaders: headers,debug: true)
+            
+            
+            CallHistoryManager.shared.handleStartCallAction(
+                callId:callUUID,
+                destinationNumber: destinationNumber,
+                callerName: sipCred.callerName ?? ""
+            )
             completionHandler(call)
         } catch let error {
             print("HomeViewController:: executeCall Error \(error)")
