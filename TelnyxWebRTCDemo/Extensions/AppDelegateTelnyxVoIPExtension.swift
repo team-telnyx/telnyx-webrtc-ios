@@ -143,7 +143,6 @@ extension AppDelegate: TxClientDelegate {
         if case .DONE = callState {
             if let currentCallId = self.currentCall?.callInfo?.callId,
                currentCallId == callId {
-               self.currentCall = nil // clear current call
             }
         }
     }
