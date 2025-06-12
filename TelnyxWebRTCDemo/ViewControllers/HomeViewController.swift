@@ -30,6 +30,11 @@ class HomeViewController: UIViewController {
         self.appDelegate.voipDelegate = self
         self.telnyxClient = self.appDelegate.telnyxClient
         
+        // Set the TxClient in the HomeViewModel for PreCall Diagnosis
+        if let client = self.telnyxClient {
+            self.viewModel.setTxClient(client)
+        }
+        
         let profileView = ProfileView(
             viewModel: profileViewModel,
             onAddProfile: { [weak self] in

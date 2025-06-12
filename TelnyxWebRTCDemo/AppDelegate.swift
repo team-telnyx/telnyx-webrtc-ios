@@ -22,6 +22,7 @@ protocol VoIPDelegate: AnyObject {
     func onIncomingCall(call: Call)
     func onRemoteCallEnded(callId: UUID, reason: CallTerminationReason?)
     func executeCall(callUUID: UUID, completionHandler: @escaping (_ success: Call?) -> Void)
+    func onPreCallDiagnosisStateUpdated(state: PreCallDiagnosisState)
 }
 
 @main
