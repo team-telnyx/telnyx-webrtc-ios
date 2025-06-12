@@ -212,11 +212,4 @@ extension ViewController : VoIPDelegate {
             completionHandler(nil)
         }
     }
-    
-    func onPreCallDiagnosisStateUpdated(state: PreCallDiagnosisState) {
-        print("ViewController:: onPreCallDiagnosisStateUpdated() state: \(state)")
-        DispatchQueue.main.async {
-            self.homeViewModel.updatePreCallDiagnosisState(state)
-        }
-    }
 }

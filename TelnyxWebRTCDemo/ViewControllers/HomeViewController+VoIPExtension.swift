@@ -195,6 +195,9 @@ extension HomeViewController : VoIPDelegate {
         DispatchQueue.main.async {
             self.callViewModel.callState = callState
             self.viewModel.callState = callState
+            
+            // Forward call state changes to HomeViewModel for PreCall Diagnosis
+            self.viewModel.handleCallStateChange(callId: callId, callState: callState)
 
             print("CallState : \(callState)")
             switch (callState) {
@@ -210,6 +213,8 @@ extension HomeViewController : VoIPDelegate {
                             print("metric_values: \(qualityMetric)")
                             DispatchQueue.main.async {
                                 self.callViewModel.callQualityMetrics = qualityMetric
+                                // Forward metrics to HomeViewModel for PreCall Diagnosis
+                                self.viewModel.handleCallQualityMetrics(qualityMetric)
                             }
                         }
                     }
@@ -259,12 +264,7 @@ extension HomeViewController : VoIPDelegate {
         }
     }
     
-    func onPreCallDiagnosisStateUpdated(state: PreCallDiagnosisState) {
-        print("HomeViewController:: onPreCallDiagnosisStateUpdated() state: \(state)")
-        DispatchQueue.main.async {
-            self.viewModel.updatePreCallDiagnosisState(state)
-        }
-    }
+
     
     func onPushDisabled(success: Bool, message: String) {
         print("HomeViewController:: onPushDisabled() success: \(success), message: \(message)")

@@ -1,12 +1,13 @@
 //
 //  PreCallDiagnosis.swift
-//  TelnyxRTC
+//  TelnyxWebRTCDemo
 //
 //  Created by AI SWE Agent on 12/06/2025.
 //  Copyright © 2025 Telnyx LLC. All rights reserved.
 //
 
 import Foundation
+import TelnyxRTC
 
 /// Data structure representing a metric summary with min, max, and average values
 public struct MetricSummary {

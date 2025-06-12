@@ -154,19 +154,7 @@ public class TxClient {
     private var _isSpeakerEnabled: Bool = false
     private var enableQualityMetrics: Bool = false
     
-    // MARK: - Pre-call Diagnosis Properties
-    
-    /// Current state of the pre-call diagnosis operation
-    private var preCallDiagnosisState: PreCallDiagnosisState?
-    
-    /// Call ID for the pre-call diagnosis test call
-    private var preCallDiagnosisCallId: UUID?
-    
-    /// Collected call quality metrics during pre-call diagnosis
-    private var preCallDiagnosisMetrics: [CallQualityMetrics] = []
-    
-    /// Timer for collecting metrics during pre-call diagnosis
-    private var preCallDiagnosisTimer: Timer?
+
     
     public private(set) var isSpeakerEnabled: Bool {
         get {
@@ -649,209 +637,6 @@ extension TxClient {
         self.calls[callId] = call
         return call
     }
-    
-    // MARK: - Pre-call Diagnosis
-    
-    /// Initiates a pre-call diagnosis by making a test call to the specified number.
-    /// This method collects call quality metrics during the test call and provides
-    /// comprehensive information about network conditions and call quality.
-    ///
-    /// - Parameters:
-    ///   - testNumber: The phone number to call for the diagnosis test
-    ///   - callerName: The name to use for the test call (optional)
-    ///   - callerNumber: The caller number to use for the test call (optional)
-    ///   - duration: Duration in seconds to run the test call (default: 10 seconds)
-    /// - Throws: TxError if the client is not ready or if call creation fails
-    public func startPreCallDiagnosis(
-        testNumber: String,
-        callerName: String = "Pre-call Diagnosis",
-        callerNumber: String = "",
-        duration: TimeInterval = 10.0
-    ) throws {
-        
-        // Ensure client is ready
-        guard let sessionId = self.sessionId else {
-            throw TxError.callFailed(reason: .sessionIdIsRequired)
-        }
-        
-        guard let socket = self.socket, socket.isConnected else {
-            throw TxError.socketConnectionFailed(reason: .socketNotConnected)
-        }
-        
-        if testNumber.isEmpty {
-            throw TxError.callFailed(reason: .destinationNumberIsRequired)
-        }
-        
-        // Reset previous diagnosis data
-        preCallDiagnosisMetrics.removeAll()
-        preCallDiagnosisTimer?.invalidate()
-        
-        // Generate a unique call ID for the diagnosis
-        let diagnosisCallId = UUID()
-        preCallDiagnosisCallId = diagnosisCallId
-        
-        // Update state to started
-        preCallDiagnosisState = .started
-        delegate?.onPreCallDiagnosisStateUpdated(state: .started)
-        
-        do {
-            // Create the test call with quality metrics enabled
-            let call = try newCall(
-                callerName: callerName,
-                callerNumber: callerNumber,
-                destinationNumber: testNumber,
-                callId: diagnosisCallId,
-                clientState: "precall-diagnosis",
-                customHeaders: ["X-Precall-Diagnosis": "true"],
-                debug: true
-            )
-            
-            // Enable quality metrics for this call
-            call.enableQualityMetrics = true
-            
-            // Set up quality metrics collection
-            call.onCallQualityChange = { [weak self] metrics in
-                self?.collectPreCallDiagnosisMetrics(metrics)
-            }
-            
-            // Start a timer to end the call after the specified duration
-            preCallDiagnosisTimer = Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { [weak self] _ in
-                self?.endPreCallDiagnosis()
-            }
-            
-        } catch {
-            preCallDiagnosisState = .failed(error)
-            delegate?.onPreCallDiagnosisStateUpdated(state: .failed(error))
-            throw error
-        }
-    }
-    
-    /// Ends the pre-call diagnosis test call and processes the collected metrics
-    private func endPreCallDiagnosis() {
-        guard let callId = preCallDiagnosisCallId,
-              let call = calls[callId] else {
-            let error = TxError.callFailed(reason: .callNotFound)
-            preCallDiagnosisState = .failed(error)
-            delegate?.onPreCallDiagnosisStateUpdated(state: .failed(error))
-            return
-        }
-        
-        // End the test call
-        call.hangup()
-        
-        // Process collected metrics
-        processPreCallDiagnosisResults()
-        
-        // Clean up
-        preCallDiagnosisTimer?.invalidate()
-        preCallDiagnosisTimer = nil
-        preCallDiagnosisCallId = nil
-    }
-    
-    /// Collects call quality metrics during the pre-call diagnosis
-    /// - Parameter metrics: The call quality metrics to collect
-    private func collectPreCallDiagnosisMetrics(_ metrics: CallQualityMetrics) {
-        // Only collect metrics if this is a pre-call diagnosis call
-        guard preCallDiagnosisCallId != nil,
-              metrics.quality != .unknown else {
-            return
-        }
-        
-        preCallDiagnosisMetrics.append(metrics)
-        Logger.log.i(message: "Pre-call diagnosis: Collected metrics - MOS: \(metrics.mos), Quality: \(metrics.quality.rawValue)")
-    }
-    
-    /// Processes the collected metrics and creates the final diagnosis result
-    private func processPreCallDiagnosisResults() {
-        guard !preCallDiagnosisMetrics.isEmpty else {
-            let error = TxError.callFailed(reason: .noMetricsCollected)
-            preCallDiagnosisState = .failed(error)
-            delegate?.onPreCallDiagnosisStateUpdated(state: .failed(error))
-            return
-        }
-        
-        do {
-            // Calculate jitter summary
-            let jitterValues = preCallDiagnosisMetrics.map { $0.jitter }
-            let jitterSummary = MetricSummary(
-                min: jitterValues.min() ?? 0.0,
-                max: jitterValues.max() ?? 0.0,
-                avg: jitterValues.reduce(0, +) / Double(jitterValues.count)
-            )
-            
-            // Calculate RTT summary
-            let rttValues = preCallDiagnosisMetrics.map { $0.rtt }
-            let rttSummary = MetricSummary(
-                min: rttValues.min() ?? 0.0,
-                max: rttValues.max() ?? 0.0,
-                avg: rttValues.reduce(0, +) / Double(rttValues.count)
-            )
-            
-            // Calculate average MOS
-            let mosValues = preCallDiagnosisMetrics.map { $0.mos }
-            let avgMos = mosValues.reduce(0, +) / Double(mosValues.count)
-            
-            // Determine most frequent quality
-            let qualityFrequency = Dictionary(grouping: preCallDiagnosisMetrics) { $0.quality }
-                .mapValues { $0.count }
-            let mostFrequentQuality = qualityFrequency.max { $0.value < $1.value }?.key ?? .unknown
-            
-            // Extract packet and byte statistics from the last metric
-            let lastMetric = preCallDiagnosisMetrics.last!
-            let bytesSent = extractStatValue(from: lastMetric.outboundAudio, key: "bytesSent") ?? 0
-            let bytesReceived = extractStatValue(from: lastMetric.inboundAudio, key: "bytesReceived") ?? 0
-            let packetsSent = extractStatValue(from: lastMetric.outboundAudio, key: "packetsSent") ?? 0
-            let packetsReceived = extractStatValue(from: lastMetric.inboundAudio, key: "packetsReceived") ?? 0
-            
-            // Extract ICE candidates (simplified - in a real implementation, you'd collect these during the call)
-            let iceCandidates: [ICECandidate] = [] // TODO: Implement ICE candidate collection
-            
-            // Create the diagnosis result
-            let diagnosis = PreCallDiagnosis(
-                mos: avgMos,
-                quality: mostFrequentQuality,
-                jitter: jitterSummary,
-                rtt: rttSummary,
-                bytesSent: bytesSent,
-                bytesReceived: bytesReceived,
-                packetsSent: packetsSent,
-                packetsReceived: packetsReceived,
-                iceCandidates: iceCandidates
-            )
-            
-            preCallDiagnosisState = .completed(diagnosis)
-            delegate?.onPreCallDiagnosisStateUpdated(state: .completed(diagnosis))
-            
-            Logger.log.i(message: "Pre-call diagnosis completed successfully - MOS: \(avgMos), Quality: \(mostFrequentQuality.rawValue)")
-            
-        } catch {
-            preCallDiagnosisState = .failed(error)
-            delegate?.onPreCallDiagnosisStateUpdated(state: .failed(error))
-        }
-    }
-    
-    /// Helper method to extract numeric values from WebRTC statistics
-    /// - Parameters:
-    ///   - stats: The statistics dictionary
-    ///   - key: The key to extract
-    /// - Returns: The extracted value as Int64, or nil if not found
-    private func extractStatValue(from stats: [String: Any]?, key: String) -> Int64? {
-        guard let stats = stats,
-              let value = stats[key] else {
-            return nil
-        }
-        
-        if let intValue = value as? Int64 {
-            return intValue
-        } else if let intValue = value as? Int {
-            return Int64(intValue)
-        } else if let stringValue = value as? String,
-                  let intValue = Int64(stringValue) {
-            return intValue
-        }
-        
-        return nil
-    }
 
     /// Creates a call object when an invite is received.
     /// - Parameters:
@@ -1040,11 +825,6 @@ extension TxClient: CallProtocol {
 
         guard let callId = call.callInfo?.callId else { return }
         
-        // Handle pre-call diagnosis call state updates
-        if callId == preCallDiagnosisCallId {
-            handlePreCallDiagnosisCallState(call.callState)
-        }
-        
         // Forward call state
         self.delegate?.onCallStateUpdated(callState: call.callState, callId: callId)
 
@@ -1062,32 +842,7 @@ extension TxClient: CallProtocol {
             self._isSpeakerEnabled = false
         }
     }
-    
-    /// Handles call state updates specifically for pre-call diagnosis calls
-    /// - Parameter callState: The current call state
-    private func handlePreCallDiagnosisCallState(_ callState: CallState) {
-        switch callState {
-        case .DONE:
-            // Call ended, process the collected metrics
-            processPreCallDiagnosisResults()
-            preCallDiagnosisTimer?.invalidate()
-            preCallDiagnosisTimer = nil
-            preCallDiagnosisCallId = nil
-            
-        case .DROPPED, .RECONNECTING:
-            // Call failed, end the diagnosis
-            let error = TxError.callFailed(reason: .reconnectFailed)
-            preCallDiagnosisState = .failed(error)
-            delegate?.onPreCallDiagnosisStateUpdated(state: .failed(error))
-            preCallDiagnosisTimer?.invalidate()
-            preCallDiagnosisTimer = nil
-            preCallDiagnosisCallId = nil
-            
-        default:
-            // Other states are handled normally
-            break
-        }
-    }
+
 }
 
 // MARK: - SocketDelegate

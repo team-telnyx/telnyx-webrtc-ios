@@ -142,9 +142,4 @@ extension AppDelegate: TxClientDelegate {
             }
         }
     }
-    
-    func onPreCallDiagnosisStateUpdated(state: PreCallDiagnosisState) {
-        print("AppDelegate:: TxClientDelegate onPreCallDiagnosisStateUpdated() state: \(state)")
-        self.voipDelegate?.onPreCallDiagnosisStateUpdated(state: state)
-    }
 }

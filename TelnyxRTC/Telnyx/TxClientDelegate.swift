@@ -83,9 +83,4 @@ public protocol TxClientDelegate: AnyObject {
     /// This is specifically for handling calls that arrive via push notifications
     /// when the app is in the background.
     func onPushCall(call: Call)
-    
-    /// Called when the pre-call diagnosis state changes.
-    /// - Parameter state: The current state of the pre-call diagnosis operation.
-    /// Use this to track the progress of pre-call diagnosis and handle results or failures.
-    func onPreCallDiagnosisStateUpdated(state: PreCallDiagnosisState)
 }

@@ -49,6 +49,20 @@ class HomeViewModel: ObservableObject {
         }
     }
     
+    /// Handles call state changes and forwards them to PreCallDiagnosticManager
+    /// - Parameters:
+    ///   - callId: The call ID
+    ///   - callState: The new call state
+    func handleCallStateChange(callId: UUID, callState: CallState) {
+        preCallDiagnosticManager.handleCallStateChange(callId: callId, callState: callState)
+    }
+    
+    /// Handles call quality metrics and forwards them to PreCallDiagnosticManager
+    /// - Parameter metrics: The call quality metrics
+    func handleCallQualityMetrics(_ metrics: CallQualityMetrics) {
+        preCallDiagnosticManager.collectMetrics(metrics)
+    }
+    
     // MARK: - Private Methods
     
     private func setupPreCallDiagnosticManager() {
