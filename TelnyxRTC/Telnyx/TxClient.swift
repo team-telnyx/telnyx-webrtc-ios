@@ -154,6 +154,8 @@ public class TxClient {
     private var _isSpeakerEnabled: Bool = false
     private var enableQualityMetrics: Bool = false
     
+
+    
     public private(set) var isSpeakerEnabled: Bool {
         get {
             return _isSpeakerEnabled
@@ -822,6 +824,7 @@ extension TxClient: CallProtocol {
         Logger.log.i(message: "TxClient:: callStateUpdated()")
 
         guard let callId = call.callInfo?.callId else { return }
+        
         // Forward call state
         self.delegate?.onCallStateUpdated(callState: call.callState, callId: callId)
 
@@ -839,6 +842,7 @@ extension TxClient: CallProtocol {
             self._isSpeakerEnabled = false
         }
     }
+
 }
 
 // MARK: - SocketDelegate

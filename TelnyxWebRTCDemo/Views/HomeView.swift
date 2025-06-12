@@ -14,6 +14,8 @@ struct HomeView: View {
     @State private var textOpacity: Double = 0.0
     @State private var keyboardHeight: CGFloat = 0
     @State private var scrollToKeyboard: Bool = false
+    @State private var showPreCallDiagnosisSheet = false
+    @State private var showMenu = false
     
     let onConnect: () -> Void
     let onDisconnect: () -> Void
@@ -27,6 +29,25 @@ struct HomeView: View {
             
             ZStack {
                 VStack {
+                    // Top Menu Bar
+                    HStack {
+                        Spacer()
+                        
+                        Button(action: {
+                            showMenu.toggle()
+                        }) {
+                            Image(systemName: "ellipsis")
+                                .font(.system(size: 20, weight: .medium))
+                                .foregroundColor(Color(hex: "#1D1D1D"))
+                                .frame(width: 44, height: 44)
+                                .background(Color.white.opacity(0.8))
+                                .clipShape(Circle())
+                                .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+                        }
+                        .padding(.trailing, 20)
+                        .padding(.top, 10)
+                    }
+                    .zIndex(1)
                     GeometryReader { geometry in
                         let safeHeight = max(geometry.size.height / 2 - 100, 0)
                         
@@ -142,8 +163,53 @@ struct HomeView: View {
                             .scaleEffect(1.5)
                     }
                 }
+                
+                // Menu Overlay
+                if showMenu {
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            showMenu = false
+                        }
+                    
+                    VStack {
+                        HStack {
+                            Spacer()
+                            
+                            VStack(alignment: .trailing, spacing: 0) {
+                                Button(action: {
+                                    showMenu = false
+                                    showPreCallDiagnosisSheet = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "waveform.path.ecg")
+                                            .font(.system(size: 16))
+                                        Text("Pre-call Diagnosis")
+                                            .font(.system(size: 16, weight: .medium))
+                                    }
+                                    .foregroundColor(Color(hex: "#1D1D1D"))
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 12)
+                                    .background(Color.white)
+                                    .cornerRadius(8)
+                                    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                                }
+                            }
+                            .padding(.trailing, 20)
+                            .padding(.top, 60)
+                        }
+                        
+                        Spacer()
+                    }
+                }
             }
             .background(Color(hex: "#FEFDF5")).ignoresSafeArea()
+            .sheet(isPresented: $showPreCallDiagnosisSheet) {
+                PreCallDiagnosisBottomSheet(
+                    isPresented: $showPreCallDiagnosisSheet,
+                    viewModel: viewModel
+                )
+            }
         }
     }
     

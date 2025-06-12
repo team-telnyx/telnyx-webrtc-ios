@@ -12,6 +12,7 @@
 		3B1BE6F72AA9A467000B7962 /* TxPushIPConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */; };
 		3B1F43EF2AE0B01E00A610BA /* Params.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1F43EE2AE0B01E00A610BA /* Params.swift */; };
 		3B21257C2DC8126B00E68EA6 /* CallQualityMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B21257B2DC8126B00E68EA6 /* CallQualityMetrics.swift */; };
+		981954061F6C4A14B5376FEB /* PreCallDiagnosis.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8C8E3B7F2E844BD923FF544 /* PreCallDiagnosis.swift */; };
 		3B21257E2DC8129700E68EA6 /* MOSCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B21257D2DC8129700E68EA6 /* MOSCalculator.swift */; };
 		3B49B7152AA9B0A20026D36D /* AttachCallMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B49B7142AA9B0A20026D36D /* AttachCallMessage.swift */; };
 		3B5CD8D92D833677006D3734 /* TelnyxRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B368BEC025EDDB610032AE52 /* TelnyxRTC.framework */; };
@@ -184,6 +185,7 @@
 		3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxPushIPConfig.swift; sourceTree = "<group>"; };
 		3B1F43EE2AE0B01E00A610BA /* Params.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Params.swift; sourceTree = "<group>"; };
 		3B21257B2DC8126B00E68EA6 /* CallQualityMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallQualityMetrics.swift; sourceTree = "<group>"; };
+		A8C8E3B7F2E844BD923FF544 /* PreCallDiagnosis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreCallDiagnosis.swift; sourceTree = "<group>"; };
 		3B21257D2DC8129700E68EA6 /* MOSCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MOSCalculator.swift; sourceTree = "<group>"; };
 		3B49B7142AA9B0A20026D36D /* AttachCallMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachCallMessage.swift; sourceTree = "<group>"; };
 		3B72695C2A9396BF00D2A602 /* DisablePushMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisablePushMessage.swift; sourceTree = "<group>"; };
@@ -489,6 +491,7 @@
 			isa = PBXGroup;
 			children = (
 				3B21257B2DC8126B00E68EA6 /* CallQualityMetrics.swift */,
+				A8C8E3B7F2E844BD923FF544 /* PreCallDiagnosis.swift */,
 				3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */,
 				B309D1E325F0240200A2AADF /* TxConfig.swift */,
 				B309D23525F06D2100A2AADF /* TxCallInfo.swift */,
@@ -1032,6 +1035,7 @@
 				B3BB8FA026BC076000DDCB84 /* GatewayMessage.swift in Sources */,
 				3BABEA392D5F595A00B7C79C /* NetworkMonitor.swift in Sources */,
 				3B21257C2DC8126B00E68EA6 /* CallQualityMetrics.swift in Sources */,
+				981954061F6C4A14B5376FEB /* PreCallDiagnosis.swift in Sources */,
 				B309D1DB25F020D400A2AADF /* Method.swift in Sources */,
 				B39121AF25FFCE680051E076 /* TxError.swift in Sources */,
 				99B6E0012CF547680010CA96 /* DebugReportDataMessage.swift in Sources */,
