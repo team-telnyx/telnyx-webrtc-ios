@@ -258,4 +258,29 @@ extension HomeViewController : VoIPDelegate {
             completionHandler(nil)
         }
     }
+    
+    func onPreCallDiagnosisStateUpdated(state: PreCallDiagnosisState) {
+        print("HomeViewController:: onPreCallDiagnosisStateUpdated() state: \(state)")
+        DispatchQueue.main.async {
+            self.viewModel.updatePreCallDiagnosisState(state)
+        }
+    }
+    
+    func onPushDisabled(success: Bool, message: String) {
+        print("HomeViewController:: onPushDisabled() success: \(success), message: \(message)")
+        DispatchQueue.main.async {
+            // Handle push notification disable result if needed
+            // Could show an alert or update UI state
+        }
+    }
+    
+    func onPushCall(call: Call) {
+        print("HomeViewController:: onPushCall() callId: \(call.callInfo?.callId ?? UUID())")
+        DispatchQueue.main.async {
+            self.callViewModel.callState = call.callState
+            self.viewModel.callState = call.callState
+            // Hide the keyboard
+            self.view.endEditing(true)
+        }
+    }
 }
