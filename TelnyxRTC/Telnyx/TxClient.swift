@@ -137,17 +137,17 @@ public class TxClient {
     private var sessionId : String?
     private var txConfig: TxConfig?
     private var serverConfiguration: TxServerConfiguration
-    private var voiceSdkId:String? = nil
+    private var voiceSdkId: String? = nil
 
     private var registerRetryCount: Int = MAX_REGISTER_RETRY
     private var registerTimer: Timer = Timer()
     private var gatewayState: GatewayStates = .NOREG
     private var isCallFromPush: Bool = false
-    private var currentCallId:UUID = UUID()
+    private var currentCallId: UUID = UUID()
     private var pendingAnswerHeaders = [String:String]()
-    internal var sendFileLogs:Bool = false
-    private var attachCallId:String?
-    private var pushMetaData:[String:Any]?
+    internal var sendFileLogs: Bool = false
+    private var attachCallId: String?
+    private var pushMetaData: [String:Any]?
     private let AUTH_ERROR_CODE = "-32001"
     private var reconnectTimeoutTimer: DispatchSourceTimer?
     private let reconnectQueue = DispatchQueue(label: "TelnyxClient.ReconnectQueue")
@@ -361,7 +361,8 @@ public class TxClient {
     ///   - txConfig: The desired login credentials. See TxConfig docummentation for more information.
     ///   - serverConfiguration: (Optional) To define a custom `signaling server` and `TURN/ STUN servers`. As default we use the internal Telnyx Production servers.
     /// - Throws: TxConfig parameters errors
-    public func connect(txConfig: TxConfig, serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
+    public func connect(txConfig: TxConfig,
+                        serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
         Logger.log.i(message: "TxClient:: connect()")
         //Check connetion parameters
         try txConfig.validateParams()
@@ -371,7 +372,12 @@ public class TxClient {
 
         if(self.voiceSdkId != nil){
             Logger.log.i(message: "with_id")
-            self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,webRTCIceServers: serverConfiguration.webRTCIceServers,environment: serverConfiguration.environment,pushMetaData: ["voice_sdk_id":self.voiceSdkId!])
+            self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,
+                                                             webRTCIceServers: serverConfiguration.webRTCIceServers,
+                                                             environment: serverConfiguration.environment,
+                                                             pushMetaData: [
+                                                                "voice_sdk_id":self.voiceSdkId!
+                                                             ])
         } else {
             Logger.log.i(message: "without_id")
             self.serverConfiguration = serverConfiguration
@@ -383,7 +389,8 @@ public class TxClient {
     }
     
     
-    private func connectFromPush(txConfig: TxConfig, serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
+    private func connectFromPush(txConfig: TxConfig,
+                                 serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
         Logger.log.i(message: "TxClient:: connect from_push")
         //Check connetion parameters
         try txConfig.validateParams()
@@ -392,7 +399,10 @@ public class TxClient {
         self.txConfig = txConfig
 
 
-        self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,webRTCIceServers: serverConfiguration.webRTCIceServers,environment: serverConfiguration.environment,pushMetaData: self.pushMetaData)
+        self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,
+                                                         webRTCIceServers: serverConfiguration.webRTCIceServers,
+                                                         environment: serverConfiguration.environment,
+                                                         pushMetaData: self.pushMetaData)
 
         Logger.log.i(message: "TxClient:: serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
         self.socket = Socket()
@@ -495,7 +505,9 @@ public class TxClient {
     ///     - answerAction : `CXAnswerCallAction` from callKit
     ///     - customHeaders: (Optional)
     ///     - debug:  (Optional) to enable quality metrics for call
-    public func answerFromCallkit(answerAction:CXAnswerCallAction,customHeaders:[String:String] = [:],debug:Bool = false) {
+    public func answerFromCallkit(answerAction: CXAnswerCallAction,
+                                  customHeaders: [String:String] = [:],
+                                  debug: Bool = false) {
         self.answerCallAction = answerAction
         
         // Check if the call was initiated by a push notification
@@ -525,12 +537,13 @@ public class TxClient {
         }
         
         // If already connected and there's a pending INVITE, immediately accept the call
-        if(self.calls[currentCallId] != nil){
-            self.calls[currentCallId]?.answer(customHeaders: customHeaders,debug: debug)
+        if let currentCall = self.calls[currentCallId] {
+            currentCall.answer(customHeaders: customHeaders,
+                               debug: debug)
             answerCallAction?.fulfill()
             resetPushVariables()
             Logger.log.i(message: "answered from callkit")
-        }else{
+        } else {
             /// Let's Keep track of the `customHeaders` passed
             pendingAnswerHeaders = customHeaders
             /// Set call quality metrics
@@ -548,7 +561,8 @@ public class TxClient {
     }
     
     /// To end and control callKit active and conn
-    public func endCallFromCallkit(endAction:CXEndCallAction,callId:UUID? = nil) {
+    public func endCallFromCallkit(endAction: CXEndCallAction,
+                                   callId:UUID? = nil) {
         self.endCallAction = endAction
         
         // Check if the call was initiated by a push notification
@@ -573,7 +587,8 @@ public class TxClient {
             }
             
             // Remove pending call from internal list
-            if let callUUID = endAction.callUUID as UUID?, self.calls[callUUID] != nil {
+            if let callUUID = endAction.callUUID as UUID?,
+               let _ = self.calls[callUUID] {
                 self.calls.removeValue(forKey: callUUID)
             }
             
