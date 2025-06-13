@@ -56,8 +56,9 @@ class LoginMessage : Message {
         var loginParams = [String: Any]()
         loginParams["attach_call"] = true.description
         if declinePush {
-            loginParams["decline_push"] = true
+            loginParams["decline_push"] = true.description
         }
+        
         params["loginParams"] = loginParams
 
         
