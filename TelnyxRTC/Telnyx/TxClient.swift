@@ -1077,14 +1077,26 @@ extension TxClient : SocketDelegate {
         //Login into the signaling server after the connection is produced.
         if let token = self.txConfig?.token  {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with Token")
-            let vertoLogin = LoginMessage(token: token, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush,pushEnvironment: self.txConfig?.pushEnvironment,sessionId: self.sessionId!, declinePush: false)
+            let vertoLogin = LoginMessage(token: token, pushDeviceToken: pushToken,
+                                          pushNotificationProvider: pushProvider,
+                                          startFromPush: self.isCallFromPush,
+                                          pushEnvironment: self.txConfig?.pushEnvironment,
+                                          sessionId: self.sessionId!,
+                                          declinePush: false)
             self.socket?.sendMessage(message: vertoLogin.encode())
         } else {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with SIP User and Password")
             guard let sipUser = self.txConfig?.sipUser else { return }
             guard let password = self.txConfig?.password else { return }
             let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
-            let vertoLogin = LoginMessage(user: sipUser, password: password, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush,pushEnvironment: self.txConfig?.pushEnvironment,sessionId: self.sessionId!, declinePush: false)
+            let vertoLogin = LoginMessage(user: sipUser,
+                                          password: password,
+                                          pushDeviceToken: pushToken,
+                                          pushNotificationProvider: pushProvider,
+                                          startFromPush: self.isCallFromPush,
+                                          pushEnvironment: self.txConfig?.pushEnvironment,
+                                          sessionId: self.sessionId!,
+                                          declinePush: false)
             self.socket?.sendMessage(message: vertoLogin.encode())
         }
     }
