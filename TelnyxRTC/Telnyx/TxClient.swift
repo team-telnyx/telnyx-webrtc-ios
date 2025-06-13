@@ -132,8 +132,8 @@ public class TxClient {
     public weak var delegate: TxClientDelegate?
     private var socket : Socket?
 
-    private var answerCallAction:CXAnswerCallAction? = nil
-    private var endCallAction:CXEndCallAction? = nil
+    private var answerCallAction: CXAnswerCallAction? = nil
+    private var endCallAction: CXEndCallAction? = nil
     private var sessionId : String?
     private var txConfig: TxConfig?
     private var serverConfiguration: TxServerConfiguration
@@ -625,9 +625,9 @@ public class TxClient {
             self.resetPushVariables()
             self.stopReconnectTimeout()
             endAction.fulfill()
-        } else if(self.calls[self.currentCallId] != nil) {
+        } else if let call = self.calls[self.currentCallId] {
             Logger.log.i(message: "EndClient:: Ended Call")
-            self.calls[self.currentCallId]?.hangup()
+            call.hangup()
             self.resetPushVariables()
             self.stopReconnectTimeout()
             endAction.fulfill()
@@ -1090,6 +1090,7 @@ extension TxClient : SocketDelegate {
 
         // Handle push notification flows
         if isCallFromPush {
+            Logger.log.i(message: "TxClient:: Socket connected isCallFromPush == true")
             if pendingCallDecline {
                 Logger.log.i(message: "TxClient:: Socket connected for decline_push flow")
                 performLogin(declinePush: true)
