@@ -473,6 +473,12 @@ public class TxClient {
             
             self.delegate?.onCallStateUpdated(callState: CallState.DONE(reason: terminationReason),
                                               callId: self.currentCallId)
+            
+            // Disconnect the socket after a 1-second delay as required
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                Logger.log.i(message: "TxClient:: performLogin - Disconnecting socket after decline_push login")
+                self.disconnect()
+            }
         }
     }
 
