@@ -477,6 +477,8 @@ public class TxClient {
             // Disconnect the socket after a 1-second delay as required
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 Logger.log.i(message: "TxClient:: performLogin - Disconnecting socket after decline_push login")
+                // Reset push variables after decline_push login is complete
+                self.resetPushVariables()
                 self.disconnect()
             }
         }
@@ -598,6 +600,7 @@ public class TxClient {
                 do {
                     try connectSocketOnly(serverConfiguration: storedServerConfiguration!)
                     // Login with decline_push will happen in onSocketConnected
+                    // Note: resetPushVariables() will be called after decline_push login is sent
                 } catch let error {
                     Logger.log.e(message: "TxClient:: endCallFromCallkit connect error \(error.localizedDescription)")
                     endAction.fail()
@@ -611,7 +614,11 @@ public class TxClient {
                 self.calls.removeValue(forKey: callUUID)
             }
             
-            self.resetPushVariables()
+            // Only reset push variables if socket is already connected
+            // If not connected, reset will happen after decline_push login is sent
+            if isConnected() {
+                self.resetPushVariables()
+            }
             self.stopReconnectTimeout()
             endAction.fulfill()
             return
