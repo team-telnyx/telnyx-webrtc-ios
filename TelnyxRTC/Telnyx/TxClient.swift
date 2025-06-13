@@ -462,6 +462,18 @@ public class TxClient {
                                         declinePush: declinePush)
             self.socket?.sendMessage(message: vertoLogin.encode())
         }
+        
+        if declinePush {
+            // Create a termination reason for local hangup
+            // Use USER_BUSY
+            let terminationReason = CallTerminationReason(
+                cause: ByeMessage.getCauseFromCode(causeCode: CauseCode.USER_BUSY),
+                causeCode: CauseCode.USER_BUSY.rawValue
+            )
+            
+            self.delegate?.onCallStateUpdated(callState: CallState.DONE(reason: terminationReason),
+                                              callId: self.currentCallId)
+        }
     }
 
     /// Disconnects the TxClient from the Telnyx signaling server.
@@ -562,14 +574,15 @@ public class TxClient {
     
     /// To end and control callKit active and conn
     public func endCallFromCallkit(endAction: CXEndCallAction,
-                                   callId:UUID? = nil) {
+                                   callId: UUID? = nil) {
         self.endCallAction = endAction
         
         // Check if the call was initiated by a push notification
         if isCallFromPush {
             Logger.log.i(message: "TxClient:: endCallFromCallkit - Call initiated by push notification, sending decline_push")
             self.pendingCallDecline = true
-            
+            self.currentCallId = callId ?? UUID()
+
             // Send a login message with decline_push: true to silently reject the call
             if isConnected() {
                 Logger.log.i(message: "TxClient:: endCallFromCallkit - Socket connected, performing login with decline_push: true")
