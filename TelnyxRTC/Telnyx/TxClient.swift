@@ -528,6 +528,7 @@ public class TxClient {
     public func answerFromCallkit(answerAction: CXAnswerCallAction,
                                   customHeaders: [String:String] = [:],
                                   debug: Bool = false) {
+        Logger.log.i(message: "TxClient:: answerFromCallkit - started for callId: \(String(describing: answerAction.callUUID))")
         self.answerCallAction = answerAction
         
         // Check if the call was initiated by a push notification
@@ -583,6 +584,8 @@ public class TxClient {
     /// To end and control callKit active and conn
     public func endCallFromCallkit(endAction: CXEndCallAction,
                                    callId: UUID? = nil) {
+        Logger.log.i(message: "TxClient:: endCallFromCallkit - started for callID \(String(describing: endAction.callUUID))")
+
         self.endCallAction = endAction
         
         // Check if the call was initiated by a push notification
