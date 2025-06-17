@@ -27,6 +27,8 @@
 		3BA535EC2E00017B005AF0F4 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 3BA535EA2E00017B005AF0F4 /* Config.xcconfig */; };
 		3BABEA392D5F595A00B7C79C /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BABEA382D5F595A00B7C79C /* NetworkMonitor.swift */; };
 		3BC03B4E2CC25F5F00FD2B29 /* Reachability.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B0F56CC2C7F1CCA0011A48A /* Reachability.framework */; };
+		3BE7C75C2E0189AB00FF74A1 /* Config.xcconfig.example in Resources */ = {isa = PBXBuildFile; fileRef = 3BE7C75B2E0189AB00FF74A1 /* Config.xcconfig.example */; };
+		3BE7C75D2E0189AB00FF74A1 /* Config.xcconfig.example in Resources */ = {isa = PBXBuildFile; fileRef = 3BE7C75B2E0189AB00FF74A1 /* Config.xcconfig.example */; };
 		3BE84BA82D9C944A00CA1B70 /* DestinationToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE84BA72D9C944A00CA1B70 /* DestinationToggle.swift */; };
 		3BF1D5842BEB7B8F0097453F /* TelnyxRTC.podspec in Resources */ = {isa = PBXBuildFile; fileRef = 3BF1D5832BEB7B8F0097453F /* TelnyxRTC.podspec */; };
 		5FCBE6F1F1CC93D7D34C1470 /* Pods_TelnyxRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A52AE951FE8A913D7516008 /* Pods_TelnyxRTC.framework */; };
@@ -200,6 +202,7 @@
 		3BA535E82DFBA37C005AF0F4 /* PreCallDiagnosticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreCallDiagnosticManager.swift; sourceTree = "<group>"; };
 		3BA535EA2E00017B005AF0F4 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		3BABEA382D5F595A00B7C79C /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
+		3BE7C75B2E0189AB00FF74A1 /* Config.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = Config.xcconfig.example; sourceTree = "<group>"; };
 		3BE84BA72D9C944A00CA1B70 /* DestinationToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DestinationToggle.swift; sourceTree = "<group>"; };
 		3BF1D5832BEB7B8F0097453F /* TelnyxRTC.podspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TelnyxRTC.podspec; sourceTree = "<group>"; };
 		6ABC09607EB36CA9C6751337 /* Pods-TelnyxRTC.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC.release.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC/Pods-TelnyxRTC.release.xcconfig"; sourceTree = "<group>"; };
@@ -555,6 +558,7 @@
 		B368BEB625EDDB610032AE52 = {
 			isa = PBXGroup;
 			children = (
+				3BE7C75B2E0189AB00FF74A1 /* Config.xcconfig.example */,
 				3BA535EA2E00017B005AF0F4 /* Config.xcconfig */,
 				3BF1D5832BEB7B8F0097453F /* TelnyxRTC.podspec */,
 				B3A728BB2643537E003F3844 /* README.md */,
@@ -880,6 +884,7 @@
 				3BA535EB2E00017B005AF0F4 /* Config.xcconfig in Resources */,
 				3BF1D5842BEB7B8F0097453F /* TelnyxRTC.podspec in Resources */,
 				3B91C0F52BE3A44600A03067 /* PrivacyInfo.xcprivacy in Resources */,
+				3BE7C75C2E0189AB00FF74A1 /* Config.xcconfig.example in Resources */,
 				B3A728BC2643537E003F3844 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -902,6 +907,7 @@
 				3BA535EC2E00017B005AF0F4 /* Config.xcconfig in Resources */,
 				B368BEF425EDDD070032AE52 /* Assets.xcassets in Resources */,
 				B3E1033325F7F94900227DCE /* ringback_tone.mp3 in Resources */,
+				3BE7C75D2E0189AB00FF74A1 /* Config.xcconfig.example in Resources */,
 				B368BEF225EDDD060032AE52 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
