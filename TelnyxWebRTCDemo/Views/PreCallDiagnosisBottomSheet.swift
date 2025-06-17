@@ -79,7 +79,7 @@ struct PreCallDiagnosisBottomSheet: View {
                                 .foregroundColor(Color(hex: "#D40000"))
                             
                             if let error = error {
-                                Text(error.localizedDescription)
+                                Text(error)
                                     .font(.system(size: 14))
                                     .foregroundColor(Color(hex: "#525252"))
                                     .multilineTextAlignment(.center)
@@ -114,11 +114,11 @@ struct PreCallDiagnosisBottomSheet: View {
         
         isRunningDiagnosis = true
         preCallDiagnosisState = .started
-        
+        let phone = Bundle.main.infoDictionary?["PhoneNumber"] as? String
+
         // Start the diagnosis with default parameters
         viewModel.startPreCallDiagnosis(
-            destinationNumber: "echo",
-            duration: 10.0
+            destinationNumber: phone ?? ""
         )
     }
 }
@@ -221,7 +221,7 @@ struct ICECandidateRow: View {
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(Color(hex: "#1D1D1D"))
             
-            Text("\(candidate.type), \(candidate.protocol), \(candidate.address):\(candidate.port), Priority: \(candidate.priority)")
+            Text("\(candidate.type), \(candidate.candidateProtocol), \(candidate.address):\(candidate.port), Priority: \(candidate.priority)")
                 .font(.system(size: 12))
                 .foregroundColor(Color(hex: "#525252"))
                 .lineLimit(3)

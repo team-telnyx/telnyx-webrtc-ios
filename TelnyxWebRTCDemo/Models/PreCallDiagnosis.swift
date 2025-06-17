@@ -46,7 +46,7 @@ public struct ICECandidate {
     public let type: String
     
     /// Protocol used (UDP, TCP)
-    public let protocol: String
+    public let candidateProtocol: String
     
     /// IP address of the candidate
     public let address: String
@@ -57,10 +57,10 @@ public struct ICECandidate {
     /// Priority of the candidate
     public let priority: Int
     
-    public init(id: String, type: String, protocol: String, address: String, port: Int, priority: Int) {
+    public init(id: String, type: String, candidateProtocol: String, address: String, port: Int, priority: Int) {
         self.id = id
         self.type = type
-        self.protocol = `protocol`
+        self.candidateProtocol = candidateProtocol
         self.address = address
         self.port = port
         self.priority = priority
@@ -72,7 +72,7 @@ public struct ICECandidate {
         return [
             "id": id,
             "type": type,
-            "protocol": `protocol`,
+            "protocol": candidateProtocol,
             "address": address,
             "port": port,
             "priority": priority
@@ -151,13 +151,21 @@ public struct PreCallDiagnosis {
 }
 
 /// Enumeration representing the state of a pre-call diagnosis operation
-public enum PreCallDiagnosisState {
-    /// Pre-call diagnosis has started
+public enum PreCallDiagnosisState: Equatable {
     case started
-    
-    /// Pre-call diagnosis completed successfully with results
     case completed(PreCallDiagnosis)
-    
-    /// Pre-call diagnosis failed
-    case failed(Error?)
+    case failed(String?)
+
+    public static func == (lhs: PreCallDiagnosisState, rhs: PreCallDiagnosisState) -> Bool {
+        switch (lhs, rhs) {
+        case (.started, .started):
+            return true
+        case (.completed, .completed):
+            return true // Ignore actual diagnosis values
+        case (.failed, .failed):
+            return true // Optionally compare error content
+        default:
+            return false
+        }
+    }
 }

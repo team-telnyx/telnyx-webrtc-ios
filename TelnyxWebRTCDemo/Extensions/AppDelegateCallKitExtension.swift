@@ -157,13 +157,16 @@ extension AppDelegate : CXProviderDelegate {
     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
         print("AppDelegate:: START call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
         self.callKitUUID = action.callUUID
-        self.voipDelegate?.executeCall(callUUID: action.callUUID) { call in
-            self.currentCall = call
-            if call != nil {
-                print("AppDelegate:: performVoiceCall() successful")
-                self.isCallOutGoing = true
-            } else {
-                print("AppDelegate:: performVoiceCall() failed")
+        // Don't execute if pre-call diagnosis is running
+        if(!PreCallDiagnosticManager.shared.isRunning){
+            self.voipDelegate?.executeCall(callUUID: action.callUUID) { call in
+                self.currentCall = call
+                if call != nil {
+                    print("AppDelegate:: performVoiceCall() successful")
+                    self.isCallOutGoing = true
+                } else {
+                    print("AppDelegate:: performVoiceCall() failed")
+                }
             }
         }
         action.fulfill()

@@ -15,7 +15,7 @@ class HomeViewModel: ObservableObject {
     let connectionTimeout: TimeInterval = 30.0
     
     // PreCall Diagnostic Manager
-    @Published var preCallDiagnosticManager = PreCallDiagnosticManager()
+    @Published var preCallDiagnosticManager = PreCallDiagnosticManager.shared
     
     // Publisher for PreCall Diagnosis state updates
     var preCallDiagnosisStatePublisher: AnyPublisher<PreCallDiagnosisState?, Never> {
@@ -35,7 +35,7 @@ class HomeViewModel: ObservableObject {
         preCallDiagnosticManager.setTelnyxClient(client)
     }
     
-    func startPreCallDiagnosis(destinationNumber: String, duration: TimeInterval = 10.0) {
+    func startPreCallDiagnosis(destinationNumber: String, duration: TimeInterval = 40.0) {
         preCallDiagnosticManager.startPreCallDiagnosis(
             destinationNumber: destinationNumber,
             duration: duration

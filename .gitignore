@@ -34,3 +34,4 @@ TelnyxWebRTCDemo/GoogleService-Info.plist
 Gemfile.lock
 *.swp
 .DS_Store
+Config.xcconfig

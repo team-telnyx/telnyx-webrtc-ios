@@ -9,6 +9,9 @@
 import Foundation
 import TelnyxRTC
 import Combine
+import UIKit
+import CallKit
+
 
 /// Manager class for handling Pre-call Diagnosis operations
 /// Provides a centralized interface for starting diagnosis and handling state updates
@@ -18,22 +21,30 @@ class PreCallDiagnosticManager: ObservableObject {
     @Published var currentState: PreCallDiagnosisState?
     @Published var isRunning: Bool = false
     
+    static let shared = PreCallDiagnosticManager()
+
+    
     // MARK: - Private Properties
     private var telnyxClient: TxClient?
     private var cancellables = Set<AnyCancellable>()
     
     // Pre-call diagnosis specific properties
     private var preCallDiagnosisCallId: UUID?
-    private var preCallDiagnosisMetrics: [CallQualityMetrics] = []
+    private var callQualitymetricsData: [CallQualityMetrics] = []
     private var preCallDiagnosisTimer: Timer?
+    private var diagnosisCall:Call?
     
     // MARK: - Delegate
     weak var delegate: PreCallDiagnosticManagerDelegate?
+        
+    var appDelegate: AppDelegate {
+        return UIApplication.shared.delegate as! AppDelegate
+    }
     
     // MARK: - Initialization
-    init() {
-        setupStateObserver()
-    }
+     private init() {
+         setupStateObserver()
+      }
     
     // MARK: - Public Methods
     
@@ -47,9 +58,9 @@ class PreCallDiagnosticManager: ObservableObject {
     /// - Parameters:
     ///   - destinationNumber: The destination number to test (default: "echo")
     ///   - duration: The duration of the test in seconds (default: 10.0)
-    func startPreCallDiagnosis(destinationNumber: String = "echo", duration: TimeInterval = 10.0) {
+    func startPreCallDiagnosis(destinationNumber: String = "", duration: TimeInterval = 10.0) {
         guard let client = telnyxClient else {
-            updateState(.failed(TxError.clientNotReady))
+            updateState(.failed("Client not set"))
             return
         }
         
@@ -58,29 +69,28 @@ class PreCallDiagnosticManager: ObservableObject {
             return
         }
         
+        let callUUID = UUID()
+        preCallDiagnosisCallId = callUUID
+        
         do {
             // Clear previous metrics and timer
-            preCallDiagnosisMetrics.removeAll()
+            callQualitymetricsData.removeAll()
             preCallDiagnosisTimer?.invalidate()
             
-            // Generate unique call ID for this diagnosis
-            let diagnosisCallId = UUID()
-            preCallDiagnosisCallId = diagnosisCallId
             
             // Update state to started
             updateState(.started)
             
-            // Create call options for the diagnosis call
-            let callOptions = TxCallOptions(
-                destinationNumber: destinationNumber,
-                callerName: "PreCall Diagnosis",
-                callerNumber: "PreCall Diagnosis",
-                clientState: "diagnosis",
-                customHeaders: [:]
-            )
-            
+            appDelegate.executeStartCallAction(uuid: callUUID, handle: "Pre-Call Diagnosis")
+   
             // Start the diagnosis call
-            try client.newCall(callOptions: callOptions, callId: diagnosisCallId)
+            diagnosisCall = try client.newCall(callerName:  "",
+                                                 callerNumber:"",
+                                                 destinationNumber: destinationNumber,
+                                                 callId: callUUID,debug: true)
+            
+            appDelegate.currentCall = diagnosisCall
+            self.appDelegate.isCallOutGoing = true
             
             // Set up timer to end diagnosis after specified duration
             preCallDiagnosisTimer = Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { [weak self] _ in
@@ -88,7 +98,7 @@ class PreCallDiagnosticManager: ObservableObject {
             }
             
         } catch {
-            updateState(.failed(error))
+            updateState(.failed("Precall Diagnosis Failed: \(error.localizedDescription)"))
         }
     }
     
@@ -123,26 +133,21 @@ class PreCallDiagnosticManager: ObservableObject {
         guard preCallDiagnosisCallId != nil,
               isRunning else { return }
         
-        preCallDiagnosisMetrics.append(metrics)
+        callQualitymetricsData.append(metrics)
     }
     
     // MARK: - Private Methods
     
     private func endPreCallDiagnosis() {
-        guard let callId = preCallDiagnosisCallId,
-              let client = telnyxClient else {
-            let error = TxError.clientNotReady
-            updateState(.failed(error))
+        guard let _ = preCallDiagnosisCallId,
+              let _ = telnyxClient else {
+            updateState(.failed(""))
             return
         }
         
         // End the diagnosis call
-        do {
-            try client.endCall(callId: callId)
-        } catch {
-            print("PreCallDiagnosticManager: Error ending diagnosis call: \(error)")
-        }
-        
+        diagnosisCall?.hangup()
+
         // Process collected metrics
         processPreCallDiagnosisResults()
         
@@ -154,17 +159,16 @@ class PreCallDiagnosticManager: ObservableObject {
     
     private func handlePreCallDiagnosisCallState(_ callState: CallState) {
         switch callState {
-        case .done:
+        case .DONE(_):
             // Call ended, process results
             processPreCallDiagnosisResults()
             preCallDiagnosisTimer?.invalidate()
             preCallDiagnosisTimer = nil
             preCallDiagnosisCallId = nil
             
-        case .hangup, .destroy:
+        case .DROPPED(let reason):
             // Call failed or was terminated
-            let error = TxError.callFailed
-            updateState(.failed(error))
+            updateState(.failed(reason.rawValue))
             preCallDiagnosisTimer?.invalidate()
             preCallDiagnosisTimer = nil
             preCallDiagnosisCallId = nil
@@ -176,69 +180,66 @@ class PreCallDiagnosticManager: ObservableObject {
     }
     
     private func processPreCallDiagnosisResults() {
-        guard !preCallDiagnosisMetrics.isEmpty else {
-            let error = TxError.callFailed
-            updateState(.failed(error))
+        guard !callQualitymetricsData.isEmpty else {
+            updateState(.failed("No Metrics to Show"))
             return
         }
         
-        do {
-            // Calculate jitter statistics
-            let jitterValues = preCallDiagnosisMetrics.map { $0.jitter }
-            let jitterSummary = MetricSummary(
-                min: jitterValues.min() ?? 0.0,
-                max: jitterValues.max() ?? 0.0,
-                avg: jitterValues.reduce(0, +) / Double(jitterValues.count)
-            )
-            
-            // Calculate RTT statistics
-            let rttValues = preCallDiagnosisMetrics.map { $0.rtt }
-            let rttSummary = MetricSummary(
-                min: rttValues.min() ?? 0.0,
-                max: rttValues.max() ?? 0.0,
-                avg: rttValues.reduce(0, +) / Double(rttValues.count)
-            )
-            
-            // Calculate average MOS
-            let mosValues = preCallDiagnosisMetrics.map { $0.mos }
-            let averageMOS = mosValues.reduce(0, +) / Double(mosValues.count)
-            
-            // Determine overall quality based on frequency of quality ratings
-            let qualityFrequency = Dictionary(grouping: preCallDiagnosisMetrics) { $0.quality }
-            let mostFrequentQuality = qualityFrequency.max { $0.value.count < $1.value.count }?.key ?? .unknown
-            
-            // Get packet and byte statistics from the last metric (cumulative)
-            let lastMetric = preCallDiagnosisMetrics.last!
-            
-            // Create mock ICE candidates (in a real implementation, these would come from WebRTC)
-            let iceCandidates: [ICECandidate] = [
-                ICECandidate(id: "candidate-1", type: "host", protocol: "udp", address: "192.168.1.100", port: 54400, priority: 2113667326),
-                ICECandidate(id: "candidate-2", type: "srflx", protocol: "udp", address: "203.0.113.1", port: 54401, priority: 1686052606)
-            ]
-            
-            let diagnosis = PreCallDiagnosis(
-                mos: averageMOS,
-                quality: mostFrequentQuality,
-                jitter: jitterSummary,
-                rtt: rttSummary,
-                bytesSent: lastMetric.bytesSent,
-                bytesReceived: lastMetric.bytesReceived,
-                packetsSent: lastMetric.packetsSent,
-                packetsReceived: lastMetric.packetsReceived,
-                iceCandidates: iceCandidates
-            )
-            
-            updateState(.completed(diagnosis))
-            
-        } catch {
-            updateState(.failed(error))
-        }
+        // Calculate jitter statistics
+        let jitterValues = callQualitymetricsData.map { $0.jitter }
+        let jitterSummary = MetricSummary(
+            min: jitterValues.min() ?? 0.0,
+            max: jitterValues.max() ?? 0.0,
+            avg: jitterValues.reduce(0, +) / Double(jitterValues.count)
+        )
+        
+        // Calculate RTT statistics
+        let rttValues = callQualitymetricsData.map { $0.rtt }
+        let rttSummary = MetricSummary(
+            min: rttValues.min() ?? 0.0,
+            max: rttValues.max() ?? 0.0,
+            avg: rttValues.reduce(0, +) / Double(rttValues.count)
+        )
+        
+        // Calculate average MOS
+        let mosValues = callQualitymetricsData.map { $0.mos }
+        let averageMOS = mosValues.reduce(0, +) / Double(mosValues.count)
+        
+        // Determine overall quality based on frequency of quality ratings
+        let qualityFrequency = Dictionary(grouping: callQualitymetricsData) { $0.quality }
+        let mostFrequentQuality = qualityFrequency.max { $0.value.count < $1.value.count }?.key ?? .unknown
+        
+        // Get packet and byte statistics from the last metric (cumulative)
+        let lastMetric = callQualitymetricsData.last!
+        
+        print("Last Metric : \(lastMetric)")
+
+        let bytesSent = (lastMetric.outboundAudio?["bytesSent"] as? NSNumber)?.int64Value ?? 0
+        let bytesReceived = (lastMetric.inboundAudio?["bytesReceived"] as? NSNumber)?.int64Value ?? 0
+        let packetsSent = (lastMetric.outboundAudio?["packetsSent"] as? NSNumber)?.int64Value ?? 0
+        let packetsReceived = (lastMetric.inboundAudio?["packetsReceived"] as? NSNumber)?.int64Value ?? 0
+
+ 
+
+        let diagnosis = PreCallDiagnosis(
+            mos: averageMOS,
+            quality: mostFrequentQuality,
+            jitter: jitterSummary,
+            rtt: rttSummary,
+            bytesSent: bytesSent,
+            bytesReceived: bytesReceived,
+            packetsSent: packetsSent,
+            packetsReceived: packetsReceived,
+            iceCandidates: []
+        )
+        
+        updateState(.completed(diagnosis))
     }
     
     private func setupStateObserver() {
         $currentState
             .sink { [weak self] state in
-                guard let self = self else { return }
+                guard self != nil else { return }
                 
                 switch state {
                 case .started:
@@ -246,7 +247,7 @@ class PreCallDiagnosticManager: ObservableObject {
                 case .completed(let diagnosis):
                     print("PreCallDiagnosticManager: Diagnosis completed with MOS: \(diagnosis.mos)")
                 case .failed(let error):
-                    print("PreCallDiagnosticManager: Diagnosis failed with error: \(error?.localizedDescription ?? "Unknown error")")
+                    print("PreCallDiagnosticManager: Diagnosis failed with error: \(String(describing: error))")
                 case .none:
                     print("PreCallDiagnosticManager: Diagnosis state reset")
                 }
@@ -254,6 +255,7 @@ class PreCallDiagnosticManager: ObservableObject {
             .store(in: &cancellables)
     }
 }
+
 
 // MARK: - PreCallDiagnosticManagerDelegate Protocol
 

@@ -30,30 +30,32 @@ struct HomeView: View {
             ZStack {
                 VStack {
                     // Top Menu Bar
-                    HStack {
-                        Spacer()
-                        
-                        Button(action: {
-                            showMenu.toggle()
-                        }) {
-                            Image(systemName: "ellipsis")
-                                .font(.system(size: 20, weight: .medium))
-                                .foregroundColor(Color(hex: "#1D1D1D"))
-                                .frame(width: 44, height: 44)
-                                .background(Color.white.opacity(0.8))
-                                .clipShape(Circle())
-                                .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
-                        }
-                        .padding(.trailing, 20)
-                        .padding(.top, 10)
-                    }
-                    .zIndex(1)
+                  
                     GeometryReader { geometry in
                         let safeHeight = max(geometry.size.height / 2 - 100, 0)
                         
                         ScrollView {
                             VStack {
                                 Spacer().frame(height: isAnimating ? 50 : safeHeight)
+                                
+                                HStack {
+                                    Spacer()
+                                    
+                                    Button(action: {
+                                        showMenu.toggle()
+                                    }) {
+                                        Image(systemName: "ellipsis")
+                                            .font(.system(size: 20, weight: .medium))
+                                            .foregroundColor(Color(hex: "#1D1D1D"))
+                                            .frame(width: 44, height: 44)
+                                            .background(Color.white.opacity(0.8))
+                                            .clipShape(Circle())
+                                            .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+                                    }
+                                    .padding(.trailing, 20)
+                                    .padding(.top, 10)
+                                }
+                                .zIndex(1)
                                 
                                 Image("telnyx-logo")
                                     .resizable()
@@ -167,7 +169,6 @@ struct HomeView: View {
                 // Menu Overlay
                 if showMenu {
                     Color.black.opacity(0.3)
-                        .ignoresSafeArea()
                         .onTapGesture {
                             showMenu = false
                         }

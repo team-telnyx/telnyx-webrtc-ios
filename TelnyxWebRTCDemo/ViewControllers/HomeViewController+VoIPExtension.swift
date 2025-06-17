@@ -219,6 +219,7 @@ extension HomeViewController : VoIPDelegate {
                         }
                     }
                     if self.appDelegate.isCallOutGoing {
+                        print("Outgoing_reported")
                         self.appDelegate.executeOutGoingCall()
                     }
                     break
