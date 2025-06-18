@@ -159,6 +159,11 @@ public class TxClient {
     private var storedServerConfiguration: TxServerConfiguration?
     private var pendingCallDecline: Bool = false
     
+    // Timeout mechanism for VoIP push calls
+    private var inviteTimeoutTimer: Timer?
+    private var isWaitingForInviteAfterPush: Bool = false
+    private static let INVITE_TIMEOUT_SECONDS: TimeInterval = 10.0
+    
     public private(set) var isSpeakerEnabled: Bool {
         get {
             return _isSpeakerEnabled
@@ -496,6 +501,7 @@ public class TxClient {
         }
         self.calls.removeAll()
         self.stopReconnectTimeout()
+        self.stopInviteTimeout()
         // Remove audio route change observer
         NotificationCenter.default.removeObserver(self,
                                                   name: AVAudioSession.routeChangeNotification,
@@ -579,6 +585,52 @@ public class TxClient {
         storedServerConfiguration = nil
         pendingCallDecline = false
         isCallFromPush = false
+        stopInviteTimeout()
+        isWaitingForInviteAfterPush = false
+    }
+    
+    /// Starts the INVITE timeout timer for VoIP push calls
+    private func startInviteTimeout() {
+        stopInviteTimeout() // Ensure any existing timer is stopped
+        
+        Logger.log.i(message: "TxClient:: Starting INVITE timeout timer (10 seconds)")
+        isWaitingForInviteAfterPush = true
+        
+        inviteTimeoutTimer = Timer.scheduledTimer(withTimeInterval: TxClient.INVITE_TIMEOUT_SECONDS, repeats: false) { [weak self] _ in
+            self?.handleInviteTimeout()
+        }
+    }
+    
+    /// Stops the INVITE timeout timer
+    private func stopInviteTimeout() {
+        inviteTimeoutTimer?.invalidate()
+        inviteTimeoutTimer = nil
+        isWaitingForInviteAfterPush = false
+    }
+    
+    /// Handles the timeout when no INVITE is received after accepting a VoIP push call
+    private func handleInviteTimeout() {
+        Logger.log.w(message: "TxClient:: INVITE timeout - No INVITE received within 10 seconds after accepting VoIP push call")
+        
+        // Create the termination reason as specified in the ticket
+        let terminationReason = CallTerminationReason(
+            cause: "ORIGINATOR_CANCEL",
+            causeCode: 487,
+            sipCode: 487,
+            sipReason: "Request Terminated"
+        )
+        
+        // Update call state to DONE with the termination reason
+        delegate?.onCallStateUpdated(callState: CallState.DONE(reason: terminationReason),
+                                     callId: currentCallId)
+        
+        // Clean up and reset push variables
+        resetPushVariables()
+        
+        // Fulfill the answer action if it exists
+        answerCallAction?.fulfill()
+        
+        Logger.log.i(message: "TxClient:: INVITE timeout handled - Call terminated with ORIGINATOR_CANCEL")
     }
     
     /// To end and control callKit active and conn
@@ -704,6 +756,12 @@ public class TxClient {
                 //Check if isCallFromPush and sendAttachCall Message
                 if (self.isCallFromPush == true){
                     self.sendAttachCall()
+                    
+                    // Start INVITE timeout for VoIP push calls that are being answered (not declined)
+                    if answerCallAction != nil && !pendingCallDecline {
+                        Logger.log.i(message: "TxClient:: updateGatewayState() Starting INVITE timeout for VoIP push call")
+                        startInviteTimeout()
+                    }
                 }
                 Logger.log.i(message: "TxClient:: updateGatewayState() clientReady")
                 break
@@ -1265,6 +1323,12 @@ extension TxClient : SocketDelegate {
 
                 case .INVITE:
                     //invite received
+                    // Stop the INVITE timeout timer if it's running for VoIP push calls
+                    if isWaitingForInviteAfterPush {
+                        Logger.log.i(message: "TxClient:: INVITE received - stopping timeout timer for VoIP push call")
+                        stopInviteTimeout()
+                    }
+                    
                     if let params = vertoMessage.params {
                         guard let sdp = params["sdp"] as? String,
                               let callId = params["callID"] as? String,
