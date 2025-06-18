@@ -64,6 +64,14 @@ extension AppDelegate : CXProviderDelegate {
     ///   - uuid: uuid of the incoming call
     func newIncomingCall(from: String, uuid: UUID) {
         print("AppDelegate:: report NEW incoming call from [\(from)] uuid [\(uuid)]")
+        
+        // Track incoming call in call history
+        CallHistoryManager.shared.handleIncomingCall(
+            callId: uuid,
+            phoneNumber: from,
+            callerName: nil
+        )
+        
         #if targetEnvironment(simulator)
         //Do not execute this function when debugging on the simulator.
         //By reporting a call through CallKit from the simulator, it automatically cancels the call.
@@ -83,6 +91,8 @@ extension AppDelegate : CXProviderDelegate {
         provider.reportNewIncomingCall(with: uuid, update: callUpdate) { error in
             if let error = error {
                 print("AppDelegate:: Failed to report incoming call: \(error.localizedDescription).")
+                // Track failed incoming call
+                CallHistoryManager.shared.handleCallFailed(callId: uuid)
             } else {
                 print("AppDelegate:: Incoming call successfully reported.")
             }
@@ -159,11 +169,22 @@ extension AppDelegate : CXProviderDelegate {
         self.callKitUUID = action.callUUID
         self.voipDelegate?.executeCall(callUUID: action.callUUID) { call in
             self.currentCall = call
-            if call != nil {
+            if let call = call {
                 print("AppDelegate:: performVoiceCall() successful")
                 self.isCallOutGoing = true
+                
+                // Track outgoing call in call history
+                if let destinationNumber = call.callOptions?.destinationNumber {
+                    CallHistoryManager.shared.handleStartCallAction(
+                        action: action,
+                        phoneNumber: destinationNumber,
+                        callerName: call.callInfo?.callerName
+                    )
+                }
             } else {
                 print("AppDelegate:: performVoiceCall() failed")
+                // Track failed call
+                CallHistoryManager.shared.handleCallFailed(callId: action.callUUID)
             }
         }
         action.fulfill()
@@ -171,11 +192,38 @@ extension AppDelegate : CXProviderDelegate {
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         print("AppDelegate:: ANSWER call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
+        
+        // Track incoming call answer in call history
+        if let call = self.telnyxClient?.calls[action.callUUID] {
+            let phoneNumber = call.callInfo?.callerNumber ?? "Unknown"
+            let callerName = call.callInfo?.callerName
+            CallHistoryManager.shared.handleAnswerCallAction(
+                action: action,
+                phoneNumber: phoneNumber,
+                callerName: callerName
+            )
+        }
+        
         self.telnyxClient?.answerFromCallkit(answerAction: action, customHeaders:  ["X-test-answer":"ios-test"],debug: true)
     }
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         print("AppDelegate:: END call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
+        
+        // Track call end in call history
+        if let call = self.telnyxClient?.calls[action.callUUID] {
+            // Determine if this was a rejection or normal end
+            let status: CallStatus
+            switch call.callState {
+            case .RINGING:
+                status = .rejected
+            case .CONNECTING, .NEW:
+                status = .cancelled
+            default:
+                status = .answered
+            }
+            CallHistoryManager.shared.trackCallEnd(callId: action.callUUID, status: status)
+        }
         
         if previousCall?.callState == .HELD {
             print("AppDelegate:: call held.. unholding call")
