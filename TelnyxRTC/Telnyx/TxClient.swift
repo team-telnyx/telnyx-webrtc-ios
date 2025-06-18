@@ -620,7 +620,8 @@ public class TxClient {
             sipReason: "Request Terminated"
         )
         
-        // Update call state to DONE with the termination reason
+        // Emit both delegate events to ensure proper CallKit termination
+        delegate?.onRemoteCallEnded(callId: currentCallId, reason: terminationReason)
         delegate?.onCallStateUpdated(callState: CallState.DONE(reason: terminationReason),
                                      callId: currentCallId)
         
@@ -630,7 +631,7 @@ public class TxClient {
         // Fulfill the answer action if it exists
         answerCallAction?.fulfill()
         
-        Logger.log.i(message: "TxClient:: INVITE timeout handled - Call terminated with ORIGINATOR_CANCEL")
+        Logger.log.i(message: "TxClient:: INVITE timeout handled - Call terminated with ORIGINATOR_CANCEL, CallKit events emitted")
     }
     
     /// To end and control callKit active and conn
