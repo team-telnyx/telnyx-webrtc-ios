@@ -4,6 +4,7 @@ import TelnyxRTC
 struct CallView: View {
     @ObservedObject var viewModel: CallViewModel
     @State var isPhoneNumber: Bool
+    @State private var showCallHistory = false
 
     let onStartCall: () -> Void
     let onEndCall: () -> Void
@@ -13,6 +14,7 @@ struct CallView: View {
     let onToggleSpeaker: () -> Void
     let onHold: (Bool) -> Void
     let onDTMF: (String) -> Void
+    let onRedial: ((String) -> Void)?
     
 
     var body: some View {
@@ -47,6 +49,17 @@ struct CallView: View {
                     }
                 )
             }
+        }.sheet(isPresented: $showCallHistory) {
+            CallHistoryBottomSheet(
+                profileId: CallHistoryManager.shared.currentProfileId,
+                onRedial: { phoneNumber, callerName in
+                    viewModel.sipAddress = phoneNumber
+                    onRedial?(phoneNumber)
+                },
+                onClearHistory: {
+                    // History cleared
+                }
+            )
         }
     }
     
@@ -91,16 +104,31 @@ struct CallView: View {
                 .padding(.vertical, 8)
             }
 
-            Button(action: {
-                onStartCall()
-            }) {
-                Image("Call")
-                    .foregroundColor(Color(hex: "#1D1D1D"))
-                    .frame(width: 60, height: 60)
-                    .background(Color(hex: "#00E3AA"))
-                    .clipShape(Circle())
+            HStack(spacing: 20) {
+                // Call History Button
+                Button(action: {
+                    showCallHistory = true
+                }) {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .foregroundColor(Color(hex: "#1D1D1D"))
+                        .frame(width: 50, height: 50)
+                        .background(Color(hex: "#F5F3E4"))
+                        .clipShape(Circle())
+                }
+                .accessibilityIdentifier("callHistoryButton")
+                
+                // Call Button
+                Button(action: {
+                    onStartCall()
+                }) {
+                    Image("Call")
+                        .foregroundColor(Color(hex: "#1D1D1D"))
+                        .frame(width: 60, height: 60)
+                        .background(Color(hex: "#00E3AA"))
+                        .clipShape(Circle())
+                }
+                .accessibilityIdentifier(AccessibilityIdentifiers.callButton)
             }
-            .accessibilityIdentifier(AccessibilityIdentifiers.callButton)
             .padding()
             
             // Keep Keyboard below Textfiled
@@ -246,7 +274,8 @@ struct CallView_Previews: PreviewProvider {
             onMuteUnmuteSwitch: { _ in },
             onToggleSpeaker: {},
             onHold: { _ in },
-            onDTMF: { _ in }
+            onDTMF: { _ in },
+            onRedial: { _ in }
         )
     }
 }
