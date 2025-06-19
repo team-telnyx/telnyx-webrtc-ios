@@ -17,6 +17,9 @@ struct HomeView: View {
     @State private var showPreCallDiagnosisSheet = false
     @State private var showMenu = false
     
+    @State private var showRegionMenu = false
+    @State private var selectedRegion: Region = .auto
+    
     let onConnect: () -> Void
     let onDisconnect: () -> Void
     let onLongPressLogo: () -> Void
@@ -167,42 +170,17 @@ struct HomeView: View {
                 }
                 
                 // Menu Overlay
-                if showMenu {
-                    Color.black.opacity(0.3)
-                        .onTapGesture {
-                            showMenu = false
-                        }
-                    
-                    VStack {
-                        HStack {
-                            Spacer()
-                            
-                            VStack(alignment: .trailing, spacing: 0) {
-                                Button(action: {
-                                    showMenu = false
-                                    showPreCallDiagnosisSheet = true
-                                }) {
-                                    HStack {
-                                        Image(systemName: "waveform.path.ecg")
-                                            .font(.system(size: 16))
-                                        Text("Pre-call Diagnosis")
-                                            .font(.system(size: 16, weight: .medium))
-                                    }
-                                    .foregroundColor(Color(hex: "#1D1D1D"))
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 12)
-                                    .background(Color.white)
-                                    .cornerRadius(8)
-                                    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-                                }
-                            }
-                            .padding(.trailing, 20)
-                            .padding(.top, 60)
-                        }
-                        
-                        Spacer()
-                    }
-                }
+                OverflowMenuView(
+                              showMenu: $showMenu,
+                              showPreCallDiagnosisSheet: $showPreCallDiagnosisSheet,
+                              showRegionMenu: $showRegionMenu,
+                              selectedRegion: $viewModel.seletedRegion
+                          )
+                
+                RegionMenuView(
+                      showRegionMenu: $showRegionMenu,
+                      selectedRegion: $viewModel.seletedRegion 
+                  )
             }
             .background(Color(hex: "#FEFDF5")).ignoresSafeArea()
             .sheet(isPresented: $showPreCallDiagnosisSheet) {

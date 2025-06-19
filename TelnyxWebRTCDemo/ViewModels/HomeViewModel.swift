@@ -8,6 +8,7 @@ class HomeViewModel: ObservableObject {
     @Published var sessionId: String = "-"
     @Published var environment: String = "-"
     @Published var isLoading: Bool = false
+    @Published var seletedRegion: Region = Region.auto
     @Published var callState: CallState = .DONE(reason: nil)
     @Published var preCallDiagnosisState: PreCallDiagnosisState?
     

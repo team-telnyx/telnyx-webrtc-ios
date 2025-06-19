@@ -125,6 +125,7 @@ class HomeViewController: UIViewController {
             self.callViewModel.isMuted = self.appDelegate.currentCall?.isMuted ?? false
             self.callViewModel.isSpeakerOn = self.telnyxClient?.isSpeakerEnabled ?? false
             self.profileViewModel.selectedProfile = SipCredentialsManager.shared.getSelectedCredential()
+            self.viewModel.seletedRegion =  self.profileViewModel.selectedProfile?.region ?? Region.auto
         }
     }
     
@@ -141,6 +142,7 @@ class HomeViewController: UIViewController {
     func handleConnect() {
         print("Connect tapped")
         let deviceToken = userDefaults.getPushToken()
+        profileViewModel.selectedProfile?.region = viewModel.seletedRegion
         if let selectedProfile = profileViewModel.selectedProfile {
             connectToTelnyx(sipCredential: selectedProfile, deviceToken: deviceToken)
         }
@@ -251,7 +253,7 @@ extension HomeViewController {
     
     func initEnvironment() {
         if self.userDefaults.getEnvironment() == .development {
-            self.serverConfig = TxServerConfiguration(environment: .development)
+            self.serverConfig = TxServerConfiguration(environment: .development,region: viewModel.seletedRegion)
         }
         self.updateEnvironment()
     }
@@ -284,7 +286,7 @@ extension HomeViewController {
                 try telnyxClient.connect(txConfig: txConfig, serverConfiguration: serverConfig)
             } else {
                 print("Production Server ")
-                try telnyxClient.connect(txConfig: txConfig)
+                try telnyxClient.connect(txConfig: txConfig,serverConfiguration: TxServerConfiguration(region:viewModel.seletedRegion))
             }
             
             // Store user / password in user defaults
