@@ -200,6 +200,7 @@
 		3B1F43EE2AE0B01E00A610BA /* Params.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Params.swift; sourceTree = "<group>"; };
 		3B21257B2DC8126B00E68EA6 /* CallQualityMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallQualityMetrics.swift; sourceTree = "<group>"; };
 		3B21257D2DC8129700E68EA6 /* MOSCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MOSCalculator.swift; sourceTree = "<group>"; };
+		3B45B3982E0ADD6200383668 /* CallHistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallHistoryManager.swift; sourceTree = "<group>"; };
 		3B49B7142AA9B0A20026D36D /* AttachCallMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachCallMessage.swift; sourceTree = "<group>"; };
 		3B72695C2A9396BF00D2A602 /* DisablePushMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisablePushMessage.swift; sourceTree = "<group>"; };
 		3B758F192BF44D7800D50069 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -423,6 +424,7 @@
 		995BF71D2CE7EC5000454076 /* Managers */ = {
 			isa = PBXGroup;
 			children = (
+				3B45B3982E0ADD6200383668 /* CallHistoryManager.swift */,
 				3BA535E82DFBA37C005AF0F4 /* PreCallDiagnosticManager.swift */,
 				995BF71A2CE7EBF800454076 /* SipCredentialsManager.swift */,
 			);
@@ -1158,6 +1160,7 @@
 				9986703A2D3E9DCE001E1D01 /* SipInputCredentialsView.swift in Sources */,
 				3BE7C7632E04292300FF74A1 /* RegionMenuView.swift in Sources */,
 				3B7D29A92DF1E2080094EB90 /* CallHistoryBottomSheet.swift in Sources */,
+				3B45B3992E0ADD6200383668 /* CallHistoryManager.swift in Sources */,
 				99FF7B102D4BC4F700DB1408 /* DTMFKeyboardView.swift in Sources */,
 				991A6D442D3A96C100B29785 /* SplashScreen.swift in Sources */,
 				99ADA9A82D4878FA000C956A /* ProfileView.swift in Sources */,
