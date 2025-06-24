@@ -14,6 +14,11 @@ struct HomeView: View {
     @State private var textOpacity: Double = 0.0
     @State private var keyboardHeight: CGFloat = 0
     @State private var scrollToKeyboard: Bool = false
+    @State private var showPreCallDiagnosisSheet = false
+    @State private var showMenu = false
+    
+    @State private var showRegionMenu = false
+    @State private var selectedRegion: Region = .auto
     
     let onConnect: () -> Void
     let onDisconnect: () -> Void
@@ -27,12 +32,33 @@ struct HomeView: View {
             
             ZStack {
                 VStack {
+                    // Top Menu Bar
+                  
                     GeometryReader { geometry in
                         let safeHeight = max(geometry.size.height / 2 - 100, 0)
                         
                         ScrollView {
                             VStack {
                                 Spacer().frame(height: isAnimating ? 50 : safeHeight)
+                                
+                                HStack {
+                                    Spacer()
+                                    
+                                    Button(action: {
+                                        showMenu.toggle()
+                                    }) {
+                                        Image(systemName: "ellipsis")
+                                            .font(.system(size: 20, weight: .medium))
+                                            .foregroundColor(Color(hex: "#1D1D1D"))
+                                            .frame(width: 44, height: 44)
+                                            .background(Color.white.opacity(0.8))
+                                            .clipShape(Circle())
+                                            .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+                                    }
+                                    .padding(.trailing, 20)
+                                    .padding(.top, 10)
+                                }
+                                .zIndex(1)
                                 
                                 Image("telnyx-logo")
                                     .resizable()
@@ -142,8 +168,27 @@ struct HomeView: View {
                             .scaleEffect(1.5)
                     }
                 }
+                
+                // Menu Overlay
+                OverflowMenuView(
+                              showMenu: $showMenu,
+                              showPreCallDiagnosisSheet: $showPreCallDiagnosisSheet,
+                              showRegionMenu: $showRegionMenu,
+                              selectedRegion: $viewModel.seletedRegion
+                          )
+                
+                RegionMenuView(
+                      showRegionMenu: $showRegionMenu,
+                      selectedRegion: $viewModel.seletedRegion 
+                  )
             }
             .background(Color(hex: "#FEFDF5")).ignoresSafeArea()
+            .sheet(isPresented: $showPreCallDiagnosisSheet) {
+                PreCallDiagnosisBottomSheet(
+                    isPresented: $showPreCallDiagnosisSheet,
+                    viewModel: viewModel
+                )
+            }
         }
     }
     
@@ -307,7 +352,7 @@ struct HomeView_Previews: PreviewProvider {
                     onToggleSpeaker: {},
                     onHold: { _ in },
                     onDTMF: { _ in },
-                    onRedial: {_ in}
+                    onRedial: { _ in }
                 )
             )
         )

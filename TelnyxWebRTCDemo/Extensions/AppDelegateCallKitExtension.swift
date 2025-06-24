@@ -64,7 +64,7 @@ extension AppDelegate : CXProviderDelegate {
     ///   - uuid: uuid of the incoming call
     func newIncomingCall(from: String, uuid: UUID) {
         print("AppDelegate:: report NEW incoming call from [\(from)] uuid [\(uuid)]")
-        
+
         if let call = self.telnyxClient?.calls[uuid] {
             // Track incoming call in call history
             CallHistoryManager.shared.handleIncomingCall(
@@ -73,7 +73,7 @@ extension AppDelegate : CXProviderDelegate {
                 callerName: call.callInfo?.callerName ?? ""
             )
         }
-        
+
         #if targetEnvironment(simulator)
         //Do not execute this function when debugging on the simulator.
         //By reporting a call through CallKit from the simulator, it automatically cancels the call.
@@ -169,15 +169,24 @@ extension AppDelegate : CXProviderDelegate {
     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
         print("AppDelegate:: START call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
         self.callKitUUID = action.callUUID
-        self.voipDelegate?.executeCall(callUUID: action.callUUID) { call in
-            self.currentCall = call
+        // Don't execute if pre-call diagnosis is running
+        if(!PreCallDiagnosticManager.shared.isRunning){
+            self.voipDelegate?.executeCall(callUUID: action.callUUID) { call in
+                self.currentCall = call
+                if call != nil {
+                    print("AppDelegate:: performVoiceCall() successful")
+                    self.isCallOutGoing = true
+                } else {
+                    print("AppDelegate:: performVoiceCall() failed")
+                }
+            }
         }
         action.fulfill()
     }
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         print("AppDelegate:: ANSWER call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
-        
+
         // Track incoming call answer in call history
         if let call = self.telnyxClient?.calls[action.callUUID] {
             let phoneNumber = call.callInfo?.callerNumber ?? "Unknown"
@@ -188,7 +197,7 @@ extension AppDelegate : CXProviderDelegate {
                 callerName: callerName
             )
         }
-        
+
         self.telnyxClient?.answerFromCallkit(answerAction: action, customHeaders:  ["X-test-answer":"ios-test"],debug: true)
     }
 
@@ -209,9 +218,9 @@ extension AppDelegate : CXProviderDelegate {
             }
             CallHistoryManager.shared.trackCallEnd(callId: action.callUUID, status: status)
         }
-        
-        
-        
+
+
+
         if previousCall?.callState == .HELD {
             print("AppDelegate:: call held.. unholding call")
             previousCall?.unhold()
