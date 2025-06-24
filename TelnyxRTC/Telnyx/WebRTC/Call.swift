@@ -532,11 +532,13 @@ extension Call {
         
         // Create a termination reason for local hangup
         // Use USER_BUSY
+        let causeCode: CauseCode = (callState == .ACTIVE) ? .NORMAL_CLEARING : .USER_BUSY
+
         let terminationReason = CallTerminationReason(
-            cause: ByeMessage.getCauseFromCode(causeCode: CauseCode.USER_BUSY),
-            causeCode: CauseCode.USER_BUSY.rawValue
+            cause: ByeMessage.getCauseFromCode(causeCode: causeCode),
+            causeCode: causeCode.rawValue
         )
-        
+
         let byeMessage = ByeMessage(sessionId: sessionId, callId: callId.uuidString, causeCode: .USER_BUSY)
         let message = byeMessage.encode() ?? ""
         self.socket?.sendMessage(message: message)
