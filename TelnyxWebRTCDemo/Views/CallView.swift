@@ -49,17 +49,6 @@ struct CallView: View {
                     }
                 )
             }
-        }.sheet(isPresented: $showCallHistory) {
-            CallHistoryBottomSheet(
-                profileId: CallHistoryManager.shared.currentProfileId,
-                onRedial: { phoneNumber, callerName in
-                    viewModel.sipAddress = phoneNumber
-                    onRedial?(phoneNumber)
-                },
-                onClearHistory: {
-                    // History cleared
-                }
-            )
         }
     }
     

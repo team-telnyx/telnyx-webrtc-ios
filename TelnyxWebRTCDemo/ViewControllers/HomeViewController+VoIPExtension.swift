@@ -191,12 +191,7 @@ extension HomeViewController : VoIPDelegate {
         return "Call ended"
     }
     
-    func onCallStateUpdated(callState: CallState, callId: UUID) {
-        // Track call state changes in call history
-        if let call = self.appDelegate.telnyxClient?.calls[callId] {
-            CallHistoryManager.shared.handleCallStateChange(call: call, previousState: nil)
-        }
-        
+    func onCallStateUpdated(callState: CallState, callId: UUID) {        
         DispatchQueue.main.async {
             self.callViewModel.callState = callState
             self.viewModel.callState = callState
