@@ -532,7 +532,16 @@ extension Call {
         
         // Create a termination reason for local hangup
         // Use USER_BUSY
-        let causeCode: CauseCode = (callState == .ACTIVE) ? .NORMAL_CLEARING : .USER_BUSY
+        let causeCode: CauseCode
+
+        switch callState {
+        case .ACTIVE:
+            causeCode = .NORMAL_CLEARING
+        case .RINGING, .CONNECTING:
+            causeCode = .USER_BUSY
+        default:
+            causeCode = .NORMAL_CLEARING
+        }
 
         let terminationReason = CallTerminationReason(
             cause: ByeMessage.getCauseFromCode(causeCode: causeCode),
