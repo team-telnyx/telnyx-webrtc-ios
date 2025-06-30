@@ -158,6 +158,28 @@ extension AppDelegate: PKPushRegistryDelegate {
     }
 
     func handleVoIPPushNotification(payload: PKPushPayload) {
+        // Check if this is a missed call notification
+        if let aps = payload.dictionaryPayload["aps"] as? [String: Any],
+           let alert = aps["alert"] as? String,
+           alert == "Missed call!" {
+            
+            // Handle missed call notification
+            if let metadata = payload.dictionaryPayload["metadata"] as? [String: Any] {
+                var callID = UUID.init().uuidString
+                if let newCallId = (metadata["call_id"] as? String),
+                   !newCallId.isEmpty {
+                    callID = newCallId
+                }
+                
+                if let uuid = UUID(uuidString: callID) {
+                    print("AppDelegate:: Received missed call notification for call: \(callID)")
+                    self.handleMissedCallNotification(callUUID: uuid, pushMetaData: metadata)
+                }
+            }
+            return
+        }
+        
+        // Handle regular incoming call notification
         if let metadata = payload.dictionaryPayload["metadata"] as? [String: Any] {
             var callID = UUID.init().uuidString
             if let newCallId = (metadata["call_id"] as? String),
@@ -176,6 +198,38 @@ extension AppDelegate: PKPushRegistryDelegate {
             let uuid = UUID.init()
             self.processVoIPNotification(callUUID: uuid,pushMetaData: [String: Any]())
             self.newIncomingCall(from: "Incoming call", uuid: uuid)
+        }
+    }
+    
+    /// Handle missed call VoIP push notification by reporting the call as answered elsewhere
+    /// - Parameters:
+    ///   - callUUID: The UUID of the missed call
+    ///   - pushMetaData: The metadata from the push notification
+    func handleMissedCallNotification(callUUID: UUID, pushMetaData: [String: Any]) {
+        print("AppDelegate:: handleMissedCallNotification for call: \(callUUID)")
+        
+        guard let provider = callKitProvider else {
+            print("AppDelegate:: CallKit provider not available for missed call handling")
+            return
+        }
+        
+        // Report the call as ended with .answeredElsewhere reason to dismiss CallKit UI
+        provider.reportCall(with: callUUID, endedAt: Date(), reason: .answeredElsewhere)
+        print("AppDelegate:: Reported missed call as answered elsewhere for call: \(callUUID)")
+        
+        // Clean up any stored call references
+        if self.callKitUUID == callUUID {
+            self.callKitUUID = nil
+        }
+        
+        if let currentCall = self.currentCall,
+           currentCall.callInfo?.callId == callUUID {
+            self.currentCall = nil
+        }
+        
+        if let previousCall = self.previousCall,
+           previousCall.callInfo?.callId == callUUID {
+            self.previousCall = nil
         }
     }
 }
