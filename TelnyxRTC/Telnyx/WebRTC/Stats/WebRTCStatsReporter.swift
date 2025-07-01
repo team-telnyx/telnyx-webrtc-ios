@@ -207,44 +207,63 @@ class WebRTCStatsReporter {
     /// Converts WebRTC statistics to real-time call quality metrics
     /// - Parameter statsData: Dictionary containing WebRTC statistics
     /// - Returns: CallQualityMetrics object with calculated metrics
+    private var previousStats: [String: Any]?
+
     private func toRealTimeMetrics(inboundboundAudio: [[String: Any]], audio: [String: Any]) -> CallQualityMetrics {
-        // Extract remote audio stats
         let audioContent = audio["audio"] as? [String: [[String: Any]]] ?? [:]
-        let remoteInbound = audioContent["remoteInbound"] ?? []
-        let remoteOutbound = audioContent["remoteOutbound"] ?? []
         let inbound = audioContent["inbound"] ?? []
-        let outbound = audioContent["outbound"] ?? []
         let candidates = audioContent["candidates"] ?? []
-        
-        // Extract metrics from stats
-        let jitter = (inbound.first?["jitter"] as? Double) ?? Double.infinity
-        let rtt = candidates.first?["totalRoundTripTime"] as? Double ?? Double.infinity
-        let packetsReceived = (inboundboundAudio.first?["packetsReceived"] as? Int) ?? -1
-        let packetsLost = (inboundboundAudio.first?["packetsLost"] as? Int) ?? -1
-        
-        // Calculate MOS score
+
+        guard let latestStat = inbound.last else {
+            return CallQualityMetrics.empty
+        }
+
+        let currentPacketsReceived = latestStat["packetsReceived"] as? Int ?? 0
+        let currentPacketsLost = latestStat["packetsLost"] as? Int ?? 0
+        let currentTimestamp = latestStat["timestamp"] as? Double ?? Date().timeIntervalSince1970 * 1000
+
+        var deltaPacketsReceived = currentPacketsReceived
+        var deltaPacketsLost = currentPacketsLost
+
+        if let previous = previousStats,
+           let prevReceived = previous["packetsReceived"] as? Int,
+           let prevLost = previous["packetsLost"] as? Int,
+           let prevTimestamp = previous["timestamp"] as? Double {
+
+            deltaPacketsReceived = max(0, currentPacketsReceived - prevReceived)
+            deltaPacketsLost = max(0, currentPacketsLost - prevLost)
+        }
+
+        previousStats = [
+            "packetsReceived": currentPacketsReceived,
+            "packetsLost": currentPacketsLost,
+            "timestamp": currentTimestamp
+        ]
+
+        let jitter = (latestStat["jitter"] as? Double) ?? Double.infinity
+        let rtt = candidates.last?["totalRoundTripTime"] as? Double ?? Double.infinity
+
         let mos = MOSCalculator.calculateMOS(
-            jitter: jitter * 1000, // Convert to ms
-            rtt: rtt * 1000,       // Convert to ms
-            packetsReceived: packetsReceived,
-            packetsLost: packetsLost
+            jitter: jitter * 1000,
+            rtt: rtt * 1000,
+            packetsReceived: deltaPacketsReceived,
+            packetsLost: deltaPacketsLost
         )
 
-        // Determine call quality
         let quality = MOSCalculator.getQuality(mos: mos)
-                
-        // Create metrics object
+
         return CallQualityMetrics(
             jitter: jitter,
             rtt: rtt,
             mos: mos,
             quality: quality,
             inboundAudio: inbound.first,
-            outboundAudio: outbound.first,
-            remoteInboundAudio: remoteInbound.first,
-            remoteOutboundAudio: remoteOutbound.first
+            outboundAudio: audioContent["outbound"]?.first,
+            remoteInboundAudio: audioContent["remoteInbound"]?.first,
+            remoteOutboundAudio: audioContent["remoteOutbound"]?.first
         )
     }
+
     
     // MARK: - Task Execution
     private func executeTask() {
@@ -395,6 +414,7 @@ class WebRTCStatsReporter {
             ]
             
             if !audioInboundStats.isEmpty && call.enableQualityMetrics {
+                print("audioInboundStats size is:\(audioInboundStats.count)")
                 // Convert stats to typed arrays for metrics calculation
                 let typedAudioInboundStats = audioInboundStats.compactMap { $0 as? [String: Any] }
                 
