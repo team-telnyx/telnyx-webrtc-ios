@@ -15,12 +15,14 @@ class Socket {
     var isConnected : Bool = false
     private var socket : WebSocket?
     private var reconnect : Bool = false
+    private var signalingServer:URL? = nil
 
     func connect(signalingServer: URL) {
         Logger.log.i(message: "Socket:: connect()")
         var request = URLRequest(url: signalingServer)
         request.timeoutInterval = 5
         let pinner = FoundationSecurity(allowSelfSigned: true) // don't validate SSL certificates
+        self.signalingServer = signalingServer
         
         self.socket = WebSocket(request: request, certPinner: pinner)
         self.socket?.delegate = self
@@ -53,6 +55,25 @@ class Socket {
 
 // MARK:- WebSocketDelegate
 extension Socket : WebSocketDelegate {
+    // Fallback to .auto Region
+    func shouldFallbackToAuto(signalingServer: URL?) -> Bool {
+        guard let url = signalingServer,
+              let regionPrefix = extractRegionPrefix(from: url),
+              let region = Region(rawValue: regionPrefix) else {
+            return false
+        }
+        return region != .auto
+    }
+    
+    func extractRegionPrefix(from url: URL) -> String? {
+        let host = url.host ?? ""
+        let components = host.components(separatedBy: ".")
+        if components.count >= 2 {
+            return components[0] // e.g., "us-west"
+        }
+        return nil
+    }
+
     
     func didReceive(event: WebSocketEvent, client: WebSocketClient) {
         switch event {
@@ -65,7 +86,7 @@ extension Socket : WebSocketDelegate {
         case .disconnected(let reason, let code):
             //This are server side disconnections
             isConnected = false
-            self.delegate?.onSocketDisconnected(reconnect: self.reconnect)
+            self.delegate?.onSocketDisconnected(reconnect: self.reconnect,region: nil)
             Logger.log.i(message: "Socket:: websocket is disconnected: \(reason) with code: \(code)")
             break;
             
@@ -77,7 +98,7 @@ extension Socket : WebSocketDelegate {
 
         case .cancelled:
             isConnected = false
-            self.delegate?.onSocketDisconnected(reconnect: self.reconnect)
+            self.delegate?.onSocketDisconnected(reconnect: self.reconnect,region: nil)
             self.reconnect = false
             Logger.log.i(message: "Socket:: WebSocketDelegate .cancelled")
             break
@@ -87,6 +108,9 @@ extension Socket : WebSocketDelegate {
             guard let error = error else {
                 Logger.log.e(message: "Socket:: WebSocketDelegate .error UNKNOWN")
                 return
+            }
+            if(shouldFallbackToAuto(signalingServer: self.signalingServer)) {
+                self.delegate?.onSocketDisconnected(reconnect: true,region: .auto)
             }
             self.delegate?.onSocketError(error: error)
             Logger.log.e(message: "Socket:: WebSocketDelegate .error \(error)")

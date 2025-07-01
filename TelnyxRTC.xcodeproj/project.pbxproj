@@ -1160,7 +1160,6 @@
 				9986703A2D3E9DCE001E1D01 /* SipInputCredentialsView.swift in Sources */,
 				3BE7C7632E04292300FF74A1 /* RegionMenuView.swift in Sources */,
 				3B7D29A92DF1E2080094EB90 /* CallHistoryBottomSheet.swift in Sources */,
-				3B45B3992E0ADD6200383668 /* CallHistoryManager.swift in Sources */,
 				99FF7B102D4BC4F700DB1408 /* DTMFKeyboardView.swift in Sources */,
 				991A6D442D3A96C100B29785 /* SplashScreen.swift in Sources */,
 				99ADA9A82D4878FA000C956A /* ProfileView.swift in Sources */,

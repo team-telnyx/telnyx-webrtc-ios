@@ -942,21 +942,32 @@ extension TxClient : SocketDelegate {
         }
     }
     
-    func onSocketDisconnected(reconnect: Bool) {
-        
-        if(reconnect) {
+    func onSocketDisconnected(reconnect: Bool, region: Region?) {
+        if reconnect {
             Logger.log.i(message: "TxClient:: SocketDelegate  Reconnecting")
             DispatchQueue.main.asyncAfter(deadline: .now() + TxClient.RECONNECT_BUFFER) {
                 do {
-                    try self.connect(txConfig: self.txConfig!,serverConfiguration: self.serverConfiguration)
-                }catch let error {
-                    Logger.log.e(message:"TxClient:: SocketDelegate reconnect error" +  error.localizedDescription)
+                    var updatedServerConfig = self.serverConfiguration
+
+                    // Override region only if region is NOT nil
+                    if region != nil {
+                        updatedServerConfig = TxServerConfiguration(
+                            signalingServer: updatedServerConfig.signalingServer,
+                            webRTCIceServers: updatedServerConfig.webRTCIceServers,
+                            environment: updatedServerConfig.environment,
+                            pushMetaData: updatedServerConfig.pushMetaData,
+                            region: .auto
+                        )
+                    }
+
+                    try self.connect(txConfig: self.txConfig!, serverConfiguration: updatedServerConfig)
+                } catch let error {
+                    Logger.log.e(message: "TxClient:: SocketDelegate reconnect error" + error.localizedDescription)
                 }
             }
             return
         }
 
-        
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketDisconnected()")
         self.socket = nil
         self.sessionId = nil
