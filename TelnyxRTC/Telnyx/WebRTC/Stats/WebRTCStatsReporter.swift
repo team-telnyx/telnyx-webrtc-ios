@@ -415,7 +415,6 @@ class WebRTCStatsReporter {
             ]
             
             if !audioInboundStats.isEmpty && call.enableQualityMetrics {
-                print("audioInboundStats size is:\(audioInboundStats.count)")
                 // Convert stats to typed arrays for metrics calculation
                 let typedAudioInboundStats = audioInboundStats.compactMap { $0 as? [String: Any] }
                 
