@@ -213,6 +213,7 @@ class WebRTCStatsReporter {
         let audioContent = audio["audio"] as? [String: [[String: Any]]] ?? [:]
         let inbound = audioContent["inbound"] ?? []
         let candidates = audioContent["candidates"] ?? []
+        let remoteInbound = audioContent["remoteInbound"] ?? []
 
         guard let latestStat = inbound.last else {
             return CallQualityMetrics.empty
@@ -240,8 +241,8 @@ class WebRTCStatsReporter {
             "timestamp": currentTimestamp
         ]
 
-        let jitter = (latestStat["jitter"] as? Double) ?? Double.infinity
-        let rtt = candidates.last?["totalRoundTripTime"] as? Double ?? Double.infinity
+        let jitter = (remoteInbound.last?["jitter"] as? Double) ?? Double.infinity
+        let rtt = (remoteInbound.last?["roundTripTime"] as? Double) ?? Double.infinity
 
         let mos = MOSCalculator.calculateMOS(
             jitter: jitter * 1000,
