@@ -16,6 +16,7 @@ struct CallQualityMetricsView: View {
                 metricRow(title: "Jitter:", value: "\(String(format: "%.3f", metrics.jitter)) s")
                 metricRow(title: "MOS:", value: "\(String(format: "%.1f", metrics.mos))")
                 metricRow(title: "Quality:", value: metrics.quality.rawValue.capitalized)
+                metricRow(title: "RTT:", value: "\(String(format: "%.3f", metrics.rtt)) s")
             }
             
             // Inbound Audio Stats
