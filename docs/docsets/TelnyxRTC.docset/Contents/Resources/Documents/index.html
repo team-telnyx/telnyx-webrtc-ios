@@ -16,7 +16,7 @@
     <a title="TelnyxRTC  Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="index.html">TelnyxRTC 2.0.1 Docs</a> (80% documented)</p>
+        <p><a href="index.html">TelnyxRTC 2.0.2 Docs</a> (80% documented)</p>
         <div class="header-right">
           <form role="search" action="search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -133,34 +133,9 @@
         <section>
           <section class="section">
             
-            <h1 id='telnyx-webrtc-ios' class='heading'>telnyx-webrtc-ios</h1>
+            <h1 id='telnyx-webrtc-ios' class='heading'>Telnyx-webrtc-ios</h1>
 
-<p>Enable Telnyx real-time communication services on iOS. :telephone_receiver: :fire:</p>
-<h2 id='table-of-contents' class='heading'>Table of Contents</h2>
-
-<ul>
-<li><a href="#project-structure">Project Structure</a></li>
-<li><a href="#project-setup">Project Setup</a></li>
-<li><a href="#sip-credentials">SIP Credentials</a></li>
-<li><a href="#adding-telnyx-sdk-to-your-ios-client-application">Adding Telnyx SDK to your iOS Client Application</a></li>
-<li><a href="#usage">Usage</a>
-
-<ul>
-<li><a href="#telnyx-client-setup">Telnyx Client Setup</a></li>
-<li><a href="#telnyx-client-delegate">Telnyx Client Delegate</a></li>
-<li><a href="#calls">Calls</a></li>
-</ul></li>
-<li><a href="#webrtc-statistics">WebRTC Statistics</a>
-
-<ul>
-<li><a href="#enabling-webrtc-statistics">Enabling WebRTC Statistics</a></li>
-<li><a href="#understanding-webrtc-statistics">Understanding WebRTC Statistics</a></li>
-<li><a href="#real-time-call-quality-monitoring">Real-time Call Quality Monitoring</a></li>
-<li><a href="#important-notes">Important Notes</a></li>
-</ul></li>
-<li><a href="#custom-logging">Custom Logging</a></li>
-<li><a href="#push-notifications-setup">Push Notifications Setup</a></li>
-</ul>
+<p>Enable Telnyx real-time communication services on iOS. </p>
 <h2 id='project-structure' class='heading'>Project Structure</h2>
 
 <ul>
@@ -184,13 +159,13 @@
 </ol>
 
 <p align="center">
-<img width="247" alt="Screen Shot 2021-05-04 at 18 34 45" src="https://user-images.githubusercontent.com/75636882/117073153-e8f9e680-ad07-11eb-9d1f-685397b071a6.png">
+  <img width="247" alt="Screen Shot 2021-05-04 at 18 34 45" src="https://user-images.githubusercontent.com/75636882/117073153-e8f9e680-ad07-11eb-9d1f-685397b071a6.png"/>
 </p>
 
 <ol>
 <li>Select the target <code>TelnyxRTC (TelnyxRTC Project)</code> to build the SDK
 <p align="center">
-<img width="243" alt="Screen Shot 2021-05-04 at 18 35 18" src="https://user-images.githubusercontent.com/75636882/117073140-e3040580-ad07-11eb-8ac6-dc99531550e3.png"></li>
+<img width="243" alt="Screen Shot 2021-05-04 at 18 35 18" src="https://user-images.githubusercontent.com/75636882/117073140-e3040580-ad07-11eb-8ac6-dc99531550e3.png"/></li>
 </ol>
 
 <p></p></p>
@@ -200,32 +175,12 @@
 </ol>
 
 <p align="center">
-<img width="153" align="center" alt="Screen Shot 2021-03-03 at 10 04 05" src="https://user-images.githubusercontent.com/75636882/109810077-d4b24400-7c07-11eb-91ec-d81e72ae9069.png">
+<img width="153" align="center" alt="Screen Shot 2021-03-03 at 10 04 05" src="https://user-images.githubusercontent.com/75636882/109810077-d4b24400-7c07-11eb-91ec-d81e72ae9069.png"/>
 </p>
 
 <ol>
-<li><p>Select target <code>TelnyxWebRTCDemo</code> to run the demo app. The SDK should be manually built in order to get the app running (Step 5)</p></li>
-<li><p>Enjoy 😎
-</br>
-</br></p>
-
-<table>
-<tr>
-<td>Credentials</td>
- <td>Outbound call</td>
- <td>Incoming call</td>
-</tr>
-<tr>
-<td><img src="https://user-images.githubusercontent.com/75636882/116748486-eaf53a00-a9d5-11eb-9093-968e8f2bde6e.gif" width=270></td>
-<td><img src="https://user-images.githubusercontent.com/75636882/116748473-e597ef80-a9d5-11eb-94a3-2a4a044ea4ff.gif" width=270></td>
-<td><img src="https://user-images.githubusercontent.com/75636882/116748481-e92b7680-a9d5-11eb-9fb5-6fe4cb10b797.gif" width=270></td>
-</tr>
-</table></li>
+<li>Select target <code>TelnyxWebRTCDemo</code> to run the demo app. The SDK should be manually built in order to get the app running (Step 5)</li>
 </ol>
-
-<hr>
-
-<p></br></p>
 <h2 id='sip-credentials' class='heading'>SIP Credentials</h2>
 
 <p>In order to start making and receiving calls using the TelnyxRTC SDK you will need to get SIP Credentials:</p>
@@ -238,8 +193,6 @@
 </ol>
 
 <p>For more information on how to generate SIP credentials check the <a href="https://developers.telnyx.com/docs/v2/webrtc/quickstart">Telnyx WebRTC quickstart guide</a>. </p>
-
-<p></br></p>
 <h2 id='adding-telnyx-sdk-to-your-ios-client-application' class='heading'>Adding Telnyx SDK to your iOS Client Application:</h2>
 
 <p>Currently the iOS SDK is supported using cocoapods. </p>
@@ -264,20 +217,19 @@ import TelnyxRTC
 <li><p>Disable BITCODE (The GoogleWebRTC dependency has BITCODE disabled):  Go to the Build Settings tab of your app target, search for “bitcode” and set it to “NO”</p>
 
 <p align="center">
-<img width="743" alt="Screen Shot 2021-05-07 at 17 46 08" src="https://user-images.githubusercontent.com/75636882/117506545-235bc180-af5c-11eb-91eb-00d60f5844fa.png">
+<img width="743" alt="Screen Shot 2021-05-07 at 17 46 08" src="https://user-images.githubusercontent.com/75636882/117506545-235bc180-af5c-11eb-91eb-00d60f5844fa.png" />
 </p></li>
 <li><p>Enable VoIP and Audio background modes: Go to Signing &amp; Capabilities tab, press the +Capability button and add those background modes:</p>
 
 <p align="center">
-<img width="719" alt="Screen Shot 2021-05-07 at 17 46 54" src="https://user-images.githubusercontent.com/75636882/117506607-3ff7f980-af5c-11eb-8df2-2f9170c12baf.png">
+<img width="719" alt="Screen Shot 2021-05-07 at 17 46 54" src="https://user-images.githubusercontent.com/75636882/117506607-3ff7f980-af5c-11eb-8df2-2f9170c12baf.png" />
 </p></li>
 <li><p>Go to your Info.plist file and add the “Privacy - Microphone Usage Description” key with a description that your app requires microphone access in order to make VoIP calls. </p>
 
 <p align="center">
-<img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://user-images.githubusercontent.com/75636882/117506706-6d44a780-af5c-11eb-87e2-d6be092474f2.png">
+<img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://user-images.githubusercontent.com/75636882/117506706-6d44a780-af5c-11eb-87e2-d6be092474f2.png"/>
 </p></li>
-<li><p>You are all set!
-</br></p></li>
+<li><p>You are all set!</p></li>
 </ol>
 <h3 id='swift-package-manager' class='heading'>Swift Package Manager</h3>
 
@@ -290,7 +242,7 @@ import TelnyxRTC
 </ol>
 
 <p align="center">
-<img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://github.com/isaacakakpo1/telnyx-webrtc-ios-smp/assets/134492608/39be0ab7-222f-478c-bba9-cb2813bcb81d">
+<img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://github.com/isaacakakpo1/telnyx-webrtc-ios-smp/assets/134492608/39be0ab7-222f-478c-bba9-cb2813bcb81d"/>
 </p>
 
 <p>NB: if Add Package is stuck downloading try File &gt; Packages &gt; Reset Package Caches or Run the command
@@ -482,8 +434,6 @@ extension ViewController: TxClientDelegate {
 <p>This is a general example: In order to fully support inbound calls you will need to implement PushKit + CallKit. For more information check <code>Setting up VoIP push notifications</code> section.</p>
 
 <hr>
-
-<p></br></p>
 <h2 id='call-termination-reasons' class='heading'>Call Termination Reasons</h2>
 
 <p>When a call ends, the SDK provides detailed information about why the call was terminated through the <code><a href="Structs/CallTerminationReason.html">CallTerminationReason</a></code> structure. This information is available in the <code>DONE</code> state of the call.</p>
@@ -642,8 +592,6 @@ call.onCallQualityChange = { metrics in
 </tbody></table>
 <h4 id='callquality-enum' class='heading'>CallQuality Enum</h4>
 
-<p>The <code><a href="Enums/CallQuality.html">CallQuality</a></code> enum provides the following values:</p>
-
 <table><thead>
 <tr>
 <th>Value</th>
@@ -658,22 +606,22 @@ call.onCallQualityChange = { metrics in
 </tr>
 <tr>
 <td><code>.good</code></td>
-<td>4.1 &lt;= MOS &lt;= 4.2</td>
+<td>4.1 ≤ MOS ≤ 4.2</td>
 <td>Good call quality</td>
 </tr>
 <tr>
 <td><code>.fair</code></td>
-<td>3.7 &lt;= MOS &lt;= 4.0</td>
+<td>3.7 ≤ MOS ≤ 4.0</td>
 <td>Fair call quality</td>
 </tr>
 <tr>
 <td><code>.poor</code></td>
-<td>3.1 &lt;= MOS &lt;= 3.6</td>
+<td>3.1 ≤ MOS ≤ 3.6</td>
 <td>Poor call quality</td>
 </tr>
 <tr>
 <td><code>.bad</code></td>
-<td>MOS &lt;= 3.0</td>
+<td>MOS ≤ 3.0</td>
 <td>Bad call quality</td>
 </tr>
 <tr>
@@ -736,8 +684,6 @@ call.onCallQualityChange = { metrics in
 </ol>
 
 <hr>
-
-<p></br></p>
 <h2 id='custom-logging' class='heading'>Custom Logging</h2>
 
 <p>The SDK provides a flexible logging system that allows you to implement your own custom logger. This feature enables you to route SDK logs to your preferred logging framework or format.</p>
@@ -801,8 +747,6 @@ let txConfig = TxConfig(
 </ol>
 
 <hr>
-
-<p></br></p>
 <h2 id='push-notifications-setup' class='heading'>Push Notifications Setup</h2>
 
 <p>In order to receive incoming calls while the app is running in background or closed, you will need to perform a set of configurations over your Mission Control Portal Account and your application. </p>
@@ -810,11 +754,9 @@ let txConfig = TxConfig(
 <p>For detailed documentation on setting up push notifications, see:</p>
 
 <ul>
-<li><a href="docs-markdown/push-notification/app-setup.md">App Setup</a> - Configure your iOS app to receive VoIP push notifications</li>
-<li><a href="docs-markdown/push-notification/portal-setup.md">Portal Setup</a> - Set up your Telnyx Portal account with VoIP push credentials</li>
+<li><a href="https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/app-setup">App Setup</a> - Configure your iOS app to receive VoIP push notifications</li>
+<li><a href="https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/portal-setup">Portal Setup</a> - Set up your Telnyx Portal account with VoIP push credentials</li>
 </ul>
-
-<p></br></p>
 <h3 id='voip-push-portal-setup' class='heading'>VoIP Push - Portal setup</h3>
 
 <p>During this process you will learn how to create a VoIP push credential and assign the credential to a SIP Connection. </p>
@@ -828,8 +770,6 @@ let txConfig = TxConfig(
 </ul>
 
 <p>For complete instructions on how to setup Push Notifications got to this <a href="https://developers.telnyx.com/docs/v2/webrtc/push-notifications">link</a>.</p>
-
-<p></br></p>
 <h3 id='voip-push-app-setup' class='heading'>VoIP Push - App Setup</h3>
 
 <p>The following setup is required in your application to receive Telnyx VoIP push notifications:</p>
@@ -842,12 +782,12 @@ let txConfig = TxConfig(
 <li><p>Press the  +Capabilities button.</p>
 
 <p align="center">
-  <img width="294" alt="Screen Shot 2021-11-26 at 13 34 12" src="https://user-images.githubusercontent.com/75636882/143610180-04e2a98c-bb08-4f06-b81a-9a3a4231d389.png">
+  <img width="294" alt="Screen Shot 2021-11-26 at 13 34 12" src="https://user-images.githubusercontent.com/75636882/143610180-04e2a98c-bb08-4f06-b81a-9a3a4231d389.png" />
 </p></li>
 <li><p>Enable Push Notifications</p>
 
 <p align="center">
-  <img width="269" alt="Screen Shot 2021-11-26 at 13 35 51" src="https://user-images.githubusercontent.com/75636882/143610372-abab46cc-dd2a-4712-9020-240f9dbaaaf7.png">
+  <img width="269" alt="Screen Shot 2021-11-26 at 13 35 51" src="https://user-images.githubusercontent.com/75636882/143610372-abab46cc-dd2a-4712-9020-240f9dbaaaf7.png" />
 </p></li>
 </ol>
 <h4 id='b-configure-pushkit-into-your-app' class='heading'>b. Configure PushKit into your app:</h4>
@@ -1013,8 +953,6 @@ if let provider = callKitProvider {
 }
 </code></pre>
 
-<p></br></p>
-
 <p><strong><em>Reporting calls with CallKit</em></strong></p>
 
 <p>To properly report calls to callKit with right statuses, you need to invoke the following callKit methods at the right instances: </p>
@@ -1075,17 +1013,17 @@ func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
 <p>When the <code>answerFromPush(answerAction: action)</code> is called, Callkit sets the call state to <code>connecting</code> to alert the user that the call is being connected. 
 Once the call is active, the timer starts.</p>
 
-<table align="center">
-        <tr>
-           <td>Connecting State</td>
-           <td>Active call</td>
-        </tr>
-        <tr>
-          <td><img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/13e9efd0-07e2-4a7e-9e7a-b2484b96be47" width=270></td>
-          <td><img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/89d506a5-bf97-42f2-bd64-5aa54b202db8" width=270></td>
-        </tr>
-</table>
-   
+<table><thead>
+<tr>
+<th>Connecting State</th>
+<th>Active Call</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/13e9efd0-07e2-4a7e-9e7a-b2484b96be47" width="270"/></td>
+<td><img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/89d506a5-bf97-42f2-bd64-5aa54b202db8" width="270"/></td>
+</tr>
+</tbody></table>
 
 <p>The previous SDK versions requires handling the websocket connection state on the client side. It can be done in the following way:</p>
 <pre class="highlight plaintext"><code>var callAnswerPendingFromPush:Bool = false
@@ -1237,18 +1175,19 @@ user interface until there are no more active sessions.</p>
 <li>Clone the repository</li>
 <li>And check the exported documentation in:  <code>docs/index.html</code></li>
 </ol>
+<h2 id='support' class='heading'>Support</h2>
 
-<hr>
+<p>Find official documentation <a href="https://developers.telnyx.com/docs/voice/webrtc/ios-sdk">here</a></p>
 
 <p>Questions? Comments? Building something rad? <a href="https://joinslack.telnyx.com/">Join our Slack channel</a> and share.</p>
 <h2 id='license' class='heading'>License</h2>
 
-<p><a href="./LICENSE"><code>MIT Licence</code></a> © <a href="https://github.com/team-telnyx">Telnyx</a></p>
+<p><a href="https://github.com/team-telnyx/telnyx-webrtc-ios/blob/main/LICENSE"><code>MIT Licence</code></a> © <a href="https://github.com/team-telnyx">Telnyx</a></p>
 
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-06-02)</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-07-04)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>
