@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [2.0.2](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.0.2) (2025-05-26)
+
+### Bug Fixes
+- Improved call quality metrics for real-time monitoring of call quality metrics
+- Fix cause codes for reject and normal clearing
+
 ## [2.0.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.0.1) (2025-05-26)
 
 ### Bug Fixes

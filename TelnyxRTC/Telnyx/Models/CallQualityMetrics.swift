@@ -68,3 +68,21 @@ public struct CallQualityMetrics {
         self.remoteOutboundAudio = remoteOutboundAudio
     }
 }
+
+
+extension CallQualityMetrics {
+    /// Returns an empty/default instance of CallQualityMetrics
+    public static var empty: CallQualityMetrics {
+        return CallQualityMetrics(
+            jitter: 0.0,
+            rtt: 0.0,
+            mos: 1.0, // lowest possible MOS score
+            quality: .bad,
+            inboundAudio: nil,
+            outboundAudio: nil,
+            remoteInboundAudio: nil,
+            remoteOutboundAudio: nil
+        )
+    }
+}
+
