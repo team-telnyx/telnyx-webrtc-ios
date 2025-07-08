@@ -11,4 +11,7 @@ class CallViewModel: ObservableObject {
     @Published var showCallMetricsPopup = false
     @Published var callQualityMetrics: CallQualityMetrics? = nil
     @Published var errorMessage: String = ""
+    
+    /// The current active call object, used for accessing media streams
+    @Published var currentCall: Call? = nil
 }

@@ -117,6 +117,28 @@ struct CallView: View {
                 .padding(.vertical, 8)
                 .disabled(true)
                 .opacity(0.5)
+            
+            // Audio Waveform Visualization
+            VStack(spacing: 16) {
+                AudioWaveformView(
+                    mediaStream: viewModel.currentCall?.localStream,
+                    barColor: .green,
+                    title: "Local Audio"
+                )
+                
+                AudioWaveformView(
+                    mediaStream: viewModel.currentCall?.remoteStream,
+                    barColor: .blue,
+                    title: "Remote Audio"
+                )
+            }
+            .padding(.horizontal, 30)
+            .padding(.vertical, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.gray.opacity(0.05))
+            )
+            .padding(.horizontal, 20)
                         
             HStack {
                 Button(action: {

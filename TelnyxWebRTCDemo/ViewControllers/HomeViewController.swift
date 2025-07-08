@@ -117,6 +117,7 @@ class HomeViewController: UIViewController {
     @objc func appWillEnterForeground() {
         print("HomeViewController:: App is about to enter the foreground")
         DispatchQueue.main.async {
+            self.callViewModel.currentCall = self.appDelegate.currentCall
             self.callViewModel.isMuted = self.appDelegate.currentCall?.isMuted ?? false
             self.callViewModel.isSpeakerOn = self.telnyxClient?.isSpeakerEnabled ?? false
             self.profileViewModel.selectedProfile = SipCredentialsManager.shared.getSelectedCredential()
@@ -176,6 +177,7 @@ extension HomeViewController {
             self.viewModel.sessionId = sessionId.isEmpty ? "-" : sessionId
             self.viewModel.callState = self.appDelegate.currentCall?.callState ?? .DONE(reason: nil)
             self.callViewModel.callState = self.appDelegate.currentCall?.callState ?? .DONE(reason: nil)
+            self.callViewModel.currentCall = self.appDelegate.currentCall
             self.callViewModel.isMuted = self.appDelegate.currentCall?.isMuted ?? false
             self.callViewModel.isSpeakerOn = self.telnyxClient?.isSpeakerEnabled ?? false
         }
