@@ -174,12 +174,14 @@ struct HomeView: View {
                               showMenu: $showMenu,
                               showPreCallDiagnosisSheet: $showPreCallDiagnosisSheet,
                               showRegionMenu: $showRegionMenu,
-                              selectedRegion: $viewModel.seletedRegion
+                              selectedRegion: $viewModel.seletedRegion,
+                              viewModel: viewModel
                           )
                 
                 RegionMenuView(
                       showRegionMenu: $showRegionMenu,
-                      selectedRegion: $viewModel.seletedRegion 
+                      selectedRegion: $viewModel.seletedRegion,
+                      viewModel: viewModel
                   )
             }
             .background(Color(hex: "#FEFDF5")).ignoresSafeArea()

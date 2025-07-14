@@ -11,6 +11,7 @@ import TelnyxRTC
 struct RegionMenuView: View {
     @Binding var showRegionMenu: Bool
     @Binding var selectedRegion: Region
+    @ObservedObject var viewModel: HomeViewModel
 
     var body: some View {
         if showRegionMenu {
@@ -24,10 +25,13 @@ struct RegionMenuView: View {
                     ForEach(Region.allCases, id: \.self) { region in
                         RegionRow(
                             region: region,
-                            isSelected: region == selectedRegion
+                            isSelected: region == selectedRegion,
+                            isDisabled: viewModel.isRegionSelectionDisabled
                         ) {
-                            selectedRegion = region
-                            showRegionMenu = false
+                            if !viewModel.isRegionSelectionDisabled {
+                                selectedRegion = region
+                                showRegionMenu = false
+                            }
                         }
                         Divider()
                     }
@@ -44,6 +48,7 @@ struct RegionMenuView: View {
 struct RegionRow: View {
     var region: Region
     var isSelected: Bool
+    var isDisabled: Bool = false
     var onSelect: () -> Void
 
     var body: some View {
@@ -51,20 +56,21 @@ struct RegionRow: View {
             HStack {
                 if isSelected {
                     Image(systemName: "checkmark")
-                        .foregroundColor(.blue)
+                        .foregroundColor(isDisabled ? .gray : .blue)
                         .frame(width: 24)
                 } else {
                     Spacer().frame(width: 24)
                 }
 
                 Text(region.rawValue)
-                    .foregroundColor(.primary)
+                    .foregroundColor(isDisabled ? .gray : .primary)
                     .padding(.leading, 4)
                 Spacer()
             }
             .padding()
-            .background(Color.white)
+            .background(Color.white.opacity(isDisabled ? 0.5 : 1.0))
         }
         .buttonStyle(PlainButtonStyle())
+        .disabled(isDisabled)
     }
 }

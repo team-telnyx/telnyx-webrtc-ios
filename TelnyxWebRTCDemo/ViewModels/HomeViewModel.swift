@@ -27,6 +27,32 @@ class HomeViewModel: ObservableObject {
     private var txClient: TxClient?
     private var cancellables = Set<AnyCancellable>()
     
+    /// Computed property to determine if calls are active
+    /// When calls are active, region selection and pre-call diagnosis should be disabled
+    var isCallsActive: Bool {
+        guard let client = txClient else { return false }
+        
+        // Check if any call is in an active state (not NEW or DONE)
+        return !client.calls.filter { 
+            switch $0.value.callState {
+            case .DONE, .NEW:
+                return false
+            default:
+                return true
+            }
+        }.isEmpty
+    }
+    
+    /// Computed property to determine if region selection should be disabled
+    var isRegionSelectionDisabled: Bool {
+        return isCallsActive
+    }
+    
+    /// Computed property to determine if pre-call diagnosis should be disabled
+    var isPreCallDiagnosisDisabled: Bool {
+        return isCallsActive
+    }
+    
     init() {
         setupPreCallDiagnosticManager()
     }

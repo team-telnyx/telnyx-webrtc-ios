@@ -10,6 +10,10 @@ import XCTest
 @testable import TelnyxRTC
 
 class SocketTests : XCTestCase, SocketDelegate {
+    func onSocketDisconnected(reconnect: Bool, region: TelnyxRTC.Region?) {
+        //
+    }
+    
     
     func onSocketDisconnected(reconnect: Bool) {
         //Handle socket disconnected

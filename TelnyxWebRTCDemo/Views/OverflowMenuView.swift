@@ -14,6 +14,7 @@ struct OverflowMenuView: View {
     @Binding var showPreCallDiagnosisSheet: Bool
     @Binding var showRegionMenu: Bool
     @Binding var selectedRegion: Region
+    @ObservedObject var viewModel: HomeViewModel
 
 
     var body: some View {
@@ -25,13 +26,25 @@ struct OverflowMenuView: View {
             VStack {
                 Spacer()
                 VStack(alignment: .leading, spacing: 10) {
-                    MenuButton(title: "Pre-call Diagnosis", icon: "waveform.path.ecg") {
-                        showMenu = false
-                        showPreCallDiagnosisSheet = true
+                    MenuButton(
+                        title: "Pre-call Diagnosis", 
+                        icon: "waveform.path.ecg",
+                        isDisabled: viewModel.isPreCallDiagnosisDisabled
+                    ) {
+                        if !viewModel.isPreCallDiagnosisDisabled {
+                            showMenu = false
+                            showPreCallDiagnosisSheet = true
+                        }
                     }
-                    MenuButton(title: "Region: \(selectedRegion.rawValue)", icon: "globe") {
-                        showMenu = false
-                        showRegionMenu = true
+                    MenuButton(
+                        title: "Region: \(selectedRegion.rawValue)", 
+                        icon: "globe",
+                        isDisabled: viewModel.isRegionSelectionDisabled
+                    ) {
+                        if !viewModel.isRegionSelectionDisabled {
+                            showMenu = false
+                            showRegionMenu = true
+                        }
                     }
                 }
                 .padding()
@@ -47,6 +60,7 @@ struct OverflowMenuView: View {
 struct MenuButton: View {
     var title: String
     var icon: String
+    var isDisabled: Bool = false
     var action: () -> Void
 
     var body: some View {
@@ -55,11 +69,12 @@ struct MenuButton: View {
                 Image(systemName: icon)
                 Text(title)
             }
-            .foregroundColor(.primary)
+            .foregroundColor(isDisabled ? .gray : .primary)
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.gray.opacity(0.1))
+            .background(Color.gray.opacity(isDisabled ? 0.05 : 0.1))
             .cornerRadius(8)
         }
+        .disabled(isDisabled)
     }
 }

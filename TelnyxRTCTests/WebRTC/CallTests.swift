@@ -81,6 +81,10 @@ extension CallTests : CallProtocol {
 
 // MARK: - SocketDelegate
 extension CallTests : SocketDelegate {
+    func onSocketDisconnected(reconnect: Bool, region: TelnyxRTC.Region?) {
+        //
+    }
+    
     func onSocketReconnectSuggested() {
        //
     }

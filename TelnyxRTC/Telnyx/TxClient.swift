@@ -135,8 +135,8 @@ public class TxClient {
     private var answerCallAction:CXAnswerCallAction? = nil
     private var endCallAction:CXEndCallAction? = nil
     private var sessionId : String?
-    private var txConfig: TxConfig?
-    private var serverConfiguration: TxServerConfiguration
+    internal var txConfig: TxConfig?
+    internal var serverConfiguration: TxServerConfiguration
     private var voiceSdkId:String? = nil
 
     private var registerRetryCount: Int = MAX_REGISTER_RETRY
@@ -949,10 +949,10 @@ extension TxClient : SocketDelegate {
                 do {
                     var updatedServerConfig = self.serverConfiguration
 
-                    // Override region only if region is NOT nil
+                    // Override region only if region is NOT nil - fallack mechanism for failed refion
                     if region != nil {
                         updatedServerConfig = TxServerConfiguration(
-                            signalingServer: updatedServerConfig.signalingServer,
+                            signalingServer: nil, // Pass nil to rebuild URL without region prefix
                             webRTCIceServers: updatedServerConfig.webRTCIceServers,
                             environment: updatedServerConfig.environment,
                             pushMetaData: updatedServerConfig.pushMetaData,

@@ -15,7 +15,7 @@ class Socket {
     var isConnected : Bool = false
     private var socket : WebSocket?
     private var reconnect : Bool = false
-    private var signalingServer:URL? = nil
+    internal var signalingServer:URL? = nil
 
     func connect(signalingServer: URL) {
         Logger.log.i(message: "Socket:: connect()")

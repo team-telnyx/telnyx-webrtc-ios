@@ -60,10 +60,18 @@ struct PreCallDiagnosisBottomSheet: View {
                                     .foregroundColor(.white)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 12)
-                                    .background(Color(hex: "#00E3AA"))
+                                    .background(viewModel.isPreCallDiagnosisDisabled ? Color.gray : Color(hex: "#00E3AA"))
                                     .cornerRadius(8)
                             }
-                            .disabled(viewModel.socketState != .connected && viewModel.socketState != .clientReady)
+                            .disabled(viewModel.isPreCallDiagnosisDisabled || (viewModel.socketState != .connected && viewModel.socketState != .clientReady))
+                            
+                            if viewModel.isPreCallDiagnosisDisabled {
+                                Text("Pre-call diagnosis is disabled during active calls")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(Color(hex: "#D40000"))
+                                    .multilineTextAlignment(.center)
+                                    .padding(.top, 8)
+                            }
                         }
                     }
                     .padding(.horizontal, 20)
@@ -108,6 +116,10 @@ struct PreCallDiagnosisBottomSheet: View {
     }
     
     private func startPreCallDiagnosis() {
+        guard !viewModel.isPreCallDiagnosisDisabled else {
+            return
+        }
+        
         guard viewModel.socketState == .connected || viewModel.socketState == .clientReady else {
             return
         }
