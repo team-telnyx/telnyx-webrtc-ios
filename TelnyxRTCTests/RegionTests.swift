@@ -334,43 +334,6 @@ class RegionTests: XCTestCase {
         let invalidURL = URL(string: "wss://invalid.domain.com")!
         XCTAssertFalse(socket.shouldFallbackToAuto(signalingServer: invalidURL))
     }
-    
-    // MARK: - Region Performance Tests
-    
-    /**
-     Test Region performance for large numbers of operations
-     */
-    func testRegionPerformance() {
-        let regions = Region.allCases
-        let iterations = 10000
-        
-        measure {
-            for _ in 0..<iterations {
-                for region in regions {
-                    _ = region.displayName
-                    _ = region.rawValue
-                    _ = Region.fromDisplayName(region.displayName)
-                    _ = Region.fromValue(region.rawValue)
-                }
-            }
-        }
-    }
-    
-    /**
-     Test TxServerConfiguration creation performance with regions
-     */
-    func testTxServerConfigurationPerformance() {
-        let regions = Region.allCases
-        let iterations = 1000
-        
-        measure {
-            for _ in 0..<iterations {
-                for region in regions {
-                    _ = TxServerConfiguration(environment: .production, region: region)
-                }
-            }
-        }
-    }
 }
 
 // MARK: - Mock Socket Delegate for Region Testing

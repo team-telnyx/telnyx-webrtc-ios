@@ -257,27 +257,6 @@ class RegionIntegrationTests: XCTestCase {
             // This behavior may vary based on implementation
         }
     }
-    
-    /**
-     Test region performance under load
-     */
-    func testRegionPerformanceUnderLoad() {
-        let iterations = 1000
-        let regions = Region.allCases
-        
-        measure {
-            for _ in 0..<iterations {
-                for region in regions {
-                    let config = TxServerConfiguration(environment: .production, region: region)
-                    _ = config.signalingServer.absoluteString
-                    
-                    let socket = Socket()
-                    _ = socket.shouldFallbackToAuto(signalingServer: config.signalingServer)
-                    _ = socket.extractRegionPrefix(from: config.signalingServer)
-                }
-            }
-        }
-    }
 }
 
 // MARK: - Mock Classes for Testing

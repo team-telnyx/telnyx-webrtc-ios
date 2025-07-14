@@ -5,8 +5,7 @@ target 'TelnyxWebRTCDemo' do
   # Comment the next line if you don't want to use dynamic frameworks
   use_frameworks!
   
-  # Pin Firebase to version compatible with Swift 5.0
-  pod 'Firebase/Core', '~> 10.29.0'
+  pod 'Firebase/Core'
 
   pod 'ReachabilitySwift', '~> 5.2.1'
 

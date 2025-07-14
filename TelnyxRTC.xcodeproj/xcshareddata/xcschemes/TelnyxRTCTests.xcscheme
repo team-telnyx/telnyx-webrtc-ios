@@ -50,16 +50,6 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "B368BEE725EDDD060032AE52"
-            BuildableName = "Telnyx WebRTC.app"
-            BlueprintName = "TelnyxWebRTCDemo"
-            ReferencedContainer = "container:TelnyxRTC.xcodeproj">
-         </BuildableReference>
-      </BuildableProductRunnable>
       <LocationScenarioReference
          identifier = "com.apple.dt.IDEFoundation.CurrentLocationScenarioIdentifier"
          referenceType = "1">
