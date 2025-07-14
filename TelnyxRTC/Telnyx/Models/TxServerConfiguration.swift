@@ -63,10 +63,10 @@ public struct TxServerConfiguration {
             let baseURL = (environment == .production) ? InternalConfig.default.prodSignalingServer : InternalConfig.default.developmentSignalingServer
             if let rtc_id = rtc_id {
                 let query = createQuery(with: rtc_id)
-                let pushRtcServer = "wss://\(regionPrefix)\(baseURL.absoluteString)\(query)"
+                let pushRtcServer = "wss://\(regionPrefix)\(baseURL.host ?? "")\(query)"
                 self.signalingServer = URL(string: pushRtcServer) ?? baseURL
             } else {
-                self.signalingServer = URL(string: "wss://\(regionPrefix)\(baseURL)")!
+                self.signalingServer = URL(string: "wss://\(regionPrefix)\(baseURL.host ?? "")")!
             }
             self.environment = environment
         }
