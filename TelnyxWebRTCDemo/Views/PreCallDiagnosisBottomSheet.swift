@@ -54,23 +54,51 @@ struct PreCallDiagnosisBottomSheet: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 20)
                         } else {
-                            Button(action: startPreCallDiagnosis) {
-                                Text("Start Pre-call Diagnosis")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 12)
-                                    .background(viewModel.isPreCallDiagnosisDisabled ? Color.gray : Color(hex: "#00E3AA"))
-                                    .cornerRadius(8)
-                            }
-                            .disabled(viewModel.isPreCallDiagnosisDisabled || (viewModel.socketState != .connected && viewModel.socketState != .clientReady))
-                            
-                            if viewModel.isPreCallDiagnosisDisabled {
-                                Text("Pre-call diagnosis is disabled during active calls")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(Color(hex: "#D40000"))
-                                    .multilineTextAlignment(.center)
-                                    .padding(.top, 8)
+                            VStack(spacing: 12) {
+                                Button(action: startPreCallDiagnosis) {
+                                    Text("Start Pre-call Diagnosis")
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundColor(.white)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 12)
+                                        .background(viewModel.isPreCallDiagnosisDisabled ? Color.gray : Color(hex: "#00E3AA"))
+                                        .cornerRadius(8)
+                                }
+                                .disabled(viewModel.isPreCallDiagnosisDisabled || (viewModel.socketState != .connected && viewModel.socketState != .clientReady))
+                                
+                                if viewModel.isPreCallDiagnosisDisabled {
+                                    Text("Pre-call diagnosis is disabled during active calls")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(Color(hex: "#D40000"))
+                                        .multilineTextAlignment(.center)
+                                        .padding(.top, 8)
+                                }
+                                
+                                // Setup explanation
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("What is Pre-call Diagnosis?")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(Color(hex: "#1D1D1D"))
+                                    
+                                    Text("Pre-call diagnosis tests your network connection to Telnyx servers by making a brief test call. It measures call quality metrics like jitter, round-trip time, and network stability to help you understand your connection quality before making important calls.")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(Color(hex: "#525252"))
+                                        .multilineTextAlignment(.leading)
+                                    
+                                    Text("Setup Required:")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(Color(hex: "#1D1D1D"))
+                                        .padding(.top, 4)
+                                    
+                                    Text("To use this feature, you need to configure a phone number in the Config.xcconfig file. Edit the file and set:\n\nPHONE_NUMBER = +15551234567\n\nReplace with a valid phone number that can receive test calls.")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(Color(hex: "#525252"))
+                                        .multilineTextAlignment(.leading)
+                                }
+                                .padding(12)
+                                .background(Color(hex: "#F8F9FA"))
+                                .cornerRadius(8)
+                                .padding(.top, 12)
                             }
                         }
                     }

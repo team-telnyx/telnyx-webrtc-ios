@@ -44,8 +44,11 @@ class HomeViewModel: ObservableObject {
     }
     
     /// Computed property to determine if region selection should be disabled
+    /// Region selection is disabled when:
+    /// 1. There are active calls
+    /// 2. The client is connected (to prevent connection disruption)
     var isRegionSelectionDisabled: Bool {
-        return isCallsActive
+        return isCallsActive || socketState == .connected || socketState == .clientReady
     }
     
     /// Computed property to determine if pre-call diagnosis should be disabled

@@ -252,7 +252,7 @@ class RegionIntegrationTests: XCTestCase {
                 XCTAssertNil(Region(rawValue: region), "Invalid URL should not produce valid region")
             }
             
-            let shouldFallback = socket.shouldFallbackToAuto(signalingServer: invalidURL)
+            _ = socket.shouldFallbackToAuto(signalingServer: invalidURL)
             // Invalid URLs should generally not trigger fallback unless they contain valid region prefixes
             // This behavior may vary based on implementation
         }

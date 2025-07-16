@@ -69,6 +69,12 @@ class PreCallDiagnosticManager: ObservableObject {
             return
         }
         
+        // Validate destination number before starting CallKit
+        guard !destinationNumber.isEmpty else {
+            updateState(.failed("Phone number is required. Please configure PHONE_NUMBER in Config.xcconfig"))
+            return
+        }
+        
         let callUUID = UUID()
         preCallDiagnosisCallId = callUUID
         
@@ -77,17 +83,17 @@ class PreCallDiagnosticManager: ObservableObject {
             callQualitymetricsData.removeAll()
             preCallDiagnosisTimer?.invalidate()
             
-            
-            // Update state to started
-            updateState(.started)
-            
-            appDelegate.executeStartCallAction(uuid: callUUID, handle: "Pre-Call Diagnosis")
-   
-            // Start the diagnosis call
+            // Start the diagnosis call first
             diagnosisCall = try client.newCall(callerName:  "",
                                                  callerNumber:"",
                                                  destinationNumber: destinationNumber,
                                                  callId: callUUID,debug: true)
+            
+            // Only start CallKit after successful call creation
+            appDelegate.executeStartCallAction(uuid: callUUID, handle: "Pre-Call Diagnosis")
+            
+            // Update state to started
+            updateState(.started)
             
             appDelegate.currentCall = diagnosisCall
             self.appDelegate.isCallOutGoing = true
@@ -98,7 +104,15 @@ class PreCallDiagnosticManager: ObservableObject {
             }
             
         } catch {
-            updateState(.failed("Precall Diagnosis Failed: \(error.localizedDescription)"))
+            // If call creation fails, make sure to clean up CallKit
+            updateState(.failed("Pre-call Diagnosis Failed: \(error.localizedDescription)"))
+            
+            // End any CallKit action that was started
+            appDelegate.executeEndCallAction(uuid: callUUID)
+            
+            // Clean up
+            preCallDiagnosisCallId = nil
+            diagnosisCall = nil
         }
     }
     

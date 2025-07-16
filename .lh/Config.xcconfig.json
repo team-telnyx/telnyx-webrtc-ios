@@ -1,0 +1,18 @@
+{
+    "sourceFile": "Config.xcconfig",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1752707499140,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1752707499140,
+            "name": "Commit-0",
+            "content": "//\n//  Config.xcconfig\n//  TelnyxWebRTCDemo\n//\n//  Created by Isaac Akakpo on 2025-07-07.\n//\n\n// Configuration settings file format documentation can be found at:\n// https://help.apple.com/xcode/#/dev745c5c974\n\n// IMPORTANT: To use the Pre-call Diagnosis feature, you need to set a valid phone number below\n// Example: PHONE_NUMBER = +15551234567\n// Leave empty if you don't want to use Pre-call Diagnosis feature\nPHONE_NUMBER = \n\n// For CI builds, this will be overridden by environment variables\n// PHONE_NUMBER = $(PHONE_NUMBER_ENV)\n"
+        }
+    ]
+}
