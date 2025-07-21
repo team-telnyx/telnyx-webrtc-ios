@@ -32,19 +32,25 @@ import TelnyxRTC
 struct AudioWaveformView: View {
     /// Array of audio levels (0.0 to 1.0) for each bar
     let audioLevels: [Float]
-    
+
     /// Color of the waveform bars
     let barColor: Color
-    
+
     /// Optional title to display above the waveform
     let title: String?
-    
+
     /// Minimum bar height in points
     let minBarHeight: CGFloat
-    
+
     /// Maximum bar height in points
     let maxBarHeight: CGFloat
-    
+
+    /// State to track previous levels for smooth decay
+    @State private var displayLevels: [Float] = []
+
+    /// Timer for decay animation
+    @State private var decayTimer: Timer?
+
     init(
         audioLevels: [Float],
         barColor: Color = .blue,
@@ -58,52 +64,65 @@ struct AudioWaveformView: View {
         self.minBarHeight = minBarHeight
         self.maxBarHeight = maxBarHeight
     }
-    
- 
+
     var body: some View {
-           VStack(spacing: 4) {
-               if let title = title {
-                   Text(title)
-                       .font(.caption2)
-                       .foregroundColor(.secondary)
-               }
-               
-               HStack(spacing: 1) {
-                   let frequencyBands = generateFrequencyBands(from: audioLevels)
-                   
-                   ForEach(frequencyBands.indices, id: \.self) { index in
-                       let level = frequencyBands[index]
-                       let clampedLevel = max(0.0, min(1.0, CGFloat(level)))
-                       
-                       let barHeight = clampedLevel > 0
-                           ? max(minBarHeight, minBarHeight + (clampedLevel * (maxBarHeight - minBarHeight)))
-                           : minBarHeight
-                       
-                       RoundedRectangle(cornerRadius: 1)
-                                .fill(clampedLevel > 0.01 ? barColor : barColor.opacity(0.1))
-                                .frame(width: 2, height: barHeight)
-                                .animation(.linear(duration: 0.004), value: barHeight) 
-                   }
-               }
-               .frame(maxWidth: .infinity)
-               .frame(height: maxBarHeight)
-               .background(
-                   RoundedRectangle(cornerRadius: 6)
-                       .fill(Color.gray.opacity(0.1))
-               )
-           }
-       }
-    
+        VStack(spacing: 4) {
+            if let title = title {
+                Text(title)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+
+            HStack(spacing: 1) {
+                let frequencyBands = generateFrequencyBands(from: audioLevels)
+
+                ForEach(frequencyBands.indices, id: \.self) { index in
+                    let currentDisplayLevel = displayLevels.indices.contains(index) ? displayLevels[index] : 0.0
+                    let clampedLevel = max(0.0, min(1.0, CGFloat(currentDisplayLevel)))
+
+                    let barHeight = clampedLevel > 0
+                        ? max(minBarHeight, minBarHeight + (clampedLevel * (maxBarHeight - minBarHeight)))
+                        : minBarHeight
+
+                    RoundedRectangle(cornerRadius: 1)
+                        .fill(clampedLevel > 0.01 ? barColor : barColor.opacity(0.1))
+                        .frame(width: 2, height: barHeight)
+                        .animation(.easeOut(duration: 0.05), value: barHeight)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: maxBarHeight)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color.gray.opacity(0.1))
+            )
+        }
+        .onAppear {
+            initializeDisplayLevels()
+            startDecayTimer()
+        }
+        .onDisappear {
+            stopDecayTimer()
+        }
+        .onChange(of: audioLevels) { _ in
+            updateDisplayLevels()
+        }
+    }
+
+    /// Initialize display levels array
+    private func initializeDisplayLevels() {
+        let frequencyBands = generateFrequencyBands(from: audioLevels)
+        if displayLevels.isEmpty {
+            displayLevels = Array(repeating: 0.0, count: frequencyBands.count)
+        }
+    }
+
     /// Generates frequency bands from the current audio level array
-    /// This creates multiple bars that represent different frequency ranges
     private func generateFrequencyBands(from audioLevels: [Float]) -> [Float] {
-        // Get the current audio level (or 0 if empty)
         let currentLevel = audioLevels.last ?? 0.0
-        
-        // Generate 80 bars representing different frequency bands (fills more screen width)
         let barCount = 80
         var frequencyBands: [Float] = []
-        
+
         for i in 0..<barCount {
             let normalizedIndex = Float(i) / Float(barCount - 1)
             let frequencyLevel = generateFrequencyLevel(
@@ -112,63 +131,68 @@ struct AudioWaveformView: View {
             )
             frequencyBands.append(frequencyLevel)
         }
-        
+
         return frequencyBands
     }
-    
+
     /// Generates a frequency level for a specific frequency band
     private func generateFrequencyLevel(currentLevel: Float, frequencyIndex: Float) -> Float {
         guard currentLevel > 0.0 else { return 0.0 }
-        
-        // Create a natural frequency distribution:
-        // - Lower frequencies (left) have more energy
-        // - Higher frequencies (right) have less energy
+
         let lowFreqWeight = 1.0 - (frequencyIndex * 0.6)
-        
-        // Add some controlled randomness for realistic variation
         let randomVariation = Float.random(in: 0.7...1.3)
-        
-        // Create the frequency response
         let frequencyResponse = currentLevel * lowFreqWeight * randomVariation
-        
-        // Apply a threshold for cleaner appearance
+
         return frequencyResponse > 0.05 ? min(1.0, frequencyResponse) : 0.0
     }
-}
 
-/// Preview provider for SwiftUI canvas
-struct AudioWaveformView_Previews: PreviewProvider {
-    static var previews: some View {
-        VStack(spacing: 20) {
-            // Ultra-responsive speaking pattern - when you speak, bars bounce immediately
-            AudioWaveformView(
-                audioLevels: [0.9],
-                barColor: .green,
-                title: "High Level - Speaking Loudly"
-            )
-            
-            // Medium audio level - normal conversation
-            AudioWaveformView(
-                audioLevels: [0.5],
-                barColor: .blue,
-                title: "Medium Level - Normal Speech"
-            )
-            
-            // Low audio level - quiet speaking
-            AudioWaveformView(
-                audioLevels: [0.2],
-                barColor: .orange,
-                title: "Low Level - Quiet Speech"
-            )
-            
-            // No audio - silence
-            AudioWaveformView(
-                audioLevels: [0.0],
-                barColor: .gray,
-                title: "Silence - No Audio"
-            )
+    /// Updates display levels with immediate rise and fast decay
+    private func updateDisplayLevels() {
+        let frequencyBands = generateFrequencyBands(from: audioLevels)
+
+        // Ensure displayLevels array matches the size
+        if displayLevels.count != frequencyBands.count {
+            displayLevels = Array(repeating: 0.0, count: frequencyBands.count)
         }
-        .padding()
-        .previewLayout(.sizeThatFits)
+
+        // Update display levels with immediate rise behavior
+        for i in 0..<frequencyBands.count {
+            let targetLevel = frequencyBands[i]
+            let currentLevel = displayLevels[i]
+
+            // Immediate rise, no decay here (handled by timer)
+            if targetLevel > currentLevel {
+                displayLevels[i] = targetLevel
+            }
+        }
+    }
+
+    /// Starts the decay timer for smooth bar retraction
+    private func startDecayTimer() {
+        decayTimer = Timer.scheduledTimer(withTimeInterval: 0.02, repeats: true) { _ in
+            withAnimation(.easeOut(duration: 0.05)) {
+                applyDecay()
+            }
+        }
+    }
+
+    /// Stops the decay timer
+    private func stopDecayTimer() {
+        decayTimer?.invalidate()
+        decayTimer = nil
+    }
+
+    /// Applies fast decay to display levels
+    private func applyDecay() {
+        let decayRate: Float = 0.85 // Fast decay - adjust between 0.8-0.9 for different speeds
+
+        for i in 0..<displayLevels.count {
+            displayLevels[i] *= decayRate
+
+            // Set to zero if very low to avoid floating point precision issues
+            if displayLevels[i] < 0.01 {
+                displayLevels[i] = 0.0
+            }
+        }
     }
 }
