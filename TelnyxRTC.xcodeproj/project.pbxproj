@@ -11,6 +11,8 @@
 		3B0F56CB2C7F15830011A48A /* StatsMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B0F56CA2C7F15830011A48A /* StatsMessage.swift */; };
 		3B1B4D132E2532B800A5DD2D /* RegionIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1B4D102E2532B800A5DD2D /* RegionIntegrationTests.swift */; };
 		3B1B4D142E2532B800A5DD2D /* RegionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1B4D112E2532B800A5DD2D /* RegionTests.swift */; };
+		3B1B4D3F2E2E563C00A5DD2D /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 3B1B4D3E2E2E563C00A5DD2D /* Config.xcconfig */; };
+		3B1B4D402E2E563C00A5DD2D /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 3B1B4D3E2E2E563C00A5DD2D /* Config.xcconfig */; };
 		3B1BE6F72AA9A467000B7962 /* TxPushIPConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */; };
 		3B1F43EF2AE0B01E00A610BA /* Params.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1F43EE2AE0B01E00A610BA /* Params.swift */; };
 		3B21257C2DC8126B00E68EA6 /* CallQualityMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B21257B2DC8126B00E68EA6 /* CallQualityMetrics.swift */; };
@@ -31,8 +33,6 @@
 		3BA535E72DFB9BE3005AF0F4 /* PreCallDiagnosisBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA535E62DFB9BE3005AF0F4 /* PreCallDiagnosisBottomSheet.swift */; };
 		3BA535E92DFBA37C005AF0F4 /* PreCallDiagnosticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA535E82DFBA37C005AF0F4 /* PreCallDiagnosticManager.swift */; };
 		3BABEA392D5F595A00B7C79C /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BABEA382D5F595A00B7C79C /* NetworkMonitor.swift */; };
-		3BBBEB3A2E1C0EAB007FA4D9 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 3BBBEB392E1C0EAB007FA4D9 /* Config.xcconfig */; };
-		3BBBEB3B2E1C0EAB007FA4D9 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 3BBBEB392E1C0EAB007FA4D9 /* Config.xcconfig */; };
 		3BC03B4E2CC25F5F00FD2B29 /* Reachability.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B0F56CC2C7F1CCA0011A48A /* Reachability.framework */; };
 		3BE7C75C2E0189AB00FF74A1 /* Config.xcconfig.example in Resources */ = {isa = PBXBuildFile; fileRef = 3BE7C75B2E0189AB00FF74A1 /* Config.xcconfig.example */; };
 		3BE7C75D2E0189AB00FF74A1 /* Config.xcconfig.example in Resources */ = {isa = PBXBuildFile; fileRef = 3BE7C75B2E0189AB00FF74A1 /* Config.xcconfig.example */; };
@@ -141,7 +141,7 @@
 		B3E1029A25F2C16500227DCE /* ModifyMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3E1029925F2C16500227DCE /* ModifyMessage.swift */; };
 		B3E1033225F7F94900227DCE /* incoming_call.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B3E1033025F7F94900227DCE /* incoming_call.mp3 */; };
 		B3E1033325F7F94900227DCE /* ringback_tone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B3E1033125F7F94900227DCE /* ringback_tone.mp3 */; };
-		B84E50517AD67FE44AC37952 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
+		B84E50517AD67FE44AC37952 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		FC2835C766C287188726D1C1 /* Pods_TelnyxRTC_TelnyxRTCTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2F433F3B81462AC009A0B69 /* Pods_TelnyxRTC_TelnyxRTCTests.framework */; };
 /* End PBXBuildFile section */
 
@@ -200,6 +200,7 @@
 		3B0F56CC2C7F1CCA0011A48A /* Reachability.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Reachability.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B1B4D102E2532B800A5DD2D /* RegionIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionIntegrationTests.swift; sourceTree = "<group>"; };
 		3B1B4D112E2532B800A5DD2D /* RegionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionTests.swift; sourceTree = "<group>"; };
+		3B1B4D3E2E2E563C00A5DD2D /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxPushIPConfig.swift; sourceTree = "<group>"; };
 		3B1F43EE2AE0B01E00A610BA /* Params.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Params.swift; sourceTree = "<group>"; };
 		3B21257B2DC8126B00E68EA6 /* CallQualityMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallQualityMetrics.swift; sourceTree = "<group>"; };
@@ -219,7 +220,6 @@
 		3BA535E62DFB9BE3005AF0F4 /* PreCallDiagnosisBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreCallDiagnosisBottomSheet.swift; sourceTree = "<group>"; };
 		3BA535E82DFBA37C005AF0F4 /* PreCallDiagnosticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreCallDiagnosticManager.swift; sourceTree = "<group>"; };
 		3BABEA382D5F595A00B7C79C /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
-		3BBBEB392E1C0EAB007FA4D9 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		3BE7C75B2E0189AB00FF74A1 /* Config.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = Config.xcconfig.example; sourceTree = "<group>"; };
 		3BE7C75E2E0334AB00FF74A1 /* Region.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Region.swift; sourceTree = "<group>"; };
 		3BE7C7602E0421EB00FF74A1 /* OverflowMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverflowMenuView.swift; sourceTree = "<group>"; };
@@ -362,7 +362,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B368BED625EDDBC90032AE52 /* TelnyxRTC.framework in Frameworks */,
-				B84E50517AD67FE44AC37952 /* BuildFile in Frameworks */,
+				B84E50517AD67FE44AC37952 /* (null) in Frameworks */,
 				FC2835C766C287188726D1C1 /* Pods_TelnyxRTC_TelnyxRTCTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -588,7 +588,7 @@
 		B368BEB625EDDB610032AE52 = {
 			isa = PBXGroup;
 			children = (
-				3BBBEB392E1C0EAB007FA4D9 /* Config.xcconfig */,
+				3B1B4D3E2E2E563C00A5DD2D /* Config.xcconfig */,
 				3BE7C75B2E0189AB00FF74A1 /* Config.xcconfig.example */,
 				3BF1D5832BEB7B8F0097453F /* TelnyxRTC.podspec */,
 				B3A728BB2643537E003F3844 /* README.md */,
@@ -914,8 +914,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				3BF1D5842BEB7B8F0097453F /* TelnyxRTC.podspec in Resources */,
-				3BBBEB3A2E1C0EAB007FA4D9 /* Config.xcconfig in Resources */,
 				3B91C0F52BE3A44600A03067 /* PrivacyInfo.xcprivacy in Resources */,
+				3B1B4D3F2E2E563C00A5DD2D /* Config.xcconfig in Resources */,
 				3BE7C75C2E0189AB00FF74A1 /* Config.xcconfig.example in Resources */,
 				B3A728BC2643537E003F3844 /* README.md in Resources */,
 			);
@@ -936,9 +936,9 @@
 				994651992D76339D00049EF4 /* GoogleService-Info.plist in Resources */,
 				3B758F1A2BF44D7800D50069 /* PrivacyInfo.xcprivacy in Resources */,
 				B3E1033225F7F94900227DCE /* incoming_call.mp3 in Resources */,
-				3BBBEB3B2E1C0EAB007FA4D9 /* Config.xcconfig in Resources */,
 				B368BEF425EDDD070032AE52 /* Assets.xcassets in Resources */,
 				B3E1033325F7F94900227DCE /* ringback_tone.mp3 in Resources */,
+				3B1B4D402E2E563C00A5DD2D /* Config.xcconfig in Resources */,
 				3BE7C75D2E0189AB00FF74A1 /* Config.xcconfig.example in Resources */,
 				B368BEF225EDDD060032AE52 /* Main.storyboard in Resources */,
 			);
