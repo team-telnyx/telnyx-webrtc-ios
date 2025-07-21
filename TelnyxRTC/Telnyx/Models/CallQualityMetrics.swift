@@ -14,6 +14,12 @@ public struct CallQualityMetrics {
     /// Call quality rating based on MOS
     public let quality: CallQuality
     
+    /// Instantaneous inbound audio level (typically 0.0 to 1.0)
+    public let inboundAudioLevel: Float
+    
+    /// Instantaneous outbound (local) audio level (typically 0.0 to 1.0)
+    public let outboundAudioLevel: Float
+    
     /// Remote inbound audio statistics
     public let inboundAudio: [String: Any]?
     
@@ -44,6 +50,9 @@ public struct CallQualityMetrics {
             dict["remoteOutboundAudio"] = remoteOutboundAudio
         }
         
+        dict["inboundAudioLevel"] = inboundAudioLevel
+        dict["outboundAudioLevel"] = outboundAudioLevel
+        
         return dict
     }
 
@@ -53,6 +62,8 @@ public struct CallQualityMetrics {
         rtt: Double,
         mos: Double,
         quality: CallQuality,
+        inboundAudioLevel: Float,
+        outboundAudioLevel: Float,
         inboundAudio: [String: Any]?,
         outboundAudio: [String: Any]?,
         remoteInboundAudio: [String: Any]?,
@@ -62,6 +73,8 @@ public struct CallQualityMetrics {
         self.rtt = rtt
         self.mos = mos
         self.quality = quality
+        self.inboundAudioLevel = inboundAudioLevel
+        self.outboundAudioLevel = outboundAudioLevel
         self.inboundAudio = inboundAudio
         self.outboundAudio = outboundAudio
         self.remoteInboundAudio = remoteInboundAudio
@@ -78,6 +91,8 @@ extension CallQualityMetrics {
             rtt: 0.0,
             mos: 1.0, // lowest possible MOS score
             quality: .bad,
+            inboundAudioLevel: 0.0,
+            outboundAudioLevel: 0.0,
             inboundAudio: nil,
             outboundAudio: nil,
             remoteInboundAudio: nil,

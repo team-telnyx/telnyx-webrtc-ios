@@ -59,40 +59,43 @@ struct AudioWaveformView: View {
         self.maxBarHeight = maxBarHeight
     }
     
- 
     var body: some View {
-           VStack(spacing: 4) {
-               if let title = title {
-                   Text(title)
-                       .font(.caption2)
-                       .foregroundColor(.secondary)
-               }
-               
-               HStack(spacing: 1) {
-                   let frequencyBands = generateFrequencyBands(from: audioLevels)
-                   
-                   ForEach(frequencyBands.indices, id: \.self) { index in
-                       let level = frequencyBands[index]
-                       let clampedLevel = max(0.0, min(1.0, CGFloat(level)))
-                       
-                       let barHeight = clampedLevel > 0
-                           ? max(minBarHeight, minBarHeight + (clampedLevel * (maxBarHeight - minBarHeight)))
-                           : minBarHeight
-                       
-                       RoundedRectangle(cornerRadius: 1)
-                                .fill(clampedLevel > 0.01 ? barColor : barColor.opacity(0.1))
-                                .frame(width: 2, height: barHeight)
-                                .animation(.linear(duration: 0.004), value: barHeight) 
-                   }
-               }
-               .frame(maxWidth: .infinity)
-               .frame(height: maxBarHeight)
-               .background(
-                   RoundedRectangle(cornerRadius: 6)
-                       .fill(Color.gray.opacity(0.1))
-               )
-           }
-       }
+        VStack(spacing: 4) {
+            if let title = title {
+                Text(title)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+            
+            HStack(spacing: 0.5) {
+                // Generate frequency bands from current audio level (like Android)
+                let frequencyBands = generateFrequencyBands(from: audioLevels)
+                
+                ForEach(0..<frequencyBands.count, id: \.self) { index in
+                    let level = frequencyBands[index]
+                    let clampedLevel = max(0.0, min(1.0, CGFloat(level)))
+                    
+                    // Calculate bar height - matching Android behavior
+                    let barHeight = clampedLevel > 0 ? 
+                        max(minBarHeight, minBarHeight + (clampedLevel * (maxBarHeight - minBarHeight))) : 
+                        minBarHeight
+                    
+                    RoundedRectangle(cornerRadius: 0.5)
+                        .fill(clampedLevel > 0.01 ? barColor : barColor.opacity(0.1))
+                        .frame(
+                            maxWidth: .infinity,
+                            height: barHeight
+                        )
+                        .animation(.easeOut(duration: 0.1), value: barHeight)
+                }
+            }
+            .frame(maxWidth: .infinity, height: maxBarHeight)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color.gray.opacity(0.05))
+            )
+        }
+    }
     
     /// Generates frequency bands from the current audio level array
     /// This creates multiple bars that represent different frequency ranges
@@ -100,8 +103,8 @@ struct AudioWaveformView: View {
         // Get the current audio level (or 0 if empty)
         let currentLevel = audioLevels.last ?? 0.0
         
-        // Generate 80 bars representing different frequency bands (fills more screen width)
-        let barCount = 80
+        // Generate 20 bars representing different frequency bands
+        let barCount = 20
         var frequencyBands: [Float] = []
         
         for i in 0..<barCount {

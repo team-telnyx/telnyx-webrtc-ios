@@ -117,28 +117,34 @@ struct CallView: View {
                 .padding(.vertical, 8)
                 .disabled(true)
                 .opacity(0.5)
-            
-            // Audio Waveform Visualization
-            VStack(spacing: 16) {
+             // MARK: - Audio Waveform Visualization Section
+            // This section displays real-time audio waveforms using lists of audio levels
+            // The waveforms show inbound and outbound audio levels collected over time
+            VStack(spacing: 12) {
                 AudioWaveformView(
-                    mediaStream: viewModel.currentCall?.localStream,
+                    audioLevels: viewModel.inboundAudioLevels,
                     barColor: .green,
-                    title: "Local Audio"
+                    title: "Inbound Audio",
+                    minBarHeight: 3.0,
+                    maxBarHeight: 40.0
                 )
                 
                 AudioWaveformView(
-                    mediaStream: viewModel.currentCall?.remoteStream,
+                    audioLevels: viewModel.outboundAudioLevels,
                     barColor: .blue,
-                    title: "Remote Audio"
+                    title: "Outbound Audio",
+                    minBarHeight: 3.0,
+                    maxBarHeight: 40.0
                 )
             }
-            .padding(.horizontal, 30)
+            .padding(.horizontal, 20)
             .padding(.vertical, 16)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.gray.opacity(0.05))
+                    .fill(Color.gray.opacity(0.08))
+                    .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
             )
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 16)
                         
             HStack {
                 Button(action: {
@@ -214,13 +220,10 @@ struct CallView: View {
             .accessibilityIdentifier(AccessibilityIdentifiers.hangupButton)
             .padding()
             
-          
+            Spacer()
         }
-        Spacer()
     }
-       
 
-    
     @ViewBuilder
     private var incomingCallView: some View {
         VStack {

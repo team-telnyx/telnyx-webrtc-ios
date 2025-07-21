@@ -84,7 +84,7 @@ class WebRTCStatsReporter {
         self.setupEventHandler()
         let queue = DispatchQueue.main
         timer = DispatchSource.makeTimerSource(queue: queue)
-        timer?.schedule(deadline: .now(), repeating: 2.0)
+        timer?.schedule(deadline: .now(), repeating: 0.2) // Even more frequent updates for ultra-responsive waveform
         timer?.setEventHandler { [weak self] in
             self?.executeTask()
         }
@@ -253,16 +253,93 @@ class WebRTCStatsReporter {
 
         let quality = MOSCalculator.getQuality(mos: mos)
 
+        // Extract audio levels from statistics
+        // For inbound audio: look for audioLevel in inbound-rtp stats
+        let inboundAudioLevel = extractInboundAudioLevel(from: audioContent)
+        
+        // For outbound audio: look for audioLevel in media-source stats or outbound-rtp stats
+        let outboundAudioLevel = extractOutboundAudioLevel(from: audioContent)
+
         return CallQualityMetrics(
             jitter: jitter,
             rtt: rtt,
             mos: mos,
             quality: quality,
+            inboundAudioLevel: inboundAudioLevel,
+            outboundAudioLevel: outboundAudioLevel,
             inboundAudio: inbound.first,
             outboundAudio: audioContent["outbound"]?.first,
             remoteInboundAudio: audioContent["remoteInbound"]?.first,
             remoteOutboundAudio: audioContent["remoteOutbound"]?.first
         )
+    }
+
+    /// Extracts inbound audio level from WebRTC statistics
+    /// - Parameter audioContent: Dictionary containing audio statistics
+    /// - Returns: Inbound audio level as Float (0.0 to 1.0)
+    private func extractInboundAudioLevel(from audioContent: [String: [[String: Any]]]) -> Float {
+        // Look for inbound-rtp stats with kind = "audio"
+        guard let inboundStats = audioContent["inbound"] else { return 0.0 }
+        
+        for stats in inboundStats {
+            if let kind = stats["kind"] as? String, kind == "audio" {
+                return extractAudioLevel(from: stats)
+            }
+        }
+        
+        return 0.0
+    }
+    
+    /// Extracts outbound audio level from WebRTC statistics
+    /// - Parameter audioContent: Dictionary containing audio statistics
+    /// - Returns: Outbound audio level as Float (0.0 to 1.0)
+    private func extractOutboundAudioLevel(from audioContent: [String: [[String: Any]]]) -> Float {
+        // Look for outbound-rtp stats with kind = "audio"
+        guard let outboundStats = audioContent["outbound"] else { return 0.0 }
+        
+        for stats in outboundStats {
+            if let kind = stats["kind"] as? String, kind == "audio" {
+                // Try to get audioLevel from the track (media-source)
+                if let track = stats["track"] as? [String: Any] {
+                    let audioLevel = extractAudioLevel(from: track)
+                    if audioLevel > 0.0 {
+                        return audioLevel
+                    }
+                }
+                
+                // Fallback to stats directly
+                return extractAudioLevel(from: stats)
+            }
+        }
+        
+        return 0.0
+    }
+
+    /// Extracts audio level from WebRTC statistics
+    /// - Parameter stats: Dictionary containing audio statistics
+    /// - Returns: Audio level as Float (0.0 to 1.0)
+    private func extractAudioLevel(from stats: [String: Any]?) -> Float {
+        guard let stats = stats else { return 0.0 }
+        
+        // Try to get audioLevel directly (common in WebRTC stats)
+        // This can be a String, Double, or Number
+        if let audioLevel = stats["audioLevel"] as? String {
+            return Float(audioLevel) ?? 0.0
+        }
+        
+        if let audioLevel = stats["audioLevel"] as? Double {
+            return Float(audioLevel)
+        }
+        
+        if let audioLevel = stats["audioLevel"] as? Float {
+            return audioLevel
+        }
+        
+        if let audioLevel = stats["audioLevel"] as? NSNumber {
+            return audioLevel.floatValue
+        }
+        
+        return 0.0
     }
 
     
@@ -298,6 +375,7 @@ class WebRTCStatsReporter {
             var remoteAudioInboundStats = [Any]()
             var audioOutboundStats = [Any]()
             var remoteAudioOutboundStats = [Any]()
+            var mediaSourceStats = [Any]()
             var connectionCandidates = [Any]()
             var statsData = [String: Any]()
             var statsObject = [String: Any]()
@@ -322,6 +400,11 @@ class WebRTCStatsReporter {
                         statsObject[report.key] = values
                     }
 
+                case "media-source":
+                    // Media source stats contain outbound audio levels
+                    mediaSourceStats.append(values)
+                    statsObject[report.key] = values
+
                 case "remote-inbound-rtp":
                     if let kind = values["kind"] as? String, kind == "audio" {
                         remoteAudioInboundStats.append(values)
@@ -344,7 +427,7 @@ class WebRTCStatsReporter {
                 }
             }
 
-            // Otbound Stats
+            // Process outbound stats and link them with media source data
             audioOutboundStats.enumerated().forEach { index, outboundStat in
                 if let outboundDict = outboundStat as? [String: NSObject],
                    let mediaSourceId = outboundDict["mediaSourceId"] as? String,
