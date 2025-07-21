@@ -57,6 +57,12 @@ class WebRTCStatsReporter {
     /// Callback for real-time call quality metrics
     public var onStatsFrame: ((CallQualityMetrics) -> Void)?
     
+    /// Interval for sending stats to socket (in seconds)
+    private var socketSendInterval: TimeInterval = 2.0
+    
+    /// Timestamp of last socket send
+    private var lastSocketSendTime: TimeInterval = 0
+    
     // MARK: - Initializer
     init(socket: Socket,reportId:UUID? = nil) {
         self.socket = socket
@@ -70,6 +76,7 @@ class WebRTCStatsReporter {
         self.peer = call.peer
         self.call  = call
         self.isReportingPaused = false
+        self.lastSocketSendTime = 0 // Initialize to force immediate first send
         self.sendDebugReportStartMessage(id: self.reportId)
         
         // Connect the onStatsFrame callback to the Call's onCallQualityChange callback
@@ -212,7 +219,6 @@ class WebRTCStatsReporter {
     private func toRealTimeMetrics(inboundboundAudio: [[String: Any]], audio: [String: Any]) -> CallQualityMetrics {
         let audioContent = audio["audio"] as? [String: [[String: Any]]] ?? [:]
         let inbound = audioContent["inbound"] ?? []
-        let candidates = audioContent["candidates"] ?? []
         let remoteInbound = audioContent["remoteInbound"] ?? []
 
         guard let latestStat = inbound.last else {
@@ -228,8 +234,7 @@ class WebRTCStatsReporter {
 
         if let previous = previousStats,
            let prevReceived = previous["packetsReceived"] as? Int,
-           let prevLost = previous["packetsLost"] as? Int,
-           let prevTimestamp = previous["timestamp"] as? Double {
+           let prevLost = previous["packetsLost"] as? Int {
 
             deltaPacketsReceived = max(0, currentPacketsReceived - prevReceived)
             deltaPacketsLost = max(0, currentPacketsLost - prevLost)
@@ -366,8 +371,11 @@ class WebRTCStatsReporter {
             updateReportingState(shouldPause: false)
         }
         
-        // If we reach here, we can collect and send stats
-        Logger.log.i(message: "WebRTCStatsReporter:: Task executed at \(Date())")
+        // Always collect stats for real-time metrics (every 0.2s)
+        let currentTime = Date().timeIntervalSince1970
+        let shouldSendToSocket = (currentTime - lastSocketSendTime) >= socketSendInterval
+        
+        Logger.log.i(message: "WebRTCStatsReporter:: Task executed at \(Date()) - SendToSocket: \(shouldSendToSocket)")
         peer.connection?.statistics(completionHandler: { [weak self] reports in
             guard let self = self else { return }
             var statsEvent = [String: Any]()
@@ -504,14 +512,21 @@ class WebRTCStatsReporter {
                 // Calculate real-time metrics
                 let metrics = self.toRealTimeMetrics(inboundboundAudio: typedAudioInboundStats, audio: remoteData)
                 
-                // Emit metrics through callback
+                // Always emit metrics for real-time visualization (every 0.2s)
                 self.onStatsFrame?(metrics)
             }
             
             statsEvent["data"] = statsData as NSObject
             statsEvent["statsObject"] = statsObject as NSObject
 
-            self.sendDebugReportDataMessage(id: self.reportId, data: statsEvent)
+            // Only send stats to socket every 2 seconds
+            if shouldSendToSocket {
+                self.lastSocketSendTime = currentTime
+                self.sendDebugReportDataMessage(id: self.reportId, data: statsEvent)
+                Logger.log.i(message: "WebRTCStatsReporter:: Stats sent to socket at \(Date())")
+            } else {
+                Logger.log.i(message: "WebRTCStatsReporter:: Stats collected but not sent to socket (waiting for interval)")
+            }
         })
     }
     
@@ -536,6 +551,7 @@ extension WebRTCStatsReporter {
         
         // Reset the reporting state
         isReportingPaused = false
+        lastSocketSendTime = 0
         
         // Clear callbacks
         onStatsFrame = nil
