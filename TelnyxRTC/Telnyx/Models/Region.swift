@@ -10,7 +10,7 @@ import Foundation
 /// Enum representing the available regions for Telnyx WebRTC connections.
 public enum Region: String,Codable, CaseIterable {
     case auto = "auto"
-    case eu = "eu"
+    case eu = "eu1"
     case usCentral = "us-central"
     case usEast = "us-east"
     case usWest = "us-west"
