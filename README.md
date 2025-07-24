@@ -14,7 +14,14 @@ Enable Telnyx real-time communication services on iOS.
 1. Clone the repository
 2. Run the command `pod install` to install the dependencies inside the project root folder.
 3. Open the Workspace : `TelnyxRTC.xcworkspace`
-4. You will find 3 targets to build: 
+4. **Configure the Demo App (Optional):**
+   - The `Config.xcconfig` file is included in the repository with default values
+   - To use the Pre-call Diagnosis feature, edit `Config.xcconfig` and set a valid phone number:
+     ```
+     PHONE_NUMBER = +15551234567
+     ```
+   - If you don't need Pre-call Diagnosis, you can leave `PHONE_NUMBER` empty
+5. You will find 3 targets to build: 
       - The SDK
       - The SDK Tests
       - The Demo App
@@ -48,6 +55,55 @@ In order to start making and receiving calls using the TelnyxRTC SDK you will ne
 4. Create an Outbound Voice Profile to configure your outbound call settings and assign it to your Credential Connection.
 
 For more information on how to generate SIP credentials check the [Telnyx WebRTC quickstart guide](https://developers.telnyx.com/docs/v2/webrtc/quickstart). 
+
+## Region Selection
+
+The TelnyxRTC SDK supports connecting to different geographic regions to optimize call quality and reduce latency. The demo app includes a region selection feature that allows users to choose their preferred region.
+
+### Available Regions
+
+- **Auto (Default)**: Automatically selects the best region based on network conditions
+- **US East**: East coast United States servers
+- **US Central**: Central United States servers  
+- **US West**: West coast United States servers
+- **Canada Central**: Central Canada servers
+- **Europe**: European servers
+- **Asia Pacific**: Asia Pacific servers
+
+### Using Region Selection
+
+1. **In the Demo App**: Use the overflow menu (⋯) to access region selection. The current region is displayed as "Region: [current-region]".
+
+2. **In Your App**: Configure the region when creating a `TxServerConfiguration`:
+
+```swift
+// Set specific region
+let serverConfig = TxServerConfiguration(
+    environment: .production,
+    region: .usEast  // or .eu, .usCentral, .usWest, .caCentral, .apac
+)
+
+// Use auto region selection (default)
+let serverConfig = TxServerConfiguration(
+    environment: .production,
+    region: .auto
+)
+
+try telnyxClient.connect(txConfig: txConfig, serverConfiguration: serverConfig)
+```
+
+### Region Selection Behavior
+
+- **During Active Calls**: Region selection is automatically disabled during active calls to prevent connection disruption
+- **When Connected**: Region selection is disabled when the client is connected to prevent disrupting the established connection
+- **Fallback Logic**: If a regional server is unavailable, the SDK automatically falls back to the auto region
+- **Persistence**: The selected region persists across app sessions until manually changed
+
+### Best Practices
+
+- Use **Auto** region for the best overall experience unless you have specific latency requirements
+- Select a region **geographically close** to your users for optimal call quality
+- Test different regions in your target deployment areas to determine the best performance 
 
 
 

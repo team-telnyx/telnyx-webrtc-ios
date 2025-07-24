@@ -61,6 +61,9 @@ class SipCredentialsManager {
         saveCredentials(credentials)
     }
     
+    func getSelectedRegion() -> Region {
+        return getSelectedCredential()?.effectiveRegion ?? .auto
+    }
 }
 
 // MARK: - Selected Credential

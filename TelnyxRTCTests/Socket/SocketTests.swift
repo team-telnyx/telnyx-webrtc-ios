@@ -10,12 +10,10 @@ import XCTest
 @testable import TelnyxRTC
 
 class SocketTests : XCTestCase, SocketDelegate {
-    
-    func onSocketDisconnected(reconnect: Bool) {
+    func onSocketDisconnected(reconnect: Bool, region: TelnyxRTC.Region?) {
         //Handle socket disconnected
         socketDisconnectedExpectation.fulfill()
     }
-    
 
     private weak var socketConnectedExpectation: XCTestExpectation!
     private weak var socketPingExpectation: XCTestExpectation!
@@ -27,10 +25,6 @@ class SocketTests : XCTestCase, SocketDelegate {
 
     func onSocketConnected() {
         socketConnectedExpectation.fulfill()
-    }
-
-    func onSocketDisconnected() {
-        socketDisconnectedExpectation.fulfill()
     }
 
     func onSocketError(error: Error) {

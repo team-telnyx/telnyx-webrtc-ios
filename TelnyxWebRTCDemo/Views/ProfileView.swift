@@ -1,4 +1,5 @@
 import SwiftUI
+import TelnyxRTC
 
 struct ProfileView: View {
     @ObservedObject var viewModel: ProfileViewModel
@@ -7,7 +8,7 @@ struct ProfileView: View {
     let onSwitchProfile: () -> Void
     
     var body: some View {
-        VStack {
+        VStack(spacing: 16) {
             Text("Profile")
                 .font(.system(size: 18, weight: .regular))
                 .foregroundColor(Color(hex: "#525252"))
@@ -48,11 +49,13 @@ struct ProfileView: View {
                         Spacer()
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    Spacer()
                 }
             }.frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 30)
+        .onAppear {
+            viewModel.refreshProfile()
+        }
     }
 }

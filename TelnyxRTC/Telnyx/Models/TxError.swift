@@ -43,6 +43,10 @@ public enum TxError : Error {
         /// Call reconnection failed after the configured timeout period.
         /// This error occurs when a call cannot be reconnected after network disruption within the time specified by `TxConfig.reconnectTimeout`.
         case reconnectFailed
+        /// Call not found when trying to perform an operation
+        case callNotFound
+        /// No metrics were collected during pre-call diagnosis
+        case noMetricsCollected
     }
 
     /// The underlying reason of the server errors
@@ -92,7 +96,9 @@ extension TxError.CallFailureReason {
         switch self {
         case .destinationNumberIsRequired,
              .reconnectFailed,
-             .sessionIdIsRequired:
+             .sessionIdIsRequired,
+             .callNotFound,
+             .noMetricsCollected:
             return nil
         }
     }
@@ -170,6 +176,10 @@ extension TxError.CallFailureReason {
             return "sessionId is missing, check that you have called .connect() first."
         case .reconnectFailed:
             return "Call reconnection failed: The call could not be reconnected within the configured timeout period after network disruption."
+        case .callNotFound:
+            return "Call not found. The specified call could not be located."
+        case .noMetricsCollected:
+            return "No metrics were collected during pre-call diagnosis. The test call may have ended too quickly."
         }
     }
 }
