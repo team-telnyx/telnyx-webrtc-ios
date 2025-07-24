@@ -13,7 +13,7 @@ class HomeViewModel: ObservableObject {
     @Published var preCallDiagnosisState: PreCallDiagnosisState?
     
     // Connection timeout in seconds
-    let connectionTimeout: TimeInterval = 900.0
+    let connectionTimeout: TimeInterval = 30.0
     
     // PreCall Diagnostic Manager
     @Published var preCallDiagnosticManager = PreCallDiagnosticManager.shared

@@ -10,8 +10,8 @@ import TelnyxRTC
 
 struct RegionMenuView: View {
     @Binding var showRegionMenu: Bool
-    @Binding var selectedRegion: Region
-    @ObservedObject var viewModel: HomeViewModel
+    @ObservedObject var profileViewModel: ProfileViewModel
+    let isRegionSelectionDisabled: Bool
 
     var body: some View {
         if showRegionMenu {
@@ -25,11 +25,11 @@ struct RegionMenuView: View {
                     ForEach(Region.allCases, id: \.self) { region in
                         RegionRow(
                             region: region,
-                            isSelected: region == selectedRegion,
-                            isDisabled: viewModel.isRegionSelectionDisabled
+                            isSelected: region == profileViewModel.selectedRegion,
+                            isDisabled: isRegionSelectionDisabled
                         ) {
-                            if !viewModel.isRegionSelectionDisabled {
-                                selectedRegion = region
+                            if !isRegionSelectionDisabled {
+                                profileViewModel.updateRegion(region)
                                 showRegionMenu = false
                             }
                         }

@@ -9,6 +9,7 @@ enum SocketState {
 
 struct HomeView: View {
     @ObservedObject var viewModel: HomeViewModel
+    @ObservedObject var profileViewModel: ProfileViewModel
     
     @State private var isAnimating: Bool = false
     @State private var textOpacity: Double = 0.0
@@ -18,7 +19,6 @@ struct HomeView: View {
     @State private var showMenu = false
     
     @State private var showRegionMenu = false
-    @State private var selectedRegion: Region = .auto
     
     let onConnect: () -> Void
     let onDisconnect: () -> Void
@@ -114,6 +114,8 @@ struct HomeView: View {
                                     textOpacity = 1.0
                                 }
                                 setupKeyboardObservers()
+                                // Refresh profile and region when view appears
+                                profileViewModel.refreshProfile()
                             }
                             .onDisappear {
                                 removeKeyboardObservers()
@@ -174,14 +176,14 @@ struct HomeView: View {
                               showMenu: $showMenu,
                               showPreCallDiagnosisSheet: $showPreCallDiagnosisSheet,
                               showRegionMenu: $showRegionMenu,
-                              selectedRegion: $viewModel.seletedRegion,
+                              selectedRegion: $profileViewModel.selectedRegion,
                               viewModel: viewModel
                           )
                 
                 RegionMenuView(
                       showRegionMenu: $showRegionMenu,
-                      selectedRegion: $viewModel.seletedRegion,
-                      viewModel: viewModel
+                      profileViewModel: profileViewModel,
+                      isRegionSelectionDisabled: viewModel.isRegionSelectionDisabled
                   )
             }
             .background(Color(hex: "#FEFDF5")).ignoresSafeArea()
@@ -335,6 +337,7 @@ struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
         HomeView(
             viewModel: HomeViewModel(),
+            profileViewModel: ProfileViewModel(),
             onConnect: {},
             onDisconnect: {},
             onLongPressLogo: {},

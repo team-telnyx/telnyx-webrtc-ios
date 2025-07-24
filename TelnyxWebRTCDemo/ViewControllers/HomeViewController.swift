@@ -78,6 +78,7 @@ class HomeViewController: UIViewController {
 
         let homeView = HomeView(
             viewModel: viewModel,
+            profileViewModel: profileViewModel,
             onConnect: { [weak self] in
                 self?.handleConnect()
             },
@@ -128,8 +129,7 @@ class HomeViewController: UIViewController {
         DispatchQueue.main.async {
             self.callViewModel.isMuted = self.appDelegate.currentCall?.isMuted ?? false
             self.callViewModel.isSpeakerOn = self.telnyxClient?.isSpeakerEnabled ?? false
-            self.profileViewModel.selectedProfile = SipCredentialsManager.shared.getSelectedCredential()
-            self.viewModel.seletedRegion =  self.profileViewModel.selectedProfile?.region ?? Region.auto
+            self.profileViewModel.updateSelectedProfile(SipCredentialsManager.shared.getSelectedCredential())
         }
     }
 
@@ -146,7 +146,6 @@ class HomeViewController: UIViewController {
     func handleConnect() {
         print("Connect tapped")
         let deviceToken = userDefaults.getPushToken()
-        profileViewModel.selectedProfile?.region = viewModel.seletedRegion
         if let selectedProfile = profileViewModel.selectedProfile {
             connectToTelnyx(sipCredential: selectedProfile, deviceToken: deviceToken)
             CallHistoryManager.shared.setCurrentProfile(selectedProfile.username)
@@ -210,7 +209,7 @@ extension HomeViewController: SipCredentialsViewControllerDelegate {
 
     func onSipCredentialSelected(credential: SipCredential?) {
         DispatchQueue.main.async {
-            self.profileViewModel.selectedProfile = credential
+            self.profileViewModel.updateSelectedProfile(credential)
         }
     }
 }
@@ -261,7 +260,7 @@ extension HomeViewController {
 
     func initEnvironment() {
         if userDefaults.getEnvironment() == .development {
-            self.serverConfig = TxServerConfiguration(environment: .development,region: viewModel.seletedRegion)
+            self.serverConfig = TxServerConfiguration(environment: .development,region: profileViewModel.selectedRegion)
         }
         updateEnvironment()
     }
@@ -294,7 +293,7 @@ extension HomeViewController {
                 try telnyxClient.connect(txConfig: txConfig, serverConfiguration: serverConfig)
             } else {
                 print("Production Server ")
-                try telnyxClient.connect(txConfig: txConfig,serverConfiguration: TxServerConfiguration(region:viewModel.seletedRegion))
+                try telnyxClient.connect(txConfig: txConfig,serverConfiguration: TxServerConfiguration(region:profileViewModel.selectedRegion))
             }
 
             // Store user / password in user defaults

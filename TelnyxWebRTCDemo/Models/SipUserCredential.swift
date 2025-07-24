@@ -15,7 +15,7 @@ struct SipCredential: Codable, Equatable {
          isToken: Bool? = nil,
          callerName: String? = nil,
          callerNumber: String? = nil,
-         region:Region? = Region.auto
+         region: Region? = .auto
     ) {
         self.username = username
         self.password = password
@@ -23,5 +23,10 @@ struct SipCredential: Codable, Equatable {
         self.callerName = callerName
         self.callerNumber = callerNumber
         self.region = region
+    }
+    
+    /// Returns the region to use for connection, defaulting to .auto if nil
+    var effectiveRegion: Region {
+        return region ?? .auto
     }
 }
