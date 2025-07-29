@@ -504,6 +504,35 @@ public class TxClient {
     public func getSessionId() -> String {
         return sessionId ?? ""
     }
+    
+    /// Performs anonymous login to the Telnyx backend for AI assistant connections.
+    /// - Parameters:
+    ///   - targetId: The target ID for the AI assistant
+    ///   - targetType: The target type (defaults to "ai_assistant")
+    ///   - targetVersionId: Optional target version ID
+    /// - Throws: TxError if socket is not connected or sessionId is not available
+    public func anonymousLogin(targetId: String, targetType: String = "ai_assistant", targetVersionId: String? = nil) throws {
+        guard let socket = self.socket, socket.isConnected() else {
+            throw TxError.socketNotConnected
+        }
+        
+        guard let sessionId = self.sessionId else {
+            throw TxError.sessionIdIsRequired
+        }
+        
+        Logger.log.i(message: "TxClient:: anonymousLogin() targetId: \(targetId), targetType: \(targetType)")
+        
+        let anonymousLoginMessage = AnonymousLoginMessage(
+            targetType: targetType,
+            targetId: targetId,
+            targetVersionId: targetVersionId,
+            sessionId: sessionId,
+            userVariables: [:],
+            reconnection: false
+        )
+        
+        socket.sendMessage(message: anonymousLoginMessage.encode())
+    }
 
     /// This function check the gateway status updates to determine if the current user has been successfully
     /// registered and can start receiving and/or making calls.

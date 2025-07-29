@@ -83,6 +83,7 @@
 		B309D1DB25F020D400A2AADF /* Method.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D1DA25F020D400A2AADF /* Method.swift */; };
 		B309D1E425F0240200A2AADF /* TxConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D1E325F0240200A2AADF /* TxConfig.swift */; };
 		B309D1EC25F024B900A2AADF /* LoginMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D1EB25F024B900A2AADF /* LoginMessage.swift */; };
+		E7D4728DC54740F9B74EDCF5 /* AnonymousLoginMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DFC6708A0B342C3BF91953C /* AnonymousLoginMessage.swift */; };
 		B309D22925F06C6900A2AADF /* Call.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D22825F06C6900A2AADF /* Call.swift */; };
 		B309D23125F06CA800A2AADF /* Peer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D23025F06CA800A2AADF /* Peer.swift */; };
 		B309D23625F06D2100A2AADF /* TxCallInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B309D23525F06D2100A2AADF /* TxCallInfo.swift */; };
@@ -256,6 +257,7 @@
 		B309D1DA25F020D400A2AADF /* Method.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Method.swift; sourceTree = "<group>"; };
 		B309D1E325F0240200A2AADF /* TxConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxConfig.swift; sourceTree = "<group>"; };
 		B309D1EB25F024B900A2AADF /* LoginMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginMessage.swift; sourceTree = "<group>"; };
+		1DFC6708A0B342C3BF91953C /* AnonymousLoginMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnonymousLoginMessage.swift; sourceTree = "<group>"; };
 		B309D22825F06C6900A2AADF /* Call.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Call.swift; sourceTree = "<group>"; };
 		B309D23025F06CA800A2AADF /* Peer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Peer.swift; sourceTree = "<group>"; };
 		B309D23525F06D2100A2AADF /* TxCallInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxCallInfo.swift; sourceTree = "<group>"; };
@@ -473,6 +475,7 @@
 				B309D1DA25F020D400A2AADF /* Method.swift */,
 				B309D1D525F020B300A2AADF /* Message.swift */,
 				B309D1EB25F024B900A2AADF /* LoginMessage.swift */,
+				1DFC6708A0B342C3BF91953C /* AnonymousLoginMessage.swift */,
 				B309D23F25F06EA600A2AADF /* InviteMessage.swift */,
 				B309D28125F1838700A2AADF /* ByeMessage.swift */,
 				B309D28525F184A100A2AADF /* AnswerMessage.swift */,
@@ -1066,6 +1069,7 @@
 				B309D22925F06C6900A2AADF /* Call.swift in Sources */,
 				996C67C42CFEA5AC0056E508 /* RTCContinualGatheringPolicy+Extension.swift in Sources */,
 				B309D1EC25F024B900A2AADF /* LoginMessage.swift in Sources */,
+				E7D4728DC54740F9B74EDCF5 /* AnonymousLoginMessage.swift in Sources */,
 				99B6DFFA2CF5226F0010CA96 /* WebRTCStatsTag.swift in Sources */,
 				99CC5BAE2CF80D3A00EF43DC /* WebRTCEventHandler.swift in Sources */,
 				996C67D02CFEA6F30056E508 /* RTCIceGatheringState+Extension.swift in Sources */,

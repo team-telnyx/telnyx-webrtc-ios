@@ -215,6 +215,30 @@ class ViewController: UIViewController {
             connectToTelnyx(telnyxToken: nil, sipCredential: sipCredential, deviceToken: deviceToken)
         }
     }
+    
+    /// Example method to demonstrate anonymous login functionality
+    /// This would typically be called after a successful connection to the Telnyx backend
+    private func performAnonymousLogin() {
+        guard let telnyxClient = self.telnyxClient else {
+            print("ViewController:: performAnonymousLogin() ERROR: TelnyxClient is not initialized")
+            return
+        }
+        
+        // Example usage of anonymous login for AI assistant
+        let targetId = "assistant-9be2960c-df97-4cbb-9f1a-28c87d0ab77e" // Example assistant ID
+        let targetVersionId = "version-123" // Optional version ID
+        
+        do {
+            try telnyxClient.anonymousLogin(
+                targetId: targetId,
+                targetType: "ai_assistant",
+                targetVersionId: targetVersionId
+            )
+            print("ViewController:: performAnonymousLogin() Anonymous login initiated for targetId: \(targetId)")
+        } catch {
+            print("ViewController:: performAnonymousLogin() ERROR: \(error)")
+        }
+    }
 
     func resetCallStates() {
         self.incomingCall = false
