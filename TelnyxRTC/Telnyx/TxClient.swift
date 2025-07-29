@@ -873,6 +873,11 @@ extension TxClient : SocketDelegate {
         Logger.log.i(message: "Reconnect TimeOut stopped")
         
         // Ensure thread safety by dispatching to the reconnect queue
+        guard reconnectTimeoutTimer != nil else {
+            Logger.log.i(message: "Reconnect timeout timer is already nil")
+            return
+        }
+        
         reconnectQueue.async { [weak self] in
             guard let self = self else { return }
             
