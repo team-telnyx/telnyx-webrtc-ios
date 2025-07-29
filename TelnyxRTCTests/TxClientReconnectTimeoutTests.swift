@@ -145,4 +145,16 @@ class MockTxClientDelegate: TxClientDelegate {
         onClientErrorCalled = true
         lastError = error
     }
+    
+    func onPushDisabled(success: Bool, message: String) {
+        // DO NOTHING
+    }
+    
+    func onRemoteCallEnded(callId: UUID, reason: TelnyxRTC.CallTerminationReason?) {
+        // DO NOTHING
+    }
+    
+    func onPushCall(call: TelnyxRTC.Call) {
+        // DO NOTHING
+    }
 }
