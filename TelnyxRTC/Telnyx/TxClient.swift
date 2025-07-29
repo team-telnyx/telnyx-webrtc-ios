@@ -920,11 +920,9 @@ extension TxClient : SocketDelegate {
                 Logger.log.i(message: "Reconnect TimeOut : after \(self.txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT) secs")
                 
                 // Execute timeout actions on main queue for UI updates
-                DispatchQueue.main.async {
-                    self.updateActiveCallsState(callState: CallState.DONE(reason: nil))
-                    self.disconnect()
-                    self.delegate?.onClientError(error: TxError.callFailed(reason: .reconnectFailed))
-                }
+                self.updateActiveCallsState(callState: CallState.DONE(reason: nil))
+                self.disconnect()
+                self.delegate?.onClientError(error: TxError.callFailed(reason: .reconnectFailed))
                 
                 // Clean up timer reference
                 self.reconnectTimeoutTimer = nil
