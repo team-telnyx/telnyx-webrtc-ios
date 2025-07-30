@@ -46,6 +46,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Configure for UI testing if needed
         TestConfiguration.configureForTesting()
         
+        
         // Create window
         window = UIWindow(frame: UIScreen.main.bounds)
         

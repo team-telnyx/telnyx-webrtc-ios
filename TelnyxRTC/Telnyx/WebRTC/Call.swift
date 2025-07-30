@@ -278,6 +278,38 @@ public class Call {
     public var isMuted: Bool {
         return !(peer?.isAudioTrackEnabled ?? false)
     }
+    
+    /// The local media stream containing audio and/or video tracks being sent to the remote party.
+    /// This stream represents the media captured from the local device (microphone, camera).
+    /// Can be used for audio visualization, local video preview, or other media processing.
+    ///
+    /// ## Examples
+    /// ```swift
+    /// // Access local audio tracks for visualization
+    /// if let localStream = call.localStream {
+    ///     let audioTracks = localStream.audioTracks
+    ///     // Use audio tracks for waveform visualization
+    /// }
+    /// ```
+    public var localStream: RTCMediaStream? {
+        return peer?.localStream
+    }
+    
+    /// The remote media stream containing audio and/or video tracks received from the remote party.
+    /// This stream represents the media being received from the other participant in the call.
+    /// Can be used for audio visualization, remote video display, or other media processing.
+    ///
+    /// ## Examples
+    /// ```swift
+    /// // Access remote audio tracks for visualization
+    /// if let remoteStream = call.remoteStream {
+    ///     let audioTracks = remoteStream.audioTracks
+    ///     // Use audio tracks for waveform visualization
+    /// }
+    /// ```
+    public var remoteStream: RTCMediaStream? {
+        return peer?.remoteStream
+    }
 
     private var ringTonePlayer: AVAudioPlayer?
     private var ringbackPlayer: AVAudioPlayer?

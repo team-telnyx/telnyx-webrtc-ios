@@ -63,6 +63,10 @@ class Peer : NSObject, WebRTCEventHandler {
     //Data channel
     private var localDataChannel: RTCDataChannel?
     private var remoteDataChannel: RTCDataChannel?
+    
+    //Media streams
+    private var _localStream: RTCMediaStream?
+    private var _remoteStream: RTCMediaStream?
 
     //ICE negotiation
     private var negotiationTimer: Timer?
@@ -89,6 +93,18 @@ class Peer : NSObject, WebRTCEventHandler {
                 .compactMap { $0.sender.track as? RTCAudioTrack }
                 .first?.isEnabled ?? false
         }
+    }
+    
+    /// The local media stream containing audio and/or video tracks being sent to the remote peer.
+    /// This stream is created when the peer connection is established and contains the local media tracks.
+    public var localStream: RTCMediaStream? {
+        return _localStream
+    }
+    
+    /// The remote media stream containing audio and/or video tracks received from the remote peer.
+    /// This stream is populated when the remote peer adds media tracks to the connection.
+    public var remoteStream: RTCMediaStream? {
+        return _remoteStream
     }
     
     // The `RTCPeerConnectionFactory` is in charge of creating new RTCPeerConnection instances.
@@ -140,9 +156,13 @@ class Peer : NSObject, WebRTCEventHandler {
     private func createMediaSenders() {
         let streamId = UUID.init().uuidString.lowercased()
 
+        // Create local media stream
+        self._localStream = Peer.factory.mediaStream(withStreamId: streamId)
+
         // let's support Audio first.
         let audioTrack = self.createAudioTrack()
         self.localAudioTrack = audioTrack
+        self._localStream?.addAudioTrack(audioTrack)
         self.connection?.add(audioTrack, streamIds: [streamId])
         self.muteUnmuteAudio(mute: false)
     }
@@ -396,6 +416,10 @@ extension Peer : RTCPeerConnectionDelegate {
     func peerConnection(_ peerConnection: RTCPeerConnection, didAdd stream: RTCMediaStream) {
         onAddStream?(stream)
         Logger.log.i(message: "Peer:: connection didAdd: \(stream)")
+        
+        // Assign the remote stream for audio visualization
+        self._remoteStream = stream
+        
         if stream.videoTracks.count > 0 {
             self.remoteVideoTrack = stream.videoTracks[0]
         }
@@ -404,6 +428,11 @@ extension Peer : RTCPeerConnectionDelegate {
     func peerConnection(_ peerConnection: RTCPeerConnection, didRemove stream: RTCMediaStream) {
         onRemoveStream?(stream)
         Logger.log.i(message: "Peer:: connection didRemove \(stream)")
+        
+        // Clear the remote stream reference when removed
+        if self._remoteStream == stream {
+            self._remoteStream = nil
+        }
     }
 
     func peerConnectionShouldNegotiate(_ peerConnection: RTCPeerConnection) {

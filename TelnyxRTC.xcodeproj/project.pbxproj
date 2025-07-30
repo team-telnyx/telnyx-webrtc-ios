@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		08C80C8CC74C9BC033B62062 /* Pods_TelnyxWebRTCDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D6E477492CA6207B0CA04BB3 /* Pods_TelnyxWebRTCDemo.framework */; };
 		3B0F56CB2C7F15830011A48A /* StatsMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B0F56CA2C7F15830011A48A /* StatsMessage.swift */; };
+		3B1B4D132E2532B800A5DD2D /* RegionIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1B4D102E2532B800A5DD2D /* RegionIntegrationTests.swift */; };
+		3B1B4D142E2532B800A5DD2D /* RegionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1B4D112E2532B800A5DD2D /* RegionTests.swift */; };
+		3B1B4D3F2E2E563C00A5DD2D /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 3B1B4D3E2E2E563C00A5DD2D /* Config.xcconfig */; };
+		3B1B4D402E2E563C00A5DD2D /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 3B1B4D3E2E2E563C00A5DD2D /* Config.xcconfig */; };
 		3B1BE6F72AA9A467000B7962 /* TxPushIPConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */; };
 		3B1F43EF2AE0B01E00A610BA /* Params.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1F43EE2AE0B01E00A610BA /* Params.swift */; };
 		3B21257C2DC8126B00E68EA6 /* CallQualityMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B21257B2DC8126B00E68EA6 /* CallQualityMetrics.swift */; };
@@ -19,9 +23,22 @@
 		3B72695D2A9396BF00D2A602 /* DisablePushMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B72695C2A9396BF00D2A602 /* DisablePushMessage.swift */; };
 		3B758F1A2BF44D7800D50069 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3B758F192BF44D7800D50069 /* PrivacyInfo.xcprivacy */; };
 		3B758F1E2BF97E8C00D50069 /* FileLoger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B758F1D2BF97E8C00D50069 /* FileLoger.swift */; };
+		3B7D29952DF1C2980094EB90 /* AppModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 3B7D29932DF1C2980094EB90 /* AppModel.xcdatamodeld */; };
+		3B7D299F2DF1C6F70094EB90 /* CallHistoryDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B7D299E2DF1C6F70094EB90 /* CallHistoryDatabase.swift */; };
+		3B7D29A52DF1CEA00094EB90 /* CallDirection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B7D29A42DF1CEA00094EB90 /* CallDirection.swift */; };
+		3B7D29A72DF1D5100094EB90 /* CallHistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B7D29A62DF1D5100094EB90 /* CallHistoryManager.swift */; };
+		3B7D29A92DF1E2080094EB90 /* CallHistoryBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B7D29A82DF1E2080094EB90 /* CallHistoryBottomSheet.swift */; };
 		3B91C0F52BE3A44600A03067 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3B91C0F42BE3A44600A03067 /* PrivacyInfo.xcprivacy */; };
+		3BA535E52DFB94A6005AF0F4 /* PreCallDiagnosis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA535E42DFB94A6005AF0F4 /* PreCallDiagnosis.swift */; };
+		3BA535E72DFB9BE3005AF0F4 /* PreCallDiagnosisBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA535E62DFB9BE3005AF0F4 /* PreCallDiagnosisBottomSheet.swift */; };
+		3BA535E92DFBA37C005AF0F4 /* PreCallDiagnosticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA535E82DFBA37C005AF0F4 /* PreCallDiagnosticManager.swift */; };
 		3BABEA392D5F595A00B7C79C /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BABEA382D5F595A00B7C79C /* NetworkMonitor.swift */; };
 		3BC03B4E2CC25F5F00FD2B29 /* Reachability.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B0F56CC2C7F1CCA0011A48A /* Reachability.framework */; };
+		3BE7C75C2E0189AB00FF74A1 /* Config.xcconfig.example in Resources */ = {isa = PBXBuildFile; fileRef = 3BE7C75B2E0189AB00FF74A1 /* Config.xcconfig.example */; };
+		3BE7C75D2E0189AB00FF74A1 /* Config.xcconfig.example in Resources */ = {isa = PBXBuildFile; fileRef = 3BE7C75B2E0189AB00FF74A1 /* Config.xcconfig.example */; };
+		3BE7C75F2E0334AB00FF74A1 /* Region.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE7C75E2E0334AB00FF74A1 /* Region.swift */; };
+		3BE7C7612E0421EB00FF74A1 /* OverflowMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE7C7602E0421EB00FF74A1 /* OverflowMenuView.swift */; };
+		3BE7C7632E04292300FF74A1 /* RegionMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE7C7622E04292300FF74A1 /* RegionMenuView.swift */; };
 		3BE84BA82D9C944A00CA1B70 /* DestinationToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE84BA72D9C944A00CA1B70 /* DestinationToggle.swift */; };
 		3BF1D5842BEB7B8F0097453F /* TelnyxRTC.podspec in Resources */ = {isa = PBXBuildFile; fileRef = 3BF1D5832BEB7B8F0097453F /* TelnyxRTC.podspec */; };
 		5FCBE6F1F1CC93D7D34C1470 /* Pods_TelnyxRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A52AE951FE8A913D7516008 /* Pods_TelnyxRTC.framework */; };
@@ -77,6 +94,7 @@
 		99CC5BAE2CF80D3A00EF43DC /* WebRTCEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99CC5BAD2CF80D3400EF43DC /* WebRTCEventHandler.swift */; };
 		99D717742D6E195100471D44 /* TxLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D717732D6E195100471D44 /* TxLogger.swift */; };
 		99D717762D6E229800471D44 /* TelnyxRTCLoggerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D717752D6E229000471D44 /* TelnyxRTCLoggerTests.swift */; };
+		99D7C09C2E1E32DA00D47CE6 /* AudioWaveformView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D7C09B2E1E32DA00D47CE6 /* AudioWaveformView.swift */; };
 		99FF7B102D4BC4F700DB1408 /* DTMFKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FF7B0F2D4BC4F700DB1408 /* DTMFKeyboardView.swift */; };
 		99FF7B122D4BC71800DB1408 /* DTMFKeyboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FF7B112D4BC71800DB1408 /* DTMFKeyboardViewModel.swift */; };
 		B309D13D25EF119E00A2AADF /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B309D11125EF107F00A2AADF /* Starscream.framework */; };
@@ -182,16 +200,32 @@
 		143AE1FD541DDAE74F2F3D38 /* Pods-TelnyxRTC.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC/Pods-TelnyxRTC.debug.xcconfig"; sourceTree = "<group>"; };
 		3B0F56CA2C7F15830011A48A /* StatsMessage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatsMessage.swift; sourceTree = "<group>"; };
 		3B0F56CC2C7F1CCA0011A48A /* Reachability.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Reachability.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B1B4D102E2532B800A5DD2D /* RegionIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionIntegrationTests.swift; sourceTree = "<group>"; };
+		3B1B4D112E2532B800A5DD2D /* RegionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionTests.swift; sourceTree = "<group>"; };
+		3B1B4D3E2E2E563C00A5DD2D /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxPushIPConfig.swift; sourceTree = "<group>"; };
 		3B1F43EE2AE0B01E00A610BA /* Params.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Params.swift; sourceTree = "<group>"; };
 		3B21257B2DC8126B00E68EA6 /* CallQualityMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallQualityMetrics.swift; sourceTree = "<group>"; };
 		3B21257D2DC8129700E68EA6 /* MOSCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MOSCalculator.swift; sourceTree = "<group>"; };
+		3B45B3982E0ADD6200383668 /* CallHistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallHistoryManager.swift; sourceTree = "<group>"; };
 		3B49B7142AA9B0A20026D36D /* AttachCallMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachCallMessage.swift; sourceTree = "<group>"; };
 		3B72695C2A9396BF00D2A602 /* DisablePushMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisablePushMessage.swift; sourceTree = "<group>"; };
 		3B758F192BF44D7800D50069 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		3B758F1D2BF97E8C00D50069 /* FileLoger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileLoger.swift; sourceTree = "<group>"; };
+		3B7D29942DF1C2980094EB90 /* AppModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = AppModel.xcdatamodel; sourceTree = "<group>"; };
+		3B7D299E2DF1C6F70094EB90 /* CallHistoryDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallHistoryDatabase.swift; sourceTree = "<group>"; };
+		3B7D29A42DF1CEA00094EB90 /* CallDirection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallDirection.swift; sourceTree = "<group>"; };
+		3B7D29A62DF1D5100094EB90 /* CallHistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallHistoryManager.swift; sourceTree = "<group>"; };
+		3B7D29A82DF1E2080094EB90 /* CallHistoryBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallHistoryBottomSheet.swift; sourceTree = "<group>"; };
 		3B91C0F42BE3A44600A03067 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		3BA535E42DFB94A6005AF0F4 /* PreCallDiagnosis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreCallDiagnosis.swift; sourceTree = "<group>"; };
+		3BA535E62DFB9BE3005AF0F4 /* PreCallDiagnosisBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreCallDiagnosisBottomSheet.swift; sourceTree = "<group>"; };
+		3BA535E82DFBA37C005AF0F4 /* PreCallDiagnosticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreCallDiagnosticManager.swift; sourceTree = "<group>"; };
 		3BABEA382D5F595A00B7C79C /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
+		3BE7C75B2E0189AB00FF74A1 /* Config.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = Config.xcconfig.example; sourceTree = "<group>"; };
+		3BE7C75E2E0334AB00FF74A1 /* Region.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Region.swift; sourceTree = "<group>"; };
+		3BE7C7602E0421EB00FF74A1 /* OverflowMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverflowMenuView.swift; sourceTree = "<group>"; };
+		3BE7C7622E04292300FF74A1 /* RegionMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionMenuView.swift; sourceTree = "<group>"; };
 		3BE84BA72D9C944A00CA1B70 /* DestinationToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DestinationToggle.swift; sourceTree = "<group>"; };
 		3BF1D5832BEB7B8F0097453F /* TelnyxRTC.podspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TelnyxRTC.podspec; sourceTree = "<group>"; };
 		6ABC09607EB36CA9C6751337 /* Pods-TelnyxRTC.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC.release.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC/Pods-TelnyxRTC.release.xcconfig"; sourceTree = "<group>"; };
@@ -248,6 +282,7 @@
 		99D498D42D567A2C00A7B38F /* TestConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConstants.swift; sourceTree = "<group>"; };
 		99D717732D6E195100471D44 /* TxLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxLogger.swift; sourceTree = "<group>"; };
 		99D717752D6E229000471D44 /* TelnyxRTCLoggerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnyxRTCLoggerTests.swift; sourceTree = "<group>"; };
+		99D7C09B2E1E32DA00D47CE6 /* AudioWaveformView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioWaveformView.swift; sourceTree = "<group>"; };
 		99FF7B0F2D4BC4F700DB1408 /* DTMFKeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTMFKeyboardView.swift; sourceTree = "<group>"; };
 		99FF7B112D4BC71800DB1408 /* DTMFKeyboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTMFKeyboardViewModel.swift; sourceTree = "<group>"; };
 		9A52AE951FE8A913D7516008 /* Pods_TelnyxRTC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxRTC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -384,7 +419,12 @@
 		995BF7142CE7EB0B00454076 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				3BA535E42DFB94A6005AF0F4 /* PreCallDiagnosis.swift */,
+				3B7D29A62DF1D5100094EB90 /* CallHistoryManager.swift */,
+				3B7D29A42DF1CEA00094EB90 /* CallDirection.swift */,
 				995BF7152CE7EB2200454076 /* SipUserCredential.swift */,
+				3B7D29932DF1C2980094EB90 /* AppModel.xcdatamodeld */,
+				3B7D299E2DF1C6F70094EB90 /* CallHistoryDatabase.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -392,6 +432,8 @@
 		995BF71D2CE7EC5000454076 /* Managers */ = {
 			isa = PBXGroup;
 			children = (
+				3B45B3982E0ADD6200383668 /* CallHistoryManager.swift */,
+				3BA535E82DFBA37C005AF0F4 /* PreCallDiagnosticManager.swift */,
 				995BF71A2CE7EBF800454076 /* SipCredentialsManager.swift */,
 			);
 			path = Managers;
@@ -490,6 +532,7 @@
 		B309D1E225F023F400A2AADF /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				3BE7C75E2E0334AB00FF74A1 /* Region.swift */,
 				3B21257B2DC8126B00E68EA6 /* CallQualityMetrics.swift */,
 				3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */,
 				B309D1E325F0240200A2AADF /* TxConfig.swift */,
@@ -506,6 +549,11 @@
 		B309D1FB25F028F100A2AADF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				99D7C09B2E1E32DA00D47CE6 /* AudioWaveformView.swift */,
+				3BE7C7622E04292300FF74A1 /* RegionMenuView.swift */,
+				3BE7C7602E0421EB00FF74A1 /* OverflowMenuView.swift */,
+				3BA535E62DFB9BE3005AF0F4 /* PreCallDiagnosisBottomSheet.swift */,
+				3B7D29A82DF1E2080094EB90 /* CallHistoryBottomSheet.swift */,
 				3BE84BA72D9C944A00CA1B70 /* DestinationToggle.swift */,
 				99FF7B0F2D4BC4F700DB1408 /* DTMFKeyboardView.swift */,
 				99ADA9A92D487AC4000C956A /* CallView.swift */,
@@ -545,6 +593,8 @@
 		B368BEB625EDDB610032AE52 = {
 			isa = PBXGroup;
 			children = (
+				3B1B4D3E2E2E563C00A5DD2D /* Config.xcconfig */,
+				3BE7C75B2E0189AB00FF74A1 /* Config.xcconfig.example */,
 				3BF1D5832BEB7B8F0097453F /* TelnyxRTC.podspec */,
 				B3A728BB2643537E003F3844 /* README.md */,
 				B368BEC225EDDB610032AE52 /* TelnyxRTC */,
@@ -582,6 +632,8 @@
 		B368BED225EDDBC90032AE52 /* TelnyxRTCTests */ = {
 			isa = PBXGroup;
 			children = (
+				3B1B4D102E2532B800A5DD2D /* RegionIntegrationTests.swift */,
+				3B1B4D112E2532B800A5DD2D /* RegionTests.swift */,
 				B366D3F926150D0300156FE1 /* Helpers */,
 				B391221C260501C00051E076 /* WebRTC */,
 				B39121F32603AE670051E076 /* Verto */,
@@ -869,6 +921,8 @@
 			files = (
 				3BF1D5842BEB7B8F0097453F /* TelnyxRTC.podspec in Resources */,
 				3B91C0F52BE3A44600A03067 /* PrivacyInfo.xcprivacy in Resources */,
+				3B1B4D3F2E2E563C00A5DD2D /* Config.xcconfig in Resources */,
+				3BE7C75C2E0189AB00FF74A1 /* Config.xcconfig.example in Resources */,
 				B3A728BC2643537E003F3844 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -890,6 +944,8 @@
 				B3E1033225F7F94900227DCE /* incoming_call.mp3 in Resources */,
 				B368BEF425EDDD070032AE52 /* Assets.xcassets in Resources */,
 				B3E1033325F7F94900227DCE /* ringback_tone.mp3 in Resources */,
+				3B1B4D402E2E563C00A5DD2D /* Config.xcconfig in Resources */,
+				3BE7C75D2E0189AB00FF74A1 /* Config.xcconfig.example in Resources */,
 				B368BEF225EDDD060032AE52 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -905,13 +961,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -926,13 +978,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1033,6 +1081,7 @@
 				996C67D42CFEA72C0056E508 /* RTCMediaStreamTrack+Extension.swift in Sources */,
 				996C67CE2CFEA6AF0056E508 /* RTCIceConnectionState+Extension.swift in Sources */,
 				B3BB8FA026BC076000DDCB84 /* GatewayMessage.swift in Sources */,
+				3BE7C75F2E0334AB00FF74A1 /* Region.swift in Sources */,
 				3BABEA392D5F595A00B7C79C /* NetworkMonitor.swift in Sources */,
 				3B21257C2DC8126B00E68EA6 /* CallQualityMetrics.swift in Sources */,
 				B309D1DB25F020D400A2AADF /* Method.swift in Sources */,
@@ -1084,6 +1133,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3B1B4D132E2532B800A5DD2D /* RegionIntegrationTests.swift in Sources */,
+				3B1B4D142E2532B800A5DD2D /* RegionTests.swift in Sources */,
 				B39121E72600F7B10051E076 /* VertoMessagesTests.swift in Sources */,
 				99D717762D6E229800471D44 /* TelnyxRTCLoggerTests.swift in Sources */,
 				B39121ED2602F22F0051E076 /* SocketTests.swift in Sources */,
@@ -1108,23 +1159,33 @@
 				B32AE8BB26D6952500C7C6F4 /* AppDelegateCallKitExtension.swift in Sources */,
 				998670422D4096AA001E1D01 /* HomeView.swift in Sources */,
 				B3AF24AA25EE84570062EDA9 /* UIViewControllerExtension.swift in Sources */,
+				99D7C09C2E1E32DA00D47CE6 /* AudioWaveformView.swift in Sources */,
+				3BA535E72DFB9BE3005AF0F4 /* PreCallDiagnosisBottomSheet.swift in Sources */,
 				995BF7202CE8175B00454076 /* SipCredentialsViewController.swift in Sources */,
+				3B7D29A72DF1D5100094EB90 /* CallHistoryManager.swift in Sources */,
 				B3B8F53726E7D4EF0007B583 /* AppDelegateTelnyxVoIPExtension.swift in Sources */,
 				9986703E2D3EC7A3001E1D01 /* View+Extensions.swift in Sources */,
 				9986703A2D3E9DCE001E1D01 /* SipInputCredentialsView.swift in Sources */,
+				3BE7C7632E04292300FF74A1 /* RegionMenuView.swift in Sources */,
+				3B7D29A92DF1E2080094EB90 /* CallHistoryBottomSheet.swift in Sources */,
 				99FF7B102D4BC4F700DB1408 /* DTMFKeyboardView.swift in Sources */,
 				991A6D442D3A96C100B29785 /* SplashScreen.swift in Sources */,
 				99ADA9A82D4878FA000C956A /* ProfileView.swift in Sources */,
 				998670402D40849C001E1D01 /* HomeViewController.swift in Sources */,
+				3B7D299F2DF1C6F70094EB90 /* CallHistoryDatabase.swift in Sources */,
 				3BE84BA82D9C944A00CA1B70 /* DestinationToggle.swift in Sources */,
+				3BA535E92DFBA37C005AF0F4 /* PreCallDiagnosticManager.swift in Sources */,
 				995BF7162CE7EB2600454076 /* SipUserCredential.swift in Sources */,
 				99ADA9AA2D487ACC000C956A /* CallView.swift in Sources */,
 				99ADA9B02D4886E7000C956A /* CallViewModel.swift in Sources */,
 				9982C0412D53977B00FA91B4 /* TestConfiguration.swift in Sources */,
 				9982C0422D53977B00FA91B4 /* AccessibilityIdentifiers.swift in Sources */,
+				3B7D29A52DF1CEA00094EB90 /* CallDirection.swift in Sources */,
 				991A6D492D3AB36E00B29785 /* SipCredentialsView.swift in Sources */,
+				3BA535E52DFB94A6005AF0F4 /* PreCallDiagnosis.swift in Sources */,
 				991A6D4A2D3AB36E00B29785 /* SipCredentialHeader.swift in Sources */,
 				991A6D4B2D3AB36E00B29785 /* SipCredentialRow.swift in Sources */,
+				3BE7C7612E0421EB00FF74A1 /* OverflowMenuView.swift in Sources */,
 				995BF71C2CE7EC0600454076 /* SipCredentialsManager.swift in Sources */,
 				99B127D62DCE54500048CE0A /* CallQualityMetricsView.swift in Sources */,
 				998670382D3E9506001E1D01 /* Color+Extensions.swift in Sources */,
@@ -1133,6 +1194,7 @@
 				99FF7B122D4BC71800DB1408 /* DTMFKeyboardViewModel.swift in Sources */,
 				99ADA94E2D47C9B6000C956A /* HomeViewModel.swift in Sources */,
 				9986703C2D3EAF64001E1D01 /* ErrorView.swift in Sources */,
+				3B7D29952DF1C2980094EB90 /* AppModel.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1566,6 +1628,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		3B7D29932DF1C2980094EB90 /* AppModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				3B7D29942DF1C2980094EB90 /* AppModel.xcdatamodel */,
+			);
+			currentVersion = 3B7D29942DF1C2980094EB90 /* AppModel.xcdatamodel */;
+			path = AppModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = B368BEB725EDDB610032AE52 /* Project object */;
 }
