@@ -38,6 +38,13 @@ jobs:
             "connection_id": "${{ env.TELNYX_SIP_CONNECTION_ID }}"
         }' \
         https://api.telnyx.com/v2/telephony_credentials)"
+      
+    - name: Set up environment variables
+      run: |
+        echo "Creating Config.xcconfig with secret"
+        cp Config.xcconfig.example Config.xcconfig
+        echo "PHONE_NUMBER_ENV=$PHONE_NUMBER_SECRET" >> Config.xcconfig
+
 
     - name: Generate Token
       id: generate_token

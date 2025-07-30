@@ -191,10 +191,13 @@ extension HomeViewController : VoIPDelegate {
         return "Call ended"
     }
     
-    func onCallStateUpdated(callState: CallState, callId: UUID) {
+    func onCallStateUpdated(callState: CallState, callId: UUID) {        
         DispatchQueue.main.async {
             self.callViewModel.callState = callState
             self.viewModel.callState = callState
+            
+            // Forward call state changes to HomeViewModel for PreCall Diagnosis
+            self.viewModel.handleCallStateChange(callId: callId, callState: callState)
 
             print("CallState : \(callState)")
             switch (callState) {
@@ -210,10 +213,13 @@ extension HomeViewController : VoIPDelegate {
                             print("metric_values: \(qualityMetric)")
                             DispatchQueue.main.async {
                                 self.callViewModel.callQualityMetrics = qualityMetric
+                                // Forward metrics to HomeViewModel for PreCall Diagnosis
+                                self.viewModel.handleCallQualityMetrics(qualityMetric)
                             }
                         }
                     }
                     if self.appDelegate.isCallOutGoing {
+                        print("Outgoing_reported")
                         self.appDelegate.executeOutGoingCall()
                     }
                     break
@@ -252,10 +258,37 @@ extension HomeViewController : VoIPDelegate {
                                                  callerNumber: sipCred.callerNumber ?? "",
                                                  destinationNumber: destinationNumber,
                                                  callId: callUUID,customHeaders: headers,debug: true)
+            
+            
+            CallHistoryManager.shared.handleStartCallAction(
+                callId:callUUID,
+                destinationNumber: destinationNumber,
+                callerName: sipCred.callerName ?? ""
+            )
             completionHandler(call)
         } catch let error {
             print("HomeViewController:: executeCall Error \(error)")
             completionHandler(nil)
+        }
+    }
+    
+
+    
+    func onPushDisabled(success: Bool, message: String) {
+        print("HomeViewController:: onPushDisabled() success: \(success), message: \(message)")
+        DispatchQueue.main.async {
+            // Handle push notification disable result if needed
+            // Could show an alert or update UI state
+        }
+    }
+    
+    func onPushCall(call: Call) {
+        print("HomeViewController:: onPushCall() callId: \(call.callInfo?.callId ?? UUID())")
+        DispatchQueue.main.async {
+            self.callViewModel.callState = call.callState
+            self.viewModel.callState = call.callState
+            // Hide the keyboard
+            self.view.endEditing(true)
         }
     }
 }

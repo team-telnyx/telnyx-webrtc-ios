@@ -1,0 +1,26 @@
+{
+    "sourceFile": "AppModel.xcdatamodel/contents",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 2,
+            "patches": [
+                {
+                    "date": 1749126641889,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1749126697484,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,14 +1,8 @@\n <?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n <model type=\"com.apple.IDECoreDataModeler.DataModel\" documentVersion=\"1.0\" lastSavedToolsVersion=\"23605\" systemVersion=\"24F74\" minimumToolsVersion=\"Automatic\" sourceLanguage=\"Swift\" usedWithSwiftData=\"YES\" userDefinedModelVersionIdentifier=\"\">\n     <entity name=\"CoreDataEntry\" representedClassName=\"CoreDataEntry\" syncable=\"YES\" codeGenerationType=\"class\">\n         <attribute name=\"callId\" attributeType=\"UUID\" usesScalarValueType=\"NO\"/>\n-        <attribute name=\"phoneNumber\" attributeType=\"String\"/>\n-        <attribute name=\"callerName\" optional=\"YES\" attributeType=\"String\"/>\n-        <attribute name=\"direction\" attributeType=\"String\"/>\n-        <attribute name=\"timestamp\" attributeType=\"Date\" usesScalarValueType=\"NO\"/>\n-        <attribute name=\"duration\" attributeType=\"Integer 32\" defaultValueString=\"0\" usesScalarValueType=\"YES\"/>\n-        <attribute name=\"callStatus\" attributeType=\"String\"/>\n-        <attribute name=\"profileId\" attributeType=\"String\"/>\n-        <attribute name=\"metadata\" optional=\"YES\" attributeType=\"String\"/>\n+        <attribute name=\"jjj\" optional=\"YES\" attributeType=\"Integer 64\" defaultValueString=\"0\" usesScalarValueType=\"YES\"/>\n+        <attribute name=\"rr\" optional=\"YES\" attributeType=\"Integer 64\" defaultValueString=\"0\" usesScalarValueType=\"YES\"/>\n     </entity>\n </model>\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1749126728381,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,8 +1,6 @@\n <?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n <model type=\"com.apple.IDECoreDataModeler.DataModel\" documentVersion=\"1.0\" lastSavedToolsVersion=\"23605\" systemVersion=\"24F74\" minimumToolsVersion=\"Automatic\" sourceLanguage=\"Swift\" usedWithSwiftData=\"YES\" userDefinedModelVersionIdentifier=\"\">\n     <entity name=\"CoreDataEntry\" representedClassName=\"CoreDataEntry\" syncable=\"YES\" codeGenerationType=\"class\">\n         <attribute name=\"callId\" attributeType=\"UUID\" usesScalarValueType=\"NO\"/>\n-        <attribute name=\"jjj\" optional=\"YES\" attributeType=\"Integer 64\" defaultValueString=\"0\" usesScalarValueType=\"YES\"/>\n-        <attribute name=\"rr\" optional=\"YES\" attributeType=\"Integer 64\" defaultValueString=\"0\" usesScalarValueType=\"YES\"/>\n     </entity>\n </model>\n\\ No newline at end of file\n"
+                }
+            ],
+            "date": 1749126641889,
+            "name": "Commit-0",
+            "content": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<model type=\"com.apple.IDECoreDataModeler.DataModel\" documentVersion=\"1.0\" lastSavedToolsVersion=\"23605\" systemVersion=\"24F74\" minimumToolsVersion=\"Automatic\" sourceLanguage=\"Swift\" usedWithSwiftData=\"YES\" userDefinedModelVersionIdentifier=\"\">\n    <entity name=\"CoreDataEntry\" representedClassName=\"CoreDataEntry\" syncable=\"YES\" codeGenerationType=\"class\">\n        <attribute name=\"callId\" attributeType=\"UUID\" usesScalarValueType=\"NO\"/>\n        <attribute name=\"phoneNumber\" attributeType=\"String\"/>\n        <attribute name=\"callerName\" optional=\"YES\" attributeType=\"String\"/>\n        <attribute name=\"direction\" attributeType=\"String\"/>\n        <attribute name=\"timestamp\" attributeType=\"Date\" usesScalarValueType=\"NO\"/>\n        <attribute name=\"duration\" attributeType=\"Integer 32\" defaultValueString=\"0\" usesScalarValueType=\"YES\"/>\n        <attribute name=\"callStatus\" attributeType=\"String\"/>\n        <attribute name=\"profileId\" attributeType=\"String\"/>\n        <attribute name=\"metadata\" optional=\"YES\" attributeType=\"String\"/>\n    </entity>\n</model>"
+        }
+    ]
+}

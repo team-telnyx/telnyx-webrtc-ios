@@ -26,26 +26,33 @@ public struct TxServerConfiguration {
     ///   - signalingServer: To define the signaling server URL `wss://address:port`
     ///   - webRTCIceServers: To define custom ICE servers
     ///   - pushMetaData: Contains push info when a PN is received
-    public init(signalingServer: URL? = nil, webRTCIceServers: [RTCIceServer]? = nil, environment: WebRTCEnvironment = .production,pushMetaData:[String: Any]? = nil) {
+    public init(signalingServer: URL? = nil, webRTCIceServers: [RTCIceServer]? = nil, environment: WebRTCEnvironment = .production,pushMetaData:[String: Any]? = nil,region:Region = Region.auto) {
         
         self.pushMetaData = pushMetaData
         // Get rtc_id  to setup TxPushServerConfig
         let rtc_id = (pushMetaData?["voice_sdk_id"] as? String)
 
 
-        Logger.log.i(message: "TxServerConfiguration:: signalingServer [\(String(describing: signalingServer))] webRTCIceServers [\(String(describing: webRTCIceServers))] environment [\(String(describing: environment))] ip - [\(String(describing: rtc_id))]")
+        Logger.log.i(message: "TxServerConfiguration:: signalingServer [\(String(describing: signalingServer))] webRTCIceServers [\(String(describing: webRTCIceServers))] environment [\(String(describing: environment))] ip - [\(String(describing: rtc_id))] region [\(region)]")
         
         
         func createQuery(with rtc_id: String) -> String {
             let encodedId = rtc_id.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
             return "?voice_sdk_id=\(encodedId)"
         }
+        
+        let regionPrefix: String = {
+            if region != .auto {
+                   return "\(region.rawValue)."
+               }
+               return ""
+           }()
 
         // Determine the base URL or host based on the environment or signalingServer
         if let signalingServer = signalingServer {
             if let rtc_id = rtc_id {
                 // Use only the host of signalingServer if it already has queries
-                let host = "wss://\(signalingServer.host ?? "")"
+                let host = "wss://\(regionPrefix)\(signalingServer.host ?? "")"
                 let query = createQuery(with: rtc_id)
                 let pushRtcServer = "\(host)\(query)"
                 self.signalingServer = URL(string: pushRtcServer) ?? signalingServer
@@ -56,10 +63,10 @@ public struct TxServerConfiguration {
             let baseURL = (environment == .production) ? InternalConfig.default.prodSignalingServer : InternalConfig.default.developmentSignalingServer
             if let rtc_id = rtc_id {
                 let query = createQuery(with: rtc_id)
-                let pushRtcServer = "\(baseURL.absoluteString)\(query)"
+                let pushRtcServer = "wss://\(regionPrefix)\(baseURL.host ?? "")\(query)"
                 self.signalingServer = URL(string: pushRtcServer) ?? baseURL
             } else {
-                self.signalingServer = baseURL
+                self.signalingServer = URL(string: "wss://\(regionPrefix)\(baseURL.host ?? "")")!
             }
             self.environment = environment
         }
