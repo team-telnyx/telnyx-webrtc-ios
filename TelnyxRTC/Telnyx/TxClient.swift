@@ -275,7 +275,10 @@ public class TxClient {
                     Logger.log.e(message: "No network connection")
                     self.socket?.isConnected = false
                     self.updateActiveCallsState(callState: CallState.DROPPED(reason: .networkLost))
-                    self.startReconnectTimeout()
+                    // Only start reconnect timeout if there are active calls
+                    if self.isCallsActive {
+                        self.startReconnectTimeout()
+                    }
                 }
             }
         }
