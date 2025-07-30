@@ -514,12 +514,12 @@ public class TxClient {
     ///   - targetVersionId: Optional target version ID
     /// - Throws: TxError if socket is not connected or sessionId is not available
     public func anonymousLogin(targetId: String, targetType: String = "ai_assistant", targetVersionId: String? = nil) throws {
-        guard let socket = self.socket, socket.isConnected() else {
-            throw TxError.socketNotConnected
+        guard let socket = self.socket, socket.isConnected else {
+            throw TxError.socketConnectionFailed(reason: .socketNotConnected)
         }
         
         guard let sessionId = self.sessionId else {
-            throw TxError.sessionIdIsRequired
+            throw TxError.callFailed(reason: .sessionIdIsRequired)
         }
         
         Logger.log.i(message: "TxClient:: anonymousLogin() targetId: \(targetId), targetType: \(targetType)")
