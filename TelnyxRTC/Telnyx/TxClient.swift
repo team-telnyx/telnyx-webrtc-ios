@@ -153,7 +153,10 @@ public class TxClient {
     private let reconnectQueue = DispatchQueue(label: "TelnyxClient.ReconnectQueue")
     private var _isSpeakerEnabled: Bool = false
     private var enableQualityMetrics: Bool = false
+    private var pendingAnonymousLoginMessage: AnonymousLoginMessage?
     
+    /// AI Assistant Manager for handling AI-related functionality
+    public let aiAssistantManager = AIAssistantManager()
 
     
     public private(set) var isSpeakerEnabled: Bool {
@@ -525,33 +528,107 @@ public class TxClient {
         return sessionId ?? ""
     }
     
-    /// Performs anonymous login to the Telnyx backend for AI assistant connections.
+    /// Performs an anonymous login to the Telnyx backend for AI assistant connections.
+    /// This method allows connecting to AI assistants without traditional authentication.
+    /// 
+    /// If the socket is already connected, the anonymous login message is sent immediately.
+    /// If not connected, the socket connection process is started, and the anonymous login 
+    /// message is sent once the connection is established.
+    /// 
     /// - Parameters:
     ///   - targetId: The target ID for the AI assistant
     ///   - targetType: The target type (defaults to "ai_assistant")
     ///   - targetVersionId: Optional target version ID
-    /// - Throws: TxError if socket is not connected or sessionId is not available
-    public func anonymousLogin(targetId: String, targetType: String = "ai_assistant", targetVersionId: String? = nil) throws {
-        guard let socket = self.socket, socket.isConnected else {
-            throw TxError.socketConnectionFailed(reason: .socketNotConnected)
+    ///   - userVariables: Optional user variables to include in the login
+    ///   - reconnection: Whether this is a reconnection attempt (defaults to false)
+    ///   - serverConfiguration: Server configuration to use for connection (defaults to TxServerConfiguration())
+    public func anonymousLogin(
+        targetId: String, 
+        targetType: String = "ai_assistant", 
+        targetVersionId: String? = nil,
+        userVariables: [String: Any] = [:],
+        reconnection: Bool = false,
+        serverConfiguration: TxServerConfiguration = TxServerConfiguration()
+    ) {
+        Logger.log.i(message: "TxClient:: anonymousLogin() targetId: \(targetId), targetType: \(targetType)")
+        
+        // Generate session ID if not available
+        if self.sessionId == nil {
+            self.sessionId = UUID().uuidString
         }
         
         guard let sessionId = self.sessionId else {
-            throw TxError.callFailed(reason: .sessionIdIsRequired)
+            Logger.log.e(message: "TxClient:: anonymousLogin() failed to generate sessionId")
+            self.delegate?.onClientError(error: TxError.callFailed(reason: .sessionIdIsRequired))
+            return
         }
-        
-        Logger.log.i(message: "TxClient:: anonymousLogin() targetId: \(targetId), targetType: \(targetType)")
         
         let anonymousLoginMessage = AnonymousLoginMessage(
             targetType: targetType,
             targetId: targetId,
             targetVersionId: targetVersionId,
             sessionId: sessionId,
-            userVariables: [:],
-            reconnection: false
+            userVariables: userVariables,
+            reconnection: reconnection
         )
         
-        socket.sendMessage(message: anonymousLoginMessage.encode())
+        if let socket = self.socket, socket.isConnected {
+            // Socket is already connected, send the message immediately
+            Logger.log.i(message: "TxClient:: anonymousLogin() socket connected, sending message immediately")
+            socket.sendMessage(message: anonymousLoginMessage.encode())
+            
+            // Update AI Assistant Manager state
+            self.aiAssistantManager.updateConnectionState(
+                connected: true,
+                targetId: targetId,
+                targetType: targetType,
+                targetVersionId: targetVersionId
+            )
+        } else {
+            // Socket is not connected, store the message and start connection
+            Logger.log.i(message: "TxClient:: anonymousLogin() socket not connected, starting connection process")
+            self.pendingAnonymousLoginMessage = anonymousLoginMessage
+            
+            // Set up server configuration
+            if self.voiceSdkId != nil {
+                Logger.log.i(message: "TxClient:: anonymousLogin() with voice_sdk_id")
+                self.serverConfiguration = TxServerConfiguration(
+                    signalingServer: serverConfiguration.signalingServer,
+                    webRTCIceServers: serverConfiguration.webRTCIceServers,
+                    environment: serverConfiguration.environment,
+                    pushMetaData: ["voice_sdk_id": self.voiceSdkId!]
+                )
+            } else {
+                Logger.log.i(message: "TxClient:: anonymousLogin() without voice_sdk_id")
+                self.serverConfiguration = serverConfiguration
+            }
+            
+            Logger.log.i(message: "TxClient:: anonymousLogin() serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
+            
+            // Initialize socket and start connection
+            self.socket = Socket()
+            self.socket?.delegate = self
+            self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
+        }
+    }
+    
+    /// Send a ringing acknowledgment message for a specific call
+    /// - Parameter callId: The call ID to acknowledge
+    public func sendRingingAck(callId: String) {
+        guard let socket = self.socket, socket.isConnected else {
+            Logger.log.e(message: "TxClient:: sendRingingAck() socket not connected")
+            return
+        }
+        
+        guard let sessionId = self.sessionId else {
+            Logger.log.e(message: "TxClient:: sendRingingAck() sessionId not available")
+            return
+        }
+        
+        Logger.log.i(message: "TxClient:: sendRingingAck() callId: \(callId)")
+        
+        let ringingAckMessage = RingingAckMessage(callId: callId, sessionId: sessionId)
+        socket.sendMessage(message: ringingAckMessage.encode())
     }
 
     /// This function check the gateway status updates to determine if the current user has been successfully
@@ -1013,6 +1090,29 @@ extension TxClient : SocketDelegate {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected()")
         self.delegate?.onSocketConnected()
 
+        // Check if there's a pending anonymous login message
+        if let pendingMessage = self.pendingAnonymousLoginMessage {
+            Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() sending pending anonymous login message")
+            self.socket?.sendMessage(message: pendingMessage.encode())
+            
+            // Extract target information from the pending message to update AI Assistant Manager
+            if let params = pendingMessage.params {
+                let targetId = params["target_id"] as? String
+                let targetType = params["target_type"] as? String
+                let targetVersionId = params["target_version_id"] as? String
+                
+                self.aiAssistantManager.updateConnectionState(
+                    connected: true,
+                    targetId: targetId,
+                    targetType: targetType,
+                    targetVersionId: targetVersionId
+                )
+            }
+            
+            self.pendingAnonymousLoginMessage = nil
+            return
+        }
+
         // Get push token and push provider if available
         let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
         let pushProvider = self.txConfig?.pushNotificationConfig?.pushNotificationProvider
@@ -1078,6 +1178,11 @@ extension TxClient : SocketDelegate {
     func onMessageReceived(message: String) {
         Logger.log.i(message: "TxClient:: SocketDelegate onMessageReceived() message: \(message)")
         guard let vertoMessage = Message().decode(message: message) else { return }
+        
+        // Process message through AI Assistant Manager
+        if let messageDict = try? JSONSerialization.jsonObject(with: Data(message.utf8), options: []) as? [String: Any] {
+            _ = self.aiAssistantManager.processIncomingMessage(messageDict)
+        }
         
        // FileLogger().log(message)
 

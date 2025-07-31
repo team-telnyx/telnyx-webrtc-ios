@@ -216,8 +216,13 @@ class ViewController: UIViewController {
         }
     }
     
+    @IBAction func anonymousLoginButtonTapped(_ sender: Any) {
+        print("ViewController:: anonymousLoginButtonTapped() Initiating anonymous login...")
+        performAnonymousLogin()
+    }
+    
     /// Example method to demonstrate anonymous login functionality
-    /// This would typically be called after a successful connection to the Telnyx backend
+    /// This method can be called regardless of connection state - it will handle connection automatically
     private func performAnonymousLogin() {
         guard let telnyxClient = self.telnyxClient else {
             print("ViewController:: performAnonymousLogin() ERROR: TelnyxClient is not initialized")
@@ -227,17 +232,20 @@ class ViewController: UIViewController {
         // Example usage of anonymous login for AI assistant
         let targetId = "assistant-9be2960c-df97-4cbb-9f1a-28c87d0ab77e" // Example assistant ID
         let targetVersionId = "version-123" // Optional version ID
+        let userVariables = ["user_name": "Demo User", "session_type": "demo"]
+
+        // The new anonymousLogin method handles connection state automatically
+        telnyxClient.anonymousLogin(
+            targetId: targetId,
+            targetType: "ai_assistant",
+            targetVersionId: targetVersionId,
+            userVariables: userVariables,
+            reconnection: false,
+            serverConfiguration: self.serverConfig ?? TxServerConfiguration()
+        )
         
-        do {
-            try telnyxClient.anonymousLogin(
-                targetId: targetId,
-                targetType: "ai_assistant",
-                targetVersionId: targetVersionId
-            )
-            print("ViewController:: performAnonymousLogin() Anonymous login initiated for targetId: \(targetId)")
-        } catch {
-            print("ViewController:: performAnonymousLogin() ERROR: \(error)")
-        }
+        print("ViewController:: performAnonymousLogin() Anonymous login initiated for targetId: \(targetId)")
+        print("ViewController:: performAnonymousLogin() Connection will be established automatically if needed")
     }
 
     func resetCallStates() {

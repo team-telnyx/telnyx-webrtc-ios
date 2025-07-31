@@ -16,6 +16,7 @@ enum Method : String {
     case ANSWER = "telnyx_rtc.answer"
     case INVITE = "telnyx_rtc.invite"
     case RINGING = "telnyx_rtc.ringing"
+    case RINGING_ACK = "telnyx_rtc.ringing_ack"
     case CLIENT_READY = "telnyx_rtc.clientReady"
     case BYE = "telnyx_rtc.bye"
     case MODIFY = "telnyx_rtc.modify"
