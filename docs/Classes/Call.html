@@ -17,7 +17,7 @@
     <a title="Call Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">TelnyxRTC 2.0.2 Docs</a> (80% documented)</p>
+        <p><a href="../index.html">TelnyxRTC 2.1.0 Docs</a> (79% documented)</p>
         <div class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -74,6 +74,9 @@
               </li>
               <li class="nav-group-task">
                 <a href="../Enums/PushEnvironment.html">PushEnvironment</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/Region.html">Region</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Enums/TxError.html">TxError</a>
@@ -586,6 +589,78 @@ See <code><a href="../Structs/TxCallInfo.html">TxCallInfo</a></code> for complet
                     </section>
                   </div>
                 </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC4CallC11localStreamSo08RTCMediaE0CSgvp"></a>
+                    <a name="//apple_ref/swift/Property/localStream" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC4CallC11localStreamSo08RTCMediaE0CSgvp">localStream</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The local media stream containing audio and/or video tracks being sent to the remote party.
+This stream represents the media captured from the local device (microphone, camera).
+Can be used for audio visualization, local video preview, or other media processing.</p>
+<h2 id='examples' class='heading'>Examples</h2>
+<pre class="highlight swift"><code><span class="c1">// Access local audio tracks for visualization</span>
+<span class="k">if</span> <span class="k">let</span> <span class="nv">localStream</span> <span class="o">=</span> <span class="n">call</span><span class="o">.</span><span class="n">localStream</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">audioTracks</span> <span class="o">=</span> <span class="n">localStream</span><span class="o">.</span><span class="n">audioTracks</span>
+    <span class="c1">// Use audio tracks for waveform visualization</span>
+<span class="p">}</span>
+</code></pre>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">localStream</span><span class="p">:</span> <span class="kt">RTCMediaStream</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC4CallC12remoteStreamSo08RTCMediaE0CSgvp"></a>
+                    <a name="//apple_ref/swift/Property/remoteStream" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC4CallC12remoteStreamSo08RTCMediaE0CSgvp">remoteStream</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The remote media stream containing audio and/or video tracks received from the remote party.
+This stream represents the media being received from the other participant in the call.
+Can be used for audio visualization, remote video display, or other media processing.</p>
+<h2 id='examples' class='heading'>Examples</h2>
+<pre class="highlight swift"><code><span class="c1">// Access remote audio tracks for visualization</span>
+<span class="k">if</span> <span class="k">let</span> <span class="nv">remoteStream</span> <span class="o">=</span> <span class="n">call</span><span class="o">.</span><span class="n">remoteStream</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">audioTracks</span> <span class="o">=</span> <span class="n">remoteStream</span><span class="o">.</span><span class="n">audioTracks</span>
+    <span class="c1">// Use audio tracks for waveform visualization</span>
+<span class="p">}</span>
+</code></pre>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">remoteStream</span><span class="p">:</span> <span class="kt">RTCMediaStream</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
               </ul>
             </div>
             <div class="task-group">
@@ -920,7 +995,7 @@ when sending multiple digits.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-07-04)</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-07-31)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>
