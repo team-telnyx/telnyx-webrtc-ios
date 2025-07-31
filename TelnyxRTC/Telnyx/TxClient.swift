@@ -277,10 +277,28 @@ public class TxClient {
                     Logger.log.e(message: "No network connection")
                     self.socket?.isConnected = false
                     self.updateActiveCallsState(callState: CallState.DROPPED(reason: .networkLost))
-                    self.startReconnectTimeout()
+                    // Only start reconnect timeout if there are active calls
+                    if self.isCallsActive {
+                        self.startReconnectTimeout()
+                    }
                 }
             }
         }
+    }
+    
+    /// Deinitializer to ensure proper cleanup of resources
+    deinit {
+        // Cancel reconnect timeout timer if it exists
+        reconnectTimeoutTimer?.cancel()
+        reconnectTimeoutTimer = nil
+        
+        // Stop network monitoring
+        NetworkMonitor.shared.stopMonitoring()
+        
+        // Remove audio route change observer
+        NotificationCenter.default.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
+        
+        Logger.log.i(message: "TxClient deinitialized")
     }
     
     /// Sets up monitoring for audio route changes (e.g., headphones connected/disconnected, 
@@ -884,9 +902,28 @@ extension TxClient : SocketDelegate {
     /// 
     /// This function cancels the timer that would terminate a call if reconnection takes too long.
     /// It should be called when a call has successfully reconnected or when the call is intentionally ended.
+    /// 
+    /// Thread-safe implementation that prevents EXC_BREAKPOINT crashes by properly managing
+    /// the DispatchSourceTimer lifecycle and avoiding double-cancellation.
     func stopReconnectTimeout() {
         Logger.log.i(message: "Reconnect TimeOut stopped")
-        self.reconnectTimeoutTimer?.cancel()
+        
+        // Ensure thread safety by dispatching to the reconnect queue
+        guard reconnectTimeoutTimer != nil else {
+            Logger.log.i(message: "Reconnect timeout timer is already nil")
+            return
+        }
+        
+        reconnectQueue.async { [weak self] in
+            guard let self = self else { return }
+            
+            // Check if timer exists and is not already cancelled
+            if let timer = self.reconnectTimeoutTimer {
+                timer.cancel()
+                self.reconnectTimeoutTimer = nil
+                Logger.log.i(message: "Reconnect timeout timer cancelled successfully")
+            }
+        }
     }
 
     /// Starts the reconnection timeout timer.
@@ -901,17 +938,41 @@ extension TxClient : SocketDelegate {
     /// 
     /// This prevents calls from being stuck in a "reconnecting" state indefinitely when
     /// network conditions prevent successful reconnection.
+    /// 
+    /// Thread-safe implementation that properly manages timer lifecycle to prevent crashes.
     func startReconnectTimeout() {
         Logger.log.i(message: "Reconnect TimeOut Started")
-        self.reconnectTimeoutTimer = DispatchSource.makeTimerSource(queue: reconnectQueue)
-        self.reconnectTimeoutTimer?.schedule(deadline: .now() + (txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT))
-        self.reconnectTimeoutTimer?.setEventHandler { [weak self] in
-            Logger.log.i(message: "Reconnect TimeOut : after \(self?.txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT) secs")
-            self?.updateActiveCallsState(callState: CallState.DONE(reason: nil))
-            self?.disconnect()
-            self?.delegate?.onClientError(error: TxError.callFailed(reason: .reconnectFailed))
+        
+        // Ensure thread safety by dispatching to the reconnect queue
+        reconnectQueue.async { [weak self] in
+            guard let self = self else { return }
+            
+            // Cancel any existing timer before creating a new one
+            if let existingTimer = self.reconnectTimeoutTimer {
+                existingTimer.cancel()
+                self.reconnectTimeoutTimer = nil
+            }
+            
+            // Create and configure new timer
+            let timer = DispatchSource.makeTimerSource(queue: self.reconnectQueue)
+            timer.schedule(deadline: .now() + (self.txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT))
+            timer.setEventHandler { [weak self] in
+                guard let self = self else { return }
+                Logger.log.i(message: "Reconnect TimeOut : after \(self.txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT) secs")
+                
+                // Execute timeout actions on main queue for UI updates
+                self.updateActiveCallsState(callState: CallState.DONE(reason: nil))
+                self.disconnect()
+                self.delegate?.onClientError(error: TxError.callFailed(reason: .reconnectFailed))
+                
+                // Clean up timer reference
+                self.reconnectTimeoutTimer = nil
+            }
+            
+            // Store reference and start timer
+            self.reconnectTimeoutTimer = timer
+            timer.resume()
         }
-        self.reconnectTimeoutTimer?.resume()
     }
    
     func reconnectClient() {
