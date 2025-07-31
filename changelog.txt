@@ -9,3 +9,8 @@
 - PR #245: [WEBRTC-2761] CLAUDE md File
 - PR #243: Update README.md
 - PR #237: Update README.md
+- PR #265: [WEBRTC-2899] Fix EXC_BREAKPOINT crash in TxClient.stopReconnectTimeout()
+- PR #263: [WEBRTC-2877] Add .llm-repo-instructions file for iOS WebRTC SDK
+- PR #262: WEBRTC-2822: [iOS] [Telnyx WebRTC] Audio Wave UI for Mobile Client
+- PR #261: [WEBRTC-2763] [Feat] App - Enhancements
+- PR #259: 📝 [Docs] Update generated SDK documentation
