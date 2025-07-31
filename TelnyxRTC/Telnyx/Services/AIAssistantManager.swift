@@ -8,6 +8,40 @@
 
 import Foundation
 
+/// Represents a transcription item from AI assistant conversations
+public struct TranscriptionItem {
+    public let id: String
+    public let timestamp: Date
+    public let speaker: String
+    public let text: String
+    public let confidence: Double?
+    
+    public init(id: String, timestamp: Date, speaker: String, text: String, confidence: Double? = nil) {
+        self.id = id
+        self.timestamp = timestamp
+        self.speaker = speaker
+        self.text = text
+        self.confidence = confidence
+    }
+}
+
+/// Represents widget settings for AI assistant interface
+public struct WidgetSettings {
+    public let theme: String?
+    public let language: String?
+    public let autoStart: Bool
+    public let showTranscript: Bool
+    public let customStyles: [String: Any]?
+    
+    public init(theme: String? = nil, language: String? = nil, autoStart: Bool = false, showTranscript: Bool = true, customStyles: [String: Any]? = nil) {
+        self.theme = theme
+        self.language = language
+        self.autoStart = autoStart
+        self.showTranscript = showTranscript
+        self.customStyles = customStyles
+    }
+}
+
 /// Protocol for AI Assistant Manager delegate to handle AI-related events
 public protocol AIAssistantManagerDelegate: AnyObject {
     /// Called when an AI conversation message is received
@@ -23,6 +57,14 @@ public protocol AIAssistantManagerDelegate: AnyObject {
     ///   - isConnected: Whether the AI assistant is connected
     ///   - targetId: The target ID of the AI assistant
     func onAIAssistantConnectionStateChanged(isConnected: Bool, targetId: String?)
+    
+    /// Called when transcription is updated
+    /// - Parameter transcriptions: The updated list of transcription items
+    func onTranscriptionUpdated(_ transcriptions: [TranscriptionItem])
+    
+    /// Called when widget settings are updated
+    /// - Parameter settings: The updated widget settings
+    func onWidgetSettingsUpdated(_ settings: WidgetSettings)
 }
 
 /// Manager class for handling AI Assistant functionality
@@ -45,6 +87,12 @@ public class AIAssistantManager {
     
     /// Current target version ID
     private var currentTargetVersionId: String?
+    
+    /// List of transcription items from AI conversations
+    private var transcriptions: [TranscriptionItem] = []
+    
+    /// Current widget settings for AI assistant interface
+    private var widgetSettings: WidgetSettings?
     
     /// Logger instance for debugging
     private let logger = Logger.log
@@ -102,6 +150,20 @@ public class AIAssistantManager {
             return true
         }
         
+        // Check if this is a transcription message
+        if let transcription = extractTranscription(from: message) {
+            logger.i(message: "AIAssistantManager:: Processing transcription message")
+            addTranscription(transcription)
+            return true
+        }
+        
+        // Check if this is a widget settings message
+        if let settings = extractWidgetSettings(from: message) {
+            logger.i(message: "AIAssistantManager:: Processing widget settings message")
+            updateWidgetSettings(settings)
+            return true
+        }
+        
         return false
     }
     
@@ -120,6 +182,53 @@ public class AIAssistantManager {
     public func reset() {
         logger.i(message: "AIAssistantManager:: Resetting state")
         updateConnectionState(connected: false, targetId: nil, targetType: nil, targetVersionId: nil)
+        clearAllData()
+    }
+    
+    /// Get current transcriptions
+    /// - Returns: Array of transcription items
+    public func getTranscriptions() -> [TranscriptionItem] {
+        return transcriptions
+    }
+    
+    /// Get current widget settings
+    /// - Returns: Current widget settings or nil if not set
+    public func getWidgetSettings() -> WidgetSettings? {
+        return widgetSettings
+    }
+    
+    /// Add a transcription item
+    /// - Parameter transcription: The transcription item to add
+    public func addTranscription(_ transcription: TranscriptionItem) {
+        transcriptions.append(transcription)
+        logger.i(message: "AIAssistantManager:: Added transcription item: \(transcription.id)")
+        delegate?.onTranscriptionUpdated(transcriptions)
+    }
+    
+    /// Update widget settings
+    /// - Parameter settings: The new widget settings
+    public func updateWidgetSettings(_ settings: WidgetSettings) {
+        widgetSettings = settings
+        logger.i(message: "AIAssistantManager:: Updated widget settings")
+        delegate?.onWidgetSettingsUpdated(settings)
+    }
+    
+    /// Clear all transcriptions and widget settings
+    public func clearAllData() {
+        logger.i(message: "AIAssistantManager:: Clearing all transcriptions and widget settings")
+        transcriptions.removeAll()
+        widgetSettings = nil
+        delegate?.onTranscriptionUpdated(transcriptions)
+        if let settings = widgetSettings {
+            delegate?.onWidgetSettingsUpdated(settings)
+        }
+    }
+    
+    /// Clear only transcriptions (called when call ends)
+    public func clearTranscriptions() {
+        logger.i(message: "AIAssistantManager:: Clearing transcriptions")
+        transcriptions.removeAll()
+        delegate?.onTranscriptionUpdated(transcriptions)
     }
     
     // MARK: - Private Methods
@@ -171,6 +280,110 @@ public class AIAssistantManager {
         }
         
         return nil
+    }
+    
+    /// Extract transcription from message
+    /// - Parameter message: The message to extract from
+    /// - Returns: TranscriptionItem if found, nil otherwise
+    private func extractTranscription(from message: [String: Any]) -> TranscriptionItem? {
+        // Check for transcription in various message formats
+        if let params = message["params"] as? [String: Any] {
+            // Check for direct transcription data
+            if let transcriptData = params["transcript"] as? [String: Any] {
+                return parseTranscriptionData(transcriptData)
+            }
+            
+            // Check for AI conversation with transcription
+            if let conversationData = params["conversation"] as? [String: Any],
+               let transcriptData = conversationData["transcript"] as? [String: Any] {
+                return parseTranscriptionData(transcriptData)
+            }
+            
+            // Check for real-time transcription updates
+            if let method = message["method"] as? String,
+               (method.contains("transcription") || method.contains("speech")) {
+                return parseTranscriptionData(params)
+            }
+        }
+        
+        return nil
+    }
+    
+    /// Extract widget settings from message
+    /// - Parameter message: The message to extract from
+    /// - Returns: WidgetSettings if found, nil otherwise
+    private func extractWidgetSettings(from message: [String: Any]) -> WidgetSettings? {
+        if let params = message["params"] as? [String: Any] {
+            // Check for widget settings data
+            if let widgetData = params["widget_settings"] as? [String: Any] {
+                return parseWidgetSettingsData(widgetData)
+            }
+            
+            // Check for UI configuration
+            if let uiConfig = params["ui_config"] as? [String: Any] {
+                return parseWidgetSettingsData(uiConfig)
+            }
+            
+            // Check for assistant configuration
+            if let assistantConfig = params["assistant_config"] as? [String: Any],
+               let widgetData = assistantConfig["widget"] as? [String: Any] {
+                return parseWidgetSettingsData(widgetData)
+            }
+        }
+        
+        return nil
+    }
+    
+    /// Parse transcription data into TranscriptionItem
+    /// - Parameter data: The transcription data dictionary
+    /// - Returns: TranscriptionItem if parsing successful, nil otherwise
+    private func parseTranscriptionData(_ data: [String: Any]) -> TranscriptionItem? {
+        guard let text = data["text"] as? String,
+              !text.isEmpty else {
+            return nil
+        }
+        
+        let id = data["id"] as? String ?? UUID().uuidString
+        let speaker = data["speaker"] as? String ?? data["role"] as? String ?? "unknown"
+        let confidence = data["confidence"] as? Double
+        
+        // Parse timestamp
+        let timestamp: Date
+        if let timestampString = data["timestamp"] as? String {
+            let formatter = ISO8601DateFormatter()
+            timestamp = formatter.date(from: timestampString) ?? Date()
+        } else if let timestampDouble = data["timestamp"] as? Double {
+            timestamp = Date(timeIntervalSince1970: timestampDouble)
+        } else {
+            timestamp = Date()
+        }
+        
+        return TranscriptionItem(
+            id: id,
+            timestamp: timestamp,
+            speaker: speaker,
+            text: text,
+            confidence: confidence
+        )
+    }
+    
+    /// Parse widget settings data into WidgetSettings
+    /// - Parameter data: The widget settings data dictionary
+    /// - Returns: WidgetSettings if parsing successful, nil otherwise
+    private func parseWidgetSettingsData(_ data: [String: Any]) -> WidgetSettings? {
+        let theme = data["theme"] as? String
+        let language = data["language"] as? String ?? data["lang"] as? String
+        let autoStart = data["auto_start"] as? Bool ?? data["autoStart"] as? Bool ?? false
+        let showTranscript = data["show_transcript"] as? Bool ?? data["showTranscript"] as? Bool ?? true
+        let customStyles = data["custom_styles"] as? [String: Any] ?? data["styles"] as? [String: Any]
+        
+        return WidgetSettings(
+            theme: theme,
+            language: language,
+            autoStart: autoStart,
+            showTranscript: showTranscript,
+            customStyles: customStyles
+        )
     }
 }
 

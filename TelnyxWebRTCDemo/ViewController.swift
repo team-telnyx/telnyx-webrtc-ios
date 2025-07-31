@@ -75,6 +75,10 @@ class ViewController: UIViewController {
         print("ViewController:: viewDidLoad()")
         self.appDelegate.voipDelegate = self
         self.telnyxClient = appDelegate.telnyxClient
+        
+        // Set AI Assistant Manager delegate
+        self.telnyxClient?.aiAssistantManager.delegate = self
+        
         self.initViews()
         
         // Register notifications
@@ -433,6 +437,58 @@ extension ViewController: SipCredentialsViewControllerDelegate {
             self.settingsView.selectCredentialButton.isHidden = true
         } else {
             self.settingsView.selectCredentialButton.isHidden = false
+        }
+    }
+}
+
+// MARK: - AIAssistantManagerDelegate
+extension ViewController: AIAssistantManagerDelegate {
+    
+    func onAIConversationMessage(_ message: [String : Any]) {
+        print("ViewController:: onAIConversationMessage() Received AI conversation message: \(message)")
+        // Handle AI conversation messages in your UI
+        DispatchQueue.main.async {
+            // Update UI with AI conversation data
+            // Example: show conversation in a chat interface
+        }
+    }
+    
+    func onRingingAckReceived(callId: String) {
+        print("ViewController:: onRingingAckReceived() Received ringing acknowledgment for callId: \(callId)")
+        // Handle ringing acknowledgment
+        DispatchQueue.main.async {
+            // Update UI to show call is ringing
+        }
+    }
+    
+    func onAIAssistantConnectionStateChanged(isConnected: Bool, targetId: String?) {
+        print("ViewController:: onAIAssistantConnectionStateChanged() AI Assistant connection state changed - connected: \(isConnected), targetId: \(targetId ?? "nil")")
+        DispatchQueue.main.async {
+            // Update UI to reflect AI assistant connection state
+            // Example: show/hide AI assistant features
+        }
+    }
+    
+    func onTranscriptionUpdated(_ transcriptions: [TranscriptionItem]) {
+        print("ViewController:: onTranscriptionUpdated() Received \(transcriptions.count) transcription items")
+        for transcription in transcriptions {
+            print("  - [\(transcription.timestamp)] \(transcription.speaker): \(transcription.text)")
+        }
+        DispatchQueue.main.async {
+            // Update UI with transcription data
+            // Example: display transcriptions in a scrollable view
+        }
+    }
+    
+    func onWidgetSettingsUpdated(_ settings: WidgetSettings) {
+        print("ViewController:: onWidgetSettingsUpdated() Widget settings updated:")
+        print("  - Theme: \(settings.theme ?? "default")")
+        print("  - Language: \(settings.language ?? "default")")
+        print("  - Auto Start: \(settings.autoStart)")
+        print("  - Show Transcript: \(settings.showTranscript)")
+        DispatchQueue.main.async {
+            // Update UI with widget settings
+            // Example: apply theme, language, and other settings to the interface
         }
     }
 }

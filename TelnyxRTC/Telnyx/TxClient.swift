@@ -430,6 +430,10 @@ public class TxClient {
         }
         self.calls.removeAll()
         self.stopReconnectTimeout()
+        
+        // Clear AI Assistant Manager data
+        self.aiAssistantManager.clearAllData()
+        
         // Remove audio route change observer
         NotificationCenter.default.removeObserver(self,
                                                   name: AVAudioSession.routeChangeNotification,
@@ -957,6 +961,10 @@ extension TxClient: CallProtocol {
            let callId = call.callInfo?.callId {
             Logger.log.i(message: "TxClient:: Remove call")
             self.calls.removeValue(forKey: callId)
+            
+            // Clear AI Assistant transcriptions when call ends
+            self.aiAssistantManager.clearTranscriptions()
+            
             //Forward call ended state with termination reason if available
             if case let .DONE(reason) = call.callState {
                 self.delegate?.onRemoteCallEnded(callId: callId, reason: reason)
