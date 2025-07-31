@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>CallQuality Enumeration Reference</title>
+    <title>Region Enumeration Reference</title>
     <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
     <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
     <meta charset='utf-8'>
@@ -13,8 +13,8 @@
     <script src="../js/jazzy.search.js" defer></script>
   </head>
   <body>
-    <a name="//apple_ref/swift/Enum/CallQuality" class="dashAnchor"></a>
-    <a title="CallQuality Enumeration Reference"></a>
+    <a name="//apple_ref/swift/Enum/Region" class="dashAnchor"></a>
+    <a title="Region Enumeration Reference"></a>
     <header>
       <div class="content-wrapper">
         <p><a href="../index.html">TelnyxRTC 2.1.0 Docs</a> (79% documented)</p>
@@ -31,7 +31,7 @@
         <img id="carat" src="../img/carat.png" alt=""/>
         <a href="../Enums.html">Enumerations</a>
         <img id="carat" src="../img/carat.png" alt=""/>
-        CallQuality Enumeration Reference
+        Region Enumeration Reference
       </p>
     </div>
     <div class="content-wrapper">
@@ -140,15 +140,15 @@
       <article class="main-content">
         <section>
           <section class="section">
-            <h1>CallQuality</h1>
+            <h1>Region</h1>
               <div class="declaration">
                 <div class="language">
                   
-                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">CallQuality</span> <span class="p">:</span> <span class="kt">String</span></code></pre>
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">Region</span> <span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="kt">Codable</span><span class="p">,</span> <span class="kt">CaseIterable</span></code></pre>
 
                 </div>
               </div>
-            <p>Quality rating for a WebRTC call based on MOS score</p>
+            <p>Enum representing the available regions for Telnyx WebRTC connections.</p>
 
           </section>
           <section class="section task-group-section">
@@ -157,9 +157,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC11CallQualityO9excellentyA2CmF"></a>
-                    <a name="//apple_ref/swift/Element/excellent" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC11CallQualityO9excellentyA2CmF">excellent</a>
+                    <a name="/s:9TelnyxRTC6RegionO4autoyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/auto" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC6RegionO4autoyA2CmF">auto</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -167,14 +167,14 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>MOS &gt; 4.2</p>
+                        <p>Undocumented</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">excellent</span></code></pre>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">auto</span> <span class="o">=</span> <span class="s">"auto"</span></code></pre>
 
                         </div>
                       </div>
@@ -184,9 +184,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC11CallQualityO4goodyA2CmF"></a>
-                    <a name="//apple_ref/swift/Element/good" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC11CallQualityO4goodyA2CmF">good</a>
+                    <a name="/s:9TelnyxRTC6RegionO2euyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/eu" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC6RegionO2euyA2CmF">eu</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -194,14 +194,14 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>4.1 &lt;= MOS &lt;= 4.2</p>
+                        <p>Undocumented</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">good</span></code></pre>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">eu</span> <span class="o">=</span> <span class="s">"eu"</span></code></pre>
 
                         </div>
                       </div>
@@ -211,9 +211,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC11CallQualityO4fairyA2CmF"></a>
-                    <a name="//apple_ref/swift/Element/fair" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC11CallQualityO4fairyA2CmF">fair</a>
+                    <a name="/s:9TelnyxRTC6RegionO9usCentralyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/usCentral" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC6RegionO9usCentralyA2CmF">usCentral</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -221,14 +221,14 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>3.7 &lt;= MOS &lt;= 4.0</p>
+                        <p>Undocumented</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">fair</span></code></pre>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">usCentral</span> <span class="o">=</span> <span class="s">"us-central"</span></code></pre>
 
                         </div>
                       </div>
@@ -238,9 +238,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC11CallQualityO4pooryA2CmF"></a>
-                    <a name="//apple_ref/swift/Element/poor" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC11CallQualityO4pooryA2CmF">poor</a>
+                    <a name="/s:9TelnyxRTC6RegionO6usEastyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/usEast" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC6RegionO6usEastyA2CmF">usEast</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -248,14 +248,14 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>3.1 &lt;= MOS &lt;= 3.6</p>
+                        <p>Undocumented</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">poor</span></code></pre>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">usEast</span> <span class="o">=</span> <span class="s">"us-east"</span></code></pre>
 
                         </div>
                       </div>
@@ -265,9 +265,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC11CallQualityO3badyA2CmF"></a>
-                    <a name="//apple_ref/swift/Element/bad" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC11CallQualityO3badyA2CmF">bad</a>
+                    <a name="/s:9TelnyxRTC6RegionO6usWestyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/usWest" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC6RegionO6usWestyA2CmF">usWest</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -275,14 +275,14 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>MOS &lt;= 3.0</p>
+                        <p>Undocumented</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">bad</span></code></pre>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">usWest</span> <span class="o">=</span> <span class="s">"us-west"</span></code></pre>
 
                         </div>
                       </div>
@@ -292,9 +292,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC11CallQualityO7unknownyA2CmF"></a>
-                    <a name="//apple_ref/swift/Element/unknown" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC11CallQualityO7unknownyA2CmF">unknown</a>
+                    <a name="/s:9TelnyxRTC6RegionO9caCentralyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/caCentral" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC6RegionO9caCentralyA2CmF">caCentral</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -302,14 +302,41 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Unable to calculate quality</p>
+                        <p>Undocumented</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">unknown</span></code></pre>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">caCentral</span> <span class="o">=</span> <span class="s">"ca-central"</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC6RegionO4apacyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/apac" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC6RegionO4apacyA2CmF">apac</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">apac</span> <span class="o">=</span> <span class="s">"apac"</span></code></pre>
 
                         </div>
                       </div>

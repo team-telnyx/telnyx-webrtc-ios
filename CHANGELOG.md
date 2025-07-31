@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [2.1.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.1.0) (2025-07-31)
+
+### Features
+- SDK Region Selection
+
+### Enhancements
+- Improved reconnection logic for thread safety
+
 ## [2.0.2](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.0.2) (2025-05-26)
 
 ### Bug Fixes

@@ -235,6 +235,14 @@ public init()
 
 TxClient has to be instantiated.
 
+### `deinit`
+
+```swift
+deinit
+```
+
+Deinitializer to ensure proper cleanup of resources
+
 ### `connect(txConfig:serverConfiguration:)`
 
 ```swift
