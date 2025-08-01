@@ -16,7 +16,6 @@ class AIAssistantViewModel: ObservableObject {
     @Published var loadingMessage: String = ""
     @Published var sessionId: String?
     @Published var callState: CallState = .NEW
-    @Published var showTargetIdInput: Bool = false
     @Published var targetIdInput: String = ""
     @Published var showTranscriptDialog: Bool = false
     @Published var transcriptions: [TranscriptionItem] = []

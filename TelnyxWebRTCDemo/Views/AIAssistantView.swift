@@ -18,7 +18,7 @@ struct AIAssistantView: View {
                 // Header
                 VStack(spacing: 10) {
                     Image(systemName: "brain")
-                        .font(.system(size: 60))
+                        .font(.system(size: 30))
                         .foregroundColor(Color(hex: "#00E3AA"))
                     
                     Text("AI Assistant")
@@ -148,21 +148,48 @@ struct AIAssistantView: View {
                 
                 Spacer()
                 
+                // Target ID Input (when not connected)
+                if !viewModel.isConnected {
+                    VStack(spacing: 15) {
+                        Text("Assistant Target ID")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(Color(hex: "#1D1D1D"))
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            TextField("Enter Target ID", text: $viewModel.targetIdInput)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .font(.system(size: 16))
+                                .autocapitalization(.none)
+                                .disableAutocorrection(true)
+                            
+                            Text("Enter the Target ID for the AI Assistant you want to connect to.")
+                                .font(.system(size: 12, weight: .regular))
+                                .foregroundColor(Color(hex: "#525252"))
+                        }
+                    }
+                    .padding(.horizontal, 30)
+                }
+                
+                Spacer()
+                
                 // Action Buttons
                 VStack(spacing: 15) {
                     if !viewModel.isConnected {
                         Button(action: {
-                            viewModel.showTargetIdInput = true
+                            viewModel.connectToAssistant()
                         }) {
                             Text("Connect to Assistant")
                                 .font(.system(size: 16, weight: .bold))
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
-                                .background(Color(hex: "#00E3AA"))
+                                .background(
+                                    viewModel.targetIdInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 
+                                    Color.gray : Color(hex: "#00E3AA")
+                                )
                                 .cornerRadius(25)
                         }
-                        .disabled(viewModel.isLoading)
+                        .disabled(viewModel.isLoading || viewModel.targetIdInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     } else {
                         // Call Controls
                         if viewModel.callState == .NEW || viewModel.callState == .DONE(reason: nil) {
@@ -273,14 +300,14 @@ struct AIAssistantView: View {
             // This breaks the retain cycle before deinit
             viewModel.restoreHomeDelegate()
         }
-        .alert("Enter Assistant Target ID", isPresented: $viewModel.showTargetIdInput) {
-            TextField("Target ID", text: $viewModel.targetIdInput)
-            Button("Cancel", role: .cancel) { }
-            Button("Connect") {
-                viewModel.connectToAssistant()
+        .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+            Button("OK") {
+                viewModel.errorMessage = nil
             }
         } message: {
-            Text("Enter the Target ID for the AI Assistant you want to connect to.")
+            if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+            }
         }
         .sheet(isPresented: $viewModel.showTranscriptDialog) {
             TranscriptDialogView(viewModel: viewModel)
