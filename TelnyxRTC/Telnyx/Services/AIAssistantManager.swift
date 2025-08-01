@@ -11,17 +11,19 @@ import Foundation
 /// Represents a transcription item from AI assistant conversations
 public struct TranscriptionItem {
     public let id: String
-    public let timestamp: Date
+    public var timestamp: Date
     public let speaker: String
-    public let text: String
+    public var text: String
     public let confidence: Double?
+    public var isFinal: Bool
     
-    public init(id: String, timestamp: Date, speaker: String, text: String, confidence: Double? = nil) {
+    public init(id: String, timestamp: Date, speaker: String, text: String, confidence: Double? = nil, isFinal: Bool = true) {
         self.id = id
         self.timestamp = timestamp
         self.speaker = speaker
         self.text = text
         self.confidence = confidence
+        self.isFinal = isFinal
     }
 }
 
@@ -279,6 +281,12 @@ public class AIAssistantManager {
                     logger.i(message: "AIAssistantManager:: Processing transcription type message")
                     addTranscription(transcription)
                 }
+            case "response.text.delta":
+                logger.i(message: "AIAssistantManager:: Processing response.text.delta type message")
+                processResponseTextDelta(params)
+            case "conversation.item.created":
+                logger.i(message: "AIAssistantManager:: Processing conversation.item.created type message")
+                processConversationItemCreated(params)
             default:
                 logger.i(message: "AIAssistantManager:: Unknown ai_conversation type: \(type)")
             }
@@ -300,6 +308,117 @@ public class AIAssistantManager {
         if let messages = conversationData["messages"] as? [[String: Any]] {
             for messageData in messages {
                 if let transcription = parseTranscriptionData(messageData) {
+                    addTranscription(transcription)
+                }
+            }
+        }
+    }
+    
+    /// Process response text delta messages from AI assistant
+    /// - Parameter params: The params dictionary from the ai_conversation message
+    private func processResponseTextDelta(_ params: [String: Any]) {
+        guard let delta = params["delta"] as? String else {
+            logger.w(message: "AIAssistantManager:: No delta found in response.text.delta message")
+            return
+        }
+        
+        // Extract optional fields
+        let itemId = params["item_id"] as? String
+        let responseId = params["response_id"] as? String
+        let contentIndex = params["content_index"] as? Int ?? 0
+        let outputIndex = params["output_index"] as? Int ?? 0
+        
+        logger.i(message: "AIAssistantManager:: Processing delta text: '\(delta)' for item_id: \(itemId ?? "unknown")")
+        
+        // Create a transcription item from the delta
+        let transcription = TranscriptionItem(
+            id: itemId ?? UUID().uuidString,
+            timestamp: Date(),
+            speaker: "assistant", // This is from the AI assistant
+            text: delta,
+            confidence: 1.0, // High confidence for AI responses
+            isFinal: false // Delta messages are incremental, not final
+        )
+        
+        // Check if we already have a transcription with this ID to append to
+        if let itemId = itemId,
+           let existingIndex = transcriptions.firstIndex(where: { $0.id == itemId }) {
+            // Append delta to existing transcription
+            var existing = transcriptions[existingIndex]
+            existing.text += delta
+            existing.timestamp = Date() // Update timestamp
+            transcriptions[existingIndex] = existing
+            logger.i(message: "AIAssistantManager:: Appended delta to existing transcription: \(itemId)")
+        } else {
+            // Add as new transcription
+            addTranscription(transcription)
+        }
+    }
+    
+    /// Process conversation item created messages (user transcriptions)
+    /// - Parameter params: The params dictionary from the ai_conversation message
+    private func processConversationItemCreated(_ params: [String: Any]) {
+        guard let item = params["item"] as? [String: Any] else {
+            logger.w(message: "AIAssistantManager:: No item found in conversation.item.created message")
+            return
+        }
+        
+        // Extract item properties
+        let itemId = item["id"] as? String ?? UUID().uuidString
+        let role = item["role"] as? String ?? "unknown"
+        let status = item["status"] as? String
+        
+        // Only process user messages
+        guard role == "user" else {
+            logger.i(message: "AIAssistantManager:: Skipping non-user item: role=\(role)")
+            return
+        }
+        
+        // Check if this is a completed or in-progress transcription
+        let isCompleted = status == "completed"
+        let isInProgress = status == "in_progress"
+        
+        guard isCompleted || isInProgress else {
+            logger.i(message: "AIAssistantManager:: Skipping item with status: \(status ?? "nil")")
+            return
+        }
+        
+        // Extract content array
+        guard let contentArray = item["content"] as? [[String: Any]] else {
+            logger.w(message: "AIAssistantManager:: No content array found in conversation item")
+            return
+        }
+        
+        // Process each content item
+        for content in contentArray {
+            guard let contentType = content["type"] as? String,
+                  let transcript = content["transcript"] as? String else {
+                continue
+            }
+            
+            // Only process input_audio content with transcripts
+            if contentType == "input_audio" {
+                logger.i(message: "AIAssistantManager:: Processing user transcript: '\(transcript)' for item_id: \(itemId)")
+                
+                // Create a transcription item for the user's speech
+                let transcription = TranscriptionItem(
+                    id: itemId,
+                    timestamp: Date(),
+                    speaker: "user", // This is from the user
+                    text: transcript,
+                    confidence: nil, // No confidence provided for user transcripts
+                    isFinal: isCompleted // Final if status is completed, partial if in_progress
+                )
+                
+                // Check if we already have a transcription with this ID to update
+                if let existingIndex = transcriptions.firstIndex(where: { $0.id == itemId }) {
+                    // Update existing transcription
+                    transcriptions[existingIndex] = transcription
+                    logger.i(message: "AIAssistantManager:: Updated existing user transcription: \(itemId)")
+                    // Notify delegate of the update
+                    delegate?.onTranscriptionUpdated(transcriptions)
+                } else {
+                    // Add as new transcription
                     addTranscription(transcription)
                 }
             }
@@ -502,7 +621,8 @@ public class AIAssistantManager {
             timestamp: timestamp,
             speaker: speaker,
             text: text,
-            confidence: confidence
+            confidence: confidence,
+            isFinal: true // Regular transcriptions are considered final
         )
     }
     
