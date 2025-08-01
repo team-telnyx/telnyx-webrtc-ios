@@ -12,7 +12,6 @@ struct TranscriptDialogView: View {
     @ObservedObject var viewModel: AIAssistantViewModel
     @Environment(\.presentationMode) var presentationMode
     @State private var messageInput: String = ""
-    @State private var scrollProxy: ScrollViewReader?
     
     var body: some View {
         NavigationView {
@@ -69,17 +68,28 @@ struct TranscriptDialogView: View {
                                     TranscriptItemView(item: item)
                                         .id(item.id)
                                 }
+                                
+                                // Invisible view for scrolling to bottom
+                                HStack { }
+                                    .id("bottom")
                             }
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 20)
                     }
                     .onAppear {
-                        scrollProxy = proxy
-                        scrollToBottom()
+                        if !viewModel.transcriptions.isEmpty {
+                            withAnimation(.easeOut(duration: 0.3)) {
+                                proxy.scrollTo("bottom")
+                            }
+                        }
                     }
                     .onChange(of: viewModel.transcriptions.count) { _ in
-                        scrollToBottom()
+                        if !viewModel.transcriptions.isEmpty {
+                            withAnimation(.easeOut(duration: 0.3)) {
+                                proxy.scrollTo("bottom")
+                            }
+                        }
                     }
                 }
                 
@@ -122,19 +132,6 @@ struct TranscriptDialogView: View {
         
         viewModel.sendMessage(message)
         messageInput = ""
-        
-        // Scroll to bottom after sending
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            scrollToBottom()
-        }
-    }
-    
-    private func scrollToBottom() {
-        guard let proxy = scrollProxy, !viewModel.transcriptions.isEmpty else { return }
-        
-        withAnimation(.easeOut(duration: 0.3)) {
-            proxy.scrollTo(viewModel.transcriptions.last?.id, anchor: .bottom)
-        }
     }
 }
 

@@ -99,7 +99,7 @@ class AIAssistantViewModel: ObservableObject {
         loadingMessage = "Starting call..."
         
         // Call the assistant using a generic target
-        currentCall = client.newCall(callerName: "Anonymous User", 
+        currentCall = try? client.newCall(callerName: "Anonymous User", 
                                    callerNumber: "anonymous", 
                                    destinationNumber: "assistant", 
                                    callId: UUID())
@@ -135,6 +135,18 @@ class AIAssistantViewModel: ObservableObject {
 
 // MARK: - TxClientDelegate
 extension AIAssistantViewModel: TxClientDelegate {
+    func onPushDisabled(success: Bool, message: String) {
+        //
+    }
+    
+    func onRemoteCallEnded(callId: UUID, reason: TelnyxRTC.CallTerminationReason?) {
+        //
+    }
+    
+    func onPushCall(call: TelnyxRTC.Call) {
+        //
+    }
+    
     func onRemoteSessionReceived(sessionId: String) {
         DispatchQueue.main.async {
             self.sessionId = sessionId
