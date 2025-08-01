@@ -49,21 +49,30 @@ class AIAssistantViewModel: ObservableObject {
     }
     
     private func setupAIAssistantDelegate() {
+        print("AIAssistantViewModel setupAIAssistantDelegate called - hasSetupDelegates: \(hasSetupDelegates)")
+        
         // Only setup once to avoid multiple delegate assignments
-        guard !hasSetupDelegates else { return }
+        guard !hasSetupDelegates else { 
+            print("AIAssistantViewModel setupAIAssistantDelegate - delegates already set up, just reassigning AI Assistant delegate")
+            // Re-assign AI Assistant delegate in case it was cleared during disconnect
+            appDelegate.telnyxClient?.aiAssistantManager.delegate = self
+            return 
+        }
         
         // Store the original VoIP delegate before overriding
         originalVoipDelegate = appDelegate.voipDelegate
+        print("AIAssistantViewModel setupAIAssistantDelegate - storing original delegate: \(String(describing: originalVoipDelegate))")
         
         // Setup AI Assistant Manager delegate on the existing client
         appDelegate.telnyxClient?.aiAssistantManager.delegate = self
         appDelegate.voipDelegate = self
         
         hasSetupDelegates = true
+        print("AIAssistantViewModel setupAIAssistantDelegate completed - delegates set up successfully")
     }
     
     private func cleanupAIAssistantState() {
-        print("AIAssistantViewModel cleanupAIAssistantState called")
+        print("AIAssistantViewModel cleanupAIAssistantState called - full cleanup")
         
         // Cancel all Combine subscriptions first
         cancellables.removeAll()
@@ -74,8 +83,10 @@ class AIAssistantViewModel: ObservableObject {
         // Clear VoIP delegate if it's pointing to self
         if appDelegate.voipDelegate === self {
             if let originalDelegate = originalVoipDelegate {
+                print("AIAssistantViewModel cleanupAIAssistantState - restoring original delegate: \(originalDelegate)")
                 appDelegate.voipDelegate = originalDelegate
             } else {
+                print("AIAssistantViewModel cleanupAIAssistantState - clearing self as delegate")
                 appDelegate.voipDelegate = nil
             }
         }
@@ -94,6 +105,8 @@ class AIAssistantViewModel: ObservableObject {
         widgetSettings = nil
         targetIdInput = ""
         errorMessage = nil
+        
+        print("AIAssistantViewModel cleanupAIAssistantState completed - full cleanup done")
     }
     
     private func restoreOriginalVoipDelegate() {
@@ -122,19 +135,27 @@ class AIAssistantViewModel: ObservableObject {
             return
         }
         
-        // Set up delegates only when actually connecting
+        print("AIAssistantViewModel connectToAssistant called")
+        
+        // Set up delegates - this will work for both first connection and reconnection
         setupAIAssistantDelegate()
+        
+        // Clear any previous error messages
+        errorMessage = nil
         
         isLoading = true
         loadingMessage = "Connecting to AI Assistant..."
         
+        // Use the new connectWithAIAssistant method that properly establishes connection
         appDelegate.telnyxClient?.anonymousLogin(
             targetId: targetIdInput.trimmingCharacters(in: .whitespacesAndNewlines),
-            targetType: "ai_assistant"
+            targetType: "ai_assistant",
+            targetVersionId: nil
         )
     }
     
     func disconnect() {
+        print("AIAssistantViewModel disconnect called")
         isLoading = true
         loadingMessage = "Disconnecting from AI Assistant..."
         
@@ -143,8 +164,32 @@ class AIAssistantViewModel: ObservableObject {
             call.hangup()
         }
         
-        // Don't disconnect the shared client, just clean up AI Assistant state
-        cleanupAIAssistantState()
+        // Disconnect from the client completely to ensure clean state
+        appDelegate.telnyxClient?.disconnect()
+        
+        // Clean up AI Assistant state but keep delegates for potential reconnection
+        cleanupAIAssistantStateForDisconnect()
+    }
+    
+    private func cleanupAIAssistantStateForDisconnect() {
+        print("AIAssistantViewModel cleanupAIAssistantStateForDisconnect called")
+        
+        // Clear current call and connection state
+        currentCall = nil
+        
+        // Clean up published properties synchronously
+        isConnected = false
+        isLoading = false
+        sessionId = nil
+        callState = .NEW
+        transcriptions.removeAll()
+        widgetSettings = nil
+        errorMessage = nil
+        
+        // DON'T clear the aiAssistantManager delegate - keep it active for reconnection events
+        // This is the key difference from full cleanup
+        
+        print("AIAssistantViewModel cleanupAIAssistantStateForDisconnect completed - delegates kept active for reconnection")
     }
     
     func startAssistantCall() {
@@ -239,9 +284,11 @@ extension AIAssistantViewModel: AIAssistantManagerDelegate {
     }
     
     func onAIAssistantConnectionStateChanged(isConnected: Bool, targetId: String?) {
+        print("AIAssistantViewModel onAIAssistantConnectionStateChanged - isConnected: \(isConnected), targetId: \(String(describing: targetId))")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.isConnected = isConnected
+            self.isLoading = false
             if !isConnected {
                 self.sessionId = nil
                 self.callState = .NEW
@@ -285,6 +332,7 @@ extension AIAssistantViewModel: VoIPDelegate {
     }
     
     func onSocketConnected() {
+        print("AIAssistantViewModel onSocketConnected called")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.isConnected = true
@@ -294,6 +342,7 @@ extension AIAssistantViewModel: VoIPDelegate {
     }
     
     func onSocketDisconnected() {
+        print("AIAssistantViewModel onSocketDisconnected called")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.isConnected = false
@@ -305,6 +354,7 @@ extension AIAssistantViewModel: VoIPDelegate {
     }
     
     func onClientError(error: Error) {
+        print("AIAssistantViewModel onClientError called: \(error)")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.isLoading = false
@@ -313,6 +363,7 @@ extension AIAssistantViewModel: VoIPDelegate {
     }
     
     func onClientReady() {
+        print("AIAssistantViewModel onClientReady called")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.isConnected = true
