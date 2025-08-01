@@ -47,6 +47,7 @@ class AIAssistantViewModel: ObservableObject {
     private func setupAIAssistantDelegate() {
         // Setup AI Assistant Manager delegate on the existing client
         appDelegate.telnyxClient?.aiAssistantManager.delegate = self
+        appDelegate.voipDelegate = self
     }
     
     private func cleanupAIAssistantState() {
@@ -147,19 +148,54 @@ class AIAssistantViewModel: ObservableObject {
     }
 }
 
-// MARK: - TxClientDelegate
-extension AIAssistantViewModel: TxClientDelegate {
-    func onPushDisabled(success: Bool, message: String) {
-        //
+
+// MARK: - AIAssistantManagerDelegate
+extension AIAssistantViewModel: AIAssistantManagerDelegate {
+    func onAIConversationMessage(_ message: [String : Any]) {
+        // Handle AI conversation messages
+        print("AI Conversation Message: \(message)")
     }
     
-    func onRemoteCallEnded(callId: UUID, reason: TelnyxRTC.CallTerminationReason?) {
+    func onRingingAckReceived(callId: String) {
+        // Handle ringing acknowledgment
+        print("Ringing Ack Received for call: \(callId)")
+    }
+    
+    func onAIAssistantConnectionStateChanged(isConnected: Bool, targetId: String?) {
+        DispatchQueue.main.async {
+            self.isConnected = isConnected
+            if !isConnected {
+                self.sessionId = nil
+                self.callState = .NEW
+                self.currentCall = nil
+            }
+        }
+    }
+    
+    func onTranscriptionUpdated(_ transcriptions: [TranscriptionItem]) {
+        DispatchQueue.main.async {
+            self.transcriptions = transcriptions
+        }
+    }
+    
+    func onWidgetSettingsUpdated(_ settings: WidgetSettings) {
+        DispatchQueue.main.async {
+            self.widgetSettings = settings
+        }
+    }
+}
+
+// MARK: - VoIPDelegate
+extension AIAssistantViewModel: VoIPDelegate {
+    
+    func onPushDisabled(success: Bool, message: String) {
         //
     }
     
     func onPushCall(call: TelnyxRTC.Call) {
         //
     }
+    
     
     func onRemoteSessionReceived(sessionId: String) {
         DispatchQueue.main.async {
@@ -229,79 +265,8 @@ extension AIAssistantViewModel: TxClientDelegate {
     func onCallQualityMetricsUpdated(metrics: CallQualityMetrics, callId: UUID) {
         // Handle call quality metrics if needed
     }
-}
+    func onRemoteCallEnded(callId: UUID, reason: TelnyxRTC.CallTerminationReason?) {
 
-// MARK: - AIAssistantManagerDelegate
-extension AIAssistantViewModel: AIAssistantManagerDelegate {
-    func onAIConversationMessage(_ message: [String : Any]) {
-        // Handle AI conversation messages
-        print("AI Conversation Message: \(message)")
-    }
-    
-    func onRingingAckReceived(callId: String) {
-        // Handle ringing acknowledgment
-        print("Ringing Ack Received for call: \(callId)")
-    }
-    
-    func onAIAssistantConnectionStateChanged(isConnected: Bool, targetId: String?) {
-        DispatchQueue.main.async {
-            self.isConnected = isConnected
-            if !isConnected {
-                self.sessionId = nil
-                self.callState = .NEW
-                self.currentCall = nil
-            }
-        }
-    }
-    
-    func onTranscriptionUpdated(_ transcriptions: [TranscriptionItem]) {
-        DispatchQueue.main.async {
-            self.transcriptions = transcriptions
-        }
-    }
-    
-    func onWidgetSettingsUpdated(_ settings: WidgetSettings) {
-        DispatchQueue.main.async {
-            self.widgetSettings = settings
-        }
-    }
-}
-
-// MARK: - VoIPDelegate
-extension AIAssistantViewModel: VoIPDelegate {
-    func onSocketConnected() {
-        // Handle socket connection if needed for AI Assistant
-    }
-    
-    func onSocketDisconnected() {
-        // Handle socket disconnection if needed for AI Assistant
-    }
-    
-    func onClientError(error: Error) {
-        DispatchQueue.main.async {
-            self.isLoading = false
-            self.errorMessage = error.localizedDescription
-        }
-    }
-    
-    func onClientReady() {
-        // Handle client ready if needed for AI Assistant
-    }
-    
-    func onSessionUpdated(sessionId: String) {
-        // Handle session update if needed for AI Assistant
-    }
-    
-    func onCallStateUpdated(callState: CallState, callId: UUID) {
-        // This is handled by the TxClientDelegate extension
-    }
-    
-    func onIncomingCall(call: Call) {
-        // Handle incoming call if needed for AI Assistant
-    }
-    
-    func onRemoteCallEnded(callId: UUID, reason: CallTerminationReason?) {
-        // Handle remote call end if needed for AI Assistant
     }
     
     func executeCall(callUUID: UUID, completionHandler: @escaping (Call?) -> Void) {
