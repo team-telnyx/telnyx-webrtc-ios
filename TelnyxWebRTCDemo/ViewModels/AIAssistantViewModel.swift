@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 import TelnyxRTC
 import Combine
 
@@ -22,9 +23,11 @@ class AIAssistantViewModel: ObservableObject {
     @Published var widgetSettings: WidgetSettings?
     @Published var errorMessage: String?
     
-    private var txClient: TxClient?
     private var currentCall: Call?
     private var cancellables = Set<AnyCancellable>()
+    private var appDelegate: AppDelegate {
+        return UIApplication.shared.delegate as! AppDelegate
+    }
     
     var connectionStatusText: String {
         if isLoading {
@@ -34,19 +37,33 @@ class AIAssistantViewModel: ObservableObject {
     }
     
     init() {
-        setupTxClient()
+        setupAIAssistantDelegate()
     }
     
     deinit {
-        disconnect()
+        cleanupAIAssistantState()
     }
     
-    private func setupTxClient() {
-        txClient = TxClient()
-        txClient?.delegate = self
+    private func setupAIAssistantDelegate() {
+        // Setup AI Assistant Manager delegate on the existing client
+        appDelegate.telnyxClient?.aiAssistantManager.delegate = self
+    }
+    
+    private func cleanupAIAssistantState() {
+        // Only clean up AI Assistant specific state, don't disconnect the shared client
+        DispatchQueue.main.async {
+            self.isConnected = false
+            self.isLoading = false
+            self.sessionId = nil
+            self.callState = .NEW
+            self.currentCall = nil
+            self.transcriptions.removeAll()
+            self.widgetSettings = nil
+            self.targetIdInput = ""
+        }
         
-        // Setup AI Assistant Manager delegate
-        txClient?.aiAssistantManager.delegate = self
+        // Remove AI Assistant delegate to prevent callbacks
+        appDelegate.telnyxClient?.aiAssistantManager.delegate = nil
     }
     
     func connectToAssistant() {
@@ -58,7 +75,7 @@ class AIAssistantViewModel: ObservableObject {
         isLoading = true
         loadingMessage = "Connecting to AI Assistant..."
         
-        txClient?.anonymousLogin(
+        appDelegate.telnyxClient?.anonymousLogin(
             targetId: targetIdInput.trimmingCharacters(in: .whitespacesAndNewlines),
             targetType: "ai_assistant"
         )
@@ -66,31 +83,19 @@ class AIAssistantViewModel: ObservableObject {
     
     func disconnect() {
         isLoading = true
-        loadingMessage = "Disconnecting..."
+        loadingMessage = "Disconnecting from AI Assistant..."
         
         // End any active calls first
         if let call = currentCall {
             call.hangup()
         }
         
-        // Disconnect the client
-        txClient?.disconnect()
-        
-        // Reset state
-        DispatchQueue.main.async {
-            self.isConnected = false
-            self.isLoading = false
-            self.sessionId = nil
-            self.callState = .NEW
-            self.currentCall = nil
-            self.transcriptions.removeAll()
-            self.widgetSettings = nil
-            self.targetIdInput = ""
-        }
+        // Don't disconnect the shared client, just clean up AI Assistant state
+        cleanupAIAssistantState()
     }
     
     func startAssistantCall() {
-        guard let client = txClient, isConnected else {
+        guard isConnected else {
             errorMessage = "Not connected to AI Assistant"
             return
         }
@@ -98,11 +103,14 @@ class AIAssistantViewModel: ObservableObject {
         isLoading = true
         loadingMessage = "Starting call..."
         
-        // Call the assistant using a generic target
-        currentCall = try? client.newCall(callerName: "Anonymous User", 
-                                   callerNumber: "anonymous", 
-                                   destinationNumber: "assistant", 
-                                   callId: UUID())
+        // Generate a UUID for the call and use CallKit like regular calls
+        let callUUID = UUID()
+        
+        // Use AppDelegate's CallKit integration to start the call properly
+        appDelegate.executeStartCallAction(uuid: callUUID, handle: "AI Assistant")
+        
+        // Set up the VoIP delegate to handle the call execution
+        appDelegate.voipDelegate = self
     }
     
     func endCall() {
@@ -111,7 +119,13 @@ class AIAssistantViewModel: ObservableObject {
         isLoading = true
         loadingMessage = "Ending call..."
         
-        call.hangup()
+        // Use CallKit to end the call properly
+        if let callId = call.callInfo?.callId {
+            appDelegate.executeEndCallAction(uuid: callId)
+        } else {
+            // Fallback to direct hangup if no CallKit UUID
+            call.hangup()
+        }
     }
     
     func sendMessage(_ message: String) {
@@ -249,6 +263,75 @@ extension AIAssistantViewModel: AIAssistantManagerDelegate {
     func onWidgetSettingsUpdated(_ settings: WidgetSettings) {
         DispatchQueue.main.async {
             self.widgetSettings = settings
+        }
+    }
+}
+
+// MARK: - VoIPDelegate
+extension AIAssistantViewModel: VoIPDelegate {
+    func onSocketConnected() {
+        // Handle socket connection if needed for AI Assistant
+    }
+    
+    func onSocketDisconnected() {
+        // Handle socket disconnection if needed for AI Assistant
+    }
+    
+    func onClientError(error: Error) {
+        DispatchQueue.main.async {
+            self.isLoading = false
+            self.errorMessage = error.localizedDescription
+        }
+    }
+    
+    func onClientReady() {
+        // Handle client ready if needed for AI Assistant
+    }
+    
+    func onSessionUpdated(sessionId: String) {
+        // Handle session update if needed for AI Assistant
+    }
+    
+    func onCallStateUpdated(callState: CallState, callId: UUID) {
+        // This is handled by the TxClientDelegate extension
+    }
+    
+    func onIncomingCall(call: Call) {
+        // Handle incoming call if needed for AI Assistant
+    }
+    
+    func onRemoteCallEnded(callId: UUID, reason: CallTerminationReason?) {
+        // Handle remote call end if needed for AI Assistant
+    }
+    
+    func executeCall(callUUID: UUID, completionHandler: @escaping (Call?) -> Void) {
+        do {
+            // Create the assistant call using the shared client
+            let call = try appDelegate.telnyxClient?.newCall(
+                callerName: "Anonymous User",
+                callerNumber: "anonymous",
+                destinationNumber: "assistant",
+                callId: callUUID
+            )
+            
+            DispatchQueue.main.async {
+                self.currentCall = call
+                if call != nil {
+                    print("AIAssistantViewModel:: executeCall() successful")
+                } else {
+                    print("AIAssistantViewModel:: executeCall() failed")
+                    self.errorMessage = "Failed to start assistant call"
+                }
+            }
+            
+            completionHandler(call)
+        } catch let error {
+            print("AIAssistantViewModel:: executeCall Error \(error)")
+            DispatchQueue.main.async {
+                self.errorMessage = error.localizedDescription
+                self.isLoading = false
+            }
+            completionHandler(nil)
         }
     }
 }
