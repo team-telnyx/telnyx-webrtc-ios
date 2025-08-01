@@ -256,6 +256,7 @@ struct AIAssistantView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: {
+                        viewModel.restoreHomeDelegate()
                         presentationMode.wrappedValue.dismiss()
                     }) {
                         HStack {
@@ -266,6 +267,11 @@ struct AIAssistantView: View {
                     }
                 }
             }
+        }
+        .onDisappear {
+            // Ensure delegate is restored when view disappears
+            // This breaks the retain cycle before deinit
+            viewModel.restoreHomeDelegate()
         }
         .alert("Enter Assistant Target ID", isPresented: $viewModel.showTargetIdInput) {
             TextField("Target ID", text: $viewModel.targetIdInput)
