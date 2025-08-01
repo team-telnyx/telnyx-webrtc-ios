@@ -33,12 +33,61 @@ public struct WidgetSettings {
     public let showTranscript: Bool
     public let customStyles: [String: Any]?
     
-    public init(theme: String? = nil, language: String? = nil, autoStart: Bool = false, showTranscript: Bool = true, customStyles: [String: Any]? = nil) {
+    // New fields based on the JSON message
+    public let agentThinkingText: String
+    public let audioVisualizerConfig: AudioVisualizerConfig?
+    public let defaultState: String
+    public let giveFeedbackUrl: String?
+    public let logoIconUrl: String?
+    public let position: String
+    public let reportIssueUrl: String?
+    public let speakToInterruptText: String
+    public let startCallText: String
+    public let viewHistoryUrl: String?
+    
+    public init(
+        theme: String? = "dark",
+        language: String? = nil,
+        autoStart: Bool = false,
+        showTranscript: Bool = true,
+        customStyles: [String: Any]? = nil,
+        agentThinkingText: String = "",
+        audioVisualizerConfig: AudioVisualizerConfig? = nil,
+        defaultState: String = "collapsed",
+        giveFeedbackUrl: String? = nil,
+        logoIconUrl: String? = nil,
+        position: String = "fixed",
+        reportIssueUrl: String? = nil,
+        speakToInterruptText: String = "",
+        startCallText: String = "",
+        viewHistoryUrl: String? = nil
+    ) {
         self.theme = theme
         self.language = language
         self.autoStart = autoStart
         self.showTranscript = showTranscript
         self.customStyles = customStyles
+        self.agentThinkingText = agentThinkingText
+        self.audioVisualizerConfig = audioVisualizerConfig
+        self.defaultState = defaultState
+        self.giveFeedbackUrl = giveFeedbackUrl
+        self.logoIconUrl = logoIconUrl
+        self.position = position
+        self.reportIssueUrl = reportIssueUrl
+        self.speakToInterruptText = speakToInterruptText
+        self.startCallText = startCallText
+        self.viewHistoryUrl = viewHistoryUrl
+    }
+}
+
+/// Represents audio visualizer configuration
+public struct AudioVisualizerConfig {
+    public let color: String
+    public let preset: String
+    
+    public init(color: String = "verdant", preset: String = "roundBars") {
+        self.color = color
+        self.preset = preset
     }
 }
 
@@ -139,6 +188,10 @@ public class AIAssistantManager {
         // Check if this is an AI conversation message
         if isAIConversationMessage(message) {
             logger.i(message: "AIAssistantManager:: Processing AI conversation message")
+            
+            // Process the content within the ai_conversation message
+            processAIConversationContent(message)
+            
             delegate?.onAIConversationMessage(message)
             return true
         }
@@ -165,6 +218,92 @@ public class AIAssistantManager {
         }
         
         return false
+    }
+    
+    /// Process AI conversation content to extract transcriptions and widget settings
+    /// - Parameter message: The AI conversation message
+    private func processAIConversationContent(_ message: [String: Any]) {
+        guard let params = message["params"] as? [String: Any] else {
+            return
+        }
+        
+        // Check for widget settings within the ai_conversation message
+        if let widgetData = params["widget_settings"] as? [String: Any] {
+            logger.i(message: "AIAssistantManager:: Found widget settings in ai_conversation message")
+            if let settings = parseWidgetSettingsData(widgetData) {
+                updateWidgetSettings(settings)
+            }
+        }
+        
+        // Check for transcription data within the ai_conversation message
+        if let transcriptionData = params["transcription"] as? [String: Any] {
+            logger.i(message: "AIAssistantManager:: Found transcription in ai_conversation message")
+            if let transcription = parseTranscriptionData(transcriptionData) {
+                addTranscription(transcription)
+            }
+        }
+        
+        // Check for transcriptions array within the ai_conversation message
+        if let transcriptionsArray = params["transcriptions"] as? [[String: Any]] {
+            logger.i(message: "AIAssistantManager:: Found transcriptions array in ai_conversation message")
+            for transcriptionData in transcriptionsArray {
+                if let transcription = parseTranscriptionData(transcriptionData) {
+                    addTranscription(transcription)
+                }
+            }
+        }
+        
+        // Check for transcript data (alternative naming)
+        if let transcriptData = params["transcript"] as? [String: Any] {
+            logger.i(message: "AIAssistantManager:: Found transcript in ai_conversation message")
+            if let transcription = parseTranscriptionData(transcriptData) {
+                addTranscription(transcription)
+            }
+        }
+        
+        // Check for conversation messages/events
+        if let conversationData = params["conversation"] as? [String: Any] {
+            processConversationData(conversationData)
+        }
+        
+        // Check for type-specific processing
+        if let type = params["type"] as? String {
+            switch type {
+            case "widget_settings":
+                if let settings = extractWidgetSettings(from: message) {
+                    logger.i(message: "AIAssistantManager:: Processing widget_settings type message")
+                    updateWidgetSettings(settings)
+                }
+            case "transcription", "transcript":
+                if let transcription = extractTranscription(from: message) {
+                    logger.i(message: "AIAssistantManager:: Processing transcription type message")
+                    addTranscription(transcription)
+                }
+            default:
+                logger.i(message: "AIAssistantManager:: Unknown ai_conversation type: \(type)")
+            }
+        }
+    }
+    
+    /// Process conversation data for additional content
+    /// - Parameter conversationData: The conversation data dictionary
+    private func processConversationData(_ conversationData: [String: Any]) {
+        // Process any nested conversation content
+        if let events = conversationData["events"] as? [[String: Any]] {
+            for event in events {
+                if let transcription = parseTranscriptionData(event) {
+                    addTranscription(transcription)
+                }
+            }
+        }
+        
+        if let messages = conversationData["messages"] as? [[String: Any]] {
+            for messageData in messages {
+                if let transcription = parseTranscriptionData(messageData) {
+                    addTranscription(transcription)
+                }
+            }
+        }
     }
     
     /// Get current AI assistant connection information
@@ -368,21 +507,51 @@ public class AIAssistantManager {
     }
     
     /// Parse widget settings data into WidgetSettings
-    /// - Parameter data: The widget settings data dictionary
+    /// - Parameter data: The widget settings data dictionary  
     /// - Returns: WidgetSettings if parsing successful, nil otherwise
     private func parseWidgetSettingsData(_ data: [String: Any]) -> WidgetSettings? {
-        let theme = data["theme"] as? String
+        // Basic fields with fallbacks
+        let theme = data["theme"] as? String ?? "dark"
         let language = data["language"] as? String ?? data["lang"] as? String
         let autoStart = data["auto_start"] as? Bool ?? data["autoStart"] as? Bool ?? false
         let showTranscript = data["show_transcript"] as? Bool ?? data["showTranscript"] as? Bool ?? true
         let customStyles = data["custom_styles"] as? [String: Any] ?? data["styles"] as? [String: Any]
+        
+        // New fields with default values
+        let agentThinkingText = data["agent_thinking_text"] as? String ?? ""
+        let defaultState = data["default_state"] as? String ?? "collapsed"
+        let giveFeedbackUrl = data["give_feedback_url"] as? String
+        let logoIconUrl = data["logo_icon_url"] as? String
+        let position = data["position"] as? String ?? "fixed"
+        let reportIssueUrl = data["report_issue_url"] as? String
+        let speakToInterruptText = data["speak_to_interrupt_text"] as? String ?? ""
+        let startCallText = data["start_call_text"] as? String ?? ""
+        let viewHistoryUrl = data["view_history_url"] as? String
+        
+        // Parse audio visualizer config
+        var audioVisualizerConfig: AudioVisualizerConfig? = nil
+        if let visualizerData = data["audio_visualizer_config"] as? [String: Any] {
+            let color = visualizerData["color"] as? String ?? "verdant"
+            let preset = visualizerData["preset"] as? String ?? "roundBars"
+            audioVisualizerConfig = AudioVisualizerConfig(color: color, preset: preset)
+        }
         
         return WidgetSettings(
             theme: theme,
             language: language,
             autoStart: autoStart,
             showTranscript: showTranscript,
-            customStyles: customStyles
+            customStyles: customStyles,
+            agentThinkingText: agentThinkingText,
+            audioVisualizerConfig: audioVisualizerConfig,
+            defaultState: defaultState,
+            giveFeedbackUrl: giveFeedbackUrl,
+            logoIconUrl: logoIconUrl,
+            position: position,
+            reportIssueUrl: reportIssueUrl,
+            speakToInterruptText: speakToInterruptText,
+            startCallText: startCallText,
+            viewHistoryUrl: viewHistoryUrl
         )
     }
 }
