@@ -4,15 +4,14 @@ import * as apn from 'apn';
 import * as readlineSync from 'readline-sync';
 import * as fs from 'fs';
 import * as path from 'path';
+import { randomUUID } from 'crypto';
 
 interface PushConfig {
   deviceToken: string;
   bundleId: string;
   certPath: string;
   keyPath: string;
-  passphrase?: string;
   environment: 'production' | 'sandbox';
-  customPayload?: any;
 }
 
 interface SavedConfig {
@@ -98,7 +97,6 @@ class VoIPPushTester {
     let bundleId: string;
     let certPath: string;
     let keyPath: string;
-    let passphrase: string | undefined;
     let environment: 'production' | 'sandbox';
 
     if (savedConfig) {
@@ -111,7 +109,6 @@ class VoIPPushTester {
         certPath = savedConfig.certPath || this.promptForCertPath();
         keyPath = savedConfig.keyPath || this.promptForKeyPath();
         environment = savedConfig.environment || this.promptForEnvironment();
-        passphrase = this.promptForPassphrase();
       } else if (choice === 'update-selective') {
         // Allow selective updates
         console.log('\n📝 Update Configuration');
@@ -122,7 +119,6 @@ class VoIPPushTester {
         certPath = this.promptForCertPath(savedConfig.certPath);
         keyPath = this.promptForKeyPath(savedConfig.keyPath);
         environment = this.promptForEnvironment(savedConfig.environment);
-        passphrase = this.promptForPassphrase();
       } else {
         // Start fresh
         console.log('\n🆕 New Configuration');
@@ -132,7 +128,6 @@ class VoIPPushTester {
         certPath = this.promptForCertPath();
         keyPath = this.promptForKeyPath();
         environment = this.promptForEnvironment();
-        passphrase = this.promptForPassphrase();
       }
     } else {
       // No saved config, start fresh
@@ -143,29 +138,6 @@ class VoIPPushTester {
       certPath = this.promptForCertPath();
       keyPath = this.promptForKeyPath();
       environment = this.promptForEnvironment();
-      passphrase = this.promptForPassphrase();
-    }
-
-    // Ask for custom payload
-    const useCustomPayload = readlineSync.keyInYNStrict('Do you want to add custom payload data? ');
-    let customPayload = {};
-    
-    if (useCustomPayload) {
-      console.log('\nEnter custom payload (JSON format). Press Enter on empty line to finish:');
-      let jsonInput = '';
-      let line = '';
-      while ((line = readlineSync.question('> ')) !== '') {
-        jsonInput += line + '\n';
-      }
-      
-      if (jsonInput.trim()) {
-        try {
-          customPayload = JSON.parse(jsonInput);
-        } catch (error) {
-          console.error('❌ Invalid JSON format for custom payload. Using empty payload.');
-          customPayload = {};
-        }
-      }
     }
 
     const finalConfig = {
@@ -173,9 +145,7 @@ class VoIPPushTester {
       bundleId,
       certPath,
       keyPath,
-      passphrase,
-      environment,
-      customPayload
+      environment
     };
 
     // Save configuration for next time
@@ -285,14 +255,6 @@ class VoIPPushTester {
     return envIndex === 0 ? 'sandbox' : envIndex === 1 ? 'production' : 'sandbox';
   }
 
-  private promptForPassphrase(): string | undefined {
-    const needsPassphrase = readlineSync.keyInYNStrict('Does your private key require a passphrase? ');
-    if (needsPassphrase) {
-      return readlineSync.question('Enter the passphrase for your private key: ', { hideEchoBack: true });
-    }
-    return undefined;
-  }
-
   private validateDeviceToken(token: string): boolean {
     return /^[a-fA-F0-9]{64}$/.test(token);
   }
@@ -317,16 +279,10 @@ class VoIPPushTester {
         production: this.config.environment === 'production'
       };
 
-      // Add passphrase if provided
-      if (this.config.passphrase) {
-        options.passphrase = this.config.passphrase;
-      }
-
       return new apn.Provider(options);
     } catch (error) {
       console.error('❌ Failed to create APN provider:', error);
-      console.error('   Make sure your certificate and key files are valid PEM format');
-      console.error('   and that the passphrase (if required) is correct.');
+      console.error('   Make sure your certificate and key files are valid PEM format.');
       process.exit(1);
     }
   }
@@ -339,19 +295,17 @@ class VoIPPushTester {
     notification.priority = 10; // High priority for VoIP
     notification.expiry = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
 
-    // Default VoIP payload
-    const defaultPayload = {
-      callerName: 'Test Caller',
-      callId: 'test-call-' + Date.now(),
-      handle: '+1234567890',
-      hasVideo: false,
-      callType: 'incoming'
+    // Default VoIP payload structure expected by Telnyx iOS SDK with proper UUIDs
+    const metadata = {
+      voice_sdk_id: randomUUID(),
+      call_id: randomUUID(),
+      caller_name: 'Test Caller',
+      caller_number: '+1234567890'
     };
 
-    // Merge with custom payload if provided
+    // VoIP payload structure expected by TxClient.processVoIPNotification
     notification.payload = {
-      ...defaultPayload,
-      ...this.config.customPayload
+      metadata: metadata
     };
 
     return notification;
@@ -408,7 +362,6 @@ class VoIPPushTester {
     console.log(`Certificate: ${path.basename(this.config.certPath)}`);
     console.log(`Private Key: ${path.basename(this.config.keyPath)}`);
     console.log(`Environment: ${this.config.environment}`);
-    console.log(`Custom Payload: ${Object.keys(this.config.customPayload || {}).length > 0 ? 'Yes' : 'No'}`);
     console.log('');
   }
 }

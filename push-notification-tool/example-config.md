@@ -9,45 +9,40 @@ This file provides examples of how to use the VoIP Push Notification Tester with
 - Bundle ID: `com.telnyx.demo`
 - Certificate Path: `/path/to/your/cert.pem`
 - Private Key Path: `/path/to/your/key.pem`
-- Passphrase: (none if key is not encrypted)
 - Environment: `sandbox`
-- Custom Payload: No
 
 **Expected Result:**
 ```json
 {
-  "callerName": "Test Caller",
-  "callId": "test-call-1700000000000",
-  "handle": "+1234567890",
-  "hasVideo": false,
-  "callType": "incoming"
+  "metadata": {
+    "voice_sdk_id": "12345678-abcd-1234-abcd-1234567890ab",
+    "call_id": "87654321-dcba-4321-dcba-0987654321fe", 
+    "caller_name": "Test Caller",
+    "caller_number": "+1234567890"
+  }
 }
 ```
 
 ## Example 2: Custom Caller Information
 
-**Custom Payload:**
+**Custom Payload (added to metadata):**
 ```json
 {
-  "callerName": "John Smith",
-  "handle": "+15551234567",
-  "hasVideo": true,
-  "metadata": {
-    "department": "Sales",
-    "priority": "high"
-  }
+  "caller_name": "John Smith",
+  "caller_number": "+15551234567",
+  "department": "Sales",
+  "priority": "high"
 }
 ```
 
 **Final Payload:**
 ```json
 {
-  "callerName": "John Smith",
-  "callId": "test-call-1700000000000",
-  "handle": "+15551234567",
-  "hasVideo": true,
-  "callType": "incoming",
   "metadata": {
+    "voice_sdk_id": "test-voice-sdk-1700000000000",
+    "call_id": "test-call-1700000000000",
+    "caller_name": "John Smith",
+    "caller_number": "+15551234567",
     "department": "Sales",
     "priority": "high"
   }
@@ -56,33 +51,31 @@ This file provides examples of how to use the VoIP Push Notification Tester with
 
 ## Example 3: Conference Call Simulation
 
-**Custom Payload:**
+**Custom Payload (added to metadata):**
 ```json
 {
-  "callerName": "Conference Room A",
-  "handle": "conference-room-a",
-  "hasVideo": true,
-  "callType": "conference",
+  "caller_name": "Conference Room A",
+  "caller_number": "conference-room-a",
+  "call_type": "conference",
   "participants": [
     {"name": "Alice", "number": "+15551111111"},
     {"name": "Bob", "number": "+15552222222"}
   ],
-  "meetingId": "meeting-123456"
+  "meeting_id": "meeting-123456"
 }
 ```
 
 ## Example 4: Support Call with Priority
 
-**Custom Payload:**
+**Custom Payload (added to metadata):**
 ```json
 {
-  "callerName": "Telnyx Support",
-  "handle": "+18005551234",
-  "hasVideo": false,
-  "callType": "support",
+  "caller_name": "Telnyx Support",
+  "caller_number": "+18005551234",
+  "call_type": "support",
   "priority": "urgent",
-  "ticketId": "SUP-789123",
-  "estimatedWaitTime": 120
+  "ticket_id": "SUP-789123",
+  "estimated_wait_time": 120
 }
 ```
 

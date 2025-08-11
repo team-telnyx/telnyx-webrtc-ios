@@ -73,41 +73,32 @@ The tool will prompt you for all required information:
 - Bundle ID
 - Path to cert.pem file
 - Path to key.pem file
-- Passphrase (if private key is encrypted)
 - Environment (sandbox/production)
-- Custom payload (optional)
 
-### Custom Payload Example
-When prompted for custom payload, you can add additional data:
+## Default VoIP Payload Structure
+
+The tool automatically generates a VoIP notification with the payload structure expected by the Telnyx iOS SDK:
 
 ```json
 {
-  "callerName": "John Doe",
-  "callId": "unique-call-123",
-  "handle": "+1234567890",
-  "hasVideo": true,
   "metadata": {
-    "callType": "support",
-    "priority": "high"
+    "voice_sdk_id": "12345678-abcd-1234-abcd-1234567890ab",
+    "call_id": "87654321-dcba-4321-dcba-0987654321fe",
+    "caller_name": "Test Caller",
+    "caller_number": "+1234567890"
   }
 }
 ```
 
-## Default VoIP Payload Structure
+### Required Fields in `metadata`:
+- **`voice_sdk_id`**: UUID for establishing WebSocket connection to Telnyx servers
+- **`call_id`**: UUID for the incoming call
 
-The tool sends a VoIP notification with this default structure:
+### Optional Fields in `metadata`:
+- **`caller_name`**: Display name for CallKit and UI
+- **`caller_number`**: Phone number or caller identifier
 
-```json
-{
-  "callerName": "Test Caller",
-  "callId": "test-call-1234567890",
-  "handle": "+1234567890", 
-  "hasVideo": false,
-  "callType": "incoming"
-}
-```
-
-Any custom payload you provide will be merged with these defaults.
+The tool automatically generates proper UUIDs for `voice_sdk_id` and `call_id` on each run.
 
 ## Build and Run Options
 
@@ -143,7 +134,7 @@ npm run build
    - Verify both cert.pem and key.pem file paths are correct
    - Ensure certificate files are in proper PEM format
    - Check that the certificate is valid and not expired
-   - If your private key is encrypted, make sure you provide the correct passphrase
+   - Make sure the private key is not encrypted (tool assumes no passphrase)
 
 3. **Bundle ID Mismatch**
    - Bundle ID must exactly match your app's identifier
@@ -192,7 +183,7 @@ push-notification-tool/
 - Store certificate files securely and restrict access
 - Use environment variables for production deployments
 - Validate device tokens before using them
-- Keep passphrases secure and never hard-code them
+- Use unencrypted private keys for simplicity (or encrypt them outside the tool)
 
 ## Contributing
 
