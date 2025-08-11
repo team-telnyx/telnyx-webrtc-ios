@@ -29,6 +29,8 @@ A simple Node.js/TypeScript tool to test VoIP push notifications for iOS apps us
 
 4. **Follow the interactive prompts** to configure and send a test push notification.
 
+5. **Continue Testing**: After each push, choose to retry, reconfigure, or exit.
+
 ## Smart Configuration Management
 
 The tool automatically saves your configuration and offers smart options on subsequent runs:
@@ -47,7 +49,22 @@ The tool presents three options:
 - **Automatic Save**: Settings are saved after successful configuration
 - **Smart Defaults**: Previous values shown in brackets `[current_value]`
 - **Quick Updates**: Press Enter to keep current values, or type new ones
-- **Secure Storage**: Sensitive data like passphrases are never saved
+- **Secure Storage**: Sensitive data is never saved to disk
+
+## Continuous Testing Workflow
+
+After sending a push notification, the tool offers three options:
+
+1. **Send Another Push**: Reuse the same configuration with fresh UUIDs
+   - Perfect for testing multiple notifications quickly
+   - Generates new `voice_sdk_id` and `call_id` for each push
+
+2. **Reconfigure Settings**: Change any configuration and send new push
+   - Update device token, certificates, environment, etc.
+   - Useful when switching between devices or environments
+
+3. **Exit**: Close the tool
+   - Clean exit with goodbye message
 
 ## What You'll Need
 

@@ -369,15 +369,44 @@ class VoIPPushTester {
 // Main execution
 async function main() {
   try {
-    const tester = new VoIPPushTester();
-    tester.displaySummary();
+    let tester = new VoIPPushTester();
     
-    const proceed = readlineSync.keyInYNStrict('Send the VoIP push notification? ');
-    if (proceed) {
-      await tester.sendPush();
-      console.log('\n🎉 Done! Check your iOS device for the incoming call.');
-    } else {
-      console.log('❌ Push notification cancelled.');
+    while (true) {
+      tester.displaySummary();
+      
+      const proceed = readlineSync.keyInYNStrict('Send the VoIP push notification? ');
+      if (proceed) {
+        await tester.sendPush();
+        console.log('\n🎉 Done! Check your iOS device for the incoming call.');
+      } else {
+        console.log('❌ Push notification cancelled.');
+      }
+
+      // Post-action menu
+      console.log('\n🔄 What would you like to do next?');
+      const nextActions = [
+        'Send another push notification with same config',
+        'Reconfigure settings and send new push',
+        'Exit'
+      ];
+
+      const nextAction = readlineSync.keyInSelect(nextActions, 'Choose an option: ');
+      
+      switch (nextAction) {
+        case 0:
+          // Continue with same tester instance (will generate new UUIDs)
+          continue;
+        case 1:
+          // Create new tester instance to reconfigure
+          tester = new VoIPPushTester();
+          continue;
+        case 2:
+          console.log('\n👋 Goodbye!');
+          process.exit(0);
+        default:
+          console.log('\n👋 Goodbye!');
+          process.exit(0);
+      }
     }
   } catch (error) {
     console.error('💥 Unexpected error:', error);
