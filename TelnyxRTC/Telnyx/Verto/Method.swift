@@ -12,9 +12,11 @@ enum Method : String {
     //implemented
     case PING = "telnyx_rtc.ping"                         // new method to not disconnect
     case LOGIN = "login"
+    case ANONYMOUS_LOGIN = "anonymous_login"
     case ANSWER = "telnyx_rtc.answer"
     case INVITE = "telnyx_rtc.invite"
     case RINGING = "telnyx_rtc.ringing"
+    case RINGING_ACK = "telnyx_rtc.ringing_ack"
     case CLIENT_READY = "telnyx_rtc.clientReady"
     case BYE = "telnyx_rtc.bye"
     case MODIFY = "telnyx_rtc.modify"
