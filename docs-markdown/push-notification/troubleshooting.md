@@ -88,6 +88,90 @@ Proper configuration in Info.plist is essential for push notifications to work.
 - Enable "Voice over IP" and "Background fetch" in Xcode capabilities
 - Verify that your app has the required entitlements for push notifications
 
+## Testing VoIP Push Notifications
+
+### VoIP Push Notification Testing Tool
+
+To help validate your push notification setup, the repository includes a dedicated testing tool that allows you to send test VoIP push notifications directly to your device.
+
+**Location:** `push-notification-tool/` in the repository root
+
+### Quick Setup
+
+1. **Navigate to the tool directory:**
+   ```bash
+   cd push-notification-tool
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Run the tool:**
+   ```bash
+   npm run dev
+   ```
+
+### What You'll Need
+
+- **Device Token**: 64-character hex string from your iOS app's VoIP registration
+- **Bundle ID**: Your app's identifier (e.g., `com.yourcompany.app`)
+- **Certificate Files**: `cert.pem` and `key.pem` from your VoIP push certificate
+- **Environment**: `sandbox` for development/TestFlight, `production` for App Store
+
+### How It Works
+
+The tool generates VoIP push notifications with the exact payload structure expected by the Telnyx iOS SDK:
+
+```json
+{
+  "metadata": {
+    "voice_sdk_id": "12345678-abcd-1234-abcd-1234567890ab",
+    "call_id": "87654321-dcba-4321-dcba-0987654321fe",
+    "caller_name": "Test Caller",
+    "caller_number": "+1234567890"
+  }
+}
+```
+
+### Testing Workflow
+
+1. **Configure Once**: Enter your device token, bundle ID, certificate paths, and environment
+2. **Send Test Push**: The tool sends a VoIP notification to your device
+3. **Verify Receipt**: Check that your app receives the push and processes it correctly
+4. **Continuous Testing**: Send multiple pushes, reconfigure settings, or test different scenarios
+5. **Troubleshoot Issues**: Use detailed error responses to identify configuration problems
+
+### Common Test Scenarios
+
+- **Certificate Validation**: Verify your cert.pem and key.pem files work
+- **Environment Testing**: Test both sandbox and production APNS environments
+- **Device Token Validation**: Confirm your app generates valid VoIP device tokens
+- **Payload Processing**: Ensure your app correctly handles the metadata structure
+- **Multiple Devices**: Quickly switch between different device tokens
+- **Reliability Testing**: Send multiple pushes to test consistency
+
+### Troubleshooting with the Tool
+
+The tool provides detailed error responses that help identify issues:
+
+- **BadDeviceToken**: Device token is invalid or expired
+- **BadCertificate**: Certificate files are invalid or expired
+- **BadTopic**: Bundle ID doesn't match certificate
+- **DeviceTokenNotForTopic**: Device token doesn't match certificate bundle ID
+- **TopicDisallowed**: Certificate doesn't have VoIP permissions
+
+### Integration Testing
+
+After successful push delivery, verify your app:
+
+1. **Receives the Push**: Check that `pushRegistry:didReceiveIncomingPushWithPayload:` is called
+2. **Processes Metadata**: Verify `voice_sdk_id` and `call_id` are extracted correctly
+3. **Calls processVoIPNotification**: Ensure the SDK method is called with correct parameters
+4. **Shows CallKit UI**: Confirm incoming call interface appears (if using CallKit)
+5. **Establishes Connection**: Verify WebSocket connection to Telnyx servers
+
 ## Additional Troubleshooting Steps
 
 1. **Check APNS Status**

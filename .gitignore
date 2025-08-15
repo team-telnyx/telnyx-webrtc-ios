@@ -35,3 +35,17 @@ TelnyxWebRTCDemo/GoogleService-Info.plist
 Gemfile.lock
 *.swp
 .DS_Store
+
+# Push notification tool
+push-notification-tool/node_modules/
+push-notification-tool/dist/
+push-notification-tool/*.log
+push-notification-tool/.last-config.json
+
+# Certificate files - IMPORTANT: Never commit these!
+*.p8
+*.p12
+*.pem
+*.key
+push-notification-tool/cert.pem
+push-notification-tool/key.pem
