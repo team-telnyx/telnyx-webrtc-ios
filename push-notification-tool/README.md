@@ -202,6 +202,13 @@ push-notification-tool/
 - Validate device tokens before using them
 - Use unencrypted private keys for simplicity (or encrypt them outside the tool)
 
+### Security Updates
+
+This tool uses `@parse/node-apn` instead of the original `apn` package to ensure secure dependencies:
+- **jsonwebtoken**: Updated to v9.0.2 (from vulnerable v8.5.1)
+- **node-forge**: Updated to v1.3.1 (from vulnerable v0.7.6)
+- All known security vulnerabilities have been resolved
+
 ## Contributing
 
 This tool is part of the Telnyx iOS WebRTC SDK repository. When making changes:

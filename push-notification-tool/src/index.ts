@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import * as apn from 'apn';
+import * as apn from '@parse/node-apn';
 import * as readlineSync from 'readline-sync';
 import * as fs from 'fs';
 import * as path from 'path';

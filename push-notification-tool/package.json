@@ -20,7 +20,7 @@
   "author": "Telnyx",
   "license": "MIT",
   "dependencies": {
-    "apn": "^2.2.0",
+    "@parse/node-apn": "^6.5.0",
     "readline-sync": "^1.4.10"
   },
   "devDependencies": {
