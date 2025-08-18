@@ -642,7 +642,7 @@ npm run dev
 - Multi-device testing
 - Troubleshooting push delivery issues
 
-For complete setup instructions and usage examples, see the tool's [README](push-notification-tool/README.md) or the [Troubleshooting Guide](https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/troubleshooting#testing-voip-push-notifications).
+For complete setup instructions and usage examples, see the tool's [README](https://github.com/team-telnyx/telnyx-webrtc-ios/tree/main/push-notification-tool) or the [Troubleshooting Guide](https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/troubleshooting#testing-voip-push-notifications).
 
 
 
