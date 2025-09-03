@@ -300,6 +300,9 @@ extension AppDelegate : CXProviderDelegate {
         if selectedCredentials?.isToken ?? false {
             let token = selectedCredentials?.username ?? ""
             let deviceToken = userDefaults.getPushToken()
+            // Get settings from UserDefaults
+            let forceRelayCandidate = userDefaults.getForceRelayCandidate()
+            let webrtcStats = userDefaults.getWebRTCStats()
             //Sets the login credentials and the ringtone/ringback configurations if required.
             //Ringtone / ringback tone files are not mandatory.
             let txConfig = TxConfig(token: token,
@@ -310,9 +313,9 @@ extension AppDelegate : CXProviderDelegate {
                                     logLevel: .all,
                                     reconnectClient: true,
                                     // Enable WebRTC stats debug
-                                    debug: true,
+                                    debug: webrtcStats,
                                     // Force relay candidate
-                                    forceRelayCandidate: false,
+                                    forceRelayCandidate: forceRelayCandidate,
                                     // Enable Call Quality Metrics
                                     enableQualityMetrics: true)
             
@@ -325,6 +328,9 @@ extension AppDelegate : CXProviderDelegate {
             let sipUser = selectedCredentials?.username ?? ""
             let password = selectedCredentials?.password ?? ""
             let deviceToken = userDefaults.getPushToken()
+            // Get settings from UserDefaults
+            let forceRelayCandidate = userDefaults.getForceRelayCandidate()
+            let webrtcStats = userDefaults.getWebRTCStats()
             //Sets the login credentials and the ringtone/ringback configurations if required.
             //Ringtone / ringback tone files are not mandatory.
             let txConfig = TxConfig(sipUser: sipUser,
@@ -336,9 +342,9 @@ extension AppDelegate : CXProviderDelegate {
                                     logLevel: .all,
                                     reconnectClient: true,
                                     // Enable WebRTC stats debug
-                                    debug: true,
+                                    debug: webrtcStats,
                                     // Force relay candidate
-                                    forceRelayCandidate: false,
+                                    forceRelayCandidate: forceRelayCandidate,
                                     // Enable Call Quality Metrics
                                     enableQualityMetrics: true)
             

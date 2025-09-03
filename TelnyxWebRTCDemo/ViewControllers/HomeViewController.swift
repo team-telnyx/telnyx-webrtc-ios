@@ -240,6 +240,13 @@ extension HomeViewController {
             self.userDefaults.saveForceRelayCandidate(!currentForceRelay)
         }))
 
+        // WebRTC Stats toggle
+        let currentWebRTCStats = userDefaults.getWebRTCStats()
+        let webRTCStatsTitle = currentWebRTCStats ? "Disable WebRTC Stats" : "Enable WebRTC Stats"
+        alert.addAction(UIAlertAction(title: webRTCStatsTitle, style: .default, handler: { _ in
+            self.userDefaults.saveWebRTCStats(!currentWebRTCStats)
+        }))
+
         alert.addAction(UIAlertAction(title: "Copy APNS token", style: .default, handler: { _ in
             // To copy the APNS push token to pasteboard
             let token = UserDefaults().getPushToken()
@@ -368,8 +375,9 @@ extension HomeViewController {
                                 deviceToken: String?) throws -> TxConfig {
         var txConfig: TxConfig?
         
-        // Get the forceRelayCandidate setting from UserDefaults
+        // Get the forceRelayCandidate and webrtcStats settings from UserDefaults
         let forceRelayCandidate = userDefaults.getForceRelayCandidate()
+        let webrtcStats = userDefaults.getWebRTCStats()
 
         // Set the connection configuration object.
         // We can login with a user token: https://developers.telnyx.com/docs/v2/webrtc/quickstart
@@ -383,7 +391,7 @@ extension HomeViewController {
                                 logLevel: .all,
                                 reconnectClient: true,
                                 // Enable webrtc stats debug
-                                debug: true,
+                                debug: webrtcStats,
                                 // Force relay candidate
                                 forceRelayCandidate: forceRelayCandidate,
                                 // Enable Call Quality Metrics
@@ -399,7 +407,7 @@ extension HomeViewController {
                                 logLevel: .all,
                                 reconnectClient: true,
                                 // Enable webrtc stats debug
-                                debug: true,
+                                debug: webrtcStats,
                                 // Force relay candidate.
                                 forceRelayCandidate: forceRelayCandidate,
                                 // Enable Call Quality Metrics

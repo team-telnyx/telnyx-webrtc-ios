@@ -15,6 +15,7 @@ enum UserDefaultsKey: String {
     case callDestination = "CALL_DESTINATION"
     case webrtcEnvironment = "WEBRTC_ENVIRONMENT"
     case forceRelayCandidate = "FORCE_RELAY_CANDIDATE"
+    case webrtcStats = "WEBRTC_STATS"
 }
 
 extension UserDefaults {
@@ -57,6 +58,19 @@ extension UserDefaults {
     
     func getForceRelayCandidate() -> Bool {
         return bool(forKey: UserDefaultsKey.forceRelayCandidate.rawValue)
+    }
+    
+    // MARK: - WebRTC Stats
+    func saveWebRTCStats(_ enabled: Bool) {
+        set(enabled, forKey: UserDefaultsKey.webrtcStats.rawValue)
+    }
+    
+    func getWebRTCStats() -> Bool {
+        // Default to true if not set
+        if object(forKey: UserDefaultsKey.webrtcStats.rawValue) == nil {
+            return true
+        }
+        return bool(forKey: UserDefaultsKey.webrtcStats.rawValue)
     }
 }
 
