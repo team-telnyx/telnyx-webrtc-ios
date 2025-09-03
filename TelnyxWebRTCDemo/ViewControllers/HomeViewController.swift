@@ -233,6 +233,13 @@ extension HomeViewController {
             self.updateEnvironment()
         }))
 
+        // Force Relay Candidate toggle
+        let currentForceRelay = userDefaults.getForceRelayCandidate()
+        let forceRelayTitle = currentForceRelay ? "Disable Force Relay Candidate" : "Enable Force Relay Candidate"
+        alert.addAction(UIAlertAction(title: forceRelayTitle, style: .default, handler: { _ in
+            self.userDefaults.saveForceRelayCandidate(!currentForceRelay)
+        }))
+
         alert.addAction(UIAlertAction(title: "Copy APNS token", style: .default, handler: { _ in
             // To copy the APNS push token to pasteboard
             let token = UserDefaults().getPushToken()
@@ -360,6 +367,9 @@ extension HomeViewController {
                                 sipCredential: SipCredential?,
                                 deviceToken: String?) throws -> TxConfig {
         var txConfig: TxConfig?
+        
+        // Get the forceRelayCandidate setting from UserDefaults
+        let forceRelayCandidate = userDefaults.getForceRelayCandidate()
 
         // Set the connection configuration object.
         // We can login with a user token: https://developers.telnyx.com/docs/v2/webrtc/quickstart
@@ -375,7 +385,7 @@ extension HomeViewController {
                                 // Enable webrtc stats debug
                                 debug: true,
                                 // Force relay candidate
-                                forceRelayCandidate: false,
+                                forceRelayCandidate: forceRelayCandidate,
                                 // Enable Call Quality Metrics
                                 enableQualityMetrics: false)
         } else if let credential = sipCredential {
@@ -391,7 +401,7 @@ extension HomeViewController {
                                 // Enable webrtc stats debug
                                 debug: true,
                                 // Force relay candidate.
-                                forceRelayCandidate: false,
+                                forceRelayCandidate: forceRelayCandidate,
                                 // Enable Call Quality Metrics
                                 enableQualityMetrics: false)
         }
