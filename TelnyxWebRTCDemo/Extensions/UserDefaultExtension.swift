@@ -14,6 +14,8 @@ enum UserDefaultsKey: String {
     case pushDeviceToken = "PUSH_DEVICE_TOKEN"
     case callDestination = "CALL_DESTINATION"
     case webrtcEnvironment = "WEBRTC_ENVIRONMENT"
+    case forceRelayCandidate = "FORCE_RELAY_CANDIDATE"
+    case webrtcStats = "WEBRTC_STATS"
 }
 
 extension UserDefaults {
@@ -47,6 +49,28 @@ extension UserDefaults {
     func saveEnvironment(_ environment: WebRTCEnvironment) {
         let value = environment.toString()
         set(value, forKey: UserDefaultsKey.webrtcEnvironment.rawValue)
+    }
+    
+    // MARK: - Force Relay Candidate
+    func saveForceRelayCandidate(_ forceRelay: Bool) {
+        set(forceRelay, forKey: UserDefaultsKey.forceRelayCandidate.rawValue)
+    }
+    
+    func getForceRelayCandidate() -> Bool {
+        return bool(forKey: UserDefaultsKey.forceRelayCandidate.rawValue)
+    }
+    
+    // MARK: - WebRTC Stats
+    func saveWebRTCStats(_ enabled: Bool) {
+        set(enabled, forKey: UserDefaultsKey.webrtcStats.rawValue)
+    }
+    
+    func getWebRTCStats() -> Bool {
+        // Default to true if not set
+        if object(forKey: UserDefaultsKey.webrtcStats.rawValue) == nil {
+            return true
+        }
+        return bool(forKey: UserDefaultsKey.webrtcStats.rawValue)
     }
 }
 
