@@ -131,7 +131,9 @@ class Peer : NSObject, WebRTCEventHandler {
         // Unified plan is more superior than planB
         config.sdpSemantics = .unifiedPlan
         config.bundlePolicy = .maxCompat
-
+        
+        config.shouldPruneTurnPorts = forceRelayCandidate
+        
         // Control local network access for ICE candidate gathering
         if forceRelayCandidate {
             config.iceTransportPolicy = .relay // Force TURN relay to avoid local network access
@@ -139,6 +141,10 @@ class Peer : NSObject, WebRTCEventHandler {
 
         // gatherContinually will let WebRTC to listen to any network changes and send any new candidates to the other client
         config.continualGatheringPolicy = .gatherContinually
+        
+        config.enableDscp = true                        // keep DSCP enabled
+        config.audioJitterBufferMaxPackets = 8          // reduce from default
+        config.audioJitterBufferFastAccelerate = true   // accelerate recovery of the buffer
 
         let constraints = RTCMediaConstraints(mandatoryConstraints: nil,
                                               optionalConstraints: ["DtlsSrtpKeyAgreement": kRTCMediaConstraintsValueTrue])
@@ -149,6 +155,7 @@ class Peer : NSObject, WebRTCEventHandler {
         if (!isAttach) {
             self.configureAudioSession()
         }
+        
         //listen RTCPeer connection events
         self.connection?.delegate = self
     }
@@ -165,6 +172,11 @@ class Peer : NSObject, WebRTCEventHandler {
         self._localStream?.addAudioTrack(audioTrack)
         self.connection?.add(audioTrack, streamIds: [streamId])
         self.muteUnmuteAudio(mute: false)
+        
+        if let conn = self.connection {
+            CallQualityOptimizer.shared.adjustBitrate(for: conn)
+            CallQualityOptimizer.shared.startNetworkMonitoring(for: conn)
+        }
     }
 
     /// Configures the iOS device's audio session for optimal WebRTC call handling.
@@ -196,10 +208,8 @@ class Peer : NSObject, WebRTCEventHandler {
                 try rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord,
                                                 mode: AVAudioSession.Mode.voiceChat,
                                                 options: [
-                                                    .allowBluetoothA2DP,  // Enable high-quality Bluetooth audio
                                                     .duckOthers,          // Reduce other apps' volume
                                                     .allowBluetooth,      // Enable Bluetooth headsets
-                                                    .mixWithOthers        // Allow mixing with other audio
                                                 ])
 
                 Logger.log.i(message: "Peer:: AVAudioSession configured successfully")
@@ -325,6 +335,9 @@ class Peer : NSObject, WebRTCEventHandler {
     /// Close connection and release resources
     func dispose() {
         Logger.log.i(message: "Peer:: dispose()")
+        
+        // Stop network monitoring before closing connection
+        CallQualityOptimizer.shared.stopNetworkMonitoring()
         
         self.connection?.close()
         self.delegate = nil

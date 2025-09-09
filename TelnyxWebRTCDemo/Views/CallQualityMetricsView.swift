@@ -91,6 +91,18 @@ struct CallQualityMetricsView: View {
                 if let bytesSent = stats["bytesSent"] as? Int {
                     audioStatRow(title: "Bytes Sent:", value: "\(bytesSent)")
                 }
+                if let jitterBufferDelay = stats["jitterBufferDelay"] as? Double {
+                    audioStatRow(title: "Jitter Buffer Delay:", value: "\(String(format: "%.3f", jitterBufferDelay)) s")
+                }
+                if let jitterBufferEmittedCount = stats["jitterBufferEmittedCount"] as? Int {
+                    audioStatRow(title: "Jitter Buffer Emitted:", value: "\(jitterBufferEmittedCount)")
+                }
+                if let jitterBufferDelay = stats["jitterBufferDelay"] as? Double,
+                   let jitterBufferEmittedCount = stats["jitterBufferEmittedCount"] as? Int,
+                   jitterBufferEmittedCount > 0 {
+                    let avg = jitterBufferDelay / Double(jitterBufferEmittedCount)
+                    audioStatRow(title: "JB Avg Delay:", value: "\(String(format: "%.3f", avg)) s")
+                }
             }
         }
         .padding(.horizontal, 8)

@@ -249,9 +249,31 @@ class WebRTCStatsReporter {
         let jitter = (remoteInbound.last?["jitter"] as? Double) ?? Double.infinity
         let rtt = (remoteInbound.last?["roundTripTime"] as? Double) ?? Double.infinity
 
+        // Log raw values for debugging
+        Logger.log.i(message: "WebRTCStatsReporter:: Raw metrics - RTT: \(rtt)s, Jitter: \(jitter)s, PacketsReceived: \(deltaPacketsReceived), PacketsLost: \(deltaPacketsLost)")
+
+        // Calculate packet loss percentage
+        let packetLossPercentage = deltaPacketsReceived + deltaPacketsLost > 0 ? 
+            Double(deltaPacketsLost) / Double(deltaPacketsReceived + deltaPacketsLost) * 100 : 0
+        
+        // Update network quality monitoring with current metrics
+        if rtt != Double.infinity && jitter != Double.infinity {
+            CallQualityOptimizer.shared.updateNetworkMetrics(rtt: rtt, jitter: jitter, packetLoss: packetLossPercentage)
+        }
+
+        // Validate and convert values for MOS calculation
+        let jitterMs = jitter == Double.infinity ? 0 : jitter * 1000
+        let rttMs = rtt == Double.infinity ? 0 : rtt * 1000
+        
+        // Additional validation for realistic values
+        let validJitter = min(max(jitterMs, 0), 1000) // Clamp between 0-1000ms
+        let validRtt = min(max(rttMs, 0), 10000) // Clamp between 0-10000ms
+        
+        Logger.log.i(message: "WebRTCStatsReporter:: Validated metrics - RTT: \(validRtt)ms, Jitter: \(validJitter)ms")
+
         let mos = MOSCalculator.calculateMOS(
-            jitter: jitter * 1000,
-            rtt: rtt * 1000,
+            jitter: validJitter,
+            rtt: validRtt,
             packetsReceived: deltaPacketsReceived,
             packetsLost: deltaPacketsLost
         )
