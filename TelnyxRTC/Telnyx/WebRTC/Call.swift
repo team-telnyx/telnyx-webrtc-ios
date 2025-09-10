@@ -211,6 +211,12 @@ public class Call {
     
     var statsReporter: WebRTCStatsReporter?
     
+    /// Flag to track if we're currently performing ICE restart
+    internal var isIceRestarting: Bool = false
+    
+    /// Flag to track if we need to reset audio after ICE restart
+    internal var shouldResetAudioAfterIceRestart: Bool = false
+    
     /// Callback for real-time call quality metrics
     /// This is triggered whenever new WebRTC statistics are available
     public var onCallQualityChange: ((CallQualityMetrics) -> Void)?
@@ -532,6 +538,16 @@ public class Call {
         // Notify the stats reporter about the call state change
         if let statsReporter = self.statsReporter, (debug || enableQualityMetrics) {
             statsReporter.handleCallStateChange(callState: callState)
+        }
+        
+        // Setup or remove auto ICE restart based on call state
+        switch callState {
+        case .ACTIVE:
+            setupAutoIceRestart()
+        case .DONE, .DROPPED, .HELD:
+            removeAutoIceRestart()
+        default:
+            break
         }
         
         self.delegate?.callStateUpdated(call: self)
@@ -857,6 +873,14 @@ extension Call {
 
     internal func handleVertoMessage(message: Message,dataMessage: String,txClient:TxClient) {
 
+        // Handle ICE restart response (updateMedia action) - this comes as result, not method
+        if let result = message.result,
+           let action = result["action"] as? String,
+           action == "updateMedia" {
+            self.handleIceRestartResponse(message: message, dataMessage: dataMessage, txClient: txClient)
+            return
+        }
+
         switch message.method {
         case .BYE:
             // Extract termination reason details from the message if available
@@ -955,6 +979,13 @@ extension Call {
             }
             self.updateCallState(callState: .RINGING)
             break
+            
+        case .MODIFY:
+            // Handle other MODIFY actions (hold/unhold, etc.)
+            // ICE restart is handled at the beginning of the method
+            Logger.log.i(message: "[ICE-RESTART] Call:: Received MODIFY message (non-ICE restart)")
+            break
+            
         default:
             Logger.log.w(message: "TxClient:: SocketDelegate Default method")
             break
@@ -1015,3 +1046,4 @@ extension Call {
         return nil
     }
 }
+

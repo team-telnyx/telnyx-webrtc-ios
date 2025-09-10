@@ -15,6 +15,7 @@ struct CallView: View {
     let onHold: (Bool) -> Void
     let onDTMF: (String) -> Void
     let onRedial: ((String) -> Void)?
+    let onIceRestart: () -> Void
     
 
     var body: some View {
@@ -241,6 +242,17 @@ struct CallView: View {
                         .clipShape(Circle())
                 }
                 .accessibilityIdentifier(AccessibilityIdentifiers.dtmfButton)
+                
+                Button(action: {
+                    onIceRestart()
+                }) {
+                    Image(systemName: "arrow.clockwise")
+                        .foregroundColor(Color(hex: "#1D1D1D"))
+                        .frame(width: 60, height: 60)
+                        .background(Color(hex: "#F5F3E4"))
+                        .clipShape(Circle())
+                }
+                .accessibilityIdentifier("iceRestartButton")
 
             }
             
@@ -308,7 +320,8 @@ struct CallView_Previews: PreviewProvider {
             onToggleSpeaker: {},
             onHold: { _ in },
             onDTMF: { _ in },
-            onRedial: { _ in }
+            onRedial: { _ in },
+            onIceRestart: {}
         )
     }
 }

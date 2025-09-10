@@ -25,8 +25,8 @@ class Peer : NSObject, WebRTCEventHandler {
     /// Queue for handling audio operations to ensure thread safety
     private let audioQueue = DispatchQueue(label: "audio")
     
-    /// Timeout duration for ICE negotiation in milliseconds
-    private let NEGOTIATION_TIMOUT = 0.3
+    /// Timeout duration for ICE negotiation in seconds
+    private let NEGOTIATION_TIMOUT = 5.0
     
     /// Identifier for the audio track in WebRTC connection
     private let AUDIO_TRACK_ID = "audio0"
@@ -38,7 +38,7 @@ class Peer : NSObject, WebRTCEventHandler {
     private let VIDEO_DEMO_LOCAL_VIDEO = "local_video_streaming.mp4"
     
     /// Collection of gathered ICE candidates during connection setup
-    private var gatheredICECandidates: [String] = []
+    internal var gatheredICECandidates: [String] = []
     
     /// Socket connection for signaling with the WebRTC server
     var socket: Socket?
@@ -70,7 +70,9 @@ class Peer : NSObject, WebRTCEventHandler {
 
     //ICE negotiation
     private var negotiationTimer: Timer?
-    private var negotiationEnded: Bool = false
+    internal var negotiationEnded: Bool = false
+    internal var isIceRestarting: Bool = false
+    internal var iceRestartCompletion: ((_ sdp: RTCSessionDescription?, _ error: Error?) -> Void)?
 
     // WEBRTC STATS
     var onSignalingStateChange: ((RTCSignalingState, RTCPeerConnection) -> Void)?
@@ -299,9 +301,6 @@ class Peer : NSObject, WebRTCEventHandler {
     fileprivate func startNegotiation(peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
         Logger.log.i(message: "Peer:: ICE negotiation updated.")
         
-            
-        //Set gathered candidates to 
-        
         //Restart the negotiation timer
         self.negotiationTimer?.invalidate()
         self.negotiationTimer = nil
@@ -314,9 +313,17 @@ class Peer : NSObject, WebRTCEventHandler {
                 }
                 self.negotiationTimer?.invalidate()
                 self.negotiationEnded = true
-                // At this moment we should have at least one ICE candidate.
-                // Lets stop the ICE negotiation process and call the apropiate delegate
-                self.delegate?.onNegotiationEnded(sdp: peerConnection.localDescription)
+                
+                // Handle ICE restart completion
+                if self.isIceRestarting, let completion = self.iceRestartCompletion {
+                    Logger.log.i(message: "[ICE-RESTART] Peer:: ICE negotiation ended during ICE restart, creating final SDP")
+                    self.iceRestartCompletion = nil
+                    self.createFinalOfferWithCandidates(completion: completion)
+                } else {
+                    // At this moment we should have at least one ICE candidate.
+                    // Lets stop the ICE negotiation process and call the apropiate delegate
+                    self.delegate?.onNegotiationEnded(sdp: peerConnection.localDescription)
+                }
                 Logger.log.i(message: "Peer:: ICE negotiation ended.")
             }
         }
@@ -448,23 +455,50 @@ extension Peer : RTCPeerConnectionDelegate {
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {
         onIceGatheringChange?(newState)
         Logger.log.s(message: "Peer:: connection didChange ICE gathering state: [\(newState.telnyx_to_string().uppercased())]")
+        
+        // Log ICE gathering state changes during ICE restart
+        if self.isIceRestarting {
+            Logger.log.i(message: "[ICE-RESTART] Peer:: ICE gathering state changed during ICE restart: [\(newState.telnyx_to_string().uppercased())]")
+            
+            // If ICE gathering is complete during ICE restart, trigger completion
+            if newState == .complete, let completion = self.iceRestartCompletion {
+                Logger.log.i(message: "[ICE-RESTART] Peer:: ICE gathering complete during ICE restart, creating final SDP")
+                self.iceRestartCompletion = nil
+                self.createFinalOfferWithCandidates(completion: completion)
+            }
+        }
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
         Logger.log.i(message: "Peer:: connection didGenerate RTCIceCandidate: \(candidate)")
 
-        // Check if the negotiation has already ended.
-        // If true, we avoid adding new ICE candidates since it's no longer necessary.
-        if negotiationEnded {
-            Logger.log.i(message: "Peer:: negotiation marked as ENDED. Skipping candidate: [\(candidate)]")
-            return
-        }
+        // During ICE restart, we should allow candidates even when connected
+        if !isIceRestarting {
+            // Check if the negotiation has already ended.
+            // If true, we avoid adding new ICE candidates since it's no longer necessary.
+            if negotiationEnded {
+                Logger.log.i(message: "Peer:: negotiation marked as ENDED. Skipping candidate: [\(candidate)]")
+                return
+            }
 
-        // Check if the connection is already established (state is 'connected').
-        // If true, we skip adding new ICE candidates to prevent redundant additions.
-        if peerConnection.connectionState == .connected {
-            Logger.log.i(message: "Peer:: connection state is CONNECTED. Skipping candidate: [\(candidate)]")
-            return
+            // Check if the connection is already established (state is 'connected').
+            // If true, we skip adding new ICE candidates to prevent redundant additions.
+            if peerConnection.connectionState == .connected {
+                Logger.log.i(message: "Peer:: connection state is CONNECTED. Skipping candidate: [\(candidate)]")
+                return
+            }
+        } else {
+            Logger.log.i(message: "[ICE-RESTART] Peer:: ICE candidate generated during ICE restart: \(candidate)")
+            
+            // Check if we already have enough candidates and should stop gathering
+            if let localDescription = peerConnection.localDescription {
+                let currentCandidateCount = localDescription.sdp.components(separatedBy: "a=candidate:").count - 1
+                if currentCandidateCount >= 3 { // We have enough candidates
+                    Logger.log.i(message: "[ICE-RESTART] Peer:: Sufficient ICE candidates gathered (\(currentCandidateCount)), stopping further gathering")
+                    // Don't add more candidates to avoid overwhelming the server
+                    return
+                }
+            }
         }
 
         // We call the callback when the iceCandidate is added
@@ -478,6 +512,7 @@ extension Peer : RTCPeerConnectionDelegate {
                 Logger.log.i(message: "Peer:: Successfully added RTCIceCandidate: \(candidate)")
             }
         })
+        
         
         // Log the server URL of the generated ICE candidate (if available).
         Logger.log.i(message: "Peer:: serverUrl for RTCIceCandidate: \(String(describing: candidate.serverUrl))")
@@ -501,3 +536,4 @@ extension Peer : RTCPeerConnectionDelegate {
         Logger.log.i(message: "Peer:: connection didOpen RTCDataChannel: \(dataChannel)")
     }
 }
+

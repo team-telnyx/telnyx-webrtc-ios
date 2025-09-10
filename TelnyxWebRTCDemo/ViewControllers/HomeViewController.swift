@@ -73,6 +73,9 @@ class HomeViewController: UIViewController {
             onRedial: { [weak self] phoneNumber in
                 self?.callViewModel.sipAddress = phoneNumber
                 self?.onCallButton()
+            },
+            onIceRestart: { [weak self] in
+                self?.onIceRestart()
             }
         )
 
@@ -482,6 +485,26 @@ extension HomeViewController {
             appDelegate.currentCall?.hold()
         } else {
             appDelegate.currentCall?.unhold()
+        }
+    }
+    
+    func onIceRestart() {
+        guard let call = appDelegate.currentCall else {
+            print("[ICE-RESTART] HomeViewController:: No active call for ICE restart")
+            return
+        }
+        
+        print("[ICE-RESTART] HomeViewController:: Starting ICE restart")
+        call.iceRestart { [weak self] (success, error) in
+            DispatchQueue.main.async {
+                if success {
+                    print("[ICE-RESTART] HomeViewController:: ICE restart completed successfully")
+                    // You could show a success message to the user here if needed
+                } else {
+                    print("[ICE-RESTART] HomeViewController:: ICE restart failed: \(error?.localizedDescription ?? "Unknown error")")
+                    // You could show an error message to the user here if needed
+                }
+            }
         }
     }
 }

@@ -1098,6 +1098,18 @@ extension TxClient : SocketDelegate {
                     }
                 }
             }
+            
+            //process ICE restart response (updateMedia)
+            if let action = result["action"] as? String,
+               action == "updateMedia",
+               let callID = result["callID"] as? String,
+               let callUUID = UUID(uuidString: callID),
+               let call = calls[callUUID] {
+                Logger.log.i(message: "[ICE-RESTART] TxClient:: Processing ICE restart response for call: \(callID)")
+                call.handleVertoMessage(message: vertoMessage, dataMessage: message, txClient: self)
+                // For ICE restart, we don't need to process sessionId, so we can return here
+                return
+            }
 
             guard let sessionId = result["sessid"] as? String else { return }
             //keep the sessionId
