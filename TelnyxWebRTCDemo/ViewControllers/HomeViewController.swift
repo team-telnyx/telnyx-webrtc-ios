@@ -76,6 +76,9 @@ class HomeViewController: UIViewController {
             },
             onIceRestart: { [weak self] in
                 self?.onIceRestart()
+            },
+            onResetAudio: { [weak self] in
+                self?.onResetAudio()
             }
         )
 
@@ -506,5 +509,16 @@ extension HomeViewController {
                 }
             }
         }
+    }
+    
+    func onResetAudio() {
+        guard let call = appDelegate.currentCall else {
+            print("[RESET-AUDIO] HomeViewController:: No active call for audio reset")
+            return
+        }
+        
+        print("[RESET-AUDIO] HomeViewController:: Resetting audio device to clear delay")
+        call.resetAudioDevice()
+        print("[RESET-AUDIO] HomeViewController:: Audio device reset completed")
     }
 }

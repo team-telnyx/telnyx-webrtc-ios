@@ -8,6 +8,7 @@
 
 import Foundation
 import WebRTC
+import AVFoundation
 
 protocol PeerDelegate: AnyObject {
     func onNegotiationEnded(sdp: RTCSessionDescription?)
@@ -26,7 +27,7 @@ class Peer : NSObject, WebRTCEventHandler {
     private let audioQueue = DispatchQueue(label: "audio")
     
     /// Timeout duration for ICE negotiation in seconds
-    private let NEGOTIATION_TIMOUT = 5.0
+    private let NEGOTIATION_TIMOUT = 0.3
     
     /// Identifier for the audio track in WebRTC connection
     private let AUDIO_TRACK_ID = "audio0"
@@ -198,11 +199,11 @@ class Peer : NSObject, WebRTCEventHandler {
                 try rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord,
                                                 mode: AVAudioSession.Mode.voiceChat,
                                                 options: [
-                                                    .allowBluetoothA2DP,  // Enable high-quality Bluetooth audio
                                                     .duckOthers,          // Reduce other apps' volume
                                                     .allowBluetooth,      // Enable Bluetooth headsets
-                                                    .mixWithOthers        // Allow mixing with other audio
                                                 ])
+
+                try rtcAudioSession.setPreferredIOBufferDuration(0.01) // 10 ms
 
                 Logger.log.i(message: "Peer:: AVAudioSession configured successfully")
             } catch let error {
@@ -391,10 +392,17 @@ extension Peer {
     /// Implementation details:
     /// - For Plan B semantics: Uses the connection's senders to find and modify the audio track
     /// - For Unified Plan: Uses transceivers to manage the audio track state
+    /// - Includes AudioDeviceModule reset to clear accumulated audio buffers and resolve delay issues
     ///
     /// Note: This method is used internally by the Call class through its public `muteAudio()`
     /// and `unmuteAudio()` methods.
     func muteUnmuteAudio(mute: Bool) {
+        Logger.log.i(message: "Peer:: muteUnmuteAudio(mute: \(mute)) - Resetting AudioDeviceModule to clear buffers")
+        
+        // Reset AudioDeviceModule to clear accumulated audio buffers
+        // This helps resolve persistent audio delay issues in iOS uplink
+        resetAudioDeviceModule()
+        
         // GetTransceivers is only supported with Unified Plan SdpSemantics.
         // PlanB doesn't have support to access transeivers, so we need to use the stored audio track
         if self.connection?.configuration.sdpSemantics == .planB {
@@ -405,6 +413,145 @@ extension Peer {
                 }
         } else {
             self.setTrackEnabled(RTCAudioTrack.self, isEnabled: !mute)
+        }
+        
+        Logger.log.i(message: "Peer:: Audio track \(mute ? "muted" : "unmuted") with AudioDeviceModule reset")
+    }
+    
+    /// Resets the AudioDeviceModule to clear accumulated audio buffers and resolve delay issues
+    /// 
+    /// This method addresses the iOS audio delay problem where:
+    /// - The AudioDeviceModule (ADM) buffer stretches under poor network conditions
+    /// - WebRTC applies audio pacing to prevent overloading the send queue
+    /// - Captured frames accumulate before being processed, causing persistent uplink delay
+    /// - iOS AudioUnit/AVAudioSession buffering can remain in a state with large buffers
+    func resetAudioDeviceModule() {
+        guard let connection = self.connection else {
+            Logger.log.w(message: "Peer:: resetAudioDeviceModule() - No active connection")
+            return
+        }
+        
+        Logger.log.i(message: "Peer:: Starting AudioDeviceModule reset via mute/unmute sequence (Unified Plan)")
+        
+        // For Unified Plan, get audio tracks from transceivers
+        let audioTracks = connection.transceivers.compactMap { $0.sender.track as? RTCAudioTrack }
+        let originalStates = audioTracks.map { $0.isEnabled }
+        
+        self.setTrackEnabled(RTCAudioTrack.self, isEnabled: false)
+        usleep(50000)
+        self.setTrackEnabled(RTCAudioTrack.self, isEnabled: true)
+
+        // Execute mute/unmute sequence with 200ms intervals
+        performMuteUnmuteSequence(audioTracks: audioTracks, originalStates: originalStates, step: 1)
+    }
+    
+    /// Performs a mute/unmute sequence to reset audio buffers
+    private func performMuteUnmuteSequence(audioTracks: [RTCAudioTrack], originalStates: [Bool], step: Int) {
+        let totalSteps = 3 // Mute -> Unmute -> Mute -> Unmute (final)
+        
+        if step > totalSteps {
+            // Sequence completed, restore original states
+            for (index, track) in audioTracks.enumerated() {
+                if index < originalStates.count {
+                    track.isEnabled = originalStates[index]
+                }
+            }
+            Logger.log.i(message: "Peer:: AudioDeviceModule reset sequence completed - original states restored")
+            
+            // After completing mute/unmute sequence, reset RTCAudioSession buffers
+            resetAVAudioSessionBuffers()
+            return
+        }
+        
+        let isMute = (step % 2 == 1) // Odd steps = mute, even steps = unmute
+        let action = isMute ? "muting" : "unmuting"
+        
+        Logger.log.i(message: "Peer:: AudioDeviceModule reset step \(step)/\(totalSteps) - \(action) audio tracks (Unified Plan)")
+        
+        // Apply mute/unmute to all audio tracks
+        audioTracks.forEach { $0.isEnabled = !isMute }
+        
+        // Schedule next step after 200ms
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+            self?.performMuteUnmuteSequence(audioTracks: audioTracks, originalStates: originalStates, step: step + 1)
+        }
+    }
+    
+    /// Resets RTCAudioSession buffer duration to optimal values to prevent audio delay accumulation
+    /// Executes 3 times consecutively with 300ms intervals to ensure complete buffer reset
+    private func resetAVAudioSessionBuffers() {
+        Logger.log.i(message: "Peer:: Starting 3-phase RTCAudioSession reset to clear accumulated buffers")
+        
+        // Execute reset 3 times with 300ms intervals
+        for attempt in 1...3 {
+            let delay = TimeInterval(attempt - 1) * 0.3 // 0ms, 300ms, 600ms
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                self?.performSingleAudioSessionReset(attempt: attempt)
+            }
+        }
+    }
+    
+    /// Performs a single RTCAudioSession reset attempt
+    private func performSingleAudioSessionReset(attempt: Int) {
+        self.audioQueue.async { [weak self] in
+            guard let self = self else {
+                return
+            }
+            
+            Logger.log.i(message: "Peer:: RTCAudioSession reset attempt \(attempt)/3")
+            
+            // Use RTCAudioSession for WebRTC-specific audio configuration
+            let rtcAudioSession = RTCAudioSession.sharedInstance()
+            
+            rtcAudioSession.lockForConfiguration()
+            defer {
+                rtcAudioSession.unlockForConfiguration()
+            }
+            
+            do {
+                // Deactivate audio session first
+                try rtcAudioSession.setActive(false)
+                rtcAudioSession.isAudioEnabled = false
+                
+                // Brief pause to allow complete deactivation
+                usleep(50000) // 50ms pause
+                
+                // Set optimal buffer duration for real-time audio (20ms)
+                // This prevents iOS from using large buffers that cause delay
+                try rtcAudioSession.setPreferredIOBufferDuration(0.02) // 20ms
+                
+                // Set preferred sample rate for WebRTC compatibility
+                try rtcAudioSession.setPreferredSampleRate(16000.0)
+                
+                // Set preferred number of channels for mono audio (more efficient for voice)
+                try rtcAudioSession.setPreferredInputNumberOfChannels(1)
+                try rtcAudioSession.setPreferredOutputNumberOfChannels(1)
+                
+                // Configure WebRTC audio session
+                let configuration = RTCAudioSessionConfiguration.webRTC()
+                configuration.categoryOptions = [
+                    .duckOthers,
+                    .allowBluetooth,
+                ]
+                
+                do {
+                    try rtcAudioSession.setConfiguration(configuration)
+                } catch {
+                    Logger.log.w(message: "Peer:: Failed to set RTCAudioSession configuration on attempt \(attempt): \(error.localizedDescription)")
+                }
+                
+                usleep(50000) // 50ms pause
+
+                // Activate the session with new settings
+                try rtcAudioSession.setActive(true)
+                rtcAudioSession.isAudioEnabled = true
+                
+                Logger.log.i(message: "Peer:: RTCAudioSession reset attempt \(attempt)/3 completed - IOBufferDuration: 20ms, SampleRate: 16kHz, Channels: 1")
+                
+            } catch {
+                Logger.log.e(message: "Peer:: Failed to reset RTCAudioSession buffers on attempt \(attempt): \(error.localizedDescription)")
+            }
         }
     }
     

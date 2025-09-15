@@ -1280,10 +1280,8 @@ extension TxClient {
         
         let configuration = RTCAudioSessionConfiguration.webRTC()
         configuration.categoryOptions = [
-            .allowBluetoothA2DP,
             .duckOthers,
             .allowBluetooth,
-            .mixWithOthers
         ]
         
         do {

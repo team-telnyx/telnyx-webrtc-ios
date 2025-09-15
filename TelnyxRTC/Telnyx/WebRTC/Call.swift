@@ -751,6 +751,20 @@ extension Call {
         Logger.log.i(message: "Call:: unmuteAudio()")
         self.peer?.muteUnmuteAudio(mute: false)
     }
+    
+    /// Resets the audio device and clears accumulated buffers to resolve persistent audio delay issues.
+    /// 
+    /// This method addresses iOS audio delay problems where:
+    /// - AudioDeviceModule buffers stretch under poor network conditions
+    /// - WebRTC audio pacing causes frame accumulation
+    /// - iOS AudioUnit/AVAudioSession remains in large buffer state
+    /// 
+    /// ### Example:
+    ///     call.resetAudioDevice()
+    public func resetAudioDevice() {
+        Logger.log.i(message: "Call:: resetAudioDevice() - Manually resetting audio device to clear delay")
+        self.peer?.resetAudioDeviceModule()
+    }
 }
 
 // MARK: - Hold / Unhold handling
