@@ -131,8 +131,8 @@ class TelnyxRTCTests: XCTestCase {
             override func onClientError(error: Error) {
                 XCTAssertEqual(error.localizedDescription,
                                TxError.serverError(reason:
-                                    .signalingServerError(message: "Authentication Required",
-                                                          code: "-32000")).localizedDescription)
+                                    .signalingServerError(message: "JWT token authentication failed",
+                                                          code: "-32001")).localizedDescription)
                 self.expectation.fulfill()
             }
         }
