@@ -303,6 +303,7 @@ extension AppDelegate : CXProviderDelegate {
             // Get settings from UserDefaults
             let forceRelayCandidate = userDefaults.getForceRelayCandidate()
             let webrtcStats = userDefaults.getWebRTCStats()
+            let sendWebRTCStatsViaSocket = userDefaults.getSendWebRTCStatsViaSocket()
             //Sets the login credentials and the ringtone/ringback configurations if required.
             //Ringtone / ringback tone files are not mandatory.
             let txConfig = TxConfig(token: token,
@@ -317,7 +318,9 @@ extension AppDelegate : CXProviderDelegate {
                                     // Force relay candidate
                                     forceRelayCandidate: forceRelayCandidate,
                                     // Enable Call Quality Metrics
-                                    enableQualityMetrics: true)
+                                    enableQualityMetrics: true,
+                                    // Send WebRTC Stats Via Socket
+                                    sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket)
             
             do {
                 try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)
@@ -331,6 +334,7 @@ extension AppDelegate : CXProviderDelegate {
             // Get settings from UserDefaults
             let forceRelayCandidate = userDefaults.getForceRelayCandidate()
             let webrtcStats = userDefaults.getWebRTCStats()
+            let sendWebRTCStatsViaSocket = userDefaults.getSendWebRTCStatsViaSocket()
             //Sets the login credentials and the ringtone/ringback configurations if required.
             //Ringtone / ringback tone files are not mandatory.
             let txConfig = TxConfig(sipUser: sipUser,
@@ -346,7 +350,9 @@ extension AppDelegate : CXProviderDelegate {
                                     // Force relay candidate
                                     forceRelayCandidate: forceRelayCandidate,
                                     // Enable Call Quality Metrics
-                                    enableQualityMetrics: true)
+                                    enableQualityMetrics: true,
+                                    // Send WebRTC Stats Via Socket
+                                    sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket)
             
             do {
                 try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)

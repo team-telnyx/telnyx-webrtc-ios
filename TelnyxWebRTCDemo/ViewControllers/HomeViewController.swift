@@ -253,6 +253,13 @@ extension HomeViewController {
             self.userDefaults.saveWebRTCStats(!currentWebRTCStats)
         }))
 
+        // Send WebRTC Stats Via Socket toggle
+        let currentSendWebRTCStatsViaSocket = userDefaults.getSendWebRTCStatsViaSocket()
+        let sendWebRTCStatsViaSocketTitle = currentSendWebRTCStatsViaSocket ? "Disable Send WebRTC Stats Via Socket" : "Enable Send WebRTC Stats Via Socket"
+        alert.addAction(UIAlertAction(title: sendWebRTCStatsViaSocketTitle, style: .default, handler: { _ in
+            self.userDefaults.saveSendWebRTCStatsViaSocket(!currentSendWebRTCStatsViaSocket)
+        }))
+
         alert.addAction(UIAlertAction(title: "Copy APNS token", style: .default, handler: { _ in
             // To copy the APNS push token to pasteboard
             let token = UserDefaults().getPushToken()
@@ -381,9 +388,10 @@ extension HomeViewController {
                                 deviceToken: String?) throws -> TxConfig {
         var txConfig: TxConfig?
         
-        // Get the forceRelayCandidate and webrtcStats settings from UserDefaults
+        // Get the forceRelayCandidate, webrtcStats, and sendWebRTCStatsViaSocket settings from UserDefaults
         let forceRelayCandidate = userDefaults.getForceRelayCandidate()
         let webrtcStats = userDefaults.getWebRTCStats()
+        let sendWebRTCStatsViaSocket = userDefaults.getSendWebRTCStatsViaSocket()
 
         // Set the connection configuration object.
         // We can login with a user token: https://developers.telnyx.com/docs/v2/webrtc/quickstart
@@ -401,7 +409,9 @@ extension HomeViewController {
                                 // Force relay candidate
                                 forceRelayCandidate: forceRelayCandidate,
                                 // Enable Call Quality Metrics
-                                enableQualityMetrics: false)
+                                enableQualityMetrics: false,
+                                // Send WebRTC Stats Via Socket
+                                sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket)
         } else if let credential = sipCredential {
             // To obtain SIP credentials, please go to https://portal.telnyx.com
             txConfig = TxConfig(sipUser: credential.username,
@@ -417,7 +427,9 @@ extension HomeViewController {
                                 // Force relay candidate.
                                 forceRelayCandidate: forceRelayCandidate,
                                 // Enable Call Quality Metrics
-                                enableQualityMetrics: false)
+                                enableQualityMetrics: false,
+                                // Send WebRTC Stats Via Socket
+                                sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket)
         }
 
         guard let config = txConfig else {
