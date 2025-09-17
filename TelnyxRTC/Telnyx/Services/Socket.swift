@@ -41,9 +41,6 @@ class Socket {
         // Only start timeout timer if we can fallback to auto (i.e., not already on auto)
         if shouldFallbackToAuto(signalingServer: signalingServer) {
             startConnectionTimeout()
-            Logger.log.i(message: "Socket:: Timeout timer started - can fallback to auto region")
-        } else {
-            Logger.log.i(message: "Socket:: No timeout timer - already on auto region")
         }
         
         self.socket?.connect()
@@ -61,10 +58,9 @@ class Socket {
     
     func sendMessage(message: String?) {
         if self.isConnected == false {
-            Logger.log.e(message: "Socket::  not connected...")
+            Logger.log.e(message: "Socket:: not connected...")
             return
         }
-        Logger.log.i(message: "Socket:: sendMessage() sending message...")
         if let message = message,
            let socket = self.socket {
             socket.write(string: message)
@@ -118,7 +114,6 @@ extension Socket : WebSocketDelegate {
             
         case .text(let message):
             Logger.log.verto(message: "\(message)", direction: .inbound)
-            Logger.log.i(message: "Socket:: WebSocketDelegate .text \(message)")
             self.delegate?.onMessageReceived(message: message)
             break;
 
@@ -146,16 +141,14 @@ extension Socket : WebSocketDelegate {
             break;
             
         case .binary(let data):
-            Logger.log.i(message: "Socket:: WebSocketDelegate .binary data: \(data.count)")
+            break
         case .ping(_):
             break
         case .pong(_):
             break
         case .viabilityChanged(_):
-            Logger.log.i(message: "Socket:: WebSocketDelegate viablility Changed")
             break
         case .reconnectSuggested(_):
-            Logger.log.i(message: "Socket:: WebSocketDelegate reconnect Suggested")
             break
         case .peerClosed:
             break
@@ -170,7 +163,6 @@ extension Socket : WebSocketDelegate {
     /// - Parameter timeout: Timeout interval in seconds (minimum 5 seconds)
     public func setConnectionTimeout(_ timeout: TimeInterval) {
         connectionTimeout = max(5.0, timeout)
-        Logger.log.i(message: "Socket:: Connection timeout set to \(connectionTimeout) seconds")
     }
     
     /// Starts the connection timeout timer (only when not on auto region)
@@ -178,7 +170,6 @@ extension Socket : WebSocketDelegate {
         connectionTimeoutTimer = Timer.scheduledTimer(withTimeInterval: connectionTimeout, repeats: false) { [weak self] _ in
             self?.handleConnectionTimeout()
         }
-        Logger.log.i(message: "Socket:: Started connection timeout timer for \(connectionTimeout) seconds")
     }
     
     /// Cancels the connection timeout timer

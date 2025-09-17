@@ -321,7 +321,6 @@ class Peer : NSObject, WebRTCEventHandler {
                 
                 // Handle ICE restart completion
                 if self.isIceRestarting, let completion = self.iceRestartCompletion {
-                    Logger.log.i(message: "[ICE-RESTART] Peer:: ICE negotiation ended during ICE restart, creating final SDP")
                     self.iceRestartCompletion = nil
                     self.createFinalOfferWithCandidates(completion: completion)
                 } else {
@@ -611,11 +610,8 @@ extension Peer : RTCPeerConnectionDelegate {
         
         // Log ICE gathering state changes during ICE restart
         if self.isIceRestarting {
-            Logger.log.i(message: "[ICE-RESTART] Peer:: ICE gathering state changed during ICE restart: [\(newState.telnyx_to_string().uppercased())]")
-            
             // If ICE gathering is complete during ICE restart, trigger completion
             if newState == .complete, let completion = self.iceRestartCompletion {
-                Logger.log.i(message: "[ICE-RESTART] Peer:: ICE gathering complete during ICE restart, creating final SDP")
                 self.iceRestartCompletion = nil
                 self.createFinalOfferWithCandidates(completion: completion)
             }
@@ -623,31 +619,24 @@ extension Peer : RTCPeerConnectionDelegate {
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
-        Logger.log.i(message: "Peer:: connection didGenerate RTCIceCandidate: \(candidate)")
-
         // During ICE restart, we should allow candidates even when connected
         if !isIceRestarting {
             // Check if the negotiation has already ended.
             // If true, we avoid adding new ICE candidates since it's no longer necessary.
             if negotiationEnded {
-                Logger.log.i(message: "Peer:: negotiation marked as ENDED. Skipping candidate: [\(candidate)]")
                 return
             }
 
             // Check if the connection is already established (state is 'connected').
             // If true, we skip adding new ICE candidates to prevent redundant additions.
             if peerConnection.connectionState == .connected {
-                Logger.log.i(message: "Peer:: connection state is CONNECTED. Skipping candidate: [\(candidate)]")
                 return
             }
         } else {
-            Logger.log.i(message: "[ICE-RESTART] Peer:: ICE candidate generated during ICE restart: \(candidate)")
-            
             // Check if we already have enough candidates and should stop gathering
             if let localDescription = peerConnection.localDescription {
                 let currentCandidateCount = localDescription.sdp.components(separatedBy: "a=candidate:").count - 1
                 if currentCandidateCount >= 3 { // We have enough candidates
-                    Logger.log.i(message: "[ICE-RESTART] Peer:: Sufficient ICE candidates gathered (\(currentCandidateCount)), stopping further gathering")
                     // Don't add more candidates to avoid overwhelming the server
                     return
                 }
@@ -660,15 +649,10 @@ extension Peer : RTCPeerConnectionDelegate {
         // This helps populate the local SDP with the ICE candidate information.
         connection?.add(candidate, completionHandler: { error in
             if let error = error {
-                Logger.log.e(message: "Peer:: Failed to add RTCIceCandidate: \(error) for candidate: \(candidate)")
-            } else {
-                Logger.log.i(message: "Peer:: Successfully added RTCIceCandidate: \(candidate)")
+                Logger.log.e(message: "Peer:: Failed to add RTCIceCandidate: \(error)")
             }
         })
         
-        
-        // Log the server URL of the generated ICE candidate (if available).
-        Logger.log.i(message: "Peer:: serverUrl for RTCIceCandidate: \(String(describing: candidate.serverUrl))")
         gatheredICECandidates.append(candidate.serverUrl ?? "")
 
         // Start negotiation if an ICE candidate from the configured STUN or TURN server is gathered.

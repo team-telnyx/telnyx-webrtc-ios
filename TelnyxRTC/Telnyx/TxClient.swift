@@ -385,13 +385,10 @@ public class TxClient {
         self.txConfig = txConfig
 
         if(self.voiceSdkId != nil){
-            Logger.log.i(message: "with_id")
             self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,webRTCIceServers: serverConfiguration.webRTCIceServers,environment: serverConfiguration.environment,pushMetaData: ["voice_sdk_id":self.voiceSdkId!])
         } else {
-            Logger.log.i(message: "without_id")
             self.serverConfiguration = serverConfiguration
         }
-        Logger.log.i(message: "TxClient:: serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
         self.socket = Socket()
         self.socket?.delegate = self
         self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
@@ -408,8 +405,6 @@ public class TxClient {
 
 
         self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,webRTCIceServers: serverConfiguration.webRTCIceServers,environment: serverConfiguration.environment,pushMetaData: self.pushMetaData)
-
-        Logger.log.i(message: "TxClient:: serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
         self.socket = Socket()
         self.socket?.delegate = self
         self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
@@ -533,7 +528,6 @@ public class TxClient {
 
         if self.gatewayState == .REGED {
             // If the client is already registered, we don't need to do anything else.
-            Logger.log.i(message: "TxClient:: updateGatewayState() already registered")
             return
         }
         // Keep the new state.
@@ -549,15 +543,12 @@ public class TxClient {
                 if (self.isCallFromPush == true){
                     self.sendAttachCall()
                 }
-                Logger.log.i(message: "TxClient:: updateGatewayState() clientReady")
                 break
             default:
                 // The gateway state can transition through multiple states before changing to REGED (Registered).
-                Logger.log.i(message: "TxClient:: updateGatewayState() no registered")
                 self.registerTimer.invalidate()
                 DispatchQueue.main.async {
                     self.registerTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(TxClient.DEFAULT_REGISTER_INTERVAL), repeats: false) { [weak self] _ in
-                        Logger.log.i(message: "TxClient:: updateGatewayState() registerTimer elapsed: gatewayState [\(String(describing: self?.gatewayState))] registerRetryCount [\(String(describing: self?.registerRetryCount))]")
 
                         if self?.gatewayState == .REGED {
                             self?.delegate?.onClientReady()
@@ -1105,7 +1096,6 @@ extension TxClient : SocketDelegate {
                let callID = result["callID"] as? String,
                let callUUID = UUID(uuidString: callID),
                let call = calls[callUUID] {
-                Logger.log.i(message: "[ICE-RESTART] TxClient:: Processing ICE restart response for call: \(callID)")
                 call.handleVertoMessage(message: vertoMessage, dataMessage: message, txClient: self)
                 // For ICE restart, we don't need to process sessionId, so we can return here
                 return
@@ -1173,9 +1163,8 @@ extension TxClient : SocketDelegate {
                                 dataDecoded.params.dialogParams.custom_headers.forEach { xHeader in
                                     customHeaders[xHeader.name] = xHeader.value
                                 }
-                                print("Data Decode : \(dataDecoded)")
                             } catch {
-                                print("decoding error: \(error)")
+                                Logger.log.e(message: "Custom header decoding error: \(error)")
                             }
                         }
                         self.createIncomingCall(callerName: callerName,
@@ -1226,9 +1215,8 @@ extension TxClient : SocketDelegate {
                             dataDecoded.params.dialogParams.custom_headers.forEach { xHeader in
                                 customHeaders[xHeader.name] = xHeader.value
                             }
-                            print("Data Decode : \(dataDecoded)")
                         } catch {
-                            print("decoding error: \(error)")
+                            Logger.log.e(message: "Custom header decoding error: \(error)")
                         }
                     }
         
@@ -1270,7 +1258,7 @@ extension TxClient {
                 options: [.mixWithOthers]
             )
         } catch {
-            print(error)
+            Logger.log.e(message: "Failed to set audio session category: \(error)")
         }
     }
 
@@ -1287,7 +1275,7 @@ extension TxClient {
         do {
             try rtcAudioSession.setConfiguration(configuration)
         } catch {
-            print(error)
+            Logger.log.e(message: "Failed to set RTC audio session configuration: \(error)")
         }
         
         rtcAudioSession.unlockForConfiguration()
@@ -1301,7 +1289,7 @@ extension TxClient {
             try rtcAudioSession.setActive(active)
             rtcAudioSession.isAudioEnabled = active
         } catch {
-            print(error)
+            Logger.log.e(message: "Failed to set audio session active: \(error)")
         }
         rtcAudioSession.unlockForConfiguration()
     }

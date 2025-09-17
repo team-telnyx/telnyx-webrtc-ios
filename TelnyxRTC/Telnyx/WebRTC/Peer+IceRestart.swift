@@ -8,8 +8,6 @@ extension Peer {
     /// This is useful when network conditions change and we need to renegotiate ICE candidates
     /// - Parameter completion: Callback with the new SDP offer or error
     func iceRestart(completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
-        Logger.log.i(message: "[ICE-RESTART] Peer:: Starting ICE restart")
-        
         // Set ICE restart flag to allow new candidates even when connected
         self.isIceRestarting = true
         
@@ -17,28 +15,11 @@ extension Peer {
         self.negotiationEnded = false
         self.gatheredICECandidates.removeAll()
         
-        // Log current ICE gathering state before restart
-        if let connection = self.connection {
-            Logger.log.i(message: "[ICE-RESTART] Peer:: Current ICE gathering state before restart: \(connection.iceGatheringState.telnyx_to_string())")
-            Logger.log.i(message: "[ICE-RESTART] Peer:: Current ICE connection state: \(connection.iceConnectionState.telnyx_to_string())")
-            Logger.log.i(message: "[ICE-RESTART] Peer:: Current signaling state: \(connection.signalingState.telnyx_to_string())")
-            
-            // Log ICE servers configuration for debugging
-            Logger.log.i(message: "[ICE-RESTART] Peer:: ICE servers count: \(connection.configuration.iceServers.count)")
-            for (index, server) in connection.configuration.iceServers.enumerated() {
-                Logger.log.i(message: "[ICE-RESTART] Peer:: ICE server \(index + 1): \(server.urlStrings.first ?? "unknown")")
-            }
-            Logger.log.i(message: "[ICE-RESTART] Peer:: ICE transport policy: \(connection.configuration.iceTransportPolicy.rawValue)")
-            Logger.log.i(message: "[ICE-RESTART] Peer:: Continual gathering policy: \(connection.configuration.continualGatheringPolicy.rawValue)")
-        }
-        
         // Create constraints with IceRestart flag to force ICE restart
         let constraints = RTCMediaConstraints(
             mandatoryConstraints: ["IceRestart": "true"],
             optionalConstraints: nil
         )
-        
-        Logger.log.i(message: "[ICE-RESTART] Peer:: Creating offer with IceRestart=true constraint")
         
         // Create new offer with IceRestart constraint - this should force new ICE candidates
         self.connection?.offer(for: constraints) { (sdp, error) in
@@ -56,9 +37,6 @@ extension Peer {
                 return
             }
             
-            Logger.log.i(message: "[ICE-RESTART] Peer:: ICE restart offer created, setting local description")
-            Logger.log.i(message: "[ICE-RESTART] Peer:: SDP contains candidates: \(sdp.sdp.contains("a=candidate:"))")
-            
             // Set local description to start ICE gathering with new candidates
             self.connection?.setLocalDescription(sdp, completionHandler: { (error) in
                 if let error = error {
@@ -66,16 +44,8 @@ extension Peer {
                     self.isIceRestarting = false
                     completion(nil, error)
                 } else {
-                    Logger.log.i(message: "[ICE-RESTART] Peer:: ICE restart local description set successfully, ICE gathering started")
-                    
-                    // Log ICE gathering state after setting local description
-                    if let connection = self.connection {
-                        Logger.log.i(message: "[ICE-RESTART] Peer:: ICE gathering state after setting local description: \(connection.iceGatheringState.telnyx_to_string())")
-                    }
-                    
                     // Store completion handler for when negotiation ends
                     self.iceRestartCompletion = completion
-                    Logger.log.i(message: "[ICE-RESTART] Peer:: ICE restart completion handler stored, waiting for ICE candidates")
                     
                     // Start waiting for ICE candidates with a timeout
                     self.waitForICECandidatesWithTimeout(completion: completion)
@@ -87,8 +57,6 @@ extension Peer {
     /// Waits for ICE candidates to be generated during ICE restart with a timeout
     /// - Parameter completion: Callback with the final SDP or error
     private func waitForICECandidatesWithTimeout(completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
-        Logger.log.i(message: "[ICE-RESTART] Peer:: Waiting for ICE candidates with timeout")
-        
         let timeout: TimeInterval = 5.0 // 5 seconds timeout for ICE candidates
         let startTime = Date()
         var lastCandidateCount = 0
@@ -107,42 +75,35 @@ extension Peer {
             // Check if ICE gathering is complete or we have candidates
             if let connection = self.connection {
                 let gatheringState = connection.iceGatheringState
-                Logger.log.i(message: "[ICE-RESTART] Peer:: ICE gathering state check: \(gatheringState.telnyx_to_string()) (elapsed: \(String(format: "%.1f", elapsed))s)")
                 
                 // Check if we have any candidates in the current local description
                 if let localDescription = connection.localDescription {
                     let candidateCount = localDescription.sdp.components(separatedBy: "a=candidate:").count - 1
                     
                     if candidateCount > lastCandidateCount {
-                        Logger.log.i(message: "[ICE-RESTART] Peer:: Found \(candidateCount) ICE candidates in local description (was \(lastCandidateCount))")
                         lastCandidateCount = candidateCount
                         stableCandidateCount = 0 // Reset stability counter
                     } else if candidateCount == lastCandidateCount && candidateCount > 0 {
                         stableCandidateCount += 1
-                        Logger.log.i(message: "[ICE-RESTART] Peer:: Candidate count stable at \(candidateCount) (stability: \(stableCandidateCount)/\(requiredStableChecks))")
                     }
                 }
                 
                 // Check if ICE gathering is complete OR we have stable candidates
                 if gatheringState == .complete {
-                    Logger.log.i(message: "[ICE-RESTART] Peer:: ICE gathering complete, creating final SDP")
                     timer.invalidate()
                     self.iceRestartCompletion = nil
                     self.createFinalOfferWithCandidates(completion: completion)
                 } else if lastCandidateCount > 0 && stableCandidateCount >= requiredStableChecks {
-                    Logger.log.i(message: "[ICE-RESTART] Peer:: ICE candidates stable (\(lastCandidateCount) candidates), creating final SDP")
                     timer.invalidate()
                     self.iceRestartCompletion = nil
                     self.createFinalOfferWithCandidates(completion: completion)
                 } else if elapsed >= timeout {
-                    Logger.log.w(message: "[ICE-RESTART] Peer:: Timeout waiting for ICE candidates (\(timeout)s), proceeding with current SDP")
+                    Logger.log.w(message: "[ICE-RESTART] Peer:: Timeout waiting for ICE candidates")
                     timer.invalidate()
                     self.iceRestartCompletion = nil
                     
                     // Proceed with current SDP even without candidates
                     if let localDescription = connection.localDescription {
-                        let finalCandidateCount = localDescription.sdp.components(separatedBy: "a=candidate:").count - 1
-                        Logger.log.i(message: "[ICE-RESTART] Peer:: Using current local description with \(finalCandidateCount) candidates")
                         completion(localDescription, nil)
                     } else {
                         Logger.log.e(message: "[ICE-RESTART] Peer:: No local description available after timeout")
@@ -166,23 +127,12 @@ extension Peer {
         // Instead, we should use the existing local description which already has the ICE restart flag
         // and the gathered candidates will be automatically included
         
-        Logger.log.i(message: "[ICE-RESTART] Peer:: Using existing local description for ICE restart (no new offer needed)")
-        
         if let localDescription = self.connection?.localDescription {
             let candidateCount = localDescription.sdp.components(separatedBy: "a=candidate:").count - 1
-            Logger.log.i(message: "[ICE-RESTART] Peer:: Using local description with \(candidateCount) candidates")
             
-            // Log detailed SDP information for debugging
+            // Log warning if no candidates found
             if candidateCount == 0 {
-                Logger.log.w(message: "[ICE-RESTART] Peer:: WARNING - No ICE candidates found in local description!")
-                Logger.log.i(message: "[ICE-RESTART] Peer:: SDP content preview: \(String(localDescription.sdp.prefix(500)))")
-            } else {
-                Logger.log.i(message: "[ICE-RESTART] Peer:: ICE candidates found successfully in local description")
-                // Log first few candidates for debugging
-                let candidates = localDescription.sdp.components(separatedBy: "\n").filter { $0.hasPrefix("a=candidate:") }
-                for (index, candidate) in candidates.prefix(3).enumerated() {
-                    Logger.log.i(message: "[ICE-RESTART] Peer:: Candidate \(index + 1): \(candidate)")
-                }
+                Logger.log.w(message: "[ICE-RESTART] Peer:: No ICE candidates found in local description")
             }
             
             completion(localDescription, nil)
@@ -195,8 +145,6 @@ extension Peer {
     /// Stops ICE gathering to prevent further candidate generation
     /// This should be called after sending the ICE restart SDP to avoid overwhelming the server
     func stopICEGathering() {
-        Logger.log.i(message: "[ICE-RESTART] Peer:: Stopping ICE gathering")
-        
         // Mark negotiation as ended to prevent further candidate processing
         self.negotiationEnded = true
         
@@ -205,7 +153,5 @@ extension Peer {
         
         // Reset ICE restart flag
         self.isIceRestarting = false
-        
-        Logger.log.i(message: "[ICE-RESTART] Peer:: ICE gathering stopped successfully")
     }
 }

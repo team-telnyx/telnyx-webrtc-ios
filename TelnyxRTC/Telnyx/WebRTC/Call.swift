@@ -1013,7 +1013,6 @@ extension Call {
         case .MODIFY:
             // Handle other MODIFY actions (hold/unhold, etc.)
             // ICE restart is handled at the beginning of the method
-            Logger.log.i(message: "[ICE-RESTART] Call:: Received MODIFY message (non-ICE restart)")
             break
             
         default:
