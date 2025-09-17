@@ -632,6 +632,7 @@ extension TxClient {
         }
 
         let call = Call(callId: callId,
+                        remoteSdp: "",
                         sessionId: sessionId,
                         socket: socket,
                         delegate: self,
@@ -639,7 +640,8 @@ extension TxClient {
                         ringbackTone: self.txConfig?.ringBackTone,
                         iceServers: self.serverConfiguration.webRTCIceServers,
                         debug: self.txConfig?.debug ?? false,
-                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false)
+                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
+                        sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false)
         call.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState, customHeaders: customHeaders,debug: debug)
 
         currentCallId = callId
@@ -682,7 +684,8 @@ extension TxClient {
                         iceServers: self.serverConfiguration.webRTCIceServers,
                         isAttach: isAttach,
                         debug: self.txConfig?.debug ?? false,
-                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false)
+                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
+                        sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false)
         call.callInfo?.callerName = callerName
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)
@@ -773,12 +776,14 @@ extension TxClient {
                 // Create an initial call_object to handle early bye message
                 if let newCallId = (pushMetaData["call_id"] as? String) {
                     self.calls[UUID(uuidString: newCallId)!] = Call(callId: UUID(uuidString: newCallId)!,
+                                                                    remoteSdp: "",
                                                                     sessionId: newCallId,
                                                                     socket: self.socket!,
                                                                     delegate: self,
                                                                     iceServers: self.serverConfiguration.webRTCIceServers,
                                                                     debug: self.txConfig?.debug ?? false,
-                                                                    forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false)
+                                                                    forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
+                                                                    sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false)
                 }
             } catch let error {
                 Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")

@@ -260,6 +260,11 @@ public class Call {
     /// Enables CallQuality Metrics for Call
     public internal(set) var enableQualityMetrics: Bool = false
     
+    /// Controls whether the SDK should send WebRTC statistics via socket to Telnyx servers.
+    /// When enabled, collected WebRTC stats will be sent to Telnyx servers for monitoring and debugging.
+    /// This is independent of stats collection - stats can be collected without being sent via socket.
+    public internal(set) var sendWebRTCStatsViaSocket: Bool = false
+    
     /// Controls whether the SDK should force TURN relay for peer connections.
     /// When enabled, the SDK will only use TURN relay candidates for ICE gathering,
     /// which prevents the "local network access" permission popup from appearing.
@@ -346,7 +351,8 @@ public class Call {
          isAttach: Bool = false,
          debug: Bool = false,
          forceRelayCandidate: Bool = false,
-         enableQualityMetrics: Bool = false
+         enableQualityMetrics: Bool = false,
+         sendWebRTCStatsViaSocket: Bool = false
     ) {
         if isAttach {
             self.direction = CallDirection.ATTACH
@@ -383,6 +389,7 @@ public class Call {
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
         self.enableQualityMetrics = enableQualityMetrics
+        self.sendWebRTCStatsViaSocket = sendWebRTCStatsViaSocket
     }
     
     //Contructor for attachCalls
@@ -395,7 +402,8 @@ public class Call {
          telnyxLegId: UUID? = nil,
          iceServers: [RTCIceServer],
          debug: Bool = false,
-         forceRelayCandidate: Bool = false) {
+         forceRelayCandidate: Bool = false,
+         sendWebRTCStatsViaSocket: Bool = false) {
         self.direction = CallDirection.ATTACH
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
@@ -414,6 +422,7 @@ public class Call {
         
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
+        self.sendWebRTCStatsViaSocket = sendWebRTCStatsViaSocket
     }
 
     /// Constructor for outgoing calls
@@ -1145,7 +1154,7 @@ extension Call {
     /// Performs ICE restart using the existing Call+IceRestart implementation
     /// - Parameter completion: Callback with success status and error
     private func performIceRestart(completion: @escaping (Bool, Error?) -> Void) {
-        guard let peer = self.peer else {
+        guard let _ = self.peer else {
             Logger.log.e(message: "Call:: performIceRestart - No peer connection available")
             completion(false, NSError(domain: "Call", code: -1, userInfo: [NSLocalizedDescriptionKey: "No peer connection available"]))
             return
