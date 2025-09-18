@@ -8,8 +8,6 @@ extension Call {
     /// This helps resolve audio delay issues by establishing new network paths
     /// - Parameter completion: Callback indicating success or failure of the ICE restart
     public func iceRestart(completion: @escaping (_ success: Bool, _ error: Error?) -> Void) {
-        Logger.log.i(message: "[ICE-RESTART] Call:: Starting ICE restart")
-        
         guard let peer = self.peer,
               let callId = self.callInfo?.callId,
               let sessionId = self.sessionId else {
@@ -30,7 +28,6 @@ extension Call {
         
         // Mark that we need to reset audio after ICE restart to clear jitter buffers
         self.shouldResetAudioAfterIceRestart = true
-        Logger.log.i(message: "[ICE-RESTART] Call:: ICE restart initiated - will reset audio to clear jitter buffers")
         
         // Perform ICE restart on the peer connection
         peer.iceRestart { [weak self] (sdp, error) in
@@ -66,8 +63,6 @@ extension Call {
             let message = iceRestartMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
             
-            Logger.log.i(message: "[ICE-RESTART] Call:: ICE restart message sent: \(message)")
-            
             // Reset ICE restart flag after sending
             self.isIceRestarting = false
             
@@ -81,8 +76,6 @@ extension Call {
     /// Automatically triggers ICE restart when network conditions change
     /// This is called internally when network quality degrades
     internal func autoIceRestart() {
-        Logger.log.i(message: "[ICE-RESTART] Call:: Auto ICE restart triggered")
-        
         iceRestart { [weak self] (success, error) in
             if success {
                 Logger.log.i(message: "[ICE-RESTART] Call:: Auto ICE restart completed successfully")
@@ -95,7 +88,6 @@ extension Call {
     /// Sets up automatic ICE restart when network conditions improve
     /// This should be called when the call becomes active
     internal func setupAutoIceRestart() {
-        Logger.log.i(message: "[ICE-RESTART] Call:: Setting up auto ICE restart")
         // Note: Auto ICE restart setup removed as NetworkQualityMonitor is not being ported
         // This method is kept for future implementation if needed
     }
@@ -103,7 +95,6 @@ extension Call {
     /// Removes automatic ICE restart monitoring
     /// This should be called when the call ends
     internal func removeAutoIceRestart() {
-        Logger.log.i(message: "[ICE-RESTART] Call:: Removing auto ICE restart")
         // Note: Auto ICE restart removal removed as NetworkQualityMonitor is not being ported
         // This method is kept for future implementation if needed
     }
@@ -121,9 +112,7 @@ extension Call {
             return
         }
         
-        Logger.log.i(message: "[ICE-RESTART] Call:: Processing ICE restart response with action: \(action)")
-        Logger.log.i(message: "[ICE-RESTART] Call:: Received ICE restart response with SDP (length: \(sdp.count) chars)")
-        Logger.log.i(message: "[ICE-RESTART] Call:: SDP contains candidates: \(sdp.contains("a=candidate:"))")
+        Logger.log.i(message: "[ICE-RESTART] Call:: Processing ICE restart response")
         
         // Set the new remote SDP from the ICE restart response as answer
         let remoteDescription = RTCSessionDescription(type: .answer, sdp: sdp)
@@ -137,13 +126,11 @@ extension Call {
                 self.isIceRestarting = false
                 self.shouldResetAudioAfterIceRestart = false
             } else {
-                Logger.log.i(message: "[ICE-RESTART] Call:: ICE restart remote description set successfully")
                 
                 // Reset audio to clear jitter buffers after successful ICE restart
                 if self.shouldResetAudioAfterIceRestart {
                     Logger.log.i(message: "[ICE-RESTART] Call:: Resetting audio to clear jitter buffers after ICE restart")
-                    // Note: Audio reset functionality removed as CallQualityOptimizer is not being ported
-                    // This is where audio reset would be called
+                    self.resetAudioDevice()
                 }
                 
                 // Reset ICE restart flags

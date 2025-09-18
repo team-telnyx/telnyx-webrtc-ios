@@ -217,6 +217,15 @@ public class Call {
     /// Flag to track if we need to reset audio after ICE restart
     internal var shouldResetAudioAfterIceRestart: Bool = false
     
+    /// Previous ICE connection state for monitoring transitions
+    private var previousIceConnectionState: RTCIceConnectionState = .new
+    
+    /// RTT monitoring variables
+    private var isRttMonitoringActive: Bool = false
+    private var lastAudioResetTime: Date = Date.distantPast
+    private var rttResetTimer: Timer?
+    private var currentRttMs: Double = 0.0
+    
     /// Callback for real-time call quality metrics
     /// This is triggered whenever new WebRTC statistics are available
     public var onCallQualityChange: ((CallQualityMetrics) -> Void)?
@@ -250,6 +259,11 @@ public class Call {
     
     /// Enables CallQuality Metrics for Call
     public internal(set) var enableQualityMetrics: Bool = false
+    
+    /// Controls whether the SDK should send WebRTC statistics via socket to Telnyx servers.
+    /// When enabled, collected WebRTC stats will be sent to Telnyx servers for monitoring and debugging.
+    /// This is independent of stats collection - stats can be collected without being sent via socket.
+    public internal(set) var sendWebRTCStatsViaSocket: Bool = false
     
     /// Controls whether the SDK should force TURN relay for peer connections.
     /// When enabled, the SDK will only use TURN relay candidates for ICE gathering,
@@ -337,7 +351,8 @@ public class Call {
          isAttach: Bool = false,
          debug: Bool = false,
          forceRelayCandidate: Bool = false,
-         enableQualityMetrics: Bool = false
+         enableQualityMetrics: Bool = false,
+         sendWebRTCStatsViaSocket: Bool = false
     ) {
         if isAttach {
             self.direction = CallDirection.ATTACH
@@ -374,6 +389,7 @@ public class Call {
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
         self.enableQualityMetrics = enableQualityMetrics
+        self.sendWebRTCStatsViaSocket = sendWebRTCStatsViaSocket
     }
     
     //Contructor for attachCalls
@@ -386,7 +402,8 @@ public class Call {
          telnyxLegId: UUID? = nil,
          iceServers: [RTCIceServer],
          debug: Bool = false,
-         forceRelayCandidate: Bool = false) {
+         forceRelayCandidate: Bool = false,
+         sendWebRTCStatsViaSocket: Bool = false) {
         self.direction = CallDirection.ATTACH
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
@@ -405,6 +422,7 @@ public class Call {
         
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
+        self.sendWebRTCStatsViaSocket = sendWebRTCStatsViaSocket
     }
 
     /// Constructor for outgoing calls
@@ -540,12 +558,14 @@ public class Call {
             statsReporter.handleCallStateChange(callState: callState)
         }
         
-        // Setup or remove auto ICE restart based on call state
+        // Setup or remove ICE connection state monitoring based on call state
         switch callState {
         case .ACTIVE:
-            setupAutoIceRestart()
+            setupIceConnectionStateMonitoring()
+            setupRttMonitoring()
         case .DONE, .DROPPED, .HELD:
-            removeAutoIceRestart()
+            removeIceConnectionStateMonitoring()
+            removeRttMonitoring()
         default:
             break
         }
@@ -687,8 +707,13 @@ extension Call {
         if (debug || enableQualityMetrics),
            let callId = self.callInfo?.callId {
             self.statsReporter?.startDebugReport(peerId: callId, call: self)
-            self.statsReporter?.onStatsFrame = { metric in
-                self.onCallQualityChange?(metric)
+            
+            // Only set callback if RTT monitoring is not active
+            // RTT monitoring will handle the callback setup
+            if !isRttMonitoringActive {
+                self.statsReporter?.onStatsFrame = { metric in
+                    self.onCallQualityChange?(metric)
+                }
             }
         }
     }
@@ -750,6 +775,20 @@ extension Call {
     public func unmuteAudio() {
         Logger.log.i(message: "Call:: unmuteAudio()")
         self.peer?.muteUnmuteAudio(mute: false)
+    }
+    
+    /// Resets the audio device and clears accumulated buffers to resolve persistent audio delay issues.
+    /// 
+    /// This method addresses iOS audio delay problems where:
+    /// - AudioDeviceModule buffers stretch under poor network conditions
+    /// - WebRTC audio pacing causes frame accumulation
+    /// - iOS AudioUnit/AVAudioSession remains in large buffer state
+    /// 
+    /// ### Example:
+    ///     call.resetAudioDevice()
+    public func resetAudioDevice() {
+        Logger.log.i(message: "Call:: resetAudioDevice() - Manually resetting audio device to clear delay")
+        self.peer?.resetAudioDeviceModule()
     }
 }
 
@@ -983,7 +1022,6 @@ extension Call {
         case .MODIFY:
             // Handle other MODIFY actions (hold/unhold, etc.)
             // ICE restart is handled at the beginning of the method
-            Logger.log.i(message: "[ICE-RESTART] Call:: Received MODIFY message (non-ICE restart)")
             break
             
         default:
@@ -1044,6 +1082,212 @@ extension Call {
             Logger.log.e(message: "Call:: buildAudioPlayer() \(fileType.rawValue) error: \(error)")
         }
         return nil
+    }
+}
+
+// MARK: - ICE Connection State Monitoring
+extension Call {
+    
+    /// Sets up automatic ICE connection state monitoring for the active call
+    private func setupIceConnectionStateMonitoring() {
+        Logger.log.i(message: "Call:: Setting up ICE connection state monitoring")
+        
+        // Set up callback to monitor ICE connection state changes
+        self.peer?.onIceConnectionStateChange = { [weak self] newState in
+            self?.handleIceConnectionStateTransition(from: self?.previousIceConnectionState ?? .new, to: newState)
+            self?.previousIceConnectionState = newState
+        }
+    }
+    
+    /// Removes automatic ICE connection state monitoring
+    private func removeIceConnectionStateMonitoring() {
+        Logger.log.i(message: "Call:: Removing ICE connection state monitoring")
+        
+        // Clear the callback
+        self.peer?.onIceConnectionStateChange = nil
+    }
+    
+    /// Handles ICE connection state transitions for automatic recovery
+    /// - Parameters:
+    ///   - from: Previous ICE connection state
+    ///   - to: New ICE connection state
+    private func handleIceConnectionStateTransition(from previousState: RTCIceConnectionState, to newState: RTCIceConnectionState) {
+        Logger.log.i(message: "Call:: ICE state transition: \(previousState.telnyx_to_string()) -> \(newState.telnyx_to_string())")
+        
+        // Case 1: disconnected -> failed: Attempt ICE restart/renegotiation
+        if previousState == .disconnected && newState == .failed {
+            Logger.log.w(message: "Call:: ICE connection failed after disconnect - attempting ICE restart")
+            
+            // Trigger ICE restart to recover from failed state
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.performIceRestart { success, error in
+                    if success {
+                        Logger.log.i(message: "Call:: Auto ICE restart completed successfully")
+                    } else {
+                        Logger.log.e(message: "Call:: Auto ICE restart failed: \(error?.localizedDescription ?? "Unknown error")")
+                    }
+                }
+            }
+        }
+        
+        // Case 2: connected -> disconnected: Reset audio buffers
+        if previousState == .connected && newState == .disconnected {
+            Logger.log.w(message: "Call:: ICE connection disconnected - resetting audio buffers")
+            
+            // Reset audio device module to clear accumulated buffers
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+                self?.peer?.resetAudioDeviceModule()
+            }
+        }
+        
+        // Case 3: disconnected -> connected: Reset audio buffers
+        if previousState == .disconnected && newState == .connected {
+            Logger.log.i(message: "Call:: ICE connection restored - resetting audio buffers")
+            
+            // Reset audio device module to clear accumulated buffers
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+                self?.peer?.resetAudioDeviceModule()
+            }
+        }
+    }
+    
+    /// Performs ICE restart using the existing Call+IceRestart implementation
+    /// - Parameter completion: Callback with success status and error
+    private func performIceRestart(completion: @escaping (Bool, Error?) -> Void) {
+        guard let _ = self.peer else {
+            Logger.log.e(message: "Call:: performIceRestart - No peer connection available")
+            completion(false, NSError(domain: "Call", code: -1, userInfo: [NSLocalizedDescriptionKey: "No peer connection available"]))
+            return
+        }
+        
+        Logger.log.i(message: "Call:: Starting ICE restart")
+        
+        // Set ICE restart flags
+        self.isIceRestarting = true
+        self.shouldResetAudioAfterIceRestart = true
+        
+        // Use the existing iceRestart method from Call+IceRestart
+        self.iceRestart { [weak self] success, error in
+            guard let self = self else { return }
+            
+            if success {
+                Logger.log.i(message: "Call:: ICE restart completed successfully")
+                completion(true, nil)
+            } else {
+                Logger.log.e(message: "Call:: ICE restart failed: \(error?.localizedDescription ?? "Unknown error")")
+                self.isIceRestarting = false
+                self.shouldResetAudioAfterIceRestart = false
+                completion(false, error)
+            }
+        }
+    }
+}
+
+// MARK: - RTT Monitoring
+extension Call {
+    
+    /// Sets up RTT monitoring for automatic audio reset when RTT is high
+    private func setupRttMonitoring() {
+        Logger.log.i(message: "[RTT] Call:: Setting up RTT monitoring - Call state: \(callState)")
+
+        isRttMonitoringActive = true
+        lastAudioResetTime = Date.distantPast
+        currentRttMs = 0.0
+        
+        // Set up callback to monitor RTT metrics from WebRTCStatsReporter
+        self.statsReporter?.onStatsFrame = { [weak self] metrics in
+            // Forward to user callback if set
+            self?.onCallQualityChange?(metrics)
+            // Handle RTT monitoring
+            self?.handleRttMetrics(metrics: metrics)
+        }
+    }
+    
+    /// Removes RTT monitoring
+    private func removeRttMonitoring() {
+        Logger.log.i(message: "[RTT] Call:: Removing RTT monitoring")
+        
+        isRttMonitoringActive = false
+        stopRttResetTimer()
+        currentRttMs = 0.0
+        
+        // Restore original callback behavior (only forward to user callback)
+        self.statsReporter?.onStatsFrame = { [weak self] metrics in
+            self?.onCallQualityChange?(metrics)
+        }
+    }
+    
+    /// Handles RTT metrics and triggers audio reset when needed
+    /// - Parameter metrics: Call quality metrics containing RTT information
+    private func handleRttMetrics(metrics: CallQualityMetrics) {
+        guard isRttMonitoringActive else { return }
+
+        currentRttMs = metrics.rtt * 1000 // Convert to milliseconds and store
+
+        Logger.log.i(message: "[RTT] Call:: Current RTT: \(String(format: "%.1f", currentRttMs))ms")
+
+        // Case 1: RTT >= 1000ms (1 second) - Start timer if not already running
+        if currentRttMs >= 500 {
+            if rttResetTimer == nil {
+                Logger.log.w(message: "[RTT] Call:: HIGH RTT detected: \(String(format: "%.1f", currentRttMs))ms - Starting timer")
+                startRttResetTimer()
+            }
+        }
+        // Case 2: RTT < 1000ms - Stop timer
+        else {
+            if rttResetTimer != nil {
+                Logger.log.i(message: "[RTT] Call:: RTT normalized: \(String(format: "%.1f", currentRttMs))ms - Stopping timer")
+                stopRttResetTimer()
+            }
+        }
+    }
+    
+    /// Starts a timer to reset audio in 5 seconds if RTT is still high
+    private func startRttResetTimer() {
+        Logger.log.i(message: "[RTT] Call:: Starting 5-second reset timer")
+
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+
+            self.rttResetTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { [weak self] _ in
+                guard let self = self, self.isRttMonitoringActive else {
+                    return
+                }
+
+                Logger.log.i(message: "[RTT] Timer fired - Current RTT: \(String(format: "%.1f", self.currentRttMs))ms")
+
+                // Clear timer first
+                self.rttResetTimer = nil
+
+                // Only reset if RTT is still >= 1000ms
+                if self.currentRttMs >= 1000 {
+                    Logger.log.w(message: "[RTT] AUDIO RESET triggered - RTT: \(String(format: "%.1f", self.currentRttMs))ms")
+                    self.resetAudioForHighRtt()
+
+                    // Start new timer for next reset (will be handled by next RTT metric)
+                    Logger.log.i(message: "[RTT] Timer completed, next timer will start on next high RTT metric")
+                } else {
+                    Logger.log.i(message: "[RTT] RTT normalized, timer stopped")
+                }
+            }
+        }
+    }
+
+    /// Stops the RTT reset timer
+    private func stopRttResetTimer() {
+        rttResetTimer?.invalidate()
+        rttResetTimer = nil
+    }
+    
+    /// Resets audio device module due to high RTT
+    private func resetAudioForHighRtt() {
+        Logger.log.w(message: "[RTT] EXECUTING AUDIO RESET")
+
+        // Reset audio device module
+        self.peer?.resetAudioDeviceModule()
+
+        // Update last reset time for tracking purposes
+        lastAudioResetTime = Date()
     }
 }
 
