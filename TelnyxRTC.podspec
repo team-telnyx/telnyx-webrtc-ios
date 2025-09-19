@@ -18,5 +18,5 @@ Pod::Spec.new do |spec|
   spec.resource_bundles = {"TelnyxRTC" => ["TelnyxRTC/PrivacyInfo.xcprivacy"]}
 
   spec.dependency  "Starscream", "~> 4.0.8"
-  spec.dependency  "WebRTC-lib", "~> 124.0.0"
+  spec.dependency  "WebRTC-lib", "~> 139.0.0"
 end
