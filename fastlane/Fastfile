@@ -44,7 +44,7 @@ lane :generate_docs do
       --clean \
       --author "Telnyx LLC" \
       --author_url "https://www.telnyx.com/" \
-      --xcodebuild-arguments -workspace,TelnyxRTC.xcworkspace,-scheme,TelnyxRTC,-sdk,iphonesimulator,-destination,platform=iOS Simulator\
+      --xcodebuild-arguments -workspace,TelnyxRTC.xcworkspace,-scheme,TelnyxRTC,-sdk,iphonesimulator,-destination,platform=iOS Simulator, OS:18.4, name:iPhone 16 Pro Max \
       --output ./docs
   SHELL
   UI.message("📚 Documentation generated in ./docs")
