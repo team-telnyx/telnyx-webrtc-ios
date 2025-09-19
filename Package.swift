@@ -12,7 +12,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/daltoniam/Starscream.git", from: "4.0.6"),
-        .package(url: "https://github.com/stasel/WebRTC.git", from: "139.0.0")
+        .package(url: "https://github.com/stasel/WebRTC.git", from: "139o.0.0")
     ],
     targets: [
         .target(
