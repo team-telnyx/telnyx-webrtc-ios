@@ -357,7 +357,9 @@ struct HomeView_Previews: PreviewProvider {
                     onToggleSpeaker: {},
                     onHold: { _ in },
                     onDTMF: { _ in },
-                    onRedial: { _ in }
+                    onRedial: { _ in },
+                    onIceRestart: {},
+                    onResetAudio: {}
                 )
             )
         )

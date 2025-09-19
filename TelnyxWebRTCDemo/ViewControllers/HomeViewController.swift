@@ -73,6 +73,12 @@ class HomeViewController: UIViewController {
             onRedial: { [weak self] phoneNumber in
                 self?.callViewModel.sipAddress = phoneNumber
                 self?.onCallButton()
+            },
+            onIceRestart: { [weak self] in
+                self?.onIceRestart()
+            },
+            onResetAudio: { [weak self] in
+                self?.onResetAudio()
             }
         )
 
@@ -247,6 +253,13 @@ extension HomeViewController {
             self.userDefaults.saveWebRTCStats(!currentWebRTCStats)
         }))
 
+        // Send WebRTC Stats Via Socket toggle
+        let currentSendWebRTCStatsViaSocket = userDefaults.getSendWebRTCStatsViaSocket()
+        let sendWebRTCStatsViaSocketTitle = currentSendWebRTCStatsViaSocket ? "Disable Send WebRTC Stats Via Socket" : "Enable Send WebRTC Stats Via Socket"
+        alert.addAction(UIAlertAction(title: sendWebRTCStatsViaSocketTitle, style: .default, handler: { _ in
+            self.userDefaults.saveSendWebRTCStatsViaSocket(!currentSendWebRTCStatsViaSocket)
+        }))
+
         alert.addAction(UIAlertAction(title: "Copy APNS token", style: .default, handler: { _ in
             // To copy the APNS push token to pasteboard
             let token = UserDefaults().getPushToken()
@@ -375,9 +388,10 @@ extension HomeViewController {
                                 deviceToken: String?) throws -> TxConfig {
         var txConfig: TxConfig?
         
-        // Get the forceRelayCandidate and webrtcStats settings from UserDefaults
+        // Get the forceRelayCandidate, webrtcStats, and sendWebRTCStatsViaSocket settings from UserDefaults
         let forceRelayCandidate = userDefaults.getForceRelayCandidate()
         let webrtcStats = userDefaults.getWebRTCStats()
+        let sendWebRTCStatsViaSocket = userDefaults.getSendWebRTCStatsViaSocket()
 
         // Set the connection configuration object.
         // We can login with a user token: https://developers.telnyx.com/docs/v2/webrtc/quickstart
@@ -395,7 +409,9 @@ extension HomeViewController {
                                 // Force relay candidate
                                 forceRelayCandidate: forceRelayCandidate,
                                 // Enable Call Quality Metrics
-                                enableQualityMetrics: false)
+                                enableQualityMetrics: false,
+                                // Send WebRTC Stats Via Socket
+                                sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket)
         } else if let credential = sipCredential {
             // To obtain SIP credentials, please go to https://portal.telnyx.com
             txConfig = TxConfig(sipUser: credential.username,
@@ -411,7 +427,9 @@ extension HomeViewController {
                                 // Force relay candidate.
                                 forceRelayCandidate: forceRelayCandidate,
                                 // Enable Call Quality Metrics
-                                enableQualityMetrics: false)
+                                enableQualityMetrics: false,
+                                // Send WebRTC Stats Via Socket
+                                sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket)
         }
 
         guard let config = txConfig else {
@@ -483,5 +501,36 @@ extension HomeViewController {
         } else {
             appDelegate.currentCall?.unhold()
         }
+    }
+    
+    func onIceRestart() {
+        guard let call = appDelegate.currentCall else {
+            print("[ICE-RESTART] HomeViewController:: No active call for ICE restart")
+            return
+        }
+        
+        print("[ICE-RESTART] HomeViewController:: Starting ICE restart")
+        call.iceRestart { [weak self] (success, error) in
+            DispatchQueue.main.async {
+                if success {
+                    print("[ICE-RESTART] HomeViewController:: ICE restart completed successfully")
+                    // You could show a success message to the user here if needed
+                } else {
+                    print("[ICE-RESTART] HomeViewController:: ICE restart failed: \(error?.localizedDescription ?? "Unknown error")")
+                    // You could show an error message to the user here if needed
+                }
+            }
+        }
+    }
+    
+    func onResetAudio() {
+        guard let call = appDelegate.currentCall else {
+            print("[RESET-AUDIO] HomeViewController:: No active call for audio reset")
+            return
+        }
+        
+        print("[RESET-AUDIO] HomeViewController:: Resetting audio device to clear delay")
+        call.resetAudioDevice()
+        print("[RESET-AUDIO] HomeViewController:: Audio device reset completed")
     }
 }

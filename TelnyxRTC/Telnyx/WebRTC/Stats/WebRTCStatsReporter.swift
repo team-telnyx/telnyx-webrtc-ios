@@ -106,8 +106,8 @@ class WebRTCStatsReporter {
     
     // MARK: - Private Helper Methods
     private func sendDebugReportStartMessage(id: UUID) {
-        if self.call?.debug == false {
-            Logger.log.i(message: "WebRTCStatsReporter:: Skipping sending stats message debug not enabled")
+        if self.call?.debug == false || self.call?.sendWebRTCStatsViaSocket == false {
+            Logger.log.i(message: "WebRTCStatsReporter:: Skipping sending stats message - debug not enabled or socket sending disabled")
             return
         }
         let statsMessage = DebugReportStartMessage(reportID: id.uuidString.lowercased())
@@ -120,8 +120,8 @@ class WebRTCStatsReporter {
     }
     
     private func sendDebugReportStopMessage(id: UUID) {
-        if self.call?.debug == false {
-            Logger.log.i(message: "WebRTCStatsReporter:: Skipping sending stats message debug not enabled")
+        if self.call?.debug == false || self.call?.sendWebRTCStatsViaSocket == false {
+            Logger.log.i(message: "WebRTCStatsReporter:: Skipping sending stats message - debug not enabled or socket sending disabled")
             return
         }
         let statsMessage = DebugReportStopMessage(reportID: id.uuidString.lowercased())
@@ -134,8 +134,8 @@ class WebRTCStatsReporter {
     }
     
     private func sendDebugReportDataMessage(id: UUID, data: [String: Any]) {
-        if self.call?.debug == false {
-            Logger.log.i(message: "WebRTCStatsReporter:: Skipping sending stats message debug not enabled")
+        if self.call?.debug == false || self.call?.sendWebRTCStatsViaSocket == false {
+            Logger.log.i(message: "WebRTCStatsReporter:: Skipping sending stats message - debug not enabled or socket sending disabled")
             return
         }
         // Skip sending messages if reporting is paused due to socket disconnection or call state
@@ -535,6 +535,10 @@ class WebRTCStatsReporter {
         messageQueue.async { [weak self] in
             guard let self = self, !self.isReportingPaused else {
                 Logger.log.i(message: "WebRTCStatsReporter:: Message sending skipped due to paused state")
+                return
+            }
+            guard self.call?.sendWebRTCStatsViaSocket == true else {
+                Logger.log.i(message: "WebRTCStatsReporter:: Message sending skipped - socket sending disabled")
                 return
             }
             self.socket?.sendMessage(message: message)

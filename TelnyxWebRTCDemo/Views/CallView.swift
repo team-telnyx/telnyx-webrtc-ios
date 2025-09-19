@@ -15,6 +15,8 @@ struct CallView: View {
     let onHold: (Bool) -> Void
     let onDTMF: (String) -> Void
     let onRedial: ((String) -> Void)?
+    let onIceRestart: () -> Void
+    let onResetAudio: () -> Void
     
 
     var body: some View {
@@ -182,67 +184,100 @@ struct CallView: View {
             )
             .padding(.horizontal, 16)
                         
-            HStack {
-                Button(action: {
-                    viewModel.isMuted.toggle()
-                    onMuteUnmuteSwitch(viewModel.isMuted)
-                }) {
-                    Image(systemName: viewModel.isMuted ? "mic.slash.fill" : "mic.fill")
-                        .foregroundColor(Color(hex: "#1D1D1D"))
-                        .frame(width: 60, height: 60)
-                        .background(Color(hex: "#F5F3E4"))
-                        .clipShape(Circle())
-                }
-                .accessibilityIdentifier(AccessibilityIdentifiers.muteButton)
-                                
-                                
-                Button(action: {
-                    viewModel.isSpeakerOn.toggle()
-                    onToggleSpeaker()
-                }) {
-                    Image(systemName: viewModel.isSpeakerOn ? "speaker.wave.3.fill" : "speaker.slash.fill")
-                        .foregroundColor(Color(hex: "#1D1D1D"))
-                        .frame(width: 60, height: 60)
-                        .background(Color(hex: "#F5F3E4"))
-                        .clipShape(Circle())
-                }
-                .accessibilityIdentifier(AccessibilityIdentifiers.speakerButton)
+            GeometryReader { geometry in
+                VStack(spacing: 16) {
+                    // Primera fila - Botones principales (4 botones)
+                    HStack(spacing: max(8, (geometry.size.width - 300) / 6)) {
+                        Button(action: {
+                            viewModel.isMuted.toggle()
+                            onMuteUnmuteSwitch(viewModel.isMuted)
+                        }) {
+                            Image(systemName: viewModel.isMuted ? "mic.slash.fill" : "mic.fill")
+                                .foregroundColor(Color(hex: "#1D1D1D"))
+                                .frame(width: 60, height: 60)
+                                .background(Color(hex: "#F5F3E4"))
+                                .clipShape(Circle())
+                        }
+                        .accessibilityIdentifier(AccessibilityIdentifiers.muteButton)
+                        
+                        Button(action: {
+                            viewModel.isSpeakerOn.toggle()
+                            onToggleSpeaker()
+                        }) {
+                            Image(systemName: viewModel.isSpeakerOn ? "speaker.wave.3.fill" : "speaker.slash.fill")
+                                .foregroundColor(Color(hex: "#1D1D1D"))
+                                .frame(width: 60, height: 60)
+                                .background(Color(hex: "#F5F3E4"))
+                                .clipShape(Circle())
+                        }
+                        .accessibilityIdentifier(AccessibilityIdentifiers.speakerButton)
 
-                Button(action: {
-                    viewModel.isOnHold.toggle()
-                    onHold(viewModel.isOnHold)
-                }) {
-                    Image(systemName: viewModel.isOnHold ? "play.fill" : "pause")
-                        .foregroundColor(Color(hex: "#1D1D1D"))
-                        .frame(width: 60, height: 60)
-                        .background(Color(hex: "#F5F3E4"))
-                        .clipShape(Circle())
-                }
-                .accessibilityIdentifier(AccessibilityIdentifiers.holdButton)
+                        Button(action: {
+                            viewModel.isOnHold.toggle()
+                            onHold(viewModel.isOnHold)
+                        }) {
+                            Image(systemName: viewModel.isOnHold ? "play.fill" : "pause")
+                                .foregroundColor(Color(hex: "#1D1D1D"))
+                                .frame(width: 60, height: 60)
+                                .background(Color(hex: "#F5F3E4"))
+                                .clipShape(Circle())
+                        }
+                        .accessibilityIdentifier(AccessibilityIdentifiers.holdButton)
 
-                Button(action: {
-                    viewModel.showDTMFKeyboard.toggle()
-                }) {
-                    Image(systemName: "circle.grid.3x3.fill")
-                        .foregroundColor(Color(hex: "#1D1D1D"))
-                        .frame(width: 60, height: 60)
-                        .background(Color(hex: "#F5F3E4"))
-                        .clipShape(Circle())
+                        Button(action: {
+                            viewModel.showDTMFKeyboard.toggle()
+                        }) {
+                            Image(systemName: "circle.grid.3x3.fill")
+                                .foregroundColor(Color(hex: "#1D1D1D"))
+                                .frame(width: 60, height: 60)
+                                .background(Color(hex: "#F5F3E4"))
+                                .clipShape(Circle())
+                        }
+                        .accessibilityIdentifier(AccessibilityIdentifiers.dtmfButton)
+                    }
+                    
+                    // Segunda fila - Botones adicionales (3 botones centrados)
+                    HStack(spacing: max(8, (geometry.size.width - 200) / 4)) {
+                        Spacer()
+                        
+                        Button(action: {
+                            viewModel.showCallMetricsPopup.toggle()
+                        }) {
+                            Image(systemName: "chart.bar.fill")
+                                .foregroundColor(Color(hex: "#1D1D1D"))
+                                .frame(width: 60, height: 60)
+                                .background(Color(hex: "#F5F3E4"))
+                                .clipShape(Circle())
+                        }
+                        .accessibilityIdentifier("callMetricsButton")
+                        
+                        Button(action: {
+                            onIceRestart()
+                        }) {
+                            Image(systemName: "arrow.clockwise")
+                                .foregroundColor(Color(hex: "#1D1D1D"))
+                                .frame(width: 60, height: 60)
+                                .background(Color(hex: "#F5F3E4"))
+                                .clipShape(Circle())
+                        }
+                        .accessibilityIdentifier("iceRestartButton")
+                        
+                        Button(action: {
+                            onResetAudio()
+                        }) {
+                            Image(systemName: "waveform.and.magnifyingglass")
+                                .foregroundColor(Color(hex: "#1D1D1D"))
+                                .frame(width: 60, height: 60)
+                                .background(Color(hex: "#F5F3E4"))
+                                .clipShape(Circle())
+                        }
+                        .accessibilityIdentifier("resetAudioButton")
+                        
+                        Spacer()
+                    }
                 }
-                .accessibilityIdentifier(AccessibilityIdentifiers.dtmfButton)
-                
-                Button(action: {
-                    viewModel.showCallMetricsPopup.toggle()
-                }) {
-                    Image(systemName: "chart.bar.fill")
-                        .foregroundColor(Color(hex: "#1D1D1D"))
-                        .frame(width: 60, height: 60)
-                        .background(Color(hex: "#F5F3E4"))
-                        .clipShape(Circle())
-                }
-                .accessibilityIdentifier(AccessibilityIdentifiers.dtmfButton)
-
             }
+            .frame(height: 160)
             
             Button(action: {
                 onEndCall()
@@ -308,7 +343,9 @@ struct CallView_Previews: PreviewProvider {
             onToggleSpeaker: {},
             onHold: { _ in },
             onDTMF: { _ in },
-            onRedial: { _ in }
+            onRedial: { _ in },
+            onIceRestart: {},
+            onResetAudio: {}
         )
     }
 }

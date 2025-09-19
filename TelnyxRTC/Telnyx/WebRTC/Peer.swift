@@ -8,6 +8,7 @@
 
 import Foundation
 import WebRTC
+import AVFoundation
 
 protocol PeerDelegate: AnyObject {
     func onNegotiationEnded(sdp: RTCSessionDescription?)
@@ -25,7 +26,7 @@ class Peer : NSObject, WebRTCEventHandler {
     /// Queue for handling audio operations to ensure thread safety
     private let audioQueue = DispatchQueue(label: "audio")
     
-    /// Timeout duration for ICE negotiation in milliseconds
+    /// Timeout duration for ICE negotiation in seconds
     private let NEGOTIATION_TIMOUT = 0.3
     
     /// Identifier for the audio track in WebRTC connection
@@ -38,7 +39,7 @@ class Peer : NSObject, WebRTCEventHandler {
     private let VIDEO_DEMO_LOCAL_VIDEO = "local_video_streaming.mp4"
     
     /// Collection of gathered ICE candidates during connection setup
-    private var gatheredICECandidates: [String] = []
+    internal var gatheredICECandidates: [String] = []
     
     /// Socket connection for signaling with the WebRTC server
     var socket: Socket?
@@ -70,7 +71,9 @@ class Peer : NSObject, WebRTCEventHandler {
 
     //ICE negotiation
     private var negotiationTimer: Timer?
-    private var negotiationEnded: Bool = false
+    internal var negotiationEnded: Bool = false
+    internal var isIceRestarting: Bool = false
+    internal var iceRestartCompletion: ((_ sdp: RTCSessionDescription?, _ error: Error?) -> Void)?
 
     // WEBRTC STATS
     var onSignalingStateChange: ((RTCSignalingState, RTCPeerConnection) -> Void)?
@@ -79,6 +82,10 @@ class Peer : NSObject, WebRTCEventHandler {
     var onNegotiationNeeded: (() -> Void)?
     var onIceConnectionChange: ((RTCIceConnectionState) -> Void)?
     var onIceGatheringChange: ((RTCIceGatheringState) -> Void)?
+    
+    /// Callback for ICE connection state monitoring (independent of WebRTC stats)
+    /// This is used for automatic recovery and audio buffer management
+    var onIceConnectionStateChange: ((RTCIceConnectionState) -> Void)?
     var onIceCandidate: ((RTCIceCandidate) -> Void)?
     var onRemoveIceCandidates: (([RTCIceCandidate]) -> Void)?
     var onDataChannel: ((RTCDataChannel) -> Void)?
@@ -196,11 +203,11 @@ class Peer : NSObject, WebRTCEventHandler {
                 try rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord,
                                                 mode: AVAudioSession.Mode.voiceChat,
                                                 options: [
-                                                    .allowBluetoothA2DP,  // Enable high-quality Bluetooth audio
                                                     .duckOthers,          // Reduce other apps' volume
                                                     .allowBluetooth,      // Enable Bluetooth headsets
-                                                    .mixWithOthers        // Allow mixing with other audio
                                                 ])
+
+                try rtcAudioSession.setPreferredIOBufferDuration(0.01) // 10 ms
 
                 Logger.log.i(message: "Peer:: AVAudioSession configured successfully")
             } catch let error {
@@ -299,9 +306,6 @@ class Peer : NSObject, WebRTCEventHandler {
     fileprivate func startNegotiation(peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
         Logger.log.i(message: "Peer:: ICE negotiation updated.")
         
-            
-        //Set gathered candidates to 
-        
         //Restart the negotiation timer
         self.negotiationTimer?.invalidate()
         self.negotiationTimer = nil
@@ -314,9 +318,16 @@ class Peer : NSObject, WebRTCEventHandler {
                 }
                 self.negotiationTimer?.invalidate()
                 self.negotiationEnded = true
-                // At this moment we should have at least one ICE candidate.
-                // Lets stop the ICE negotiation process and call the apropiate delegate
-                self.delegate?.onNegotiationEnded(sdp: peerConnection.localDescription)
+                
+                // Handle ICE restart completion
+                if self.isIceRestarting, let completion = self.iceRestartCompletion {
+                    self.iceRestartCompletion = nil
+                    self.createFinalOfferWithCandidates(completion: completion)
+                } else {
+                    // At this moment we should have at least one ICE candidate.
+                    // Lets stop the ICE negotiation process and call the apropiate delegate
+                    self.delegate?.onNegotiationEnded(sdp: peerConnection.localDescription)
+                }
                 Logger.log.i(message: "Peer:: ICE negotiation ended.")
             }
         }
@@ -342,6 +353,7 @@ class Peer : NSObject, WebRTCEventHandler {
         self.onNegotiationNeeded = nil
         self.onIceConnectionChange = nil
         self.onIceGatheringChange = nil
+        self.onIceConnectionStateChange = nil
         self.onIceCandidate = nil
         self.onRemoveIceCandidates = nil
         self.onDataChannel = nil
@@ -384,10 +396,17 @@ extension Peer {
     /// Implementation details:
     /// - For Plan B semantics: Uses the connection's senders to find and modify the audio track
     /// - For Unified Plan: Uses transceivers to manage the audio track state
+    /// - Includes AudioDeviceModule reset to clear accumulated audio buffers and resolve delay issues
     ///
     /// Note: This method is used internally by the Call class through its public `muteAudio()`
     /// and `unmuteAudio()` methods.
     func muteUnmuteAudio(mute: Bool) {
+        Logger.log.i(message: "Peer:: muteUnmuteAudio(mute: \(mute)) - Resetting AudioDeviceModule to clear buffers")
+        
+        // Reset AudioDeviceModule to clear accumulated audio buffers
+        // This helps resolve persistent audio delay issues in iOS uplink
+        resetAudioDeviceModule()
+        
         // GetTransceivers is only supported with Unified Plan SdpSemantics.
         // PlanB doesn't have support to access transeivers, so we need to use the stored audio track
         if self.connection?.configuration.sdpSemantics == .planB {
@@ -398,6 +417,145 @@ extension Peer {
                 }
         } else {
             self.setTrackEnabled(RTCAudioTrack.self, isEnabled: !mute)
+        }
+        
+        Logger.log.i(message: "Peer:: Audio track \(mute ? "muted" : "unmuted") with AudioDeviceModule reset")
+    }
+    
+    /// Resets the AudioDeviceModule to clear accumulated audio buffers and resolve delay issues
+    /// 
+    /// This method addresses the iOS audio delay problem where:
+    /// - The AudioDeviceModule (ADM) buffer stretches under poor network conditions
+    /// - WebRTC applies audio pacing to prevent overloading the send queue
+    /// - Captured frames accumulate before being processed, causing persistent uplink delay
+    /// - iOS AudioUnit/AVAudioSession buffering can remain in a state with large buffers
+    func resetAudioDeviceModule() {
+        guard let connection = self.connection else {
+            Logger.log.w(message: "Peer:: resetAudioDeviceModule() - No active connection")
+            return
+        }
+        
+        Logger.log.i(message: "Peer:: Starting AudioDeviceModule reset via mute/unmute sequence (Unified Plan)")
+        
+        // For Unified Plan, get audio tracks from transceivers
+        let audioTracks = connection.transceivers.compactMap { $0.sender.track as? RTCAudioTrack }
+        let originalStates = audioTracks.map { $0.isEnabled }
+        
+        self.setTrackEnabled(RTCAudioTrack.self, isEnabled: false)
+        usleep(50000)
+        self.setTrackEnabled(RTCAudioTrack.self, isEnabled: true)
+
+        // Execute mute/unmute sequence with 200ms intervals
+        performMuteUnmuteSequence(audioTracks: audioTracks, originalStates: originalStates, step: 1)
+    }
+    
+    /// Performs a mute/unmute sequence to reset audio buffers
+    private func performMuteUnmuteSequence(audioTracks: [RTCAudioTrack], originalStates: [Bool], step: Int) {
+        let totalSteps = 3 // Mute -> Unmute -> Mute -> Unmute (final)
+        
+        if step > totalSteps {
+            // Sequence completed, restore original states
+            for (index, track) in audioTracks.enumerated() {
+                if index < originalStates.count {
+                    track.isEnabled = originalStates[index]
+                }
+            }
+            Logger.log.i(message: "Peer:: AudioDeviceModule reset sequence completed - original states restored")
+            
+            // After completing mute/unmute sequence, reset RTCAudioSession buffers
+            resetAVAudioSessionBuffers()
+            return
+        }
+        
+        let isMute = (step % 2 == 1) // Odd steps = mute, even steps = unmute
+        let action = isMute ? "muting" : "unmuting"
+        
+        Logger.log.i(message: "Peer:: AudioDeviceModule reset step \(step)/\(totalSteps) - \(action) audio tracks (Unified Plan)")
+        
+        // Apply mute/unmute to all audio tracks
+        audioTracks.forEach { $0.isEnabled = !isMute }
+        
+        // Schedule next step after 200ms
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+            self?.performMuteUnmuteSequence(audioTracks: audioTracks, originalStates: originalStates, step: step + 1)
+        }
+    }
+    
+    /// Resets RTCAudioSession buffer duration to optimal values to prevent audio delay accumulation
+    /// Executes 3 times consecutively with 300ms intervals to ensure complete buffer reset
+    private func resetAVAudioSessionBuffers() {
+        Logger.log.i(message: "Peer:: Starting 3-phase RTCAudioSession reset to clear accumulated buffers")
+        
+        // Execute reset 3 times with 300ms intervals
+        for attempt in 1...3 {
+            let delay = TimeInterval(attempt - 1) * 0.3 // 0ms, 300ms, 600ms
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                self?.performSingleAudioSessionReset(attempt: attempt)
+            }
+        }
+    }
+    
+    /// Performs a single RTCAudioSession reset attempt
+    private func performSingleAudioSessionReset(attempt: Int) {
+        self.audioQueue.async { [weak self] in
+            guard let self = self else {
+                return
+            }
+            
+            Logger.log.i(message: "Peer:: RTCAudioSession reset attempt \(attempt)/3")
+            
+            // Use RTCAudioSession for WebRTC-specific audio configuration
+            let rtcAudioSession = RTCAudioSession.sharedInstance()
+            
+            rtcAudioSession.lockForConfiguration()
+            defer {
+                rtcAudioSession.unlockForConfiguration()
+            }
+            
+            do {
+                // Deactivate audio session first
+                try rtcAudioSession.setActive(false)
+                rtcAudioSession.isAudioEnabled = false
+                
+                // Brief pause to allow complete deactivation
+                usleep(50000) // 50ms pause
+                
+                // Set optimal buffer duration for real-time audio (20ms)
+                // This prevents iOS from using large buffers that cause delay
+                try rtcAudioSession.setPreferredIOBufferDuration(0.02) // 20ms
+                
+                // Set preferred sample rate for WebRTC compatibility
+                try rtcAudioSession.setPreferredSampleRate(16000.0)
+                
+                // Set preferred number of channels for mono audio (more efficient for voice)
+                try rtcAudioSession.setPreferredInputNumberOfChannels(1)
+                try rtcAudioSession.setPreferredOutputNumberOfChannels(1)
+                
+                // Configure WebRTC audio session
+                let configuration = RTCAudioSessionConfiguration.webRTC()
+                configuration.categoryOptions = [
+                    .duckOthers,
+                    .allowBluetooth,
+                ]
+                
+                do {
+                    try rtcAudioSession.setConfiguration(configuration)
+                } catch {
+                    Logger.log.w(message: "Peer:: Failed to set RTCAudioSession configuration on attempt \(attempt): \(error.localizedDescription)")
+                }
+                
+                usleep(50000) // 50ms pause
+
+                // Activate the session with new settings
+                try rtcAudioSession.setActive(true)
+                rtcAudioSession.isAudioEnabled = true
+                
+                Logger.log.i(message: "Peer:: RTCAudioSession reset attempt \(attempt)/3 completed - IOBufferDuration: 20ms, SampleRate: 16kHz, Channels: 1")
+                
+            } catch {
+                Logger.log.e(message: "Peer:: Failed to reset RTCAudioSession buffers on attempt \(attempt): \(error.localizedDescription)")
+            }
         }
     }
     
@@ -442,29 +600,47 @@ extension Peer : RTCPeerConnectionDelegate {
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceConnectionState) {
         onIceConnectionChange?(newState)
+        onIceConnectionStateChange?(newState)
         Logger.log.i(message: "Peer:: connection didChange ICE connection state: [\(newState.telnyx_to_string().uppercased())]")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {
         onIceGatheringChange?(newState)
         Logger.log.s(message: "Peer:: connection didChange ICE gathering state: [\(newState.telnyx_to_string().uppercased())]")
+        
+        // Log ICE gathering state changes during ICE restart
+        if self.isIceRestarting {
+            // If ICE gathering is complete during ICE restart, trigger completion
+            if newState == .complete, let completion = self.iceRestartCompletion {
+                self.iceRestartCompletion = nil
+                self.createFinalOfferWithCandidates(completion: completion)
+            }
+        }
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
-        Logger.log.i(message: "Peer:: connection didGenerate RTCIceCandidate: \(candidate)")
+        // During ICE restart, we should allow candidates even when connected
+        if !isIceRestarting {
+            // Check if the negotiation has already ended.
+            // If true, we avoid adding new ICE candidates since it's no longer necessary.
+            if negotiationEnded {
+                return
+            }
 
-        // Check if the negotiation has already ended.
-        // If true, we avoid adding new ICE candidates since it's no longer necessary.
-        if negotiationEnded {
-            Logger.log.i(message: "Peer:: negotiation marked as ENDED. Skipping candidate: [\(candidate)]")
-            return
-        }
-
-        // Check if the connection is already established (state is 'connected').
-        // If true, we skip adding new ICE candidates to prevent redundant additions.
-        if peerConnection.connectionState == .connected {
-            Logger.log.i(message: "Peer:: connection state is CONNECTED. Skipping candidate: [\(candidate)]")
-            return
+            // Check if the connection is already established (state is 'connected').
+            // If true, we skip adding new ICE candidates to prevent redundant additions.
+            if peerConnection.connectionState == .connected {
+                return
+            }
+        } else {
+            // Check if we already have enough candidates and should stop gathering
+            if let localDescription = peerConnection.localDescription {
+                let currentCandidateCount = localDescription.sdp.components(separatedBy: "a=candidate:").count - 1
+                if currentCandidateCount >= 3 { // We have enough candidates
+                    // Don't add more candidates to avoid overwhelming the server
+                    return
+                }
+            }
         }
 
         // We call the callback when the iceCandidate is added
@@ -473,14 +649,10 @@ extension Peer : RTCPeerConnectionDelegate {
         // This helps populate the local SDP with the ICE candidate information.
         connection?.add(candidate, completionHandler: { error in
             if let error = error {
-                Logger.log.e(message: "Peer:: Failed to add RTCIceCandidate: \(error) for candidate: \(candidate)")
-            } else {
-                Logger.log.i(message: "Peer:: Successfully added RTCIceCandidate: \(candidate)")
+                Logger.log.e(message: "Peer:: Failed to add RTCIceCandidate: \(error)")
             }
         })
         
-        // Log the server URL of the generated ICE candidate (if available).
-        Logger.log.i(message: "Peer:: serverUrl for RTCIceCandidate: \(String(describing: candidate.serverUrl))")
         gatheredICECandidates.append(candidate.serverUrl ?? "")
 
         // Start negotiation if an ICE candidate from the configured STUN or TURN server is gathered.
@@ -501,3 +673,4 @@ extension Peer : RTCPeerConnectionDelegate {
         Logger.log.i(message: "Peer:: connection didOpen RTCDataChannel: \(dataChannel)")
     }
 }
+
