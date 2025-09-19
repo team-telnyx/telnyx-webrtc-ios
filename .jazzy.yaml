@@ -1,0 +1,19 @@
+# Jazzy configuration file
+# This avoids command-line escaping issues
+
+module_name: TelnyxRTC
+author: Telnyx LLC
+author_url: https://www.telnyx.com/
+clean: true
+output: docs
+
+# Xcode build settings
+xcodebuild_arguments:
+  - -workspace
+  - TelnyxRTC.xcworkspace
+  - -scheme
+  - TelnyxRTC
+  - -sdk
+  - iphonesimulator
+  # Removed destination to avoid escaping issues
+  # Let xcodebuild use the default destination
