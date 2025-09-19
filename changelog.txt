@@ -14,3 +14,9 @@
 - PR #262: WEBRTC-2822: [iOS] [Telnyx WebRTC] Audio Wave UI for Mobile Client
 - PR #261: [WEBRTC-2763] [Feat] App - Enhancements
 - PR #259: 📝 [Docs] Update generated SDK documentation
+- PR #276: [ENGDESK-44292] ICE Renegotiation and ACM Buffer Reset Based on RTT for Audio Delay Reduction
+- PR #273: [WEBRTC-2965] - Add forceRelayCandidate toggle option to WebRTC demo app hidden menu
+- PR #272: [WEBRTC-2923][fix] Broken link on readme file
+- PR #271: WEBRTC-2922: Fix dependabot vulnerability issues in push notification tool
+- PR #270: [WEBRTC-2921] - [iOS] Update actions to use Xcode 16
+- PR #269: [WEBRTC-2916] [Feature] VoIP Push Notification Testing Tool
