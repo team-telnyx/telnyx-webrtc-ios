@@ -39,16 +39,12 @@ end
 
 desc "Generate documentation using Jazzy - HTML docs"
 lane :generate_docs do
-  # Use a commonly available simulator for GitHub Actions
-  # Based on available devices: iPhone 16 with OS 18.4 is available
-  destination = ENV['JAZZY_DESTINATION'] || 'platform=iOS Simulator,OS=18.4,name=iPhone 16'
-  
   sh <<-SHELL
     cd .. && jazzy \
       --clean \
       --author "Telnyx LLC" \
       --author_url "https://www.telnyx.com/" \
-      --xcodebuild-arguments -workspace,TelnyxRTC.xcworkspace,-scheme,TelnyxRTC,-sdk,iphonesimulator,-destination,'#{destination}' \
+      --xcodebuild-arguments -workspace,TelnyxRTC.xcworkspace,-scheme,TelnyxRTC,-sdk,iphonesimulator,-destination,platform=iOS Simulator, OS=18.4, name=iPhone 16 \
       --output ./docs
   SHELL
   UI.message("📚 Documentation generated in ./docs")
@@ -61,7 +57,7 @@ lane :generate_docs_markdown do
                               -- \
                               -workspace TelnyxRTC.xcworkspace \
                               -scheme TelnyxRTC \
-                              -destination 'platform=iOS Simulator,OS=17.5,name=iPhone 15'
+                              -destination 'platform=iOS Simulator,OS=18.4,name=iPhone 16'
 
 
   SHELL
