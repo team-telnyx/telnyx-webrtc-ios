@@ -18,7 +18,6 @@ end
 desc "Run unit tests."
 lane :tests do
    run_tests(workspace: "TelnyxRTC.xcworkspace",
-            devices: ["iPhone 8"],
             scheme: "TelnyxRTCTests")
 end
 
@@ -45,7 +44,7 @@ lane :generate_docs do
       --clean \
       --author "Telnyx LLC" \
       --author_url "https://www.telnyx.com/" \
-      --xcodebuild-arguments -workspace,TelnyxRTC.xcworkspace,-scheme,TelnyxRTC,-sdk,iphonesimulator,-destination,platform=iOS Simulator,OS=17.0.1,name=iPhone 15 Pro \
+      --xcodebuild-arguments -workspace,TelnyxRTC.xcworkspace,-scheme,TelnyxRTC,-sdk,iphonesimulator,-destination,platform=iOS Simulator\
       --output ./docs
   SHELL
   UI.message("📚 Documentation generated in ./docs")
