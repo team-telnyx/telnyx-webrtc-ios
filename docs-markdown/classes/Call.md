@@ -144,6 +144,16 @@ public internal(set) var enableQualityMetrics: Bool = false
 
 Enables CallQuality Metrics for Call
 
+### `sendWebRTCStatsViaSocket`
+
+```swift
+public internal(set) var sendWebRTCStatsViaSocket: Bool = false
+```
+
+Controls whether the SDK should send WebRTC statistics via socket to Telnyx servers.
+When enabled, collected WebRTC stats will be sent to Telnyx servers for monitoring and debugging.
+This is independent of stats collection - stats can be collected without being sent via socket.
+
 ### `forceRelayCandidate`
 
 ```swift
