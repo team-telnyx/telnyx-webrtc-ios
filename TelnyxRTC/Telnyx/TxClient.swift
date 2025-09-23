@@ -394,6 +394,7 @@ public class TxClient {
         }
         self.socket = Socket()
         self.socket?.delegate = self
+        self.aiAssistantManager.setSocket(self.socket)
         self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
     }
     
@@ -410,6 +411,7 @@ public class TxClient {
         self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,webRTCIceServers: serverConfiguration.webRTCIceServers,environment: serverConfiguration.environment,pushMetaData: self.pushMetaData)
         self.socket = Socket()
         self.socket?.delegate = self
+        self.aiAssistantManager.setSocket(self.socket)
         self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
     }
 
@@ -607,6 +609,7 @@ public class TxClient {
             // Initialize socket and start connection
             self.socket = Socket()
             self.socket?.delegate = self
+            self.aiAssistantManager.setSocket(self.socket)
             self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
         }
     }
@@ -628,6 +631,15 @@ public class TxClient {
         
         let ringingAckMessage = RingingAckMessage(callId: callId, sessionId: sessionId)
         socket.sendMessage(message: ringingAckMessage.encode())
+    }
+    
+    /// Send a text message to AI Assistant during active call (mixed-mode communication)
+    /// - Parameter message: The text message to send to AI assistant
+    /// - Returns: True if message was sent successfully, false otherwise
+    @discardableResult
+    public func sendAIAssistantMessage(_ message: String) -> Bool {
+        Logger.log.i(message: "TxClient:: sendAIAssistantMessage() message: '\(message)'")
+        return aiAssistantManager.sendAIAssistantMessage(message)
     }
 
     /// This function check the gateway status updates to determine if the current user has been successfully

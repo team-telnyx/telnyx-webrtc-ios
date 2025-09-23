@@ -103,6 +103,7 @@ struct TranscriptDialogView: View {
                             .onSubmit {
                                 sendMessage()
                             }
+                            .submitLabel(.send)
                         
                         Button(action: sendMessage) {
                             Image(systemName: "paperplane.fill")

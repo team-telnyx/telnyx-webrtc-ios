@@ -302,13 +302,13 @@ class AIAssistantViewModel: ObservableObject {
     func sendMessage(_ message: String) {
         print("AIAssistantViewModel:: Sending text message: \(message)")
         
-        guard let aiAssistantManager = appDelegate.telnyxClient?.aiAssistantManager else {
-            errorMessage = "AI Assistant Manager not available"
+        guard let telnyxClient = appDelegate.telnyxClient else {
+            errorMessage = "Telnyx Client not available"
             return
         }
         
-        // Use the new mixed-mode communication method
-        let success = aiAssistantManager.sendAIAssistantMessage(message)
+        // Use the TxClient method for sending AI assistant messages
+        let success = telnyxClient.sendAIAssistantMessage(message)
         
         if !success {
             errorMessage = "Failed to send message to AI Assistant"

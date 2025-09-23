@@ -315,6 +315,7 @@ struct AIAssistantView: View {
         }
         .sheet(isPresented: $viewModel.showTranscriptDialog) {
             TranscriptDialogView(viewModel: viewModel)
+                .interactiveDismissDisabled(true)
         }
         .overlay(
             Group {

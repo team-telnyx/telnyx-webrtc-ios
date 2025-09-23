@@ -182,6 +182,9 @@ public class AIAssistantManager {
     /// Logger instance for debugging
     private let logger = Logger.log
     
+    /// Socket reference for sending messages
+    private weak var socket: Socket?
+    
     // MARK: - Real-time Transcript Updates (Android compatibility)
     
     /// Custom publisher for real-time transcript updates (iOS 12.0 compatible)
@@ -202,6 +205,13 @@ public class AIAssistantManager {
     }
     
     // MARK: - Public Methods
+    
+    /// Set the socket reference for sending messages
+    /// - Parameter socket: The socket instance to use for sending messages
+    public func setSocket(_ socket: Socket?) {
+        self.socket = socket
+        logger.i(message: "AIAssistantManager:: Socket reference set")
+    }
     
     /// Update the AI assistant connection state
     /// - Parameters:
@@ -618,8 +628,23 @@ public class AIAssistantManager {
         // Add to transcriptions
         addTranscription(textTranscription)
         
-        // TODO: Implement actual message sending to AI Assistant via socket
-        // This would require integration with the socket manager to send the message
+        // Send message via socket
+        guard let socket = self.socket else {
+            logger.w(message: "AIAssistantManager:: Cannot send message - socket not available")
+            return false
+        }
+        
+        // Create AI conversation message
+        let aiConversationMessage = AIConversationMessage(message: message)
+        
+        // Send the message
+        guard let encodedMessage = aiConversationMessage.encode() else {
+            logger.e(message: "AIAssistantManager:: Failed to encode AI conversation message")
+            return false
+        }
+        
+        socket.sendMessage(message: encodedMessage)
+        logger.i(message: "AIAssistantManager:: AI conversation message sent successfully")
         
         return true
     }

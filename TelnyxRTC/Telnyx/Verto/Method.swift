@@ -33,4 +33,5 @@ enum Method : String {
     case ECHO = "echo" //this is for testing
     case ATTACH_CALL = "telnyx_rtc.attachCalls"
     case DISABLE_PUSH = "telnyx_rtc.disable_push_notification"  // "telnyx_rtc.disablePush"
+    case AI_CONVERSATION = "ai_conversation"
 }
