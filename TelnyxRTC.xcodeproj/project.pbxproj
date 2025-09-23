@@ -97,6 +97,7 @@
 		99B6DFFD2CF546310010CA96 /* DebugReportStartMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFFC2CF546220010CA96 /* DebugReportStartMessage.swift */; };
 		99B6DFFF2CF547470010CA96 /* DebugReportStopMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFFE2CF547470010CA96 /* DebugReportStopMessage.swift */; };
 		99B6E0012CF547680010CA96 /* DebugReportDataMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6E0002CF547680010CA96 /* DebugReportDataMessage.swift */; };
+		99C569BD2E834A0200304547 /* AIConversationMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C569BC2E834A0200304547 /* AIConversationMessage.swift */; };
 		99CC5BAC2CF804A500EF43DC /* WebRTCStatsReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99CC5BAB2CF804A200EF43DC /* WebRTCStatsReporter.swift */; };
 		99CC5BAE2CF80D3A00EF43DC /* WebRTCEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99CC5BAD2CF80D3400EF43DC /* WebRTCEventHandler.swift */; };
 		99D717742D6E195100471D44 /* TxLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D717732D6E195100471D44 /* TxLogger.swift */; };
@@ -151,7 +152,7 @@
 		B3E1029A25F2C16500227DCE /* ModifyMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3E1029925F2C16500227DCE /* ModifyMessage.swift */; };
 		B3E1033225F7F94900227DCE /* incoming_call.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B3E1033025F7F94900227DCE /* incoming_call.mp3 */; };
 		B3E1033325F7F94900227DCE /* ringback_tone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B3E1033125F7F94900227DCE /* ringback_tone.mp3 */; };
-		B84E50517AD67FE44AC37952 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
+		B84E50517AD67FE44AC37952 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		E7D4728DC54740F9B74EDCF5 /* AnonymousLoginMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DFC6708A0B342C3BF91953C /* AnonymousLoginMessage.swift */; };
 		EAA0358E635D404F9594CDA38CD57A76 /* Peer+IceRestart.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DA9FEE6464493BA99C53B5930AA3CB /* Peer+IceRestart.swift */; };
 /* End PBXBuildFile section */
@@ -293,6 +294,7 @@
 		99B6DFFC2CF546220010CA96 /* DebugReportStartMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugReportStartMessage.swift; sourceTree = "<group>"; };
 		99B6DFFE2CF547470010CA96 /* DebugReportStopMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugReportStopMessage.swift; sourceTree = "<group>"; };
 		99B6E0002CF547680010CA96 /* DebugReportDataMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugReportDataMessage.swift; sourceTree = "<group>"; };
+		99C569BC2E834A0200304547 /* AIConversationMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIConversationMessage.swift; sourceTree = "<group>"; };
 		99CC5BAB2CF804A200EF43DC /* WebRTCStatsReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCStatsReporter.swift; sourceTree = "<group>"; };
 		99CC5BAD2CF80D3400EF43DC /* WebRTCEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCEventHandler.swift; sourceTree = "<group>"; };
 		99D498D12D565D1F00A7B38F /* TelnyxWebRTCDemoUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnyxWebRTCDemoUITests.swift; sourceTree = "<group>"; };
@@ -384,7 +386,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B368BED625EDDBC90032AE52 /* TelnyxRTC.framework in Frameworks */,
-				B84E50517AD67FE44AC37952 /* BuildFile in Frameworks */,
+				B84E50517AD67FE44AC37952 /* (null) in Frameworks */,
 				44D1F514E45F03506FE8F857 /* Pods_TelnyxRTC_TelnyxRTCTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -520,6 +522,14 @@
 			path = Stats;
 			sourceTree = "<group>";
 		};
+		99C569BE2E834A0B00304547 /* AI */ = {
+			isa = PBXGroup;
+			children = (
+				99C569BC2E834A0200304547 /* AIConversationMessage.swift */,
+			);
+			path = AI;
+			sourceTree = "<group>";
+		};
 		99D498D22D565D1F00A7B38F /* TelnyxWebRTCDemoUITests */ = {
 			isa = PBXGroup;
 			children = (
@@ -532,6 +542,7 @@
 		B309D1D425F020A300A2AADF /* Verto */ = {
 			isa = PBXGroup;
 			children = (
+				99C569BE2E834A0B00304547 /* AI */,
 				99B6DFFB2CF542E20010CA96 /* Stats */,
 				B309D1DA25F020D400A2AADF /* Method.swift */,
 				B309D1D525F020B300A2AADF /* Message.swift */,
@@ -988,9 +999,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1005,9 +1020,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1150,6 +1169,7 @@
 				996C67C42CFEA5AC0056E508 /* RTCContinualGatheringPolicy+Extension.swift in Sources */,
 				B309D1EC25F024B900A2AADF /* LoginMessage.swift in Sources */,
 				E7D4728DC54740F9B74EDCF5 /* AnonymousLoginMessage.swift in Sources */,
+				99C569BD2E834A0200304547 /* AIConversationMessage.swift in Sources */,
 				853C8C4A7CC44D38A4D2AA0145A5C91B /* ICERestartMessage.swift in Sources */,
 				99B6DFFA2CF5226F0010CA96 /* WebRTCStatsTag.swift in Sources */,
 				99CC5BAE2CF80D3A00EF43DC /* WebRTCEventHandler.swift in Sources */,

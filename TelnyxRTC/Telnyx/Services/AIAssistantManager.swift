@@ -208,7 +208,7 @@ public class AIAssistantManager {
     
     /// Set the socket reference for sending messages
     /// - Parameter socket: The socket instance to use for sending messages
-    public func setSocket(_ socket: Socket?) {
+    internal func setSocket(_ socket: Socket?) {
         self.socket = socket
         logger.i(message: "AIAssistantManager:: Socket reference set")
     }
