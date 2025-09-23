@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [2.2.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.2.1) (2025-09-23)
+
+### Bug Fixes
+- Improve audio connection performance by removing unnecessary audio device resets during mute/unmute operations
+- Maintain audio route change subscriptions throughout the client lifecycle instead of unsubscribing on disconnect
+
 ## [2.2.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.2.0) (2025-09-19)
 
 ### Features
