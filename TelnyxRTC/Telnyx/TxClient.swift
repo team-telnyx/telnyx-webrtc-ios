@@ -422,10 +422,7 @@ public class TxClient {
         }
         self.calls.removeAll()
         self.stopReconnectTimeout()
-        // Remove audio route change observer
-        NotificationCenter.default.removeObserver(self,
-                                                  name: AVAudioSession.routeChangeNotification,
-                                                  object: nil)
+
         socket?.disconnect(reconnect: false)
         delegate?.onSocketDisconnected()
     }
