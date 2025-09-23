@@ -8,22 +8,56 @@
 
 import Foundation
 
-/// Represents a transcription item from AI assistant conversations
+/// Represents a transcription item from AI assistant conversations (Android-compatible)
 public struct TranscriptionItem {
+    // Core Android properties
     public let id: String
-    public var timestamp: Date
-    public let speaker: String
-    public var text: String
-    public let confidence: Double?
-    public var isFinal: Bool
+    public let role: String // "user" or "assistant"
+    public let content: String // The transcribed text content
+    public let isPartial: Bool // true if still recording, false if final
+    public let timestamp: Date // When the transcription was created
     
-    public init(id: String, timestamp: Date, speaker: String, text: String, confidence: Double? = nil, isFinal: Bool = true) {
+    // Optional Android properties
+    public let confidence: Double? // Confidence score (0.0 to 1.0)
+    public let itemType: String? // Type of item (e.g., "message", "transcription", "text_message")
+    public let metadata: [String: Any]? // Additional metadata for extensibility
+    
+    // Legacy iOS properties (computed for backward compatibility)
+    public var speaker: String {
+        return role
+    }
+    
+    public var text: String {
+        return content
+    }
+    
+    public var isFinal: Bool {
+        return !isPartial
+    }
+    
+    // Android-style initializer (primary)
+    public init(id: String = UUID().uuidString, role: String, content: String, isPartial: Bool = false, timestamp: Date = Date(), confidence: Double? = nil, itemType: String? = nil, metadata: [String: Any]? = nil) {
         self.id = id
+        self.role = role
+        self.content = content
+        self.isPartial = isPartial
         self.timestamp = timestamp
-        self.speaker = speaker
-        self.text = text
         self.confidence = confidence
-        self.isFinal = isFinal
+        self.itemType = itemType
+        self.metadata = metadata
+    }
+    
+    // Legacy iOS initializer (for backward compatibility)
+    @available(*, deprecated, message: "Use Android-style initializer with role and content parameters")
+    public init(id: String, timestamp: Date, speaker: String, text: String, confidence: Double? = nil, isFinal: Bool = true, itemType: String? = nil, metadata: [String: Any]? = nil) {
+        self.id = id
+        self.role = speaker
+        self.content = text
+        self.isPartial = !isFinal
+        self.timestamp = timestamp
+        self.confidence = confidence
+        self.itemType = itemType
+        self.metadata = metadata
     }
 }
 
@@ -147,6 +181,18 @@ public class AIAssistantManager {
     
     /// Logger instance for debugging
     private let logger = Logger.log
+    
+    // MARK: - Real-time Transcript Updates (Android compatibility)
+    
+    /// Custom publisher for real-time transcript updates (iOS 12.0 compatible)
+    public private(set) var transcriptUpdatePublisher = TranscriptPublisher<[TranscriptionItem]>()
+    
+    /// Custom publisher for individual transcript item updates
+    public private(set) var transcriptItemPublisher = TranscriptPublisher<TranscriptionItem>()
+    
+    /// Cancellable tokens for active subscriptions
+    private var transcriptUpdateCancellables: [TranscriptCancellable] = []
+    private var transcriptItemCancellables: [TranscriptCancellable] = []
     
     // MARK: - Initializers
     
@@ -330,25 +376,42 @@ public class AIAssistantManager {
         
         logger.i(message: "AIAssistantManager:: Processing delta text: '\(delta)' for item_id: \(itemId ?? "unknown")")
         
-        // Create a transcription item from the delta
+        // Create a transcription item from the delta using Android-style properties
         let transcription = TranscriptionItem(
             id: itemId ?? UUID().uuidString,
+            role: "assistant", // This is from the AI assistant
+            content: delta,
+            isPartial: true, // Delta messages are incremental, not final
             timestamp: Date(),
-            speaker: "assistant", // This is from the AI assistant
-            text: delta,
             confidence: 1.0, // High confidence for AI responses
-            isFinal: false // Delta messages are incremental, not final
+            itemType: "response_delta",
+            metadata: [
+                "response_id": responseId as Any,
+                "content_index": contentIndex,
+                "output_index": outputIndex
+            ]
         )
         
         // Check if we already have a transcription with this ID to append to
         if let itemId = itemId,
            let existingIndex = transcriptions.firstIndex(where: { $0.id == itemId }) {
             // Append delta to existing transcription
-            var existing = transcriptions[existingIndex]
-            existing.text += delta
-            existing.timestamp = Date() // Update timestamp
-            transcriptions[existingIndex] = existing
+            let existing = transcriptions[existingIndex]
+            // Create new transcription with appended content
+            let updatedTranscription = TranscriptionItem(
+                id: existing.id,
+                role: existing.role,
+                content: existing.content + delta,
+                isPartial: existing.isPartial,
+                timestamp: Date(),
+                confidence: existing.confidence,
+                itemType: existing.itemType,
+                metadata: existing.metadata
+            )
+            transcriptions[existingIndex] = updatedTranscription
             logger.i(message: "AIAssistantManager:: Appended delta to existing transcription: \(itemId)")
+            // Notify delegate of the update
+            delegate?.onTranscriptionUpdated(transcriptions)
         } else {
             // Add as new transcription
             addTranscription(transcription)
@@ -400,14 +463,19 @@ public class AIAssistantManager {
             if contentType == "input_audio" {
                 logger.i(message: "AIAssistantManager:: Processing user transcript: '\(transcript)' for item_id: \(itemId)")
                 
-                // Create a transcription item for the user's speech
+                // Create a transcription item for the user's speech using Android-style properties
                 let transcription = TranscriptionItem(
                     id: itemId,
+                    role: "user", // This is from the user
+                    content: transcript,
+                    isPartial: !isCompleted, // Partial if in progress, final if completed
                     timestamp: Date(),
-                    speaker: "user", // This is from the user
-                    text: transcript,
                     confidence: nil, // No confidence provided for user transcripts
-                    isFinal: isCompleted // Final if status is completed, partial if in_progress
+                    itemType: "input_audio",
+                    metadata: [
+                        "status": status as Any,
+                        "content_type": contentType as Any
+                    ]
                 )
                 
                 // Check if we already have a transcription with this ID to update
@@ -449,6 +517,12 @@ public class AIAssistantManager {
         return transcriptions
     }
     
+    /// Get current transcriptions (Android compatibility method)
+    /// - Returns: Array of transcription items
+    public var transcript: [TranscriptionItem] {
+        return transcriptions
+    }
+    
     /// Get current widget settings
     /// - Returns: Current widget settings or nil if not set
     public func getWidgetSettings() -> WidgetSettings? {
@@ -460,7 +534,13 @@ public class AIAssistantManager {
     public func addTranscription(_ transcription: TranscriptionItem) {
         transcriptions.append(transcription)
         logger.i(message: "AIAssistantManager:: Added transcription item: \(transcription.id)")
+        
+        // Notify delegate
         delegate?.onTranscriptionUpdated(transcriptions)
+        
+        // Publish real-time updates (Android compatibility)
+        transcriptUpdatePublisher.send(transcriptions)
+        transcriptItemPublisher.send(transcription)
     }
     
     /// Update widget settings
@@ -480,6 +560,12 @@ public class AIAssistantManager {
         if let settings = widgetSettings {
             delegate?.onWidgetSettingsUpdated(settings)
         }
+        
+        // Clear all subscriptions
+        transcriptUpdateCancellables.removeAll()
+        transcriptItemCancellables.removeAll()
+        transcriptUpdatePublisher.removeAllSubscribers()
+        transcriptItemPublisher.removeAllSubscribers()
     }
     
     /// Clear only transcriptions (called when call ends)
@@ -487,6 +573,126 @@ public class AIAssistantManager {
         logger.i(message: "AIAssistantManager:: Clearing transcriptions")
         transcriptions.removeAll()
         delegate?.onTranscriptionUpdated(transcriptions)
+    }
+    
+    // MARK: - Mixed-mode Communication (Android compatibility)
+    
+    /// Send a text message to AI Assistant during active call (mixed-mode communication)
+    /// - Parameter message: The text message to send
+    /// - Returns: True if message was sent successfully, false otherwise
+    @discardableResult
+    public func sendAIAssistantMessage(_ message: String) -> Bool {
+        guard isConnected else {
+            logger.w(message: "AIAssistantManager:: Cannot send message - not connected to AI Assistant")
+            return false
+        }
+        
+        guard !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            logger.w(message: "AIAssistantManager:: Cannot send empty message")
+            return false
+        }
+        
+        logger.i(message: "AIAssistantManager:: Sending text message to AI Assistant: '\(message)'")
+        
+        // Create a transcription item for the user's text message
+        let textTranscription = TranscriptionItem(
+            id: UUID().uuidString,
+            role: "user",
+            content: message,
+            isPartial: false,
+            itemType: "text_message",
+            metadata: ["message_type": "text_input"]
+        )
+        
+        // Add to transcriptions
+        addTranscription(textTranscription)
+        
+        // TODO: Implement actual message sending to AI Assistant via socket
+        // This would require integration with the socket manager to send the message
+        
+        return true
+    }
+    
+    /// Send a voice message transcription to AI Assistant
+    /// - Parameter transcription: The voice transcription to send
+    /// - Returns: True if message was sent successfully, false otherwise
+    @discardableResult
+    public func sendVoiceTranscription(_ transcription: TranscriptionItem) -> Bool {
+        guard isConnected else {
+            logger.w(message: "AIAssistantManager:: Cannot send voice transcription - not connected to AI Assistant")
+            return false
+        }
+        
+        logger.i(message: "AIAssistantManager:: Sending voice transcription to AI Assistant: '\(transcription.content)'")
+        
+        // Add to transcriptions if not already there
+        if !transcriptions.contains(where: { $0.id == transcription.id }) {
+            addTranscription(transcription)
+        }
+        
+        // TODO: Implement actual voice transcription sending to AI Assistant via socket
+        // This would require integration with the socket manager to send the transcription
+        
+        return true
+    }
+    
+    /// Subscribe to real-time transcript updates (Android compatibility)
+    /// - Parameter handler: Closure to handle transcript updates
+    /// - Returns: Cancellable token for the subscription
+    public func subscribeToTranscriptUpdates(_ handler: @escaping ([TranscriptionItem]) -> Void) -> TranscriptCancellable {
+        let cancellable = transcriptUpdatePublisher.subscribe(handler)
+        transcriptUpdateCancellables.append(cancellable)
+        return cancellable
+    }
+    
+    /// Subscribe to individual transcript item updates (Android compatibility)
+    /// - Parameter handler: Closure to handle individual transcript item updates
+    /// - Returns: Cancellable token for the subscription
+    public func subscribeToTranscriptItemUpdates(_ handler: @escaping (TranscriptionItem) -> Void) -> TranscriptCancellable {
+        let cancellable = transcriptItemPublisher.subscribe(handler)
+        transcriptItemCancellables.append(cancellable)
+        return cancellable
+    }
+    
+    // MARK: - Transcript Filtering (Android compatibility)
+    
+    /// Get transcriptions by role
+    /// - Parameter role: The role to filter by ("user" or "assistant")
+    /// - Returns: Array of transcription items for the specified role
+    public func getTranscriptionsByRole(_ role: String) -> [TranscriptionItem] {
+        return transcriptions.filter { $0.role.lowercased() == role.lowercased() }
+    }
+    
+    /// Get user transcriptions only
+    /// - Returns: Array of user transcription items
+    public func getUserTranscriptions() -> [TranscriptionItem] {
+        return getTranscriptionsByRole("user")
+    }
+    
+    /// Get assistant transcriptions only
+    /// - Returns: Array of assistant transcription items
+    public func getAssistantTranscriptions() -> [TranscriptionItem] {
+        return getTranscriptionsByRole("assistant")
+    }
+    
+    /// Get partial transcriptions (in-progress recordings)
+    /// - Returns: Array of partial transcription items
+    public func getPartialTranscriptions() -> [TranscriptionItem] {
+        return transcriptions.filter { $0.isPartial }
+    }
+    
+    /// Get final transcriptions (completed recordings)
+    /// - Returns: Array of final transcription items
+    public func getFinalTranscriptions() -> [TranscriptionItem] {
+        return transcriptions.filter { !$0.isPartial }
+    }
+    
+    /// Clear transcriptions by role
+    /// - Parameter role: The role to clear transcriptions for
+    public func clearTranscriptionsByRole(_ role: String) {
+        transcriptions.removeAll { $0.role.lowercased() == role.lowercased() }
+        delegate?.onTranscriptionUpdated(transcriptions)
+        transcriptUpdatePublisher.send(transcriptions)
     }
     
     // MARK: - Private Methods
@@ -596,14 +802,26 @@ public class AIAssistantManager {
     /// - Parameter data: The transcription data dictionary
     /// - Returns: TranscriptionItem if parsing successful, nil otherwise
     private func parseTranscriptionData(_ data: [String: Any]) -> TranscriptionItem? {
-        guard let text = data["text"] as? String,
-              !text.isEmpty else {
+        // Android-style parsing: prioritize 'content' over 'text'
+        guard let content = data["content"] as? String ?? data["text"] as? String,
+              !content.isEmpty else {
             return nil
         }
         
         let id = data["id"] as? String ?? UUID().uuidString
-        let speaker = data["speaker"] as? String ?? data["role"] as? String ?? "unknown"
+        let role = data["role"] as? String ?? data["speaker"] as? String ?? "unknown"
         let confidence = data["confidence"] as? Double
+        let itemType = data["itemType"] as? String ?? data["type"] as? String
+        
+        // Parse isPartial (Android-style) or derive from isFinal (legacy)
+        let isPartial: Bool
+        if let partial = data["isPartial"] as? Bool {
+            isPartial = partial
+        } else if let isFinal = data["isFinal"] as? Bool {
+            isPartial = !isFinal
+        } else {
+            isPartial = false // Default to final transcription
+        }
         
         // Parse timestamp
         let timestamp: Date
@@ -616,13 +834,18 @@ public class AIAssistantManager {
             timestamp = Date()
         }
         
+        // Extract metadata if present
+        let metadata = data["metadata"] as? [String: Any]
+        
         return TranscriptionItem(
             id: id,
+            role: role,
+            content: content,
+            isPartial: isPartial,
             timestamp: timestamp,
-            speaker: speaker,
-            text: text,
             confidence: confidence,
-            isFinal: true // Regular transcriptions are considered final
+            itemType: itemType,
+            metadata: metadata
         )
     }
     
@@ -688,5 +911,67 @@ extension AIAssistantManager {
     /// Get the current AI assistant target ID
     public var connectedTargetId: String? {
         return isConnected ? currentTargetId : nil
+    }
+}
+
+// MARK: - Custom Publisher Classes (iOS 12.0 Compatibility)
+
+/// Custom publisher for iOS 12.0 compatibility (replaces Combine's Publisher)
+public class TranscriptPublisher<T> {
+    private var subscribers: [(id: String, handler: (T) -> Void)] = []
+    private let queue = DispatchQueue(label: "com.telnyx.transcript-publisher", qos: .userInitiated)
+    
+    /// Send a new value to all subscribers
+    /// - Parameter value: The value to send
+    public func send(_ value: T) {
+        queue.async {
+            for subscriber in self.subscribers {
+                DispatchQueue.main.async {
+                    subscriber.handler(value)
+                }
+            }
+        }
+    }
+    
+    /// Subscribe to publisher updates
+    /// - Parameter handler: Closure to handle updates
+    /// - Returns: Cancellable token
+    public func subscribe(_ handler: @escaping (T) -> Void) -> TranscriptCancellable {
+        let handlerId = UUID().uuidString
+        queue.async {
+            self.subscribers.append((id: handlerId, handler: handler))
+        }
+        return TranscriptCancellable { [weak self] in
+            self?.queue.async {
+                if let index = self?.subscribers.firstIndex(where: { $0.id == handlerId }) {
+                    self?.subscribers.remove(at: index)
+                }
+            }
+        }
+    }
+    
+    /// Remove all subscribers
+    public func removeAllSubscribers() {
+        queue.async {
+            self.subscribers.removeAll()
+        }
+    }
+}
+
+/// Custom cancellable for iOS 12.0 compatibility (replaces Combine's AnyCancellable)
+public class TranscriptCancellable {
+    private let cancelClosure: () -> Void
+    
+    init(cancelClosure: @escaping () -> Void) {
+        self.cancelClosure = cancelClosure
+    }
+    
+    deinit {
+        cancelClosure()
+    }
+    
+    /// Cancel the subscription
+    public func cancel() {
+        cancelClosure()
     }
 }

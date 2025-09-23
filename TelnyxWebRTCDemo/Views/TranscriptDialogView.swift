@@ -138,17 +138,47 @@ struct TranscriptDialogView: View {
 struct TranscriptItemView: View {
     let item: TranscriptionItem
     
+    // Android-compatible role detection
     private var isUser: Bool {
-        return item.speaker.lowercased().contains("user") || 
-               item.speaker.lowercased().contains("human") ||
-               item.speaker.lowercased() == "you"
+        return item.role.lowercased() == "user"
+    }
+    
+    private var isAssistant: Bool {
+        return item.role.lowercased() == "assistant"
     }
     
     private var displayName: String {
         if isUser {
             return "You"
+        } else if isAssistant {
+            return "Assistant"
         } else {
-            return item.speaker.capitalized
+            return item.role.capitalized
+        }
+    }
+    
+    // Android-compatible styling
+    private var bubbleColor: Color {
+        if isUser {
+            return Color(hex: "#00E3AA").opacity(0.15)
+        } else if isAssistant {
+            return Color(hex: "#3434EF").opacity(0.1)
+        } else {
+            return Color.gray.opacity(0.1)
+        }
+    }
+    
+    private var textColor: Color {
+        return Color(hex: "#1D1D1D")
+    }
+    
+    private var nameColor: Color {
+        if isUser {
+            return Color(hex: "#00E3AA")
+        } else if isAssistant {
+            return Color(hex: "#3434EF")
+        } else {
+            return Color(hex: "#525252")
         }
     }
     
@@ -159,11 +189,18 @@ struct TranscriptItemView: View {
             }
             
             VStack(alignment: isUser ? .trailing : .leading, spacing: 6) {
+                // Role and timestamp header
                 HStack {
                     if !isUser {
-                        Text(displayName)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(hex: "#525252"))
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(nameColor)
+                                .frame(width: 6, height: 6)
+                            
+                            Text(displayName)
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(nameColor)
+                        }
                     }
                     
                     Spacer()
@@ -173,27 +210,77 @@ struct TranscriptItemView: View {
                         .foregroundColor(Color.gray.opacity(0.7))
                     
                     if isUser {
-                        Text(displayName)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(hex: "#525252"))
+                        HStack(spacing: 4) {
+                            Text(displayName)
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(nameColor)
+                            
+                            Circle()
+                                .fill(nameColor)
+                                .frame(width: 6, height: 6)
+                        }
                     }
                 }
                 
-                Text(item.text)
-                    .font(.system(size: 15, weight: .regular))
-                    .foregroundColor(Color(hex: "#1D1D1D"))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 10)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(isUser ? Color(hex: "#00E3AA").opacity(0.1) : Color.gray.opacity(0.1))
-                    )
-                    .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: isUser ? .trailing : .leading)
+                // Message content with Android-compatible styling
+                HStack {
+                    if !isUser && isAssistant {
+                        Image(systemName: "brain")
+                            .font(.system(size: 14))
+                            .foregroundColor(nameColor)
+                            .padding(.leading, 8)
+                    }
+                    
+                    Text(item.content)
+                        .font(.system(size: 15, weight: .regular))
+                        .foregroundColor(textColor)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(bubbleColor)
+                        )
+                        .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: isUser ? .trailing : .leading)
+                    
+                    if isUser {
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(nameColor)
+                            .padding(.trailing, 8)
+                    }
+                }
                 
-                if let confidence = item.confidence {
-                    Text("Confidence: \(Int(confidence * 100))%")
-                        .font(.system(size: 10, weight: .regular))
-                        .foregroundColor(Color.gray.opacity(0.6))
+                // Status indicators (Android compatibility)
+                HStack {
+                    if item.isPartial {
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(Color.orange)
+                                .frame(width: 4, height: 4)
+                            
+                            Text("Recording...")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(Color.orange)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    if let confidence = item.confidence {
+                        Text("Confidence: \(Int(confidence * 100))%")
+                            .font(.system(size: 10, weight: .regular))
+                            .foregroundColor(Color.gray.opacity(0.6))
+                    }
+                    
+                    if let itemType = item.itemType {
+                        Text(itemType)
+                            .font(.system(size: 9, weight: .medium))
+                            .foregroundColor(Color.gray.opacity(0.5))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(4)
+                    }
                 }
             }
             

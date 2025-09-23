@@ -8,7 +8,6 @@
 import SwiftUI
 import UIKit
 import TelnyxRTC
-import Combine
 
 class AIAssistantViewModel: ObservableObject {
     @Published var isConnected: Bool = false
@@ -25,12 +24,16 @@ class AIAssistantViewModel: ObservableObject {
     private let lastTargetIdKey = "LastAIAssistantTargetId"
     
     private var currentCall: Call?
-    private var cancellables = Set<AnyCancellable>()
+    private var cancellables: [Any] = []
     private var originalVoipDelegate: VoIPDelegate?
     private var hasSetupDelegates = false
     private var appDelegate: AppDelegate {
         return UIApplication.shared.delegate as! AppDelegate
     }
+    
+    // MARK: - Real-time Transcript Updates
+    private var transcriptUpdateCancellable: TranscriptCancellable?
+    private var transcriptItemCancellable: TranscriptCancellable?
     
     var connectionStatusText: String {
         if isLoading {
@@ -71,6 +74,7 @@ class AIAssistantViewModel: ObservableObject {
             print("AIAssistantViewModel setupAIAssistantDelegate - delegates already set up, just reassigning AI Assistant delegate")
             // Re-assign AI Assistant delegate in case it was cleared during disconnect
             appDelegate.telnyxClient?.aiAssistantManager.delegate = self
+            setupRealtimeTranscriptUpdates()
             return 
         }
         
@@ -82,15 +86,45 @@ class AIAssistantViewModel: ObservableObject {
         appDelegate.telnyxClient?.aiAssistantManager.delegate = self
         appDelegate.voipDelegate = self
         
+        // Setup real-time transcript updates (Android compatibility)
+        setupRealtimeTranscriptUpdates()
+        
         hasSetupDelegates = true
         print("AIAssistantViewModel setupAIAssistantDelegate completed - delegates set up successfully")
+    }
+    
+    private func setupRealtimeTranscriptUpdates() {
+        guard let aiAssistantManager = appDelegate.telnyxClient?.aiAssistantManager else { return }
+        
+        // Subscribe to real-time transcript updates
+        transcriptUpdateCancellable = aiAssistantManager.subscribeToTranscriptUpdates { [weak self] updatedTranscriptions in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                self.transcriptions = updatedTranscriptions
+            }
+        }
+        
+        // Subscribe to individual transcript item updates
+        transcriptItemCancellable = aiAssistantManager.subscribeToTranscriptItemUpdates { [weak self] newItem in
+            guard let self = self else { return }
+            print("AIAssistantViewModel:: Received individual transcript update: \(newItem.content)")
+            // Individual item updates are handled by the array update above
+        }
+        
+        print("AIAssistantViewModel:: Real-time transcript updates setup completed")
     }
     
     private func cleanupAIAssistantState() {
         print("AIAssistantViewModel cleanupAIAssistantState called - full cleanup")
         
-        // Cancel all Combine subscriptions first
+        // Cancel all subscriptions first
         cancellables.removeAll()
+        
+        // Cancel real-time transcript subscriptions
+        transcriptUpdateCancellable?.cancel()
+        transcriptItemCancellable?.cancel()
+        transcriptUpdateCancellable = nil
+        transcriptItemCancellable = nil
         
         // Force cleanup of delegates regardless of hasSetupDelegates flag
         appDelegate.telnyxClient?.aiAssistantManager.delegate = nil
@@ -266,22 +300,84 @@ class AIAssistantViewModel: ObservableObject {
     }
     
     func sendMessage(_ message: String) {
-        // TODO: Implement conversation messaging when SDK supports it
-        // For now, this is a placeholder for future implementation
-        print("Sending message: \(message)")
+        print("AIAssistantViewModel:: Sending text message: \(message)")
         
-        // Create a mock transcription item for the user message
-        let userTranscription = TranscriptionItem(
-            id: UUID().uuidString,
-            timestamp: Date(),
-            speaker: "user",
-            text: message
-        )
-        
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            self.transcriptions.append(userTranscription)
+        guard let aiAssistantManager = appDelegate.telnyxClient?.aiAssistantManager else {
+            errorMessage = "AI Assistant Manager not available"
+            return
         }
+        
+        // Use the new mixed-mode communication method
+        let success = aiAssistantManager.sendAIAssistantMessage(message)
+        
+        if !success {
+            errorMessage = "Failed to send message to AI Assistant"
+        }
+    }
+    
+    // MARK: - Mixed-mode Communication (Android compatibility)
+    
+    /// Send a text message to AI Assistant during active call
+    /// - Parameter message: The text message to send
+    func sendTextMessage(_ message: String) {
+        sendMessage(message)
+    }
+    
+    /// Get current transcriptions (Android compatibility method)
+    /// - Returns: Current array of transcription items
+    func getCurrentTranscriptions() -> [TranscriptionItem] {
+        return appDelegate.telnyxClient?.aiAssistantManager.getTranscriptions() ?? []
+    }
+    
+    /// Check if transcriptions are available
+    /// - Returns: True if transcriptions are available, false otherwise
+    var hasTranscriptions: Bool {
+        return !transcriptions.isEmpty
+    }
+    
+    /// Get the latest transcription item
+    /// - Returns: Latest transcription item or nil if none available
+    var latestTranscription: TranscriptionItem? {
+        return transcriptions.last
+    }
+    
+    // MARK: - Transcript Management (Android compatibility)
+    
+    /// Get transcriptions by role (Android compatibility)
+    /// - Parameter role: The role to filter by ("user" or "assistant")
+    /// - Returns: Array of transcription items for the specified role
+    func getTranscriptionsByRole(_ role: String) -> [TranscriptionItem] {
+        return transcriptions.filter { $0.role.lowercased() == role.lowercased() }
+    }
+    
+    /// Get user transcriptions only
+    /// - Returns: Array of user transcription items
+    var userTranscriptions: [TranscriptionItem] {
+        return getTranscriptionsByRole("user")
+    }
+    
+    /// Get assistant transcriptions only
+    /// - Returns: Array of assistant transcription items
+    var assistantTranscriptions: [TranscriptionItem] {
+        return getTranscriptionsByRole("assistant")
+    }
+    
+    /// Clear transcriptions by role
+    /// - Parameter role: The role to clear transcriptions for
+    func clearTranscriptionsByRole(_ role: String) {
+        transcriptions.removeAll { $0.role.lowercased() == role.lowercased() }
+    }
+    
+    /// Get partial transcriptions (in-progress recordings)
+    /// - Returns: Array of partial transcription items
+    var partialTranscriptions: [TranscriptionItem] {
+        return transcriptions.filter { $0.isPartial }
+    }
+    
+    /// Get final transcriptions (completed recordings)
+    /// - Returns: Array of final transcription items
+    var finalTranscriptions: [TranscriptionItem] {
+        return transcriptions.filter { !$0.isPartial }
     }
 }
 
