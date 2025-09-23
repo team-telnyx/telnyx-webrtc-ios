@@ -183,6 +183,45 @@ class AITranscriptionTests: XCTestCase {
         XCTAssertEqual(transcription.speaker, "assistant")
         XCTAssertFalse(transcription.isFinal)
     }
+    
+    func testDirectStringContentUserMessage() {
+        // Test message with direct string content (like the example provided)
+        let message: [String: Any] = [
+            "id": "9268cdfc-efba-4ca8-b193-b8d9de9b6153",
+            "jsonrpc": "2.0",
+            "method": "ai_conversation",
+            "params": [
+                "item": [
+                    "content": "Testing about web RTC.",
+                    "id": "7f71dd52-6bf9-4380-8f77-540f84904f8e",
+                    "role": "user",
+                    "status": "completed",
+                    "type": "message"
+                ],
+                "previous_item_id": "994615db-a13f-4fc8-8360-455997ddb59a",
+                "type": "conversation.item.created"
+            ],
+            "voice_sdk_id": "VSDK1Cu_PUDpaQttwaKkAQ9qFLlu5yJ7oMw"
+        ]
+        
+        // Process the message
+        let processed = aiAssistantManager.processMessage(message)
+        
+        // Verify it was processed
+        XCTAssertTrue(processed, "Message should have been processed")
+        
+        // Verify transcription was added
+        let transcriptions = aiAssistantManager.getTranscriptions()
+        XCTAssertEqual(transcriptions.count, 1, "Should have one transcription")
+        
+        let transcription = transcriptions.first!
+        XCTAssertEqual(transcription.id, "7f71dd52-6bf9-4380-8f77-540f84904f8e")
+        XCTAssertEqual(transcription.speaker, "user")
+        XCTAssertEqual(transcription.text, "Testing about web RTC.")
+        XCTAssertTrue(transcription.isFinal, "Completed user messages should be final")
+        XCTAssertNil(transcription.confidence, "User transcripts don't have confidence")
+        XCTAssertEqual(transcription.itemType, "text")
+    }
 }
 
 // Mock delegate for testing

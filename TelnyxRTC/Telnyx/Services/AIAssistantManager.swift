@@ -446,50 +446,61 @@ public class AIAssistantManager {
             return
         }
         
-        // Extract content array
-        guard let contentArray = item["content"] as? [[String: Any]] else {
-            logger.w(message: "AIAssistantManager:: No content array found in conversation item")
+        // Handle content - it can be either a string (direct content) or an array of content items
+        var transcriptText = ""
+        var contentType = "text"
+        
+        if let contentString = item["content"] as? String {
+            // Handle direct string content (like in the example message)
+            transcriptText = contentString
+            contentType = "text"
+            logger.i(message: "AIAssistantManager:: Found direct string content: '\(transcriptText)'")
+        } else if let contentArray = item["content"] as? [[String: Any]] {
+            // Handle array of content items (existing format)
+            for content in contentArray {
+                if let type = content["type"] as? String,
+                   let transcript = content["transcript"] as? String {
+                    transcriptText = transcript
+                    contentType = type
+                    logger.i(message: "AIAssistantManager:: Found content array item: '\(transcriptText)'")
+                    break // Use the first valid content item
+                }
+            }
+        }
+        
+        // Ensure we have transcript content
+        guard !transcriptText.isEmpty else {
+            logger.w(message: "AIAssistantManager:: No valid transcript content found in conversation item")
             return
         }
         
-        // Process each content item
-        for content in contentArray {
-            guard let contentType = content["type"] as? String,
-                  let transcript = content["transcript"] as? String else {
-                continue
-            }
-            
-            // Only process input_audio content with transcripts
-            if contentType == "input_audio" {
-                logger.i(message: "AIAssistantManager:: Processing user transcript: '\(transcript)' for item_id: \(itemId)")
-                
-                // Create a transcription item for the user's speech using Android-style properties
-                let transcription = TranscriptionItem(
-                    id: itemId,
-                    role: "user", // This is from the user
-                    content: transcript,
-                    isPartial: !isCompleted, // Partial if in progress, final if completed
-                    timestamp: Date(),
-                    confidence: nil, // No confidence provided for user transcripts
-                    itemType: "input_audio",
-                    metadata: [
-                        "status": status as Any,
-                        "content_type": contentType as Any
-                    ]
-                )
-                
-                // Check if we already have a transcription with this ID to update
-                if let existingIndex = transcriptions.firstIndex(where: { $0.id == itemId }) {
-                    // Update existing transcription
-                    transcriptions[existingIndex] = transcription
-                    logger.i(message: "AIAssistantManager:: Updated existing user transcription: \(itemId)")
-                    // Notify delegate of the update
-                    delegate?.onTranscriptionUpdated(transcriptions)
-                } else {
-                    // Add as new transcription
-                    addTranscription(transcription)
-                }
-            }
+        logger.i(message: "AIAssistantManager:: Processing user transcript: '\(transcriptText)' for item_id: \(itemId)")
+        
+        // Create a transcription item for the user's speech using Android-style properties
+        let transcription = TranscriptionItem(
+            id: itemId,
+            role: "user", // This is from the user
+            content: transcriptText,
+            isPartial: !isCompleted, // Partial if in progress, final if completed
+            timestamp: Date(),
+            confidence: nil, // No confidence provided for user transcripts
+            itemType: contentType,
+            metadata: [
+                "status": status as Any,
+                "content_type": contentType as Any
+            ]
+        )
+        
+        // Check if we already have a transcription with this ID to update
+        if let existingIndex = transcriptions.firstIndex(where: { $0.id == itemId }) {
+            // Update existing transcription
+            transcriptions[existingIndex] = transcription
+            logger.i(message: "AIAssistantManager:: Updated existing user transcription: \(itemId)")
+            // Notify delegate of the update
+            delegate?.onTranscriptionUpdated(transcriptions)
+        } else {
+            // Add as new transcription
+            addTranscription(transcription)
         }
     }
     
