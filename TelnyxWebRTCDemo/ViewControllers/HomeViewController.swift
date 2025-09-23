@@ -73,6 +73,9 @@ class HomeViewController: UIViewController {
             onRedial: { [weak self] phoneNumber in
                 self?.callViewModel.sipAddress = phoneNumber
                 self?.onCallButton()
+            },
+            onAnonymousLogin: { [weak self] assistantId, targetType, targetVersionId in
+                self?.onAnonymousLogin(assistantId: assistantId, targetType: targetType, targetVersionId: targetVersionId)
             }
         )
 
@@ -431,6 +434,27 @@ extension HomeViewController {
         let handle = "Telnyx"
 
         appDelegate.executeStartCallAction(uuid: uuid, handle: handle)
+    }
+    
+    func onAnonymousLogin(assistantId: String, targetType: String, targetVersionId: String?) {
+        print("HomeViewController:: onAnonymousLogin() assistantId: \(assistantId), targetType: \(targetType), targetVersionId: \(targetVersionId ?? "nil")")
+        
+        guard let telnyxClient = self.telnyxClient else {
+            print("HomeViewController:: onAnonymousLogin() ERROR: TelnyxClient is not available")
+            return
+        }
+        
+        // Call the anonymous login method
+        telnyxClient.anonymousLogin(
+            targetId: assistantId,
+            targetType: targetType,
+            targetVersionId: targetVersionId,
+            userVariables: [:],
+            reconnection: false,
+            serverConfiguration: self.serverConfig ?? TxServerConfiguration()
+        )
+        
+        print("HomeViewController:: onAnonymousLogin() Anonymous login request sent")
     }
 
     func onEndCallButton() {

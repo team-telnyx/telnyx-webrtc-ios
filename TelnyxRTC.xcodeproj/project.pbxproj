@@ -83,6 +83,7 @@
 		99ADA94E2D47C9B6000C956A /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA94C2D47C9B6000C956A /* HomeViewModel.swift */; };
 		99ADA9A82D4878FA000C956A /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9A72D4878ED000C956A /* ProfileView.swift */; };
 		99ADA9AA2D487ACC000C956A /* CallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9A92D487AC4000C956A /* CallView.swift */; };
+		D5687A2F117AD28B5FE1E105 /* AnonymousLoginSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A824594EEB1B61DD8EC17F84 /* AnonymousLoginSheet.swift */; };
 		99ADA9AE2D487DE5000C956A /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9AD2D487DE1000C956A /* ProfileViewModel.swift */; };
 		99ADA9B02D4886E7000C956A /* CallViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9AF2D4886E3000C956A /* CallViewModel.swift */; };
 		99ADA9B22D488D98000C956A /* HomeViewController+VoIPExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9B12D488D92000C956A /* HomeViewController+VoIPExtension.swift */; };
@@ -273,6 +274,7 @@
 		99ADA94C2D47C9B6000C956A /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
 		99ADA9A72D4878ED000C956A /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		99ADA9A92D487AC4000C956A /* CallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallView.swift; sourceTree = "<group>"; };
+		A824594EEB1B61DD8EC17F84 /* AnonymousLoginSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnonymousLoginSheet.swift; sourceTree = "<group>"; };
 		99ADA9AD2D487DE1000C956A /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
 		99ADA9AF2D4886E3000C956A /* CallViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallViewModel.swift; sourceTree = "<group>"; };
 		99ADA9B12D488D92000C956A /* HomeViewController+VoIPExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeViewController+VoIPExtension.swift"; sourceTree = "<group>"; };
@@ -565,6 +567,7 @@
 				3BE84BA72D9C944A00CA1B70 /* DestinationToggle.swift */,
 				99FF7B0F2D4BC4F700DB1408 /* DTMFKeyboardView.swift */,
 				99ADA9A92D487AC4000C956A /* CallView.swift */,
+				A824594EEB1B61DD8EC17F84 /* AnonymousLoginSheet.swift */,
 				99B127D52DCE54500048CE0A /* CallQualityMetricsView.swift */,
 				99ADA9A72D4878ED000C956A /* ProfileView.swift */,
 				998670412D4096A7001E1D01 /* HomeView.swift */,
@@ -1197,6 +1200,7 @@
 				3BA535E92DFBA37C005AF0F4 /* PreCallDiagnosticManager.swift in Sources */,
 				995BF7162CE7EB2600454076 /* SipUserCredential.swift in Sources */,
 				99ADA9AA2D487ACC000C956A /* CallView.swift in Sources */,
+				D5687A2F117AD28B5FE1E105 /* AnonymousLoginSheet.swift in Sources */,
 				99ADA9B02D4886E7000C956A /* CallViewModel.swift in Sources */,
 				9982C0412D53977B00FA91B4 /* TestConfiguration.swift in Sources */,
 				9982C0422D53977B00FA91B4 /* AccessibilityIdentifiers.swift in Sources */,

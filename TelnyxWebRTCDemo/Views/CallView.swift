@@ -5,6 +5,10 @@ struct CallView: View {
     @ObservedObject var viewModel: CallViewModel
     @State var isPhoneNumber: Bool
     @State private var showCallHistory = false
+    @State private var showAnonymousLogin = false
+    @State private var assistantId = "assistant-9be2960c-df97-4cbb-9f1a-28c87d0ab77e"
+    @State private var targetType = "ai_assistant"
+    @State private var targetVersionId = ""
 
     let onStartCall: () -> Void
     let onEndCall: () -> Void
@@ -15,6 +19,7 @@ struct CallView: View {
     let onHold: (Bool) -> Void
     let onDTMF: (String) -> Void
     let onRedial: ((String) -> Void)?
+    let onAnonymousLogin: ((String, String, String?) -> Void)?
     
 
     var body: some View {
@@ -58,6 +63,19 @@ struct CallView: View {
                 },
                 onClearHistory: {
                     // History cleared
+                }
+            )
+        }.sheet(isPresented: $showAnonymousLogin) {
+            AnonymousLoginSheet(
+                assistantId: $assistantId,
+                targetType: $targetType,
+                targetVersionId: $targetVersionId,
+                onConnect: { id, type, versionId in
+                    onAnonymousLogin?(id, type, versionId.isEmpty ? nil : versionId)
+                    showAnonymousLogin = false
+                },
+                onCancel: {
+                    showAnonymousLogin = false
                 }
             )
         }
@@ -122,21 +140,36 @@ struct CallView: View {
             .padding()
          
             
-            Button(action: {
-                showCallHistory = true
-            }) {
-                Text("Call History")
-                    .font(.body)
-                    .foregroundColor(Color(hex: "#1D1D1D"))
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
-                    .background(Color.clear)
-                    .clipShape(RoundedRectangle(cornerRadius: 25))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 25)
-                            .stroke(Color(hex: "#1D1D1D"), lineWidth: 2)
-                    )
-                    .accessibilityIdentifier("callHistoryButton")
+            HStack(spacing: 16) {
+                Button(action: {
+                    showCallHistory = true
+                }) {
+                    Text("Call History")
+                        .font(.body)
+                        .foregroundColor(Color(hex: "#1D1D1D"))
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(Color.clear)
+                        .clipShape(RoundedRectangle(cornerRadius: 25))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 25)
+                                .stroke(Color(hex: "#1D1D1D"), lineWidth: 2)
+                        )
+                        .accessibilityIdentifier("callHistoryButton")
+                }
+                
+                Button(action: {
+                    showAnonymousLogin = true
+                }) {
+                    Text("AI Assistant")
+                        .font(.body)
+                        .foregroundColor(Color.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(Color(hex: "#00E3AA"))
+                        .clipShape(RoundedRectangle(cornerRadius: 25))
+                        .accessibilityIdentifier("anonymousLoginButton")
+                }
             }
 
             // Keep Keyboard below Textfiled
