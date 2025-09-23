@@ -283,6 +283,8 @@ struct AIAssistantView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: {
+                        // Disconnect from socket when pressing Back button
+                        viewModel.disconnect()
                         viewModel.restoreHomeDelegate()
                         presentationMode.wrappedValue.dismiss()
                     }) {
