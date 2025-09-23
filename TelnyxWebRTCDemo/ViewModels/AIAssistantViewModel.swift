@@ -22,6 +22,8 @@ class AIAssistantViewModel: ObservableObject {
     @Published var widgetSettings: WidgetSettings?
     @Published var errorMessage: String?
     
+    private let lastTargetIdKey = "LastAIAssistantTargetId"
+    
     private var currentCall: Call?
     private var cancellables = Set<AnyCancellable>()
     private var originalVoipDelegate: VoIPDelegate?
@@ -38,8 +40,21 @@ class AIAssistantViewModel: ObservableObject {
     }
     
     init() {
+        // Load the last successful targetId from UserDefaults
+        loadLastTargetId()
+        
         // Don't set up delegates immediately to avoid retain cycles
         // They will be set up when actually needed
+    }
+    
+    private func loadLastTargetId() {
+        if let savedTargetId = UserDefaults.standard.string(forKey: lastTargetIdKey) {
+            targetIdInput = savedTargetId
+        }
+    }
+    
+    private func saveLastTargetId(_ targetId: String) {
+        UserDefaults.standard.set(targetId, forKey: lastTargetIdKey)
     }
     
     deinit {
@@ -289,7 +304,11 @@ extension AIAssistantViewModel: AIAssistantManagerDelegate {
             guard let self = self else { return }
             self.isConnected = isConnected
             self.isLoading = false
-            if !isConnected {
+            
+            if isConnected, let targetId = targetId {
+                // Save the successful targetId to UserDefaults
+                self.saveLastTargetId(targetId)
+            } else {
                 self.sessionId = nil
                 self.callState = .NEW
                 self.currentCall = nil
