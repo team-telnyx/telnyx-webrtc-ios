@@ -14,7 +14,8 @@ struct AIAssistantView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 20) {
+            ScrollView {
+                VStack(spacing: 20) {
                 // Header
                 VStack(spacing: 10) {
                     Image(systemName: "brain")
@@ -276,6 +277,7 @@ struct AIAssistantView: View {
                 }
                 .padding(.horizontal, 30)
                 .padding(.bottom, 30)
+                }
             }
             .background(Color(hex: "#FEFDF5"))
             .navigationBarTitleDisplayMode(.inline)
