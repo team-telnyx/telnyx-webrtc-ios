@@ -6,6 +6,22 @@ extension Call
 ```
 
 ## Methods
+### `iceRestart(completion:)`
+
+```swift
+public func iceRestart(completion: @escaping (_ success: Bool, _ error: Error?) -> Void)
+```
+
+Performs ICE restart to renegotiate ICE candidates when network conditions change
+This helps resolve audio delay issues by establishing new network paths
+- Parameter completion: Callback indicating success or failure of the ICE restart
+
+#### Parameters
+
+| Name | Description |
+| ---- | ----------- |
+| completion | Callback indicating success or failure of the ICE restart |
+
 ### `hangup()`
 
 ```swift
@@ -84,6 +100,22 @@ public func unmuteAudio()
 Turns on audio output, i.e. makes it so other call participants can hear your audio.
 ### Example:
     call.unmuteAudio()
+
+### `resetAudioDevice()`
+
+```swift
+public func resetAudioDevice()
+```
+
+Resets the audio device and clears accumulated buffers to resolve persistent audio delay issues.
+
+This method addresses iOS audio delay problems where:
+- AudioDeviceModule buffers stretch under poor network conditions
+- WebRTC audio pacing causes frame accumulation
+- iOS AudioUnit/AVAudioSession remains in large buffer state
+
+### Example:
+    call.resetAudioDevice()
 
 ### `hold()`
 

@@ -17,7 +17,7 @@
     <a title="TxConfig Structure Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">TelnyxRTC 2.0.2 Docs</a> (80% documented)</p>
+        <p><a href="../index.html">TelnyxRTC 2.2.0 Docs</a> (79% documented)</p>
         <div class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -74,6 +74,9 @@
               </li>
               <li class="nav-group-task">
                 <a href="../Enums/PushEnvironment.html">PushEnvironment</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/Region.html">Region</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Enums/TxError.html">TxError</a>
@@ -519,6 +522,48 @@ which prevents the &ldquo;local network access&rdquo; permission popup from appe
                 <li class="item">
                   <div>
                     <code>
+                    <a name="/s:9TelnyxRTC8TxConfigV24sendWebRTCStatsViaSocketSbvp"></a>
+                    <a name="//apple_ref/swift/Property/sendWebRTCStatsViaSocket" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV24sendWebRTCStatsViaSocketSbvp">sendWebRTCStatsViaSocket</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Controls whether the SDK should send WebRTC statistics via socket</p>
+<div class="aside aside-note">
+    <p class="aside-title">Note</p>
+    This flag is independent of <code><a href="../Structs/TxConfig.html#/s:9TelnyxRTC8TxConfigV5debugSbvp">debug</a></code> and <code><a href="../Structs/TxConfig.html#/s:9TelnyxRTC8TxConfigV20enableQualityMetricsSbvp">enableQualityMetrics</a></code>:
+
+<ul>
+<li><code><a href="../Structs/TxConfig.html#/s:9TelnyxRTC8TxConfigV5debugSbvp">debug</a></code>: Enables WebRTC stats collection and real-time metrics</li>
+<li><code><a href="../Structs/TxConfig.html#/s:9TelnyxRTC8TxConfigV20enableQualityMetricsSbvp">enableQualityMetrics</a></code>: Enables call quality metrics calculation</li>
+<li><code>sendWebRTCStatsViaSocket</code>: Enables sending collected stats via socket to Telnyx servers</li>
+</ul>
+
+</div><div class="aside aside-important">
+    <p class="aside-title">Important</p>
+    This flag is disabled by default to minimize network traffic
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">internal(set)</span> <span class="k">var</span> <span class="nv">sendWebRTCStatsViaSocket</span><span class="p">:</span> <span class="kt">Bool</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
                     <a name="/s:9TelnyxRTC8TxConfigV16reconnectTimeoutSdvp"></a>
                     <a name="//apple_ref/swift/Property/reconnectTimeout" class="dashAnchor"></a>
                     <a class="token" href="#/s:9TelnyxRTC8TxConfigV16reconnectTimeoutSdvp">reconnectTimeout</a>
@@ -594,9 +639,9 @@ If not provided, the default logger will be used</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone0H11Environment8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate20enableQualityMetrics0T7TimeOutACSS_S2SSgA2qA04PushO0OSgAA03LogQ0OAA0cS0_pSgS4bSdtcfc"></a>
-                    <a name="//apple_ref/swift/Method/init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:reconnectTimeOut:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone0H11Environment8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate20enableQualityMetrics0T7TimeOutACSS_S2SSgA2qA04PushO0OSgAA03LogQ0OAA0cS0_pSgS4bSdtcfc">init(sipUser:<wbr>password:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>pushEnvironment:<wbr>logLevel:<wbr>customLogger:<wbr>reconnectClient:<wbr>debug:<wbr>forceRelayCandidate:<wbr>enableQualityMetrics:<wbr>reconnectTimeOut:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone0H11Environment8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate20enableQualityMetrics24sendWebRTCStatsViaSocket0T7TimeOutACSS_S2SSgA2rA04PushO0OSgAA03LogQ0OAA0cS0_pSgS5bSdtcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone0H11Environment8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate20enableQualityMetrics24sendWebRTCStatsViaSocket0T7TimeOutACSS_S2SSgA2rA04PushO0OSgAA03LogQ0OAA0cS0_pSgS5bSdtcfc">init(sipUser:<wbr>password:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>pushEnvironment:<wbr>logLevel:<wbr>customLogger:<wbr>reconnectClient:<wbr>debug:<wbr>forceRelayCandidate:<wbr>enableQualityMetrics:<wbr>sendWebRTCStatsViaSocket:<wbr>reconnectTimeOut:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -622,6 +667,7 @@ If not provided, the default logger will be used</p>
             <span class="nv">debug</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span>
             <span class="nv">forceRelayCandidate</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span>
             <span class="nv">enableQualityMetrics</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span>
+            <span class="nv">sendWebRTCStatsViaSocket</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span>
             <span class="nv">reconnectTimeOut</span><span class="p">:</span> <span class="kt">Double</span> <span class="o">=</span> <span class="kt"><a href="../Structs/TxConfig.html#/s:9TelnyxRTC8TxConfigV15DEFAULT_TIMEOUTSdvpZ">DEFAULT_TIMEOUT</a></span>
 <span class="p">)</span></code></pre>
 
@@ -694,6 +740,18 @@ If not provided, the default logger will be used</p>
                             <tr>
                               <td>
                                 <code>
+                                <em>pushEnvironment</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) The push notification environment (production or debug)</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
                                 <em>logLevel</em>
                                 </code>
                               </td>
@@ -718,6 +776,66 @@ If not provided, the default logger will be used</p>
                             <tr>
                               <td>
                                 <code>
+                                <em>reconnectClient</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) Whether the client should attempt to reconnect automatically. Default is true.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>debug</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) Enables WebRTC communication statistics reporting to Telnyx servers. Default is false.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>forceRelayCandidate</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) Controls whether the SDK should force TURN relay for peer connections. Default is false.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>enableQualityMetrics</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) Controls whether the SDK should deliver call quality metrics. Default is false.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>sendWebRTCStatsViaSocket</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) Whether to send WebRTC statistics via socket to Telnyx servers. Default is false.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
                                 <em>reconnectTimeOut</em>
                                 </code>
                               </td>
@@ -736,9 +854,9 @@ If not provided, the default logger will be used</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone0F11Environment8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate20enableQualityMetrics0R7TimeOutACSS_SSSgA2pA04PushM0OSgAA03LogO0OAA0cQ0_pSgS4bSdtcfc"></a>
-                    <a name="//apple_ref/swift/Method/init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:reconnectTimeOut:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone0F11Environment8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate20enableQualityMetrics0R7TimeOutACSS_SSSgA2pA04PushM0OSgAA03LogO0OAA0cQ0_pSgS4bSdtcfc">init(token:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>pushEnvironment:<wbr>logLevel:<wbr>customLogger:<wbr>reconnectClient:<wbr>debug:<wbr>forceRelayCandidate:<wbr>enableQualityMetrics:<wbr>reconnectTimeOut:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone0F11Environment8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate20enableQualityMetrics24sendWebRTCStatsViaSocket0R7TimeOutACSS_SSSgA2qA04PushM0OSgAA03LogO0OAA0cQ0_pSgS5bSdtcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone0F11Environment8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate20enableQualityMetrics24sendWebRTCStatsViaSocket0R7TimeOutACSS_SSSgA2qA04PushM0OSgAA03LogO0OAA0cQ0_pSgS5bSdtcfc">init(token:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>pushEnvironment:<wbr>logLevel:<wbr>customLogger:<wbr>reconnectClient:<wbr>debug:<wbr>forceRelayCandidate:<wbr>enableQualityMetrics:<wbr>sendWebRTCStatsViaSocket:<wbr>reconnectTimeOut:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -764,6 +882,7 @@ If not provided, the default logger will be used</p>
             <span class="nv">debug</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span>
             <span class="nv">forceRelayCandidate</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span>
             <span class="nv">enableQualityMetrics</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span>
+            <span class="nv">sendWebRTCStatsViaSocket</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span>
             <span class="nv">reconnectTimeOut</span><span class="p">:</span> <span class="kt">Double</span> <span class="o">=</span> <span class="kt"><a href="../Structs/TxConfig.html#/s:9TelnyxRTC8TxConfigV15DEFAULT_TIMEOUTSdvpZ">DEFAULT_TIMEOUT</a></span>
 <span class="p">)</span></code></pre>
 
@@ -824,6 +943,18 @@ If not provided, the default logger will be used</p>
                             <tr>
                               <td>
                                 <code>
+                                <em>pushEnvironment</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) The push notification environment (production or debug)</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
                                 <em>logLevel</em>
                                 </code>
                               </td>
@@ -848,12 +979,60 @@ If not provided, the default logger will be used</p>
                             <tr>
                               <td>
                                 <code>
-                                <em>serverConfiguration</em>
+                                <em>reconnectClient</em>
                                 </code>
                               </td>
                               <td>
                                 <div>
-                                  <p>(Optional) Custom configuration for signaling server and TURN/STUN servers (defaults to Telnyx Production servers)</p>
+                                  <p>(Optional) Whether the client should attempt to reconnect automatically. Default is true.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>debug</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) Enables WebRTC communication statistics reporting to Telnyx servers. Default is false.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>forceRelayCandidate</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) Controls whether the SDK should force TURN relay for peer connections. Default is false.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>enableQualityMetrics</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) Controls whether the SDK should deliver call quality metrics. Default is false.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>sendWebRTCStatsViaSocket</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) Whether to send WebRTC statistics via socket to Telnyx servers. Default is false.</p>
                                 </div>
                               </td>
                             </tr>
@@ -925,7 +1104,7 @@ If not provided, the default logger will be used</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-07-04)</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-09-19)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>

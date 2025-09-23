@@ -14,6 +14,9 @@ enum UserDefaultsKey: String {
     case pushDeviceToken = "PUSH_DEVICE_TOKEN"
     case callDestination = "CALL_DESTINATION"
     case webrtcEnvironment = "WEBRTC_ENVIRONMENT"
+    case forceRelayCandidate = "FORCE_RELAY_CANDIDATE"
+    case webrtcStats = "WEBRTC_STATS"
+    case sendWebRTCStatsViaSocket = "SEND_WEBRTC_STATS_VIA_SOCKET"
 }
 
 extension UserDefaults {
@@ -47,6 +50,41 @@ extension UserDefaults {
     func saveEnvironment(_ environment: WebRTCEnvironment) {
         let value = environment.toString()
         set(value, forKey: UserDefaultsKey.webrtcEnvironment.rawValue)
+    }
+    
+    // MARK: - Force Relay Candidate
+    func saveForceRelayCandidate(_ forceRelay: Bool) {
+        set(forceRelay, forKey: UserDefaultsKey.forceRelayCandidate.rawValue)
+    }
+    
+    func getForceRelayCandidate() -> Bool {
+        return bool(forKey: UserDefaultsKey.forceRelayCandidate.rawValue)
+    }
+    
+    // MARK: - WebRTC Stats
+    func saveWebRTCStats(_ enabled: Bool) {
+        set(enabled, forKey: UserDefaultsKey.webrtcStats.rawValue)
+    }
+    
+    func getWebRTCStats() -> Bool {
+        // Default to true if not set
+        if object(forKey: UserDefaultsKey.webrtcStats.rawValue) == nil {
+            return true
+        }
+        return bool(forKey: UserDefaultsKey.webrtcStats.rawValue)
+    }
+    
+    // MARK: - Send WebRTC Stats Via Socket
+    func saveSendWebRTCStatsViaSocket(_ enabled: Bool) {
+        set(enabled, forKey: UserDefaultsKey.sendWebRTCStatsViaSocket.rawValue)
+    }
+    
+    func getSendWebRTCStatsViaSocket() -> Bool {
+        // Default to false if not set
+        if object(forKey: UserDefaultsKey.sendWebRTCStatsViaSocket.rawValue) == nil {
+            return false
+        }
+        return bool(forKey: UserDefaultsKey.sendWebRTCStatsViaSocket.rawValue)
     }
 }
 

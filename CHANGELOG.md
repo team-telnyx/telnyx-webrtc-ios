@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## [2.2.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.2.0) (2025-09-19)
+
+### Features
+- **ICE Renegotiation**: Enhanced ICE candidate renegotiation process to improve call quality during network fluctuations
+- **ACM Buffer Reset**: Implemented automatic AudioDeviceModule (ACM) buffer reset mechanism based on RTT monitoring to reduce audio delay. The ACM buffer is automatically reset when RTT exceeds 1000ms. Requires `debug: true` and `enableQualityMetrics: true` flags in `TxConfig` to enable RTT monitoring and automatic buffer reset functionality
+- **WebRTC Stats Control**: Added new `sendWebRTCStatsViaSocket` flag in `TxConfig` to control whether WebRTC statistics are sent via socket to Telnyx servers
+
+## [2.1.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.1.0) (2025-07-31)
+
+### Features
+- SDK Region Selection
+
+### Enhancements
+- Improved reconnection logic for thread safety
+
 ## [2.0.2](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.0.2) (2025-05-26)
 
 ### Bug Fixes

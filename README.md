@@ -610,6 +610,39 @@ In order to receive incoming calls while the app is running in background or clo
 For detailed documentation on setting up push notifications, see:
 - [App Setup](https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/app-setup) - Configure your iOS app to receive VoIP push notifications
 - [Portal Setup](https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/portal-setup) - Set up your Telnyx Portal account with VoIP push credentials
+- [Troubleshooting](https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/troubleshooting) - Debug common push notification issues
+
+### Testing VoIP Push Notifications
+
+The repository includes a dedicated testing tool to help validate your VoIP push notification setup. This tool allows you to send test push notifications directly to your device using your own certificates and configuration.
+
+**Location**: `push-notification-tool/` in the repository root
+
+#### Quick Setup
+
+```bash
+cd push-notification-tool
+npm install 
+npm run dev
+```
+
+#### What the Tool Does
+
+- **Validates Configuration**: Tests your certificate files, bundle ID, and device token
+- **Sends Test Pushes**: Generates VoIP notifications with SDK-compatible payload structure  
+- **Provides Detailed Errors**: Clear error messages to help identify configuration issues
+- **Supports Continuous Testing**: Send multiple pushes, switch configurations, test different scenarios
+- **Smart Configuration Management**: Saves settings between sessions for faster iteration
+
+#### Perfect for Testing
+
+- Certificate and environment validation
+- Device token verification  
+- Payload structure compatibility
+- Multi-device testing
+- Troubleshooting push delivery issues
+
+For complete setup instructions and usage examples, see the tool's [README](https://github.com/team-telnyx/telnyx-webrtc-ios/tree/main/push-notification-tool) or the [Troubleshooting Guide](https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/troubleshooting#testing-voip-push-notifications).
 
 
 

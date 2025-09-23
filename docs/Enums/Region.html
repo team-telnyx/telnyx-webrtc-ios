@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Region Enumeration Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+    <script src="../js/lunr.min.js" defer></script>
+    <script src="../js/typeahead.jquery.js" defer></script>
+    <script src="../js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Enum/Region" class="dashAnchor"></a>
+    <a title="Region Enumeration Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="../index.html">TelnyxRTC 2.2.0 Docs</a> (79% documented)</p>
+        <div class="header-right">
+          <form role="search" action="../search.json">
+            <input type="text" placeholder="Search documentation" data-typeahead>
+          </form>
+        </div>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="../index.html">TelnyxRTC</a>
+        <img id="carat" src="../img/carat.png" alt=""/>
+        <a href="../Enums.html">Enumerations</a>
+        <img id="carat" src="../img/carat.png" alt=""/>
+        Region Enumeration Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Classes/Call.html">Call</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FileLogger.html">FileLogger</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/MOSCalculator.html">MOSCalculator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TxClient.html">TxClient</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TxDefaultLogger.html">TxDefaultLogger</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Enums.html">Enumerations</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Enums/CallQuality.html">CallQuality</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/CallState.html">CallState</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/CallState/Reason.html">– Reason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LogLevel.html">LogLevel</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/PushEnvironment.html">PushEnvironment</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/Region.html">Region</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/TxError.html">TxError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/TxError/SocketFailureReason.html">– SocketFailureReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/TxError/ClientConfigurationFailureReason.html">– ClientConfigurationFailureReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/TxError/CallFailureReason.html">– CallFailureReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/TxError/ServerErrorReason.html">– ServerErrorReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/WebRTCEnvironment.html">WebRTCEnvironment</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Protocols/TxClientDelegate.html">TxClientDelegate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TxLogger.html">TxLogger</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Structs/CallQualityMetrics.html">CallQualityMetrics</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/CallTerminationReason.html">CallTerminationReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TxCallInfo.html">TxCallInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TxConfig.html">TxConfig</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TxPushConfig.html">TxPushConfig</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TxPushIPConfig.html">TxPushIPConfig</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TxServerConfiguration.html">TxServerConfiguration</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>Region</h1>
+              <div class="declaration">
+                <div class="language">
+                  
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">Region</span> <span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="kt">Codable</span><span class="p">,</span> <span class="kt">CaseIterable</span></code></pre>
+
+                </div>
+              </div>
+            <p>Enum representing the available regions for Telnyx WebRTC connections.</p>
+
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC6RegionO4autoyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/auto" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC6RegionO4autoyA2CmF">auto</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">auto</span> <span class="o">=</span> <span class="s">"auto"</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC6RegionO2euyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/eu" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC6RegionO2euyA2CmF">eu</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">eu</span> <span class="o">=</span> <span class="s">"eu"</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC6RegionO9usCentralyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/usCentral" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC6RegionO9usCentralyA2CmF">usCentral</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">usCentral</span> <span class="o">=</span> <span class="s">"us-central"</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC6RegionO6usEastyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/usEast" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC6RegionO6usEastyA2CmF">usEast</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">usEast</span> <span class="o">=</span> <span class="s">"us-east"</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC6RegionO6usWestyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/usWest" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC6RegionO6usWestyA2CmF">usWest</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">usWest</span> <span class="o">=</span> <span class="s">"us-west"</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC6RegionO9caCentralyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/caCentral" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC6RegionO9caCentralyA2CmF">caCentral</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">caCentral</span> <span class="o">=</span> <span class="s">"ca-central"</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC6RegionO4apacyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/apac" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC6RegionO4apacyA2CmF">apac</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">apac</span> <span class="o">=</span> <span class="s">"apac"</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-09-19)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</html>

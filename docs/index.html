@@ -16,7 +16,7 @@
     <a title="TelnyxRTC  Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="index.html">TelnyxRTC 2.0.2 Docs</a> (80% documented)</p>
+        <p><a href="index.html">TelnyxRTC 2.2.0 Docs</a> (79% documented)</p>
         <div class="header-right">
           <form role="search" action="search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -69,6 +69,9 @@
               </li>
               <li class="nav-group-task">
                 <a href="Enums/PushEnvironment.html">PushEnvironment</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/Region.html">Region</a>
               </li>
               <li class="nav-group-task">
                 <a href="Enums/TxError.html">TxError</a>
@@ -149,6 +152,16 @@
 <li>Clone the repository</li>
 <li>Run the command <code>pod install</code> to install the dependencies inside the project root folder.</li>
 <li>Open the Workspace : <code>TelnyxRTC.xcworkspace</code></li>
+<li><strong>Configure the Demo App (Optional):</strong>
+
+<ul>
+<li>The <code>Config.xcconfig</code> file is included in the repository with default values</li>
+<li>To use the Pre-call Diagnosis feature, edit <code>Config.xcconfig</code> and set a valid phone number:
+<code>
+PHONE_NUMBER = +15551234567
+</code></li>
+<li>If you don&rsquo;t need Pre-call Diagnosis, you can leave <code>PHONE_NUMBER</code> empty</li>
+</ul></li>
 <li>You will find 3 targets to build: 
 
 <ul>
@@ -193,6 +206,55 @@
 </ol>
 
 <p>For more information on how to generate SIP credentials check the <a href="https://developers.telnyx.com/docs/v2/webrtc/quickstart">Telnyx WebRTC quickstart guide</a>. </p>
+<h2 id='region-selection' class='heading'>Region Selection</h2>
+
+<p>The TelnyxRTC SDK supports connecting to different geographic regions to optimize call quality and reduce latency. The demo app includes a region selection feature that allows users to choose their preferred region.</p>
+<h3 id='available-regions' class='heading'>Available Regions</h3>
+
+<ul>
+<li><strong>Auto (Default)</strong>: Automatically selects the best region based on network conditions</li>
+<li><strong>US East</strong>: East coast United States servers</li>
+<li><strong>US Central</strong>: Central United States servers<br></li>
+<li><strong>US West</strong>: West coast United States servers</li>
+<li><strong>Canada Central</strong>: Central Canada servers</li>
+<li><strong>Europe</strong>: European servers</li>
+<li><strong>Asia Pacific</strong>: Asia Pacific servers</li>
+</ul>
+<h3 id='using-region-selection' class='heading'>Using Region Selection</h3>
+
+<ol>
+<li><p><strong>In the Demo App</strong>: Use the overflow menu (⋯) to access region selection. The current region is displayed as &ldquo;Region: [current-region]&rdquo;.</p></li>
+<li><p><strong>In Your App</strong>: Configure the region when creating a <code><a href="Structs/TxServerConfiguration.html">TxServerConfiguration</a></code>:</p></li>
+</ol>
+<pre class="highlight swift"><code><span class="c1">// Set specific region</span>
+<span class="k">let</span> <span class="nv">serverConfig</span> <span class="o">=</span> <span class="kt">TxServerConfiguration</span><span class="p">(</span>
+    <span class="nv">environment</span><span class="p">:</span> <span class="o">.</span><span class="n">production</span><span class="p">,</span>
+    <span class="nv">region</span><span class="p">:</span> <span class="o">.</span><span class="n">usEast</span>  <span class="c1">// or .eu, .usCentral, .usWest, .caCentral, .apac</span>
+<span class="p">)</span>
+
+<span class="c1">// Use auto region selection (default)</span>
+<span class="k">let</span> <span class="nv">serverConfig</span> <span class="o">=</span> <span class="kt">TxServerConfiguration</span><span class="p">(</span>
+    <span class="nv">environment</span><span class="p">:</span> <span class="o">.</span><span class="n">production</span><span class="p">,</span>
+    <span class="nv">region</span><span class="p">:</span> <span class="o">.</span><span class="n">auto</span>
+<span class="p">)</span>
+
+<span class="k">try</span> <span class="n">telnyxClient</span><span class="o">.</span><span class="nf">connect</span><span class="p">(</span><span class="nv">txConfig</span><span class="p">:</span> <span class="n">txConfig</span><span class="p">,</span> <span class="nv">serverConfiguration</span><span class="p">:</span> <span class="n">serverConfig</span><span class="p">)</span>
+</code></pre>
+<h3 id='region-selection-behavior' class='heading'>Region Selection Behavior</h3>
+
+<ul>
+<li><strong>During Active Calls</strong>: Region selection is automatically disabled during active calls to prevent connection disruption</li>
+<li><strong>When Connected</strong>: Region selection is disabled when the client is connected to prevent disrupting the established connection</li>
+<li><strong>Fallback Logic</strong>: If a regional server is unavailable, the SDK automatically falls back to the auto region</li>
+<li><strong>Persistence</strong>: The selected region persists across app sessions until manually changed</li>
+</ul>
+<h3 id='best-practices' class='heading'>Best Practices</h3>
+
+<ul>
+<li>Use <strong>Auto</strong> region for the best overall experience unless you have specific latency requirements</li>
+<li>Select a region <strong>geographically close</strong> to your users for optimal call quality</li>
+<li>Test different regions in your target deployment areas to determine the best performance</li>
+</ul>
 <h2 id='adding-telnyx-sdk-to-your-ios-client-application' class='heading'>Adding Telnyx SDK to your iOS Client Application:</h2>
 
 <p>Currently the iOS SDK is supported using cocoapods. </p>
@@ -756,7 +818,38 @@ let txConfig = TxConfig(
 <ul>
 <li><a href="https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/app-setup">App Setup</a> - Configure your iOS app to receive VoIP push notifications</li>
 <li><a href="https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/portal-setup">Portal Setup</a> - Set up your Telnyx Portal account with VoIP push credentials</li>
+<li><a href="https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/troubleshooting">Troubleshooting</a> - Debug common push notification issues</li>
 </ul>
+<h3 id='testing-voip-push-notifications' class='heading'>Testing VoIP Push Notifications</h3>
+
+<p>The repository includes a dedicated testing tool to help validate your VoIP push notification setup. This tool allows you to send test push notifications directly to your device using your own certificates and configuration.</p>
+
+<p><strong>Location</strong>: <code>push-notification-tool/</code> in the repository root</p>
+<h4 id='quick-setup' class='heading'>Quick Setup</h4>
+<pre class="highlight shell"><code><span class="nb">cd </span>push-notification-tool
+npm <span class="nb">install 
+</span>npm run dev
+</code></pre>
+<h4 id='what-the-tool-does' class='heading'>What the Tool Does</h4>
+
+<ul>
+<li><strong>Validates Configuration</strong>: Tests your certificate files, bundle ID, and device token</li>
+<li><strong>Sends Test Pushes</strong>: Generates VoIP notifications with SDK-compatible payload structure<br></li>
+<li><strong>Provides Detailed Errors</strong>: Clear error messages to help identify configuration issues</li>
+<li><strong>Supports Continuous Testing</strong>: Send multiple pushes, switch configurations, test different scenarios</li>
+<li><strong>Smart Configuration Management</strong>: Saves settings between sessions for faster iteration</li>
+</ul>
+<h4 id='perfect-for-testing' class='heading'>Perfect for Testing</h4>
+
+<ul>
+<li>Certificate and environment validation</li>
+<li>Device token verification<br></li>
+<li>Payload structure compatibility</li>
+<li>Multi-device testing</li>
+<li>Troubleshooting push delivery issues</li>
+</ul>
+
+<p>For complete setup instructions and usage examples, see the tool&rsquo;s <a href="https://github.com/team-telnyx/telnyx-webrtc-ios/tree/main/push-notification-tool">README</a> or the <a href="https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/troubleshooting#testing-voip-push-notifications">Troubleshooting Guide</a>.</p>
 <h3 id='voip-push-portal-setup' class='heading'>VoIP Push - Portal setup</h3>
 
 <p>During this process you will learn how to create a VoIP push credential and assign the credential to a SIP Connection. </p>
@@ -1187,7 +1280,7 @@ user interface until there are no more active sessions.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-07-04)</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-09-19)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>
