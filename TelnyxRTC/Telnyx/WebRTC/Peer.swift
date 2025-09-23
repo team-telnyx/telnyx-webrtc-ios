@@ -401,11 +401,7 @@ extension Peer {
     /// Note: This method is used internally by the Call class through its public `muteAudio()`
     /// and `unmuteAudio()` methods.
     func muteUnmuteAudio(mute: Bool) {
-        Logger.log.i(message: "Peer:: muteUnmuteAudio(mute: \(mute)) - Resetting AudioDeviceModule to clear buffers")
-        
-        // Reset AudioDeviceModule to clear accumulated audio buffers
-        // This helps resolve persistent audio delay issues in iOS uplink
-        resetAudioDeviceModule()
+        Logger.log.i(message: "Peer:: muteUnmuteAudio(mute: \(mute))")
         
         // GetTransceivers is only supported with Unified Plan SdpSemantics.
         // PlanB doesn't have support to access transeivers, so we need to use the stored audio track
