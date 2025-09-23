@@ -20,3 +20,4 @@
 - PR #271: WEBRTC-2922: Fix dependabot vulnerability issues in push notification tool
 - PR #270: [WEBRTC-2921] - [iOS] Update actions to use Xcode 16
 - PR #269: [WEBRTC-2916] [Feature] VoIP Push Notification Testing Tool
+- PR #279: [WEBRTC-2990] [fix] Improve audio connection performance and maintaining audio route change subscriptions
