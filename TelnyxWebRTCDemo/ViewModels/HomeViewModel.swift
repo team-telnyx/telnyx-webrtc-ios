@@ -56,6 +56,11 @@ class HomeViewModel: ObservableObject {
         return isCallsActive
     }
     
+    /// Computed property to determine if AI Assistant should be disabled
+    var isAIAssistantDisabled: Bool {
+        return isCallsActive || socketState == .connected || socketState == .clientReady
+    }
+    
     init() {
         setupPreCallDiagnosticManager()
     }

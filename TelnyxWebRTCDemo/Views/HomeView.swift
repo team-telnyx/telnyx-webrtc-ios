@@ -17,8 +17,10 @@ struct HomeView: View {
     @State private var scrollToKeyboard: Bool = false
     @State private var showPreCallDiagnosisSheet = false
     @State private var showMenu = false
+    @State private var showAIAssistant = false
     
     @State private var showRegionMenu = false
+    @StateObject private var aiAssistantViewModel = AIAssistantViewModel()
     
     let onConnect: () -> Void
     let onDisconnect: () -> Void
@@ -177,6 +179,7 @@ struct HomeView: View {
                               showPreCallDiagnosisSheet: $showPreCallDiagnosisSheet,
                               showRegionMenu: $showRegionMenu,
                               selectedRegion: $profileViewModel.selectedRegion,
+                              showAIAssistant: $showAIAssistant,
                               viewModel: viewModel
                           )
                 
@@ -192,6 +195,9 @@ struct HomeView: View {
                     isPresented: $showPreCallDiagnosisSheet,
                     viewModel: viewModel
                 )
+            }
+            .fullScreenCover(isPresented: $showAIAssistant) {
+                AIAssistantView(viewModel: aiAssistantViewModel)
             }
         }
     }
