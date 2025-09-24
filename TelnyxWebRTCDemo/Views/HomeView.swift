@@ -20,6 +20,7 @@ struct HomeView: View {
     @State private var showAIAssistant = false
     
     @State private var showRegionMenu = false
+    @StateObject private var aiAssistantViewModel = AIAssistantViewModel()
     
     let onConnect: () -> Void
     let onDisconnect: () -> Void
@@ -196,7 +197,7 @@ struct HomeView: View {
                 )
             }
             .fullScreenCover(isPresented: $showAIAssistant) {
-                AIAssistantView(viewModel: AIAssistantViewModel())
+                AIAssistantView(viewModel: aiAssistantViewModel)
             }
         }
     }

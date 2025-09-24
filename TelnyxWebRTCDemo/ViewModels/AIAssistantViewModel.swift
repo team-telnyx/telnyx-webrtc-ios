@@ -16,7 +16,11 @@ class AIAssistantViewModel: ObservableObject {
     @Published var sessionId: String?
     @Published var callState: CallState = .NEW
     @Published var targetIdInput: String = ""
-    @Published var showTranscriptDialog: Bool = false
+    @Published var showTranscriptDialog: Bool = false {
+        didSet {
+            print("AIAssistantViewModel:: showTranscriptDialog changed to: \(showTranscriptDialog)")
+        }
+    }
     @Published var transcriptions: [TranscriptionItem] = []
     @Published var widgetSettings: WidgetSettings?
     @Published var errorMessage: String?
@@ -96,15 +100,22 @@ class AIAssistantViewModel: ObservableObject {
     private func setupRealtimeTranscriptUpdates() {
         guard let aiAssistantManager = appDelegate.telnyxClient?.aiAssistantManager else { return }
         
-        // Subscribe to real-time transcript updates
+        // Only use the publisher pattern to avoid double updates
+        // The delegate pattern is already handled in onTranscriptionUpdated
         transcriptUpdateCancellable = aiAssistantManager.subscribeToTranscriptUpdates { [weak self] updatedTranscriptions in
             guard let self = self else { return }
             DispatchQueue.main.async {
-                self.transcriptions = updatedTranscriptions
+                // Only update if the array has actually changed to prevent unnecessary UI updates
+                if self.transcriptions.count != updatedTranscriptions.count || 
+                   !self.transcriptions.elementsEqual(updatedTranscriptions, by: { $0.id == $1.id }) {
+                    self.transcriptions = updatedTranscriptions
+                    // Post notification for TranscriptDialogView to update
+                    NotificationCenter.default.post(name: .init("TranscriptionUpdated"), object: nil)
+                }
             }
         }
         
-        // Subscribe to individual transcript item updates
+        // Subscribe to individual transcript item updates for logging only
         transcriptItemCancellable = aiAssistantManager.subscribeToTranscriptItemUpdates { [weak self] newItem in
             guard let self = self else { return }
             print("AIAssistantViewModel:: Received individual transcript update: \(newItem.content)")
@@ -315,6 +326,10 @@ class AIAssistantViewModel: ObservableObject {
         }
     }
     
+    func closeTranscriptDialog() {
+        showTranscriptDialog = false
+    }
+    
     // MARK: - Mixed-mode Communication (Android compatibility)
     
     /// Send a text message to AI Assistant during active call
@@ -415,7 +430,13 @@ extension AIAssistantViewModel: AIAssistantManagerDelegate {
     func onTranscriptionUpdated(_ transcriptions: [TranscriptionItem]) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            self.transcriptions = transcriptions
+            // Only update if the array has actually changed to prevent unnecessary UI updates
+            if self.transcriptions.count != transcriptions.count || 
+               !self.transcriptions.elementsEqual(transcriptions, by: { $0.id == $1.id }) {
+                self.transcriptions = transcriptions
+                // Post notification for TranscriptDialogView to update
+                NotificationCenter.default.post(name: .init("TranscriptionUpdated"), object: nil)
+            }
         }
     }
     

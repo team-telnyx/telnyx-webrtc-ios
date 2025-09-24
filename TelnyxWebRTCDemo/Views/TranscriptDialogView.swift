@@ -8,14 +8,18 @@
 import SwiftUI
 import TelnyxRTC
 
+class TextFieldState: ObservableObject {
+    @Published var text: String = ""
+}
+
 struct TranscriptDialogView: View {
-    @ObservedObject var viewModel: AIAssistantViewModel
+    let viewModel: AIAssistantViewModel
     @Environment(\.presentationMode) var presentationMode
-    @State private var messageInput: String = ""
+    @StateObject private var textFieldState = TextFieldState()
+    @State private var localTranscriptions: [TranscriptionItem] = []
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
+        VStack(spacing: 0) {
                 // Header
                 VStack(spacing: 10) {
                     HStack {
@@ -30,7 +34,7 @@ struct TranscriptDialogView: View {
                         Spacer()
                         
                         Button(action: {
-                            presentationMode.wrappedValue.dismiss()
+                            viewModel.closeTranscriptDialog()
                         }) {
                             Image(systemName: "xmark")
                                 .font(.system(size: 18, weight: .medium))
@@ -46,7 +50,7 @@ struct TranscriptDialogView: View {
                 ScrollViewReader { proxy in
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 12) {
-                            if viewModel.transcriptions.isEmpty {
+                            if localTranscriptions.isEmpty {
                                 VStack(spacing: 15) {
                                     Image(systemName: "text.bubble.rtl")
                                         .font(.system(size: 40))
@@ -64,9 +68,9 @@ struct TranscriptDialogView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.top, 60)
                             } else {
-                                ForEach(viewModel.transcriptions, id: \.id) { item in
+                                ForEach(localTranscriptions, id: \.id) { item in
                                     TranscriptItemView(item: item)
-                                        .id(item.id)
+                                        .equatable()
                                 }
                                 
                                 // Invisible view for scrolling to bottom
@@ -78,16 +82,19 @@ struct TranscriptDialogView: View {
                         .padding(.vertical, 20)
                     }
                     .onAppear {
-                        if !viewModel.transcriptions.isEmpty {
+                        if !localTranscriptions.isEmpty {
                             withAnimation(.easeOut(duration: 0.3)) {
                                 proxy.scrollTo("bottom")
                             }
                         }
                     }
-                    .onChange(of: viewModel.transcriptions.count) { _ in
-                        if !viewModel.transcriptions.isEmpty {
-                            withAnimation(.easeOut(duration: 0.3)) {
-                                proxy.scrollTo("bottom")
+                    .onChange(of: localTranscriptions.count) { newCount in
+                        // Only scroll if there are actually new items and we're not at the bottom already
+                        if newCount > 0 {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                withAnimation(.easeOut(duration: 0.3)) {
+                                    proxy.scrollTo("bottom")
+                                }
                             }
                         }
                     }
@@ -98,12 +105,10 @@ struct TranscriptDialogView: View {
                     Divider()
                     
                     HStack(spacing: 12) {
-                        TextField("Type a message...", text: $messageInput)
+                        TextField("Type a message...", text: $textFieldState.text)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .onSubmit {
-                                sendMessage()
-                            }
-                            .submitLabel(.send)
+                            .autocapitalization(.sentences)
+                            .disableAutocorrection(false)
                         
                         Button(action: sendMessage) {
                             Image(systemName: "paperplane.fill")
@@ -112,32 +117,48 @@ struct TranscriptDialogView: View {
                                 .frame(width: 40, height: 40)
                                 .background(
                                     Circle()
-                                        .fill(messageInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 
+                                        .fill(textFieldState.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 
                                               Color.gray : Color(hex: "#00E3AA"))
                                 )
                         }
-                        .disabled(messageInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .disabled(textFieldState.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
                 }
                 .background(Color(UIColor.systemBackground))
-            }
-            .navigationBarHidden(true)
+        }
+        .onAppear {
+            print("TranscriptDialogView appeared")
+            // Initialize local transcriptions
+            localTranscriptions = viewModel.transcriptions
+        }
+        .onDisappear {
+            print("TranscriptDialogView disappeared")
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .init("TranscriptionUpdated"))) { _ in
+            // Update local transcriptions when notification is received
+            localTranscriptions = viewModel.transcriptions
         }
     }
     
     private func sendMessage() {
-        let message = messageInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        let message = textFieldState.text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !message.isEmpty else { return }
         
         viewModel.sendMessage(message)
-        messageInput = ""
+        textFieldState.text = ""
     }
 }
 
-struct TranscriptItemView: View {
+struct TranscriptItemView: View, Equatable {
     let item: TranscriptionItem
+    
+    static func == (lhs: TranscriptItemView, rhs: TranscriptItemView) -> Bool {
+        return lhs.item.id == rhs.item.id && 
+               lhs.item.content == rhs.item.content &&
+               lhs.item.isPartial == rhs.item.isPartial
+    }
     
     // Android-compatible role detection
     private var isUser: Bool {

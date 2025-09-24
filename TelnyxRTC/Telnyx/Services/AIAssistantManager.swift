@@ -553,6 +553,12 @@ public class AIAssistantManager {
     /// Add a transcription item
     /// - Parameter transcription: The transcription item to add
     public func addTranscription(_ transcription: TranscriptionItem) {
+        // Check if transcription already exists to avoid duplicates
+        if transcriptions.contains(where: { $0.id == transcription.id }) {
+            logger.w(message: "AIAssistantManager:: Transcription item already exists: \(transcription.id)")
+            return
+        }
+        
         transcriptions.append(transcription)
         logger.i(message: "AIAssistantManager:: Added transcription item: \(transcription.id)")
         
