@@ -425,13 +425,23 @@ extension Peer {
     /// - WebRTC applies audio pacing to prevent overloading the send queue
     /// - Captured frames accumulate before being processed, causing persistent uplink delay
     /// - iOS AudioUnit/AVAudioSession buffering can remain in a state with large buffers
-    func resetAudioDeviceModule() {
+    /// 
+    /// - Parameter preserveSpeakerState: Whether to preserve the current speakerphone state during reset
+    func resetAudioDeviceModule(preserveSpeakerState: Bool = true) {
         guard let connection = self.connection else {
             Logger.log.w(message: "Peer:: resetAudioDeviceModule() - No active connection")
             return
         }
         
         Logger.log.i(message: "Peer:: Starting AudioDeviceModule reset via mute/unmute sequence (Unified Plan)")
+        
+        // Save current audio route state before reset if preservation is enabled
+        var wasSpeakerActive = false
+        if preserveSpeakerState {
+            let currentRoute = AVAudioSession.sharedInstance().currentRoute
+            wasSpeakerActive = currentRoute.outputs.contains { $0.portType == .builtInSpeaker }
+            Logger.log.i(message: "Peer:: Preserving audio route state - Speaker was active: \(wasSpeakerActive)")
+        }
         
         // For Unified Plan, get audio tracks from transceivers
         let audioTracks = connection.transceivers.compactMap { $0.sender.track as? RTCAudioTrack }
@@ -442,11 +452,11 @@ extension Peer {
         self.setTrackEnabled(RTCAudioTrack.self, isEnabled: true)
 
         // Execute mute/unmute sequence with 200ms intervals
-        performMuteUnmuteSequence(audioTracks: audioTracks, originalStates: originalStates, step: 1)
+        performMuteUnmuteSequence(audioTracks: audioTracks, originalStates: originalStates, step: 1, preserveSpeakerState: preserveSpeakerState, wasSpeakerActive: wasSpeakerActive)
     }
     
     /// Performs a mute/unmute sequence to reset audio buffers
-    private func performMuteUnmuteSequence(audioTracks: [RTCAudioTrack], originalStates: [Bool], step: Int) {
+    private func performMuteUnmuteSequence(audioTracks: [RTCAudioTrack], originalStates: [Bool], step: Int, preserveSpeakerState: Bool = true, wasSpeakerActive: Bool = false) {
         let totalSteps = 3 // Mute -> Unmute -> Mute -> Unmute (final)
         
         if step > totalSteps {
@@ -459,7 +469,7 @@ extension Peer {
             Logger.log.i(message: "Peer:: AudioDeviceModule reset sequence completed - original states restored")
             
             // After completing mute/unmute sequence, reset RTCAudioSession buffers
-            resetAVAudioSessionBuffers()
+            resetAVAudioSessionBuffers(preserveSpeakerState: preserveSpeakerState, wasSpeakerActive: wasSpeakerActive)
             return
         }
         
@@ -473,13 +483,16 @@ extension Peer {
         
         // Schedule next step after 200ms
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
-            self?.performMuteUnmuteSequence(audioTracks: audioTracks, originalStates: originalStates, step: step + 1)
+            self?.performMuteUnmuteSequence(audioTracks: audioTracks, originalStates: originalStates, step: step + 1, preserveSpeakerState: preserveSpeakerState, wasSpeakerActive: wasSpeakerActive)
         }
     }
     
     /// Resets RTCAudioSession buffer duration to optimal values to prevent audio delay accumulation
     /// Executes 3 times consecutively with 300ms intervals to ensure complete buffer reset
-    private func resetAVAudioSessionBuffers() {
+    /// 
+    /// - Parameter preserveSpeakerState: Whether to preserve the current speakerphone state during reset
+    /// - Parameter wasSpeakerActive: Whether the speaker was active before the reset
+    private func resetAVAudioSessionBuffers(preserveSpeakerState: Bool = true, wasSpeakerActive: Bool = false) {
         Logger.log.i(message: "Peer:: Starting 3-phase RTCAudioSession reset to clear accumulated buffers")
         
         // Execute reset 3 times with 300ms intervals
@@ -487,13 +500,18 @@ extension Peer {
             let delay = TimeInterval(attempt - 1) * 0.3 // 0ms, 300ms, 600ms
             
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
-                self?.performSingleAudioSessionReset(attempt: attempt)
+                self?.performSingleAudioSessionReset(attempt: attempt, preserveSpeakerState: preserveSpeakerState, wasSpeakerActive: wasSpeakerActive, isLastAttempt: attempt == 3)
             }
         }
     }
     
     /// Performs a single RTCAudioSession reset attempt
-    private func performSingleAudioSessionReset(attempt: Int) {
+    /// 
+    /// - Parameter attempt: The current attempt number (1-3)
+    /// - Parameter preserveSpeakerState: Whether to preserve the current speakerphone state during reset
+    /// - Parameter wasSpeakerActive: Whether the speaker was active before the reset
+    /// - Parameter isLastAttempt: Whether this is the final attempt (used for speaker restoration)
+    private func performSingleAudioSessionReset(attempt: Int, preserveSpeakerState: Bool = true, wasSpeakerActive: Bool = false, isLastAttempt: Bool = false) {
         self.audioQueue.async { [weak self] in
             guard let self = self else {
                 return
@@ -548,6 +566,18 @@ extension Peer {
                 rtcAudioSession.isAudioEnabled = true
                 
                 Logger.log.i(message: "Peer:: RTCAudioSession reset attempt \(attempt)/3 completed - IOBufferDuration: 20ms, SampleRate: 16kHz, Channels: 1")
+                
+                // Notify about ACM reset completion and request speaker state restoration if needed
+                if isLastAttempt && preserveSpeakerState && wasSpeakerActive {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        Logger.log.i(message: "Peer:: ACM reset completed - requesting speakerphone state restoration")
+                        NotificationCenter.default.post(
+                            name: NSNotification.Name("ACMResetCompleted"),
+                            object: nil,
+                            userInfo: ["restoreSpeakerphone": true]
+                        )
+                    }
+                }
                 
             } catch {
                 Logger.log.e(message: "Peer:: Failed to reset RTCAudioSession buffers on attempt \(attempt): \(error.localizedDescription)")

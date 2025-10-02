@@ -298,6 +298,9 @@ public class TxClient {
         // Remove audio route change observer
         NotificationCenter.default.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
         
+        // Remove ACM reset completion observer
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name("ACMResetCompleted"), object: nil)
+        
         Logger.log.i(message: "TxClient deinitialized")
     }
     
@@ -313,6 +316,13 @@ public class TxClient {
             self,
             selector: #selector(handleAudioRouteChange),
             name: AVAudioSession.routeChangeNotification,
+            object: nil)
+        
+        // Add observer for ACM reset completion to restore speakerphone state
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleACMResetCompleted),
+            name: NSNotification.Name("ACMResetCompleted"),
             object: nil)
     }
     
@@ -367,6 +377,26 @@ public class TxClient {
                 )
             default:
                 break
+        }
+    }
+    
+    /// Handles ACM reset completion notifications and restores speakerphone state if needed.
+    ///
+    /// This method is called when the AudioDeviceModule reset is completed and the speakerphone
+    /// state needs to be restored to prevent the ACM reset from disabling speakerphone mode.
+    ///
+    /// - Parameter notification: The notification containing restoration information
+    @objc private func handleACMResetCompleted(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let restoreSpeakerphone = userInfo["restoreSpeakerphone"] as? Bool,
+              restoreSpeakerphone else {
+            return
+        }
+        
+        // Only restore speakerphone if it was previously enabled
+        if _isSpeakerEnabled {
+            Logger.log.i(message: "TxClient:: Restoring speakerphone state after ACM reset")
+            setSpeaker()
         }
     }
 
