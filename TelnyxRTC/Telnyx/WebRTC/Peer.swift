@@ -572,7 +572,7 @@ extension Peer {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                         Logger.log.i(message: "Peer:: ACM reset completed - requesting speakerphone state restoration")
                         NotificationCenter.default.post(
-                            name: NSNotification.Name("ACMResetCompleted"),
+                            name: NSNotification.Name(InternalConfig.NotificationNames.acmResetCompleted),
                             object: nil,
                             userInfo: ["restoreSpeakerphone": true]
                         )

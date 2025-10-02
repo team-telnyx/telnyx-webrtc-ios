@@ -299,7 +299,7 @@ public class TxClient {
         NotificationCenter.default.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
         
         // Remove ACM reset completion observer
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name("ACMResetCompleted"), object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(InternalConfig.NotificationNames.acmResetCompleted), object: nil)
         
         Logger.log.i(message: "TxClient deinitialized")
     }
@@ -322,7 +322,7 @@ public class TxClient {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleACMResetCompleted),
-            name: NSNotification.Name("ACMResetCompleted"),
+            name: NSNotification.Name(InternalConfig.NotificationNames.acmResetCompleted),
             object: nil)
     }
     
@@ -333,7 +333,7 @@ public class TxClient {
     /// - Notifies observers about audio route changes
     /// - Manages audio routing between available outputs
     ///
-    /// The method posts an "AudioRouteChanged" notification with:
+    /// The method posts an AudioRouteChanged notification with:
     /// - isSpeakerEnabled: Whether the built-in speaker is active
     /// - outputPortType: The type of the current audio output port
     ///
@@ -368,7 +368,7 @@ public class TxClient {
                 
                 // Notify observers about the route change
                 NotificationCenter.default.post(
-                    name: NSNotification.Name("AudioRouteChanged"),
+                    name: NSNotification.Name(InternalConfig.NotificationNames.audioRouteChanged),
                     object: nil,
                     userInfo: [
                         "isSpeakerEnabled": isSpeaker,
