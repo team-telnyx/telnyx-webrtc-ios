@@ -25,7 +25,7 @@ class LoginMessage : Message {
         var params = [String: Any]()
         params["login"] = user
         params["passwd"] = password
-        params["User-Agent"] = Message.CLIENT_TYPE
+        params["User-Agent"] = Message.USER_AGENT
         params["from_push"] = startFromPush
         params["sessid"] = sessionId
         //Setup push variables
@@ -71,7 +71,7 @@ class LoginMessage : Message {
     ) {
         var params = [String: Any]()
         params["login_token"] = token
-        params["User-Agent"] = Message.CLIENT_TYPE
+        params["User-Agent"] = Message.USER_AGENT
         params["from_push"] = startFromPush
         params["sessid"] = sessionId
         var loginParams = [String: Any]()

@@ -47,6 +47,10 @@ class VertoMessagesTests: XCTestCase {
 
         let decodedMethod = decodeLogin?.method
         XCTAssertEqual(decodedMethod, Method.LOGIN)
+        
+        // Test User-Agent format
+        let userAgent = loginWithToken.params?["User-Agent"] as? String
+        XCTAssertEqual(userAgent, "iOS-2.2.1")
     }
 
     /**
@@ -105,6 +109,10 @@ class VertoMessagesTests: XCTestCase {
 
         let decodedMethod = decodeLogin?.method
         XCTAssertEqual(decodedMethod, Method.LOGIN)
+        
+        // Test User-Agent format
+        let userAgent = loginWithUserAndPassoword.params?["User-Agent"] as? String
+        XCTAssertEqual(userAgent, "iOS-2.2.1")
     }
 
     /**
