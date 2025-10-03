@@ -219,7 +219,10 @@ public class Call {
     
     /// Previous ICE connection state for monitoring transitions
     private var previousIceConnectionState: RTCIceConnectionState = .new
-    
+
+    /// Flag to track if ICE connection has been successfully established at least once
+    private var hasBeenConnectedBefore: Bool = false
+
     /// RTT monitoring variables
     private var isRttMonitoringActive: Bool = false
     private var lastAudioResetTime: Date = Date.distantPast
@@ -1130,9 +1133,15 @@ extension Call {
             }
         }
         
-        // Case 2: connected -> disconnected: Reset audio buffers
-        if previousState == .connected && newState == .disconnected {
-            Logger.log.w(message: "[ACM_RESET] Call:: ICE connection disconnected - resetting audio buffers")
+        // Track first successful connection
+        if newState == .connected && !hasBeenConnectedBefore {
+            hasBeenConnectedBefore = true
+            Logger.log.i(message: "[ACM_RESET] Call:: First ICE connection established - ACM reset disabled for initial connection")
+        }
+
+        // Case 2: connected -> disconnected: Reset audio buffers (only on reconnection)
+        if previousState == .connected && newState == .disconnected && hasBeenConnectedBefore {
+            Logger.log.w(message: "[ACM_RESET] Call:: ICE connection disconnected during active call - resetting audio buffers")
 
             // Reset audio device module to clear accumulated buffers
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
@@ -1141,9 +1150,9 @@ extension Call {
             }
         }
 
-        // Case 3: disconnected -> connected: Reset audio buffers
-        if previousState == .disconnected && newState == .connected {
-            Logger.log.i(message: "[ACM_RESET] Call:: ICE connection restored - resetting audio buffers")
+        // Case 3: disconnected -> connected: Reset audio buffers (only on reconnection)
+        if previousState == .disconnected && newState == .connected && hasBeenConnectedBefore {
+            Logger.log.i(message: "[ACM_RESET] Call:: ICE connection restored after disconnect - resetting audio buffers")
 
             // Reset audio device module to clear accumulated buffers
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
@@ -1224,18 +1233,24 @@ extension Call {
     private func handleRttMetrics(metrics: CallQualityMetrics) {
         guard isRttMonitoringActive else { return }
 
+        // Validate RTT value - ignore if invalid (inf, nan, or negative)
+        guard metrics.rtt.isFinite && metrics.rtt >= 0 else {
+            Logger.log.i(message: "[RTT] Call:: Ignoring invalid RTT value: \(metrics.rtt)")
+            return
+        }
+
         currentRttMs = metrics.rtt * 1000 // Convert to milliseconds and store
 
         Logger.log.i(message: "[RTT] Call:: Current RTT: \(String(format: "%.1f", currentRttMs))ms")
 
-        // Case 1: RTT >= 1000ms (1 second) - Start timer if not already running
+        // Case 1: RTT >= 500ms - Start timer if not already running
         if currentRttMs >= 500 {
             if rttResetTimer == nil {
                 Logger.log.w(message: "[RTT] Call:: HIGH RTT detected: \(String(format: "%.1f", currentRttMs))ms - Starting timer")
                 startRttResetTimer()
             }
         }
-        // Case 2: RTT < 1000ms - Stop timer
+        // Case 2: RTT < 500ms - Stop timer
         else {
             if rttResetTimer != nil {
                 Logger.log.i(message: "[RTT] Call:: RTT normalized: \(String(format: "%.1f", currentRttMs))ms - Stopping timer")
