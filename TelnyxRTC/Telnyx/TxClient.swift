@@ -153,6 +153,7 @@ public class TxClient {
     private let reconnectQueue = DispatchQueue(label: "TelnyxClient.ReconnectQueue")
     private var _isSpeakerEnabled: Bool = false
     private var enableQualityMetrics: Bool = false
+    private var isACMResetInProgress: Bool = false
     
 
     
@@ -298,7 +299,8 @@ public class TxClient {
         // Remove audio route change observer
         NotificationCenter.default.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
         
-        // Remove ACM reset completion observer
+        // Remove ACM reset observers
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(InternalConfig.NotificationNames.acmResetStarted), object: nil)
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(InternalConfig.NotificationNames.acmResetCompleted), object: nil)
         
         Logger.log.i(message: "TxClient deinitialized")
@@ -318,6 +320,13 @@ public class TxClient {
             name: AVAudioSession.routeChangeNotification,
             object: nil)
         
+        // Add observer for ACM reset start to ignore audio route changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleACMResetStarted),
+            name: NSNotification.Name(InternalConfig.NotificationNames.acmResetStarted),
+            object: nil)
+
         // Add observer for ACM reset completion to restore speakerphone state
         NotificationCenter.default.addObserver(
             self,
@@ -349,23 +358,29 @@ public class TxClient {
               let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
             return
         }
-        
+
         let session = AVAudioSession.sharedInstance()
         let currentRoute = session.currentRoute
-        
+
         // Ensure we have at least one output port
         guard let output = currentRoute.outputs.first else {
             return
         }
-        
-        Logger.log.i(message: "Audio route changed: \(output.portType), reason: \(reason)")
-        
+
+        Logger.log.i(message: "[ACM_RESET] TxClient:: Audio route changed: \(output.portType), reason: \(reason), isACMResetInProgress: \(isACMResetInProgress)")
+
+        // Ignore audio route changes during ACM reset to prevent state desynchronization
+        if isACMResetInProgress {
+            Logger.log.i(message: "[ACM_RESET] TxClient:: Ignoring audio route change during ACM reset")
+            return
+        }
+
         switch reason {
             case .categoryChange, .override, .routeConfigurationChange:
                 // Update internal speaker state based on current output
                 let isSpeaker = output.portType == .builtInSpeaker
                 _isSpeakerEnabled = isSpeaker
-                
+
                 // Notify observers about the route change
                 NotificationCenter.default.post(
                     name: NSNotification.Name(InternalConfig.NotificationNames.audioRouteChanged),
@@ -380,6 +395,17 @@ public class TxClient {
         }
     }
     
+    /// Handles ACM reset started notification to prevent audio route change interference.
+    ///
+    /// This method sets a flag to ignore audio route changes during the ACM reset process
+    /// to prevent the internal speaker state from being incorrectly updated.
+    ///
+    /// - Parameter notification: The notification indicating ACM reset has started
+    @objc private func handleACMResetStarted(_ notification: Notification) {
+        Logger.log.i(message: "[ACM_RESET] TxClient:: ACM reset started - will ignore audio route changes")
+        isACMResetInProgress = true
+    }
+
     /// Handles ACM reset completion notifications and restores speakerphone state if needed.
     ///
     /// This method is called when the AudioDeviceModule reset is completed and the speakerphone
@@ -387,16 +413,58 @@ public class TxClient {
     ///
     /// - Parameter notification: The notification containing restoration information
     @objc private func handleACMResetCompleted(_ notification: Notification) {
+        Logger.log.i(message: "[ACM_RESET] TxClient:: Received ACM reset completion notification")
+
         guard let userInfo = notification.userInfo,
-              let restoreSpeakerphone = userInfo["restoreSpeakerphone"] as? Bool,
-              restoreSpeakerphone else {
+              let restoreSpeakerphone = userInfo["restoreSpeakerphone"] as? Bool else {
+            Logger.log.w(message: "[ACM_RESET] TxClient:: Notification missing userInfo or restoreSpeakerphone flag")
+            // Re-enable audio route monitoring even if notification is malformed
+            isACMResetInProgress = false
             return
         }
-        
-        // Only restore speakerphone if it was previously enabled
-        if _isSpeakerEnabled {
-            Logger.log.i(message: "TxClient:: Restoring speakerphone state after ACM reset")
-            setSpeaker()
+
+        Logger.log.i(message: "[ACM_RESET] TxClient:: Should restore speaker: \(restoreSpeakerphone)")
+
+        // Re-enable audio route change monitoring first
+        isACMResetInProgress = false
+        Logger.log.i(message: "[ACM_RESET] TxClient:: Audio route change monitoring re-enabled")
+
+        // Restore speaker if it was active before the reset
+        if restoreSpeakerphone {
+            Logger.log.i(message: "[ACM_RESET] TxClient:: Starting speaker restoration with verification")
+            restoreSpeakerWithVerification(maxAttempts: 5)
+        } else {
+            Logger.log.i(message: "[ACM_RESET] TxClient:: Speaker was not active before reset, no restoration needed")
+        }
+    }
+
+    /// Restores speaker with verification and retry logic
+    /// This ensures the speaker is actually active after ACM reset, even if iOS tries to revert it
+    /// - Parameter maxAttempts: Maximum number of attempts to restore speaker (default: 5)
+    /// - Parameter attempt: Current attempt number (used internally for recursion)
+    private func restoreSpeakerWithVerification(maxAttempts: Int = 5, attempt: Int = 1) {
+        Logger.log.i(message: "[ACM_RESET] TxClient:: Speaker restoration attempt \(attempt)/\(maxAttempts)")
+
+        // Call setSpeaker to activate speaker
+        setSpeaker()
+
+        // Wait a bit for iOS to process the change
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            guard let self = self else { return }
+
+            // Verify if speaker is actually active
+            let currentRoute = AVAudioSession.sharedInstance().currentRoute
+            let isSpeakerActive = currentRoute.outputs.contains { $0.portType == .builtInSpeaker }
+
+            if isSpeakerActive {
+                Logger.log.i(message: "[ACM_RESET] TxClient:: Speaker successfully restored and verified on attempt \(attempt)")
+            } else if attempt < maxAttempts {
+                Logger.log.w(message: "[ACM_RESET] TxClient:: Speaker not active after attempt \(attempt), retrying...")
+                // Retry with next attempt
+                self.restoreSpeakerWithVerification(maxAttempts: maxAttempts, attempt: attempt + 1)
+            } else {
+                Logger.log.e(message: "[ACM_RESET] TxClient:: Failed to restore speaker after \(maxAttempts) attempts")
+            }
         }
     }
 
@@ -837,23 +905,27 @@ extension TxClient {
 
     /// Select the internal earpiece as the audio output
     public func setEarpiece() {
+        Logger.log.i(message: "[ACM_RESET] TxClient:: setEarpiece() called")
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.overrideOutputAudioPort(.none)
             _isSpeakerEnabled = false
+            Logger.log.i(message: "[ACM_RESET] TxClient:: Earpiece set successfully, _isSpeakerEnabled: \(_isSpeakerEnabled)")
         } catch let error {
-            Logger.log.e(message: "Error setting Earpiece \(error)")
+            Logger.log.e(message: "[ACM_RESET] TxClient:: Error setting Earpiece \(error)")
         }
     }
 
     /// Select the speaker as the audio output
     public func setSpeaker() {
+        Logger.log.i(message: "[ACM_RESET] TxClient:: setSpeaker() called")
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.overrideOutputAudioPort(.speaker)
             _isSpeakerEnabled = true
+            Logger.log.i(message: "[ACM_RESET] TxClient:: Speaker set successfully, _isSpeakerEnabled: \(_isSpeakerEnabled)")
         } catch let error {
-            Logger.log.e(message: "Error setting Speaker \(error)")
+            Logger.log.e(message: "[ACM_RESET] TxClient:: Error setting Speaker \(error)")
         }
     }
 }

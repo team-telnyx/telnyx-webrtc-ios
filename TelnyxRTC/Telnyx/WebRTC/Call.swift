@@ -778,16 +778,16 @@ extension Call {
     }
     
     /// Resets the audio device and clears accumulated buffers to resolve persistent audio delay issues.
-    /// 
+    ///
     /// This method addresses iOS audio delay problems where:
     /// - AudioDeviceModule buffers stretch under poor network conditions
     /// - WebRTC audio pacing causes frame accumulation
     /// - iOS AudioUnit/AVAudioSession remains in large buffer state
-    /// 
+    ///
     /// ### Example:
     ///     call.resetAudioDevice()
     public func resetAudioDevice() {
-        Logger.log.i(message: "Call:: resetAudioDevice() - Manually resetting audio device to clear delay")
+        Logger.log.i(message: "[ACM_RESET] Call:: resetAudioDevice() - Manually resetting audio device to clear delay")
         self.peer?.resetAudioDeviceModule()
     }
 }
@@ -1132,20 +1132,22 @@ extension Call {
         
         // Case 2: connected -> disconnected: Reset audio buffers
         if previousState == .connected && newState == .disconnected {
-            Logger.log.w(message: "Call:: ICE connection disconnected - resetting audio buffers")
-            
+            Logger.log.w(message: "[ACM_RESET] Call:: ICE connection disconnected - resetting audio buffers")
+
             // Reset audio device module to clear accumulated buffers
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+                Logger.log.i(message: "[ACM_RESET] Call:: Triggering resetAudioDeviceModule from ICE disconnect")
                 self?.peer?.resetAudioDeviceModule()
             }
         }
-        
+
         // Case 3: disconnected -> connected: Reset audio buffers
         if previousState == .disconnected && newState == .connected {
-            Logger.log.i(message: "Call:: ICE connection restored - resetting audio buffers")
-            
+            Logger.log.i(message: "[ACM_RESET] Call:: ICE connection restored - resetting audio buffers")
+
             // Reset audio device module to clear accumulated buffers
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+                Logger.log.i(message: "[ACM_RESET] Call:: Triggering resetAudioDeviceModule from ICE reconnection")
                 self?.peer?.resetAudioDeviceModule()
             }
         }

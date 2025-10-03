@@ -35,6 +35,7 @@ struct InternalConfig {
     
     // MARK: - Notification Names
     struct NotificationNames {
+        static let acmResetStarted = "ACMResetStarted"
         static let acmResetCompleted = "ACMResetCompleted"
         static let audioRouteChanged = "AudioRouteChanged"
     }
