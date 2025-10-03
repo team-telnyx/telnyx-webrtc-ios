@@ -14,6 +14,7 @@ struct OverflowMenuView: View {
     @Binding var showPreCallDiagnosisSheet: Bool
     @Binding var showRegionMenu: Bool
     @Binding var selectedRegion: Region
+    @Binding var showAIAssistant: Bool
     @ObservedObject var viewModel: HomeViewModel
 
 
@@ -26,6 +27,16 @@ struct OverflowMenuView: View {
             VStack {
                 Spacer()
                 VStack(alignment: .leading, spacing: 10) {
+                    MenuButton(
+                        title: "AI Assistant", 
+                        icon: "brain",
+                        isDisabled: viewModel.isAIAssistantDisabled
+                    ) {
+                        if !viewModel.isAIAssistantDisabled {
+                            showMenu = false
+                            showAIAssistant = true
+                        }
+                    }
                     MenuButton(
                         title: "Pre-call Diagnosis", 
                         icon: "waveform.path.ecg",
