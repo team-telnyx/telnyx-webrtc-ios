@@ -50,7 +50,9 @@ class VertoMessagesTests: XCTestCase {
         
         // Test User-Agent format
         let userAgent = loginWithToken.params?["User-Agent"] as? String
-        XCTAssertEqual(userAgent, "iOS-2.2.1")
+        XCTAssertNotNil(userAgent, "User-Agent should not be nil")
+        XCTAssertTrue(userAgent!.hasPrefix("iOS-"), "User-Agent should start with 'iOS-'")
+        XCTAssertEqual(userAgent, Message.USER_AGENT, "User-Agent should match Message.USER_AGENT computed property")
     }
 
     /**
@@ -112,7 +114,9 @@ class VertoMessagesTests: XCTestCase {
         
         // Test User-Agent format
         let userAgent = loginWithUserAndPassoword.params?["User-Agent"] as? String
-        XCTAssertEqual(userAgent, "iOS-2.2.1")
+        XCTAssertNotNil(userAgent, "User-Agent should not be nil")
+        XCTAssertTrue(userAgent!.hasPrefix("iOS-"), "User-Agent should start with 'iOS-'")
+        XCTAssertEqual(userAgent, Message.USER_AGENT, "User-Agent should match Message.USER_AGENT computed property")
     }
 
     /**
