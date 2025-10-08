@@ -132,6 +132,14 @@ public weak var delegate: TxClientDelegate?
 
 Subscribe to TxClient delegate to receive Telnyx SDK events
 
+### `aiAssistantManager`
+
+```swift
+public let aiAssistantManager = AIAssistantManager()
+```
+
+AI Assistant Manager for handling AI-related functionality
+
 ### `isSpeakerEnabled`
 
 ```swift
@@ -323,3 +331,73 @@ public func getSessionId() -> String
 
 Get the current session ID after logging into Telnyx Backend.
 - Returns: The current sessionId. If this value is empty, that means that the client is not connected to Telnyx server.
+
+### `anonymousLogin(targetId:targetType:targetVersionId:userVariables:reconnection:serverConfiguration:)`
+
+```swift
+public func anonymousLogin(
+    targetId: String, 
+    targetType: String = "ai_assistant", 
+    targetVersionId: String? = nil,
+    userVariables: [String: Any] = [:],
+    reconnection: Bool = false,
+    serverConfiguration: TxServerConfiguration = TxServerConfiguration()
+)
+```
+
+Performs an anonymous login to the Telnyx backend for AI assistant connections.
+This method allows connecting to AI assistants without traditional authentication.
+
+If the socket is already connected, the anonymous login message is sent immediately.
+If not connected, the socket connection process is started, and the anonymous login 
+message is sent once the connection is established.
+
+- Parameters:
+  - targetId: The target ID for the AI assistant
+  - targetType: The target type (defaults to "ai_assistant")
+  - targetVersionId: Optional target version ID
+  - userVariables: Optional user variables to include in the login
+  - reconnection: Whether this is a reconnection attempt (defaults to false)
+  - serverConfiguration: Server configuration to use for connection (defaults to TxServerConfiguration())
+
+#### Parameters
+
+| Name | Description |
+| ---- | ----------- |
+| targetId | The target ID for the AI assistant |
+| targetType | The target type (defaults to “ai_assistant”) |
+| targetVersionId | Optional target version ID |
+| userVariables | Optional user variables to include in the login |
+| reconnection | Whether this is a reconnection attempt (defaults to false) |
+| serverConfiguration | Server configuration to use for connection (defaults to TxServerConfiguration()) |
+
+### `sendRingingAck(callId:)`
+
+```swift
+public func sendRingingAck(callId: String)
+```
+
+Send a ringing acknowledgment message for a specific call
+- Parameter callId: The call ID to acknowledge
+
+#### Parameters
+
+| Name | Description |
+| ---- | ----------- |
+| callId | The call ID to acknowledge |
+
+### `sendAIAssistantMessage(_:)`
+
+```swift
+public func sendAIAssistantMessage(_ message: String) -> Bool
+```
+
+Send a text message to AI Assistant during active call (mixed-mode communication)
+- Parameter message: The text message to send to AI assistant
+- Returns: True if message was sent successfully, false otherwise
+
+#### Parameters
+
+| Name | Description |
+| ---- | ----------- |
+| message | The text message to send to AI assistant |
