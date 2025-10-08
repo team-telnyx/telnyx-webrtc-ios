@@ -1,0 +1,326 @@
+//
+//  TranscriptDialogView.swift
+//  TelnyxWebRTCDemo
+//
+//  Created by AI SWE Agent on 31/07/2025.
+//
+
+import SwiftUI
+import TelnyxRTC
+
+class TextFieldState: ObservableObject {
+    @Published var text: String = ""
+}
+
+struct TranscriptDialogView: View {
+    let viewModel: AIAssistantViewModel
+    @Environment(\.presentationMode) var presentationMode
+    @StateObject private var textFieldState = TextFieldState()
+    @State private var localTranscriptions: [TranscriptionItem] = []
+    
+    var body: some View {
+        VStack(spacing: 0) {
+                // Header
+                VStack(spacing: 10) {
+                    HStack {
+                        Image(systemName: "text.bubble")
+                            .font(.system(size: 24))
+                            .foregroundColor(.white)
+                        
+                        Text("Assistant Conversation")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            viewModel.closeTranscriptDialog()
+                        }) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 15)
+                }
+                .background(Color(hex: "#00E3AA"))
+                
+                // Transcript List
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 12) {
+                            if localTranscriptions.isEmpty {
+                                VStack(spacing: 15) {
+                                    Image(systemName: "text.bubble.rtl")
+                                        .font(.system(size: 40))
+                                        .foregroundColor(Color.gray.opacity(0.5))
+                                    
+                                    Text("No conversation yet")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(Color.gray)
+                                    
+                                    Text("Start talking with the assistant to see the conversation here.")
+                                        .font(.system(size: 14, weight: .regular))
+                                        .foregroundColor(Color.gray.opacity(0.8))
+                                        .multilineTextAlignment(.center)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.top, 60)
+                            } else {
+                                ForEach(localTranscriptions, id: \.id) { item in
+                                    TranscriptItemView(item: item)
+                                        .equatable()
+                                }
+                                
+                                // Invisible view for scrolling to bottom
+                                HStack { }
+                                    .id("bottom")
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 20)
+                    }
+                    .onAppear {
+                        if !localTranscriptions.isEmpty {
+                            withAnimation(.easeOut(duration: 0.3)) {
+                                proxy.scrollTo("bottom")
+                            }
+                        }
+                    }
+                    .onChange(of: localTranscriptions.count) { newCount in
+                        // Only scroll if there are actually new items and we're not at the bottom already
+                        if newCount > 0 {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                withAnimation(.easeOut(duration: 0.3)) {
+                                    proxy.scrollTo("bottom")
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Message Input
+                VStack(spacing: 0) {
+                    Divider()
+                    
+                    HStack(spacing: 12) {
+                        TextField("Type a message...", text: $textFieldState.text)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .autocapitalization(.sentences)
+                            .disableAutocorrection(false)
+                        
+                        Button(action: sendMessage) {
+                            Image(systemName: "paperplane.fill")
+                                .font(.system(size: 18))
+                                .foregroundColor(.white)
+                                .frame(width: 40, height: 40)
+                                .background(
+                                    Circle()
+                                        .fill(textFieldState.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 
+                                              Color.gray : Color(hex: "#00E3AA"))
+                                )
+                        }
+                        .disabled(textFieldState.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                }
+                .background(Color(UIColor.systemBackground))
+        }
+        .onAppear {
+            print("TranscriptDialogView appeared")
+            // Initialize local transcriptions
+            localTranscriptions = viewModel.transcriptions
+        }
+        .onDisappear {
+            print("TranscriptDialogView disappeared")
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .init("TranscriptionUpdated"))) { _ in
+            // Update local transcriptions when notification is received
+            localTranscriptions = viewModel.transcriptions
+        }
+    }
+    
+    private func sendMessage() {
+        let message = textFieldState.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !message.isEmpty else { return }
+        
+        viewModel.sendMessage(message)
+        textFieldState.text = ""
+    }
+}
+
+struct TranscriptItemView: View, Equatable {
+    let item: TranscriptionItem
+    
+    static func == (lhs: TranscriptItemView, rhs: TranscriptItemView) -> Bool {
+        return lhs.item.id == rhs.item.id && 
+               lhs.item.content == rhs.item.content &&
+               lhs.item.isPartial == rhs.item.isPartial
+    }
+    
+    // Android-compatible role detection
+    private var isUser: Bool {
+        return item.role.lowercased() == "user"
+    }
+    
+    private var isAssistant: Bool {
+        return item.role.lowercased() == "assistant"
+    }
+    
+    private var displayName: String {
+        if isUser {
+            return "You"
+        } else if isAssistant {
+            return "Assistant"
+        } else {
+            return item.role.capitalized
+        }
+    }
+    
+    // Android-compatible styling
+    private var bubbleColor: Color {
+        if isUser {
+            return Color(hex: "#00E3AA").opacity(0.15)
+        } else if isAssistant {
+            return Color(hex: "#3434EF").opacity(0.1)
+        } else {
+            return Color.gray.opacity(0.1)
+        }
+    }
+    
+    private var textColor: Color {
+        return Color(hex: "#1D1D1D")
+    }
+    
+    private var nameColor: Color {
+        if isUser {
+            return Color(hex: "#00E3AA")
+        } else if isAssistant {
+            return Color(hex: "#3434EF")
+        } else {
+            return Color(hex: "#525252")
+        }
+    }
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            if isUser {
+                Spacer()
+            }
+            
+            VStack(alignment: isUser ? .trailing : .leading, spacing: 6) {
+                // Role and timestamp header
+                HStack {
+                    if !isUser {
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(nameColor)
+                                .frame(width: 6, height: 6)
+                            
+                            Text(displayName)
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(nameColor)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    Text(formatTime(item.timestamp))
+                        .font(.system(size: 11, weight: .regular))
+                        .foregroundColor(Color.gray.opacity(0.7))
+                    
+                    if isUser {
+                        HStack(spacing: 4) {
+                            Text(displayName)
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(nameColor)
+                            
+                            Circle()
+                                .fill(nameColor)
+                                .frame(width: 6, height: 6)
+                        }
+                    }
+                }
+                
+                // Message content with Android-compatible styling
+                HStack {
+                    if !isUser && isAssistant {
+                        Image(systemName: "brain")
+                            .font(.system(size: 14))
+                            .foregroundColor(nameColor)
+                            .padding(.leading, 8)
+                    }
+                    
+                    Text(item.content)
+                        .font(.system(size: 15, weight: .regular))
+                        .foregroundColor(textColor)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(bubbleColor)
+                        )
+                        .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: isUser ? .trailing : .leading)
+                    
+                    if isUser {
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(nameColor)
+                            .padding(.trailing, 8)
+                    }
+                }
+                
+                // Status indicators (Android compatibility)
+                HStack {
+                    if item.isPartial {
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(Color.orange)
+                                .frame(width: 4, height: 4)
+                            
+                            Text("Recording...")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(Color.orange)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    if let confidence = item.confidence {
+                        Text("Confidence: \(Int(confidence * 100))%")
+                            .font(.system(size: 10, weight: .regular))
+                            .foregroundColor(Color.gray.opacity(0.6))
+                    }
+                    
+                    if let itemType = item.itemType {
+                        Text(itemType)
+                            .font(.system(size: 9, weight: .medium))
+                            .foregroundColor(Color.gray.opacity(0.5))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(4)
+                    }
+                }
+            }
+            
+            if !isUser {
+                Spacer()
+            }
+        }
+    }
+    
+    private func formatTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+}
+
+struct TranscriptDialogView_Previews: PreviewProvider {
+    static var previews: some View {
+        TranscriptDialogView(viewModel: AIAssistantViewModel())
+    }
+}

@@ -153,7 +153,11 @@ public class TxClient {
     private let reconnectQueue = DispatchQueue(label: "TelnyxClient.ReconnectQueue")
     private var _isSpeakerEnabled: Bool = false
     private var enableQualityMetrics: Bool = false
+    private var isACMResetInProgress: Bool = false
+    private var pendingAnonymousLoginMessage: AnonymousLoginMessage?
     
+    /// AI Assistant Manager for handling AI-related functionality
+    public let aiAssistantManager = AIAssistantManager()
 
     
     public private(set) var isSpeakerEnabled: Bool {
@@ -298,6 +302,10 @@ public class TxClient {
         // Remove audio route change observer
         NotificationCenter.default.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
         
+        // Remove ACM reset observers
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(InternalConfig.NotificationNames.acmResetStarted), object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(InternalConfig.NotificationNames.acmResetCompleted), object: nil)
+        
         Logger.log.i(message: "TxClient deinitialized")
     }
     
@@ -314,6 +322,20 @@ public class TxClient {
             selector: #selector(handleAudioRouteChange),
             name: AVAudioSession.routeChangeNotification,
             object: nil)
+        
+        // Add observer for ACM reset start to ignore audio route changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleACMResetStarted),
+            name: NSNotification.Name(InternalConfig.NotificationNames.acmResetStarted),
+            object: nil)
+
+        // Add observer for ACM reset completion to restore speakerphone state
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleACMResetCompleted),
+            name: NSNotification.Name(InternalConfig.NotificationNames.acmResetCompleted),
+            object: nil)
     }
     
     /// Handles audio route change notifications from the system.
@@ -323,7 +345,7 @@ public class TxClient {
     /// - Notifies observers about audio route changes
     /// - Manages audio routing between available outputs
     ///
-    /// The method posts an "AudioRouteChanged" notification with:
+    /// The method posts an AudioRouteChanged notification with:
     /// - isSpeakerEnabled: Whether the built-in speaker is active
     /// - outputPortType: The type of the current audio output port
     ///
@@ -339,26 +361,32 @@ public class TxClient {
               let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
             return
         }
-        
+
         let session = AVAudioSession.sharedInstance()
         let currentRoute = session.currentRoute
-        
+
         // Ensure we have at least one output port
         guard let output = currentRoute.outputs.first else {
             return
         }
-        
-        Logger.log.i(message: "Audio route changed: \(output.portType), reason: \(reason)")
-        
+
+        Logger.log.i(message: "[ACM_RESET] TxClient:: Audio route changed: \(output.portType), reason: \(reason), isACMResetInProgress: \(isACMResetInProgress)")
+
+        // Ignore audio route changes during ACM reset to prevent state desynchronization
+        if isACMResetInProgress {
+            Logger.log.i(message: "[ACM_RESET] TxClient:: Ignoring audio route change during ACM reset")
+            return
+        }
+
         switch reason {
             case .categoryChange, .override, .routeConfigurationChange:
                 // Update internal speaker state based on current output
                 let isSpeaker = output.portType == .builtInSpeaker
                 _isSpeakerEnabled = isSpeaker
-                
+
                 // Notify observers about the route change
                 NotificationCenter.default.post(
-                    name: NSNotification.Name("AudioRouteChanged"),
+                    name: NSNotification.Name(InternalConfig.NotificationNames.audioRouteChanged),
                     object: nil,
                     userInfo: [
                         "isSpeakerEnabled": isSpeaker,
@@ -367,6 +395,79 @@ public class TxClient {
                 )
             default:
                 break
+        }
+    }
+    
+    /// Handles ACM reset started notification to prevent audio route change interference.
+    ///
+    /// This method sets a flag to ignore audio route changes during the ACM reset process
+    /// to prevent the internal speaker state from being incorrectly updated.
+    ///
+    /// - Parameter notification: The notification indicating ACM reset has started
+    @objc private func handleACMResetStarted(_ notification: Notification) {
+        Logger.log.i(message: "[ACM_RESET] TxClient:: ACM reset started - will ignore audio route changes")
+        isACMResetInProgress = true
+    }
+
+    /// Handles ACM reset completion notifications and restores speakerphone state if needed.
+    ///
+    /// This method is called when the AudioDeviceModule reset is completed and the speakerphone
+    /// state needs to be restored to prevent the ACM reset from disabling speakerphone mode.
+    ///
+    /// - Parameter notification: The notification containing restoration information
+    @objc private func handleACMResetCompleted(_ notification: Notification) {
+        Logger.log.i(message: "[ACM_RESET] TxClient:: Received ACM reset completion notification")
+
+        guard let userInfo = notification.userInfo,
+              let restoreSpeakerphone = userInfo["restoreSpeakerphone"] as? Bool else {
+            Logger.log.w(message: "[ACM_RESET] TxClient:: Notification missing userInfo or restoreSpeakerphone flag")
+            // Re-enable audio route monitoring even if notification is malformed
+            isACMResetInProgress = false
+            return
+        }
+
+        Logger.log.i(message: "[ACM_RESET] TxClient:: Should restore speaker: \(restoreSpeakerphone)")
+
+        // Re-enable audio route change monitoring first
+        isACMResetInProgress = false
+        Logger.log.i(message: "[ACM_RESET] TxClient:: Audio route change monitoring re-enabled")
+
+        // Restore speaker if it was active before the reset
+        if restoreSpeakerphone {
+            Logger.log.i(message: "[ACM_RESET] TxClient:: Starting speaker restoration with verification")
+            restoreSpeakerWithVerification(maxAttempts: 5)
+        } else {
+            Logger.log.i(message: "[ACM_RESET] TxClient:: Speaker was not active before reset, no restoration needed")
+        }
+    }
+
+    /// Restores speaker with verification and retry logic
+    /// This ensures the speaker is actually active after ACM reset, even if iOS tries to revert it
+    /// - Parameter maxAttempts: Maximum number of attempts to restore speaker (default: 5)
+    /// - Parameter attempt: Current attempt number (used internally for recursion)
+    private func restoreSpeakerWithVerification(maxAttempts: Int = 5, attempt: Int = 1) {
+        Logger.log.i(message: "[ACM_RESET] TxClient:: Speaker restoration attempt \(attempt)/\(maxAttempts)")
+
+        // Call setSpeaker to activate speaker
+        setSpeaker()
+
+        // Wait a bit for iOS to process the change
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            guard let self = self else { return }
+
+            // Verify if speaker is actually active
+            let currentRoute = AVAudioSession.sharedInstance().currentRoute
+            let isSpeakerActive = currentRoute.outputs.contains { $0.portType == .builtInSpeaker }
+
+            if isSpeakerActive {
+                Logger.log.i(message: "[ACM_RESET] TxClient:: Speaker successfully restored and verified on attempt \(attempt)")
+            } else if attempt < maxAttempts {
+                Logger.log.w(message: "[ACM_RESET] TxClient:: Speaker not active after attempt \(attempt), retrying...")
+                // Retry with next attempt
+                self.restoreSpeakerWithVerification(maxAttempts: maxAttempts, attempt: attempt + 1)
+            } else {
+                Logger.log.e(message: "[ACM_RESET] TxClient:: Failed to restore speaker after \(maxAttempts) attempts")
+            }
         }
     }
 
@@ -391,6 +492,7 @@ public class TxClient {
         }
         self.socket = Socket()
         self.socket?.delegate = self
+        self.aiAssistantManager.setSocket(self.socket)
         self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
     }
     
@@ -407,6 +509,7 @@ public class TxClient {
         self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,webRTCIceServers: serverConfiguration.webRTCIceServers,environment: serverConfiguration.environment,pushMetaData: self.pushMetaData)
         self.socket = Socket()
         self.socket?.delegate = self
+        self.aiAssistantManager.setSocket(self.socket)
         self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
     }
 
@@ -422,7 +525,14 @@ public class TxClient {
         }
         self.calls.removeAll()
         self.stopReconnectTimeout()
-
+        
+        // Clear AI Assistant Manager data
+        self.aiAssistantManager.clearAllData()
+        
+        // Remove audio route change observer
+        NotificationCenter.default.removeObserver(self,
+                                                  name: AVAudioSession.routeChangeNotification,
+                                                  object: nil)
         socket?.disconnect(reconnect: false)
         delegate?.onSocketDisconnected()
     }
@@ -515,6 +625,119 @@ public class TxClient {
     /// - Returns: The current sessionId. If this value is empty, that means that the client is not connected to Telnyx server.
     public func getSessionId() -> String {
         return sessionId ?? ""
+    }
+    
+    /// Performs an anonymous login to the Telnyx backend for AI assistant connections.
+    /// This method allows connecting to AI assistants without traditional authentication.
+    /// 
+    /// If the socket is already connected, the anonymous login message is sent immediately.
+    /// If not connected, the socket connection process is started, and the anonymous login 
+    /// message is sent once the connection is established.
+    /// 
+    /// - Parameters:
+    ///   - targetId: The target ID for the AI assistant
+    ///   - targetType: The target type (defaults to "ai_assistant")
+    ///   - targetVersionId: Optional target version ID
+    ///   - userVariables: Optional user variables to include in the login
+    ///   - reconnection: Whether this is a reconnection attempt (defaults to false)
+    ///   - serverConfiguration: Server configuration to use for connection (defaults to TxServerConfiguration())
+    public func anonymousLogin(
+        targetId: String, 
+        targetType: String = "ai_assistant", 
+        targetVersionId: String? = nil,
+        userVariables: [String: Any] = [:],
+        reconnection: Bool = false,
+        serverConfiguration: TxServerConfiguration = TxServerConfiguration()
+    ) {
+        Logger.log.i(message: "TxClient:: anonymousLogin() targetId: \(targetId), targetType: \(targetType)")
+        
+        // Generate session ID if not available
+        if self.sessionId == nil {
+            self.sessionId = UUID().uuidString
+        }
+        
+        guard let sessionId = self.sessionId else {
+            Logger.log.e(message: "TxClient:: anonymousLogin() failed to generate sessionId")
+            self.delegate?.onClientError(error: TxError.callFailed(reason: .sessionIdIsRequired))
+            return
+        }
+        
+        let anonymousLoginMessage = AnonymousLoginMessage(
+            targetType: targetType,
+            targetId: targetId,
+            targetVersionId: targetVersionId,
+            sessionId: sessionId,
+            userVariables: userVariables,
+            reconnection: reconnection
+        )
+        
+        if let socket = self.socket, socket.isConnected {
+            // Socket is already connected, send the message immediately
+            Logger.log.i(message: "TxClient:: anonymousLogin() socket connected, sending message immediately")
+            socket.sendMessage(message: anonymousLoginMessage.encode())
+            
+            // Update AI Assistant Manager state
+            self.aiAssistantManager.updateConnectionState(
+                connected: true,
+                targetId: targetId,
+                targetType: targetType,
+                targetVersionId: targetVersionId
+            )
+        } else {
+            // Socket is not connected, store the message and start connection
+            Logger.log.i(message: "TxClient:: anonymousLogin() socket not connected, starting connection process")
+            self.pendingAnonymousLoginMessage = anonymousLoginMessage
+            
+            // Set up server configuration
+            if self.voiceSdkId != nil {
+                Logger.log.i(message: "TxClient:: anonymousLogin() with voice_sdk_id")
+                self.serverConfiguration = TxServerConfiguration(
+                    signalingServer: serverConfiguration.signalingServer,
+                    webRTCIceServers: serverConfiguration.webRTCIceServers,
+                    environment: serverConfiguration.environment,
+                    pushMetaData: ["voice_sdk_id": self.voiceSdkId!]
+                )
+            } else {
+                Logger.log.i(message: "TxClient:: anonymousLogin() without voice_sdk_id")
+                self.serverConfiguration = serverConfiguration
+            }
+            
+            Logger.log.i(message: "TxClient:: anonymousLogin() serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
+            
+            // Initialize socket and start connection
+            self.socket = Socket()
+            self.socket?.delegate = self
+            self.aiAssistantManager.setSocket(self.socket)
+            self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
+        }
+    }
+    
+    /// Send a ringing acknowledgment message for a specific call
+    /// - Parameter callId: The call ID to acknowledge
+    public func sendRingingAck(callId: String) {
+        guard let socket = self.socket, socket.isConnected else {
+            Logger.log.e(message: "TxClient:: sendRingingAck() socket not connected")
+            return
+        }
+        
+        guard let sessionId = self.sessionId else {
+            Logger.log.e(message: "TxClient:: sendRingingAck() sessionId not available")
+            return
+        }
+        
+        Logger.log.i(message: "TxClient:: sendRingingAck() callId: \(callId)")
+        
+        let ringingAckMessage = RingingAckMessage(callId: callId, sessionId: sessionId)
+        socket.sendMessage(message: ringingAckMessage.encode())
+    }
+    
+    /// Send a text message to AI Assistant during active call (mixed-mode communication)
+    /// - Parameter message: The text message to send to AI assistant
+    /// - Returns: True if message was sent successfully, false otherwise
+    @discardableResult
+    public func sendAIAssistantMessage(_ message: String) -> Bool {
+        Logger.log.i(message: "TxClient:: sendAIAssistantMessage() message: '\(message)'")
+        return aiAssistantManager.sendAIAssistantMessage(message)
     }
 
     /// This function check the gateway status updates to determine if the current user has been successfully
@@ -807,23 +1030,27 @@ extension TxClient {
 
     /// Select the internal earpiece as the audio output
     public func setEarpiece() {
+        Logger.log.i(message: "[ACM_RESET] TxClient:: setEarpiece() called")
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.overrideOutputAudioPort(.none)
             _isSpeakerEnabled = false
+            Logger.log.i(message: "[ACM_RESET] TxClient:: Earpiece set successfully, _isSpeakerEnabled: \(_isSpeakerEnabled)")
         } catch let error {
-            Logger.log.e(message: "Error setting Earpiece \(error)")
+            Logger.log.e(message: "[ACM_RESET] TxClient:: Error setting Earpiece \(error)")
         }
     }
 
     /// Select the speaker as the audio output
     public func setSpeaker() {
+        Logger.log.i(message: "[ACM_RESET] TxClient:: setSpeaker() called")
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.overrideOutputAudioPort(.speaker)
             _isSpeakerEnabled = true
+            Logger.log.i(message: "[ACM_RESET] TxClient:: Speaker set successfully, _isSpeakerEnabled: \(_isSpeakerEnabled)")
         } catch let error {
-            Logger.log.e(message: "Error setting Speaker \(error)")
+            Logger.log.e(message: "[ACM_RESET] TxClient:: Error setting Speaker \(error)")
         }
     }
 }
@@ -844,6 +1071,10 @@ extension TxClient: CallProtocol {
            let callId = call.callInfo?.callId {
             Logger.log.i(message: "TxClient:: Remove call")
             self.calls.removeValue(forKey: callId)
+            
+            // Clear AI Assistant transcriptions when call ends
+            self.aiAssistantManager.clearTranscriptions()
+            
             //Forward call ended state with termination reason if available
             if case let .DONE(reason) = call.callState {
                 self.delegate?.onRemoteCallEnded(callId: callId, reason: reason)
@@ -977,6 +1208,29 @@ extension TxClient : SocketDelegate {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected()")
         self.delegate?.onSocketConnected()
 
+        // Check if there's a pending anonymous login message
+        if let pendingMessage = self.pendingAnonymousLoginMessage {
+            Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() sending pending anonymous login message")
+            self.socket?.sendMessage(message: pendingMessage.encode())
+            
+            // Extract target information from the pending message to update AI Assistant Manager
+            if let params = pendingMessage.params {
+                let targetId = params["target_id"] as? String
+                let targetType = params["target_type"] as? String
+                let targetVersionId = params["target_version_id"] as? String
+                
+                self.aiAssistantManager.updateConnectionState(
+                    connected: true,
+                    targetId: targetId,
+                    targetType: targetType,
+                    targetVersionId: targetVersionId
+                )
+            }
+            
+            self.pendingAnonymousLoginMessage = nil
+            return
+        }
+
         // Get push token and push provider if available
         let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
         let pushProvider = self.txConfig?.pushNotificationConfig?.pushNotificationProvider
@@ -1042,6 +1296,11 @@ extension TxClient : SocketDelegate {
     func onMessageReceived(message: String) {
         Logger.log.i(message: "TxClient:: SocketDelegate onMessageReceived() message: \(message)")
         guard let vertoMessage = Message().decode(message: message) else { return }
+        
+        // Process message through AI Assistant Manager
+        if let messageDict = try? JSONSerialization.jsonObject(with: Data(message.utf8), options: []) as? [String: Any] {
+            _ = self.aiAssistantManager.processIncomingMessage(messageDict)
+        }
         
        // FileLogger().log(message)
 
