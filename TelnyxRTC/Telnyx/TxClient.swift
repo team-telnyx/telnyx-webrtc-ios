@@ -835,6 +835,7 @@ extension TxClient {
                         callId: UUID,
                         clientState: String? = nil,
                         customHeaders:[String:String] = [:],
+                        preferredCodecs: [TxCodecCapability]? = nil,
                         debug:Bool = false) throws -> Call {
         //User needs to be logged in to get a sessionId
         guard let sessionId = self.sessionId else {
@@ -862,11 +863,32 @@ extension TxClient {
                         debug: self.txConfig?.debug ?? false,
                         forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
                         sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false)
-        call.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState, customHeaders: customHeaders,debug: debug)
+        call.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState, customHeaders: customHeaders, preferredCodecs: preferredCodecs, debug: debug)
 
         currentCallId = callId
         self.calls[callId] = call
         return call
+    }
+    
+    /// Returns the list of supported audio codecs available for use in calls
+    /// - Returns: Array of TxCodecCapability objects representing available audio codecs
+    /// ### Example:
+    /// ```swift
+    /// let supportedCodecs = telnyxClient.getSupportedAudioCodecs()
+    /// for codec in supportedCodecs {
+    ///     print("Codec: \(codec.mimeType), Clock Rate: \(codec.clockRate)")
+    /// }
+    /// ```
+    public func getSupportedAudioCodecs() -> [TxCodecCapability] {
+        let peerConnectionFactory = RTCPeerConnectionFactory()
+        
+        guard let capabilities = peerConnectionFactory.rtpSenderCapabilities(for: .audio),
+              let codecs = capabilities.codecs else {
+            Logger.log.w(message: "TxClient:: No audio codecs found")
+            return []
+        }
+        
+        return codecs.map { TxCodecCapability(from: $0) }
     }
 
     /// Creates a call object when an invite is received.

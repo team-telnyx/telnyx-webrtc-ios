@@ -462,13 +462,14 @@ public class Call {
         Creates an offer to start the calling process
      */
     private func invite(callerName: String, callerNumber: String, destinationNumber: String, clientState: String? = nil,
-                        customHeaders:[String:String] = [:],debug:Bool = false) {
+                        customHeaders:[String:String] = [:], preferredCodecs: [TxCodecCapability]? = nil, debug:Bool = false) {
         self.direction = .OUTBOUND
         self.inviteCustomHeaders = customHeaders
         self.callInfo?.callerName = callerName
         self.callInfo?.callerNumber = callerNumber
         self.callOptions = TxCallOptions(destinationNumber: destinationNumber,
-                                         clientState: clientState)
+                                         clientState: clientState,
+                                         preferredCodecs: preferredCodecs)
 
         self.enableQualityMetrics = debug
         // We need to:
@@ -586,12 +587,13 @@ extension Call {
                           destinationNumber: String,
                           clientState: String? = nil,
                           customHeaders:[String:String] = [:],
+                          preferredCodecs: [TxCodecCapability]? = nil,
                           debug: Bool = false) {
         if (destinationNumber.isEmpty) {
             Logger.log.e(message: "Call:: Please enter a destination number.")
             return
         }
-        invite(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState, customHeaders: customHeaders,debug: debug)
+        invite(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState, customHeaders: customHeaders, preferredCodecs: preferredCodecs, debug: debug)
     }
 
     /// Hangup or reject an incoming call.

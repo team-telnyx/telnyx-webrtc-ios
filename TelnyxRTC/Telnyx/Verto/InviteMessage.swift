@@ -36,6 +36,10 @@ class InviteMessage : Message {
         if let clientState = callOptions.clientState {
             dialogParams["clientState"] = clientState
         }
+        
+        if let preferredCodecs = callOptions.preferredCodecs, !preferredCodecs.isEmpty {
+            dialogParams["preferred_codecs"] = preferredCodecs.map { $0.toDictionary() }
+        }
 
         params["User-Agent"] = Message.USER_AGENT
 
