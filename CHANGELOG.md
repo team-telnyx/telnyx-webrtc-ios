@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [2.2.2](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.2.2) (2025-10-08)
+
+### Features
+- **Anonymous Login for AI-Agent**: Added support for anonymous authentication specifically designed for AI-Agent integration, allowing connections without traditional credentials
+
+### Bug Fixes
+- Fixed speaker restoration after ACM (AudioDeviceModule) buffer reset to maintain the previously selected audio route
+- Fixed User-Agent header formatting and content
+
 ## [2.2.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.2.1) (2025-09-23)
 
 ### Bug Fixes
