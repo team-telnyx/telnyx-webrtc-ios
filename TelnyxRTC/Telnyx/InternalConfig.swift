@@ -32,4 +32,11 @@ struct InternalConfig {
     static let `default` = InternalConfig(prodSignalingServer: URL(string: PROD_HOST)!,
                                           developmentSignalingServer: URL(string: DEVELOPMENT_HOST)!,
                                           webRTCIceServers: defaultIceServers)
+    
+    // MARK: - Notification Names
+    struct NotificationNames {
+        static let acmResetStarted = "ACMResetStarted"
+        static let acmResetCompleted = "ACMResetCompleted"
+        static let audioRouteChanged = "AudioRouteChanged"
+    }
 }
