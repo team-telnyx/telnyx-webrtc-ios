@@ -34,8 +34,12 @@ public struct TxCodecCapability: Codable, Equatable {
     /// Creates a TxCodecCapability from an RTCRtpCodecCapability
     internal init(from rtcCodec: RTCRtpCodecCapability) {
         self.mimeType = rtcCodec.mimeType
-        self.clockRate = Int(rtcCodec.clockRate)
-        self.channels = rtcCodec.numChannels > 0 ? Int(rtcCodec.numChannels) : nil
+        self.clockRate = rtcCodec.clockRate?.intValue ?? 0
+        if let numChannels = rtcCodec.numChannels?.intValue, numChannels > 0 {
+            self.channels = numChannels
+        } else {
+            self.channels = nil
+        }
         self.sdpFmtpLine = rtcCodec.parameters.isEmpty ? nil : rtcCodec.parameters.map { "\($0.key)=\($0.value)" }.joined(separator: ";")
     }
     

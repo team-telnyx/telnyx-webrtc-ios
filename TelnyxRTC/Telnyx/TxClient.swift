@@ -881,13 +881,15 @@ extension TxClient {
     /// ```
     public func getSupportedAudioCodecs() -> [TxCodecCapability] {
         let peerConnectionFactory = RTCPeerConnectionFactory()
-        
-        guard let capabilities = peerConnectionFactory.rtpSenderCapabilities(for: .audio),
-              let codecs = capabilities.codecs else {
+
+        let capabilities = peerConnectionFactory.rtpSenderCapabilities(forKind: kRTCMediaStreamTrackKindAudio)
+        let codecs = capabilities.codecs
+
+        guard !codecs.isEmpty else {
             Logger.log.w(message: "TxClient:: No audio codecs found")
             return []
         }
-        
+
         return codecs.map { TxCodecCapability(from: $0) }
     }
 
