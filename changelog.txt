@@ -21,3 +21,6 @@
 - PR #270: [WEBRTC-2921] - [iOS] Update actions to use Xcode 16
 - PR #269: [WEBRTC-2916] [Feature] VoIP Push Notification Testing Tool
 - PR #279: [WEBRTC-2990] [fix] Improve audio connection performance and maintaining audio route change subscriptions
+- PR #283: [WEBRTC-3000] - Fix User-Agent property in iOS SDK LoginMessage to align with Android
+- PR #282: [WEBRTC-2999] [Fix] Fix ACM reset disabling audio output on iOS speakerphone mode
+- PR #268: WEBRTC-2906: [iOS] Anonymous Login and Assistant within sample app

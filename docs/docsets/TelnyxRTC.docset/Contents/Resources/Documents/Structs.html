@@ -17,7 +17,7 @@
     <a title="Structures  Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="index.html">TelnyxRTC 2.2.1 Docs</a> (79% documented)</p>
+        <p><a href="index.html">TelnyxRTC 2.2.2 Docs</a> (71% documented)</p>
         <div class="header-right">
           <form role="search" action="search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -39,6 +39,9 @@
             <a href="Classes.html">Classes</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
+                <a href="Classes/AIAssistantManager.html">AIAssistantManager</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="Classes/Call.html">Call</a>
               </li>
               <li class="nav-group-task">
@@ -46,6 +49,12 @@
               </li>
               <li class="nav-group-task">
                 <a href="Classes/MOSCalculator.html">MOSCalculator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/TranscriptCancellable.html">TranscriptCancellable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/TranscriptPublisher.html">TranscriptPublisher</a>
               </li>
               <li class="nav-group-task">
                 <a href="Classes/TxClient.html">TxClient</a>
@@ -100,6 +109,9 @@
             <a href="Protocols.html">Protocols</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
+                <a href="Protocols/AIAssistantManagerDelegate.html">AIAssistantManagerDelegate</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="Protocols/TxClientDelegate.html">TxClientDelegate</a>
               </li>
               <li class="nav-group-task">
@@ -111,10 +123,25 @@
             <a href="Structs.html">Structures</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
+                <a href="Structs/AiConversationParams.html">AiConversationParams</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/AudioVisualizerConfig.html">AudioVisualizerConfig</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="Structs/CallQualityMetrics.html">CallQualityMetrics</a>
               </li>
               <li class="nav-group-task">
                 <a href="Structs/CallTerminationReason.html">CallTerminationReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/ConversationContent.html">ConversationContent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/ConversationItem.html">ConversationItem</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/TranscriptionItem.html">TranscriptionItem</a>
               </li>
               <li class="nav-group-task">
                 <a href="Structs/TxCallInfo.html">TxCallInfo</a>
@@ -130,6 +157,9 @@
               </li>
               <li class="nav-group-task">
                 <a href="Structs/TxServerConfiguration.html">TxServerConfiguration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/WidgetSettings.html">WidgetSettings</a>
               </li>
             </ul>
           </li>
@@ -316,6 +346,174 @@
                 <li class="item">
                   <div>
                     <code>
+                    <a name="/s:9TelnyxRTC17TranscriptionItemV"></a>
+                    <a name="//apple_ref/swift/Struct/TranscriptionItem" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC17TranscriptionItemV">TranscriptionItem</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Represents a transcription item from AI assistant conversations (Android-compatible)</p>
+
+                        <a href="Structs/TranscriptionItem.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">TranscriptionItem</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC14WidgetSettingsV"></a>
+                    <a name="//apple_ref/swift/Struct/WidgetSettings" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC14WidgetSettingsV">WidgetSettings</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Represents widget settings for AI assistant interface</p>
+
+                        <a href="Structs/WidgetSettings.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">WidgetSettings</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC21AudioVisualizerConfigV"></a>
+                    <a name="//apple_ref/swift/Struct/AudioVisualizerConfig" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC21AudioVisualizerConfigV">AudioVisualizerConfig</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Represents audio visualizer configuration</p>
+
+                        <a href="Structs/AudioVisualizerConfig.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">AudioVisualizerConfig</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC19ConversationContentV"></a>
+                    <a name="//apple_ref/swift/Struct/ConversationContent" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC19ConversationContentV">ConversationContent</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Represents conversation content for AI assistant messages</p>
+
+                        <a href="Structs/ConversationContent.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">ConversationContent</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC16ConversationItemV"></a>
+                    <a name="//apple_ref/swift/Struct/ConversationItem" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC16ConversationItemV">ConversationItem</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Represents a conversation item for AI assistant messages</p>
+
+                        <a href="Structs/ConversationItem.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">ConversationItem</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC20AiConversationParamsV"></a>
+                    <a name="//apple_ref/swift/Struct/AiConversationParams" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC20AiConversationParamsV">AiConversationParams</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Represents AI conversation parameters</p>
+
+                        <a href="Structs/AiConversationParams.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">AiConversationParams</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
                     <a name="/s:9TelnyxRTC21CallTerminationReasonV"></a>
                     <a name="//apple_ref/swift/Struct/CallTerminationReason" class="dashAnchor"></a>
                     <a class="token" href="#/s:9TelnyxRTC21CallTerminationReasonV">CallTerminationReason</a>
@@ -346,7 +544,7 @@
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-09-23)</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-10-08)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>

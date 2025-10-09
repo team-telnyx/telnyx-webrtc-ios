@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>AIAssistantManager Class Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+    <script src="../js/lunr.min.js" defer></script>
+    <script src="../js/typeahead.jquery.js" defer></script>
+    <script src="../js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Class/AIAssistantManager" class="dashAnchor"></a>
+    <a title="AIAssistantManager Class Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="../index.html">TelnyxRTC 2.2.2 Docs</a> (71% documented)</p>
+        <div class="header-right">
+          <form role="search" action="../search.json">
+            <input type="text" placeholder="Search documentation" data-typeahead>
+          </form>
+        </div>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="../index.html">TelnyxRTC</a>
+        <img id="carat" src="../img/carat.png" alt=""/>
+        <a href="../Classes.html">Classes</a>
+        <img id="carat" src="../img/carat.png" alt=""/>
+        AIAssistantManager Class Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Classes/AIAssistantManager.html">AIAssistantManager</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Call.html">Call</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FileLogger.html">FileLogger</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/MOSCalculator.html">MOSCalculator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TranscriptCancellable.html">TranscriptCancellable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TranscriptPublisher.html">TranscriptPublisher</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TxClient.html">TxClient</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TxDefaultLogger.html">TxDefaultLogger</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Enums.html">Enumerations</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Enums/CallQuality.html">CallQuality</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/CallState.html">CallState</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/CallState/Reason.html">– Reason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LogLevel.html">LogLevel</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/PushEnvironment.html">PushEnvironment</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/Region.html">Region</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/TxError.html">TxError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/TxError/SocketFailureReason.html">– SocketFailureReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/TxError/ClientConfigurationFailureReason.html">– ClientConfigurationFailureReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/TxError/CallFailureReason.html">– CallFailureReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/TxError/ServerErrorReason.html">– ServerErrorReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/WebRTCEnvironment.html">WebRTCEnvironment</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Protocols/AIAssistantManagerDelegate.html">AIAssistantManagerDelegate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TxClientDelegate.html">TxClientDelegate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TxLogger.html">TxLogger</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Structs/AiConversationParams.html">AiConversationParams</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/AudioVisualizerConfig.html">AudioVisualizerConfig</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/CallQualityMetrics.html">CallQualityMetrics</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/CallTerminationReason.html">CallTerminationReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ConversationContent.html">ConversationContent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ConversationItem.html">ConversationItem</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TranscriptionItem.html">TranscriptionItem</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TxCallInfo.html">TxCallInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TxConfig.html">TxConfig</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TxPushConfig.html">TxPushConfig</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TxPushIPConfig.html">TxPushIPConfig</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TxServerConfiguration.html">TxServerConfiguration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/WidgetSettings.html">WidgetSettings</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>AIAssistantManager</h1>
+              <div class="declaration">
+                <div class="language">
+                  
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">AIAssistantManager</span></code></pre>
+
+                </div>
+              </div>
+            <p>Manager class for handling AI Assistant functionality
+This class manages AI assistant connections, message handling, and state management</p>
+
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Properties"></a>
+                <a name="//apple_ref/swift/Section/Properties" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Properties"></a>
+                  <h3 class="section-name"><span>Properties</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC8delegateAA0cD8Delegate_pSgvp"></a>
+                    <a name="//apple_ref/swift/Property/delegate" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC8delegateAA0cD8Delegate_pSgvp">delegate</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Delegate to receive AI assistant events</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">weak</span> <span class="k">var</span> <span class="nv">delegate</span><span class="p">:</span> <span class="kt"><a href="../Protocols/AIAssistantManagerDelegate.html">AIAssistantManagerDelegate</a></span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Real-time%20Transcript%20Updates%20%28Android%20compatibility%29"></a>
+                <a name="//apple_ref/swift/Section/Real-time Transcript Updates (Android compatibility)" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Real-time%20Transcript%20Updates%20%28Android%20compatibility%29"></a>
+                  <h3 class="section-name"><span>Real-time Transcript Updates (Android compatibility)</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC25transcriptUpdatePublisherAA010TranscriptG0CySayAA17TranscriptionItemVGGvp"></a>
+                    <a name="//apple_ref/swift/Property/transcriptUpdatePublisher" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC25transcriptUpdatePublisherAA010TranscriptG0CySayAA17TranscriptionItemVGGvp">transcriptUpdatePublisher</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Custom publisher for real-time transcript updates (iOS 12.0 compatible)</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">private(set)</span> <span class="k">var</span> <span class="nv">transcriptUpdatePublisher</span><span class="p">:</span> <span class="kt"><a href="../Classes/TranscriptPublisher.html">TranscriptPublisher</a></span><span class="o">&lt;</span><span class="p">[</span><span class="kt"><a href="../Structs/TranscriptionItem.html">TranscriptionItem</a></span><span class="p">]</span><span class="o">&gt;</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC23transcriptItemPublisherAA010TranscriptG0CyAA013TranscriptionF0VGvp"></a>
+                    <a name="//apple_ref/swift/Property/transcriptItemPublisher" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC23transcriptItemPublisherAA010TranscriptG0CyAA013TranscriptionF0VGvp">transcriptItemPublisher</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Custom publisher for individual transcript item updates</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">private(set)</span> <span class="k">var</span> <span class="nv">transcriptItemPublisher</span><span class="p">:</span> <span class="kt"><a href="../Classes/TranscriptPublisher.html">TranscriptPublisher</a></span><span class="o">&lt;</span><span class="kt"><a href="../Structs/TranscriptionItem.html">TranscriptionItem</a></span><span class="o">&gt;</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Initializers"></a>
+                <a name="//apple_ref/swift/Section/Initializers" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Initializers"></a>
+                  <h3 class="section-name"><span>Initializers</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerCACycfc"></a>
+                    <a name="//apple_ref/swift/Method/init()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerCACycfc">init()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Initialize the AI Assistant Manager</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Public%20Methods"></a>
+                <a name="//apple_ref/swift/Section/Public Methods" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Public%20Methods"></a>
+                  <h3 class="section-name"><span>Public Methods</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC21updateConnectionState9connected8targetId0I4Type0i7VersionJ0ySb_SSSgA2ItF"></a>
+                    <a name="//apple_ref/swift/Method/updateConnectionState(connected:targetId:targetType:targetVersionId:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC21updateConnectionState9connected8targetId0I4Type0i7VersionJ0ySb_SSSgA2ItF">updateConnectionState(connected:<wbr>targetId:<wbr>targetType:<wbr>targetVersionId:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Update the AI assistant connection state</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">updateConnectionState</span><span class="p">(</span>
+    <span class="nv">connected</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">,</span>
+    <span class="nv">targetId</span><span class="p">:</span> <span class="kt">String</span><span class="p">?,</span>
+    <span class="nv">targetType</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+    <span class="nv">targetVersionId</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span>
+<span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>connected</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Whether the AI assistant is connected</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>targetId</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The target ID of the AI assistant</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>targetType</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The target type (optional)</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>targetVersionId</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The target version ID (optional)</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC22processIncomingMessageySbSDySSypGF"></a>
+                    <a name="//apple_ref/swift/Method/processIncomingMessage(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC22processIncomingMessageySbSDySSypGF">processIncomingMessage(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Process incoming message to detect AI conversation content</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">processIncomingMessage</span><span class="p">(</span><span class="n">_</span> <span class="nv">message</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span> <span class="p">:</span> <span class="kt">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>message</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The incoming message to process</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>True if the message was an AI conversation message, false otherwise</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC17getConnectionInfoSDySSypGyF"></a>
+                    <a name="//apple_ref/swift/Method/getConnectionInfo()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC17getConnectionInfoSDySSypGyF">getConnectionInfo()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get current AI assistant connection information</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getConnectionInfo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="kt">String</span> <span class="p">:</span> <span class="kt">Any</span><span class="p">]</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Dictionary containing connection information</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC5resetyyF"></a>
+                    <a name="//apple_ref/swift/Method/reset()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC5resetyyF">reset()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Reset the AI assistant manager state</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">reset</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC17getTranscriptionsSayAA17TranscriptionItemVGyF"></a>
+                    <a name="//apple_ref/swift/Method/getTranscriptions()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC17getTranscriptionsSayAA17TranscriptionItemVGyF">getTranscriptions()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get current transcriptions</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getTranscriptions</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="kt"><a href="../Structs/TranscriptionItem.html">TranscriptionItem</a></span><span class="p">]</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Array of transcription items</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC10transcriptSayAA17TranscriptionItemVGvp"></a>
+                    <a name="//apple_ref/swift/Property/transcript" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC10transcriptSayAA17TranscriptionItemVGvp">transcript</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get current transcriptions (Android compatibility method)</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">transcript</span><span class="p">:</span> <span class="p">[</span><span class="kt"><a href="../Structs/TranscriptionItem.html">TranscriptionItem</a></span><span class="p">]</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Array of transcription items</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC17getWidgetSettingsAA0fG0VSgyF"></a>
+                    <a name="//apple_ref/swift/Method/getWidgetSettings()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC17getWidgetSettingsAA0fG0VSgyF">getWidgetSettings()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get current widget settings</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getWidgetSettings</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Structs/WidgetSettings.html">WidgetSettings</a></span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Current widget settings or nil if not set</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC16addTranscriptionyyAA0F4ItemVF"></a>
+                    <a name="//apple_ref/swift/Method/addTranscription(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC16addTranscriptionyyAA0F4ItemVF">addTranscription(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Add a transcription item</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">addTranscription</span><span class="p">(</span><span class="n">_</span> <span class="nv">transcription</span><span class="p">:</span> <span class="kt"><a href="../Structs/TranscriptionItem.html">TranscriptionItem</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>transcription</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The transcription item to add</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC20updateWidgetSettingsyyAA0fG0VF"></a>
+                    <a name="//apple_ref/swift/Method/updateWidgetSettings(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC20updateWidgetSettingsyyAA0fG0VF">updateWidgetSettings(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Update widget settings</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">updateWidgetSettings</span><span class="p">(</span><span class="n">_</span> <span class="nv">settings</span><span class="p">:</span> <span class="kt"><a href="../Structs/WidgetSettings.html">WidgetSettings</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>settings</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The new widget settings</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC12clearAllDatayyF"></a>
+                    <a name="//apple_ref/swift/Method/clearAllData()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC12clearAllDatayyF">clearAllData()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Clear all transcriptions and widget settings</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">clearAllData</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC19clearTranscriptionsyyF"></a>
+                    <a name="//apple_ref/swift/Method/clearTranscriptions()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC19clearTranscriptionsyyF">clearTranscriptions()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Clear only transcriptions (called when call ends)</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">clearTranscriptions</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Mixed-mode%20Communication%20%28Android%20compatibility%29"></a>
+                <a name="//apple_ref/swift/Section/Mixed-mode Communication (Android compatibility)" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Mixed-mode%20Communication%20%28Android%20compatibility%29"></a>
+                  <h3 class="section-name"><span>Mixed-mode Communication (Android compatibility)</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC04sendC7MessageySbSSF"></a>
+                    <a name="//apple_ref/swift/Method/sendAIAssistantMessage(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC04sendC7MessageySbSSF">sendAIAssistantMessage(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Send a text message to AI Assistant during active call (mixed-mode communication)</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@discardableResult</span>
+<span class="kd">public</span> <span class="kd">func</span> <span class="nf">sendAIAssistantMessage</span><span class="p">(</span><span class="n">_</span> <span class="nv">message</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>message</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The text message to send</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>True if message was sent successfully, false otherwise</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC22sendVoiceTranscriptionySbAA0G4ItemVF"></a>
+                    <a name="//apple_ref/swift/Method/sendVoiceTranscription(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC22sendVoiceTranscriptionySbAA0G4ItemVF">sendVoiceTranscription(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Send a voice message transcription to AI Assistant</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@discardableResult</span>
+<span class="kd">public</span> <span class="kd">func</span> <span class="nf">sendVoiceTranscription</span><span class="p">(</span><span class="n">_</span> <span class="nv">transcription</span><span class="p">:</span> <span class="kt"><a href="../Structs/TranscriptionItem.html">TranscriptionItem</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>transcription</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The voice transcription to send</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>True if message was sent successfully, false otherwise</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC28subscribeToTranscriptUpdatesyAA0G11CancellableCySayAA17TranscriptionItemVGcF"></a>
+                    <a name="//apple_ref/swift/Method/subscribeToTranscriptUpdates(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC28subscribeToTranscriptUpdatesyAA0G11CancellableCySayAA17TranscriptionItemVGcF">subscribeToTranscriptUpdates(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Subscribe to real-time transcript updates (Android compatibility)</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">subscribeToTranscriptUpdates</span><span class="p">(</span><span class="n">_</span> <span class="nv">handler</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">([</span><span class="kt"><a href="../Structs/TranscriptionItem.html">TranscriptionItem</a></span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/TranscriptCancellable.html">TranscriptCancellable</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>handler</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Closure to handle transcript updates</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Cancellable token for the subscription</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC32subscribeToTranscriptItemUpdatesyAA0G11CancellableCyAA013TranscriptionH0VcF"></a>
+                    <a name="//apple_ref/swift/Method/subscribeToTranscriptItemUpdates(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC32subscribeToTranscriptItemUpdatesyAA0G11CancellableCyAA013TranscriptionH0VcF">subscribeToTranscriptItemUpdates(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Subscribe to individual transcript item updates (Android compatibility)</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">subscribeToTranscriptItemUpdates</span><span class="p">(</span><span class="n">_</span> <span class="nv">handler</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Structs/TranscriptionItem.html">TranscriptionItem</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/TranscriptCancellable.html">TranscriptCancellable</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>handler</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Closure to handle individual transcript item updates</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Cancellable token for the subscription</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Transcript%20Filtering%20%28Android%20compatibility%29"></a>
+                <a name="//apple_ref/swift/Section/Transcript Filtering (Android compatibility)" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Transcript%20Filtering%20%28Android%20compatibility%29"></a>
+                  <h3 class="section-name"><span>Transcript Filtering (Android compatibility)</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC23getTranscriptionsByRoleySayAA17TranscriptionItemVGSSF"></a>
+                    <a name="//apple_ref/swift/Method/getTranscriptionsByRole(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC23getTranscriptionsByRoleySayAA17TranscriptionItemVGSSF">getTranscriptionsByRole(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get transcriptions by role</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getTranscriptionsByRole</span><span class="p">(</span><span class="n">_</span> <span class="nv">role</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="kt"><a href="../Structs/TranscriptionItem.html">TranscriptionItem</a></span><span class="p">]</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>role</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The role to filter by (&ldquo;user&rdquo; or &ldquo;assistant&rdquo;)</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Array of transcription items for the specified role</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC21getUserTranscriptionsSayAA17TranscriptionItemVGyF"></a>
+                    <a name="//apple_ref/swift/Method/getUserTranscriptions()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC21getUserTranscriptionsSayAA17TranscriptionItemVGyF">getUserTranscriptions()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get user transcriptions only</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getUserTranscriptions</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="kt"><a href="../Structs/TranscriptionItem.html">TranscriptionItem</a></span><span class="p">]</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Array of user transcription items</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC26getAssistantTranscriptionsSayAA17TranscriptionItemVGyF"></a>
+                    <a name="//apple_ref/swift/Method/getAssistantTranscriptions()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC26getAssistantTranscriptionsSayAA17TranscriptionItemVGyF">getAssistantTranscriptions()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get assistant transcriptions only</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getAssistantTranscriptions</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="kt"><a href="../Structs/TranscriptionItem.html">TranscriptionItem</a></span><span class="p">]</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Array of assistant transcription items</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC24getPartialTranscriptionsSayAA17TranscriptionItemVGyF"></a>
+                    <a name="//apple_ref/swift/Method/getPartialTranscriptions()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC24getPartialTranscriptionsSayAA17TranscriptionItemVGyF">getPartialTranscriptions()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get partial transcriptions (in-progress recordings)</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getPartialTranscriptions</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="kt"><a href="../Structs/TranscriptionItem.html">TranscriptionItem</a></span><span class="p">]</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Array of partial transcription items</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC22getFinalTranscriptionsSayAA17TranscriptionItemVGyF"></a>
+                    <a name="//apple_ref/swift/Method/getFinalTranscriptions()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC22getFinalTranscriptionsSayAA17TranscriptionItemVGyF">getFinalTranscriptions()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get final transcriptions (completed recordings)</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getFinalTranscriptions</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="kt"><a href="../Structs/TranscriptionItem.html">TranscriptionItem</a></span><span class="p">]</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Array of final transcription items</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC25clearTranscriptionsByRoleyySSF"></a>
+                    <a name="//apple_ref/swift/Method/clearTranscriptionsByRole(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC25clearTranscriptionsByRoleyySSF">clearTranscriptionsByRole(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Clear transcriptions by role</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">clearTranscriptionsByRole</span><span class="p">(</span><span class="n">_</span> <span class="nv">role</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>role</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The role to clear transcriptions for</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Extensions"></a>
+                <a name="//apple_ref/swift/Section/Extensions" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Extensions"></a>
+                  <h3 class="section-name"><span>Extensions</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC02isC9ConnectedSbvp"></a>
+                    <a name="//apple_ref/swift/Property/isAIAssistantConnected" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC02isC9ConnectedSbvp">isAIAssistantConnected</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Convenience method to check if currently connected to an AI assistant</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">isAIAssistantConnected</span><span class="p">:</span> <span class="kt">Bool</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC17connectedTargetIdSSSgvp"></a>
+                    <a name="//apple_ref/swift/Property/connectedTargetId" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC17connectedTargetIdSSSgvp">connectedTargetId</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get the current AI assistant target ID</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">connectedTargetId</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-10-08)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</html>
