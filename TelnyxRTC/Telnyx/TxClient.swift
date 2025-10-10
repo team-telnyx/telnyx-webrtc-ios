@@ -878,6 +878,11 @@ extension TxClient {
     
     /// Returns the list of supported audio codecs available for use in calls
     /// - Returns: Array of TxCodecCapability objects representing available audio codecs
+    ///
+    /// This method reuses the shared RTCPeerConnectionFactory instance for efficiency.
+    /// The codec list is queried from WebRTC's native capabilities and remains consistent
+    /// throughout the application lifecycle.
+    ///
     /// ### Example:
     /// ```swift
     /// let supportedCodecs = telnyxClient.getSupportedAudioCodecs()
@@ -886,9 +891,8 @@ extension TxClient {
     /// }
     /// ```
     public func getSupportedAudioCodecs() -> [TxCodecCapability] {
-        let peerConnectionFactory = RTCPeerConnectionFactory()
-
-        let capabilities = peerConnectionFactory.rtpSenderCapabilities(forKind: kRTCMediaStreamTrackKindAudio)
+        // Reuse the shared Peer factory instance instead of creating a new one each time
+        let capabilities = Peer.factory.rtpSenderCapabilities(forKind: kRTCMediaStreamTrackKindAudio)
         let codecs = capabilities.codecs
 
         guard !codecs.isEmpty else {
