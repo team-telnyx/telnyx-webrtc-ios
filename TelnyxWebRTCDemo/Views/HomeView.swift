@@ -18,7 +18,8 @@ struct HomeView: View {
     @State private var showPreCallDiagnosisSheet = false
     @State private var showMenu = false
     @State private var showAIAssistant = false
-    
+    @State private var showCodecSelection = false
+
     @State private var showRegionMenu = false
     @StateObject private var aiAssistantViewModel = AIAssistantViewModel()
     
@@ -180,6 +181,7 @@ struct HomeView: View {
                               showRegionMenu: $showRegionMenu,
                               selectedRegion: $profileViewModel.selectedRegion,
                               showAIAssistant: $showAIAssistant,
+                              showCodecSelection: $showCodecSelection,
                               viewModel: viewModel
                           )
                 
@@ -193,6 +195,12 @@ struct HomeView: View {
             .sheet(isPresented: $showPreCallDiagnosisSheet) {
                 PreCallDiagnosisBottomSheet(
                     isPresented: $showPreCallDiagnosisSheet,
+                    viewModel: viewModel
+                )
+            }
+            .sheet(isPresented: $showCodecSelection) {
+                CodecSelectionView(
+                    isPresented: $showCodecSelection,
                     viewModel: viewModel
                 )
             }

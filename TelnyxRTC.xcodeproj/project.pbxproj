@@ -51,6 +51,7 @@
 		9906F8C92E3CEA4600A02FE7 /* AIAssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8C82E3CEA4600A02FE7 /* AIAssistantView.swift */; };
 		9906F8CB2E3CEA6000A02FE7 /* AIAssistantViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8CA2E3CEA6000A02FE7 /* AIAssistantViewModel.swift */; };
 		990FC0482E9841BC009344DC /* TxCodecCapability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990FC0472E9841BC009344DC /* TxCodecCapability.swift */; };
+		990FC04A2E99387C009344DC /* CodecSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990FC0492E99387C009344DC /* CodecSelectionView.swift */; };
 		9911247E2CF50092000C23BA /* Dictionary+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9911247D2CF50088000C23BA /* Dictionary+Extensions.swift */; };
 		991A6D442D3A96C100B29785 /* SplashScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991A6D432D3A96C100B29785 /* SplashScreen.swift */; };
 		991A6D492D3AB36E00B29785 /* SipCredentialsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991A6D482D3AB36E00B29785 /* SipCredentialsView.swift */; };
@@ -251,6 +252,7 @@
 		9906F8C82E3CEA4600A02FE7 /* AIAssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistantView.swift; sourceTree = "<group>"; };
 		9906F8CA2E3CEA6000A02FE7 /* AIAssistantViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistantViewModel.swift; sourceTree = "<group>"; };
 		990FC0472E9841BC009344DC /* TxCodecCapability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxCodecCapability.swift; sourceTree = "<group>"; };
+		990FC0492E99387C009344DC /* CodecSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodecSelectionView.swift; sourceTree = "<group>"; };
 		9911247D2CF50088000C23BA /* Dictionary+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Dictionary+Extensions.swift"; sourceTree = "<group>"; };
 		991A6D432D3A96C100B29785 /* SplashScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreen.swift; sourceTree = "<group>"; };
 		991A6D462D3AB36E00B29785 /* SipCredentialHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialHeader.swift; sourceTree = "<group>"; };
@@ -585,6 +587,7 @@
 		B309D1FB25F028F100A2AADF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				990FC0492E99387C009344DC /* CodecSelectionView.swift */,
 				99D7C09B2E1E32DA00D47CE6 /* AudioWaveformView.swift */,
 				3BE7C7622E04292300FF74A1 /* RegionMenuView.swift */,
 				3BE7C7602E0421EB00FF74A1 /* OverflowMenuView.swift */,
@@ -1254,6 +1257,7 @@
 				99FF7B122D4BC71800DB1408 /* DTMFKeyboardViewModel.swift in Sources */,
 				99ADA94E2D47C9B6000C956A /* HomeViewModel.swift in Sources */,
 				9986703C2D3EAF64001E1D01 /* ErrorView.swift in Sources */,
+				990FC04A2E99387C009344DC /* CodecSelectionView.swift in Sources */,
 				3B7D29952DF1C2980094EB90 /* AppModel.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

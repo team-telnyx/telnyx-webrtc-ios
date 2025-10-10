@@ -253,23 +253,17 @@ extension HomeViewController : VoIPDelegate {
             ]
             
             let destinationNumber = self.callViewModel.sipAddress
-            
-            // Example: Get supported codecs and set preferred codecs
-            // Uncomment the following lines to use preferred codec functionality:
-            /*
-            let supportedCodecs = telnyxClient?.getSupportedAudioCodecs() ?? []
-            print("Supported audio codecs: \(supportedCodecs)")
-            
-            // Example: Prefer Opus codec if available
-            let preferredCodecs = supportedCodecs.filter { $0.mimeType.lowercased().contains("opus") }
-            */
-            
+
+            // Get preferred codecs from storage
+            let preferredCodecs = UserDefaults.standard.getPreferredAudioCodecs()
+            print("Preferred audio codecs: \(preferredCodecs)")
+
             let call = try telnyxClient?.newCall(callerName: sipCred.callerName ?? "",
                                                  callerNumber: sipCred.callerNumber ?? "",
                                                  destinationNumber: destinationNumber,
                                                  callId: callUUID,
                                                  customHeaders: headers,
-                                                 // preferredCodecs: preferredCodecs, // Uncomment to use preferred codecs
+                                                 preferredCodecs: preferredCodecs.isEmpty ? nil : preferredCodecs,
                                                  debug: true)
             
             

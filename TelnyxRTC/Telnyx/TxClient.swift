@@ -863,7 +863,13 @@ extension TxClient {
                         debug: self.txConfig?.debug ?? false,
                         forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
                         sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false)
-        call.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState, customHeaders: customHeaders, preferredCodecs: preferredCodecs, debug: debug)
+        call.newCall(callerName: callerName,
+                     callerNumber: callerNumber,
+                     destinationNumber: destinationNumber,
+                     clientState: clientState,
+                     customHeaders: customHeaders,
+                     preferredCodecs: preferredCodecs,
+                     debug: debug)
 
         currentCallId = callId
         self.calls[callId] = call

@@ -15,6 +15,7 @@ struct OverflowMenuView: View {
     @Binding var showRegionMenu: Bool
     @Binding var selectedRegion: Region
     @Binding var showAIAssistant: Bool
+    @Binding var showCodecSelection: Bool
     @ObservedObject var viewModel: HomeViewModel
 
 
@@ -28,7 +29,7 @@ struct OverflowMenuView: View {
                 Spacer()
                 VStack(alignment: .leading, spacing: 10) {
                     MenuButton(
-                        title: "AI Assistant", 
+                        title: "AI Assistant",
                         icon: "brain",
                         isDisabled: viewModel.isAIAssistantDisabled
                     ) {
@@ -38,7 +39,7 @@ struct OverflowMenuView: View {
                         }
                     }
                     MenuButton(
-                        title: "Pre-call Diagnosis", 
+                        title: "Pre-call Diagnosis",
                         icon: "waveform.path.ecg",
                         isDisabled: viewModel.isPreCallDiagnosisDisabled
                     ) {
@@ -48,7 +49,17 @@ struct OverflowMenuView: View {
                         }
                     }
                     MenuButton(
-                        title: "Region: \(selectedRegion.rawValue)", 
+                        title: "Audio Codecs",
+                        icon: "waveform",
+                        isDisabled: viewModel.isRegionSelectionDisabled
+                    ) {
+                        if !viewModel.isRegionSelectionDisabled {
+                            showMenu = false
+                            showCodecSelection = true
+                        }
+                    }
+                    MenuButton(
+                        title: "Region: \(selectedRegion.rawValue)",
                         icon: "globe",
                         isDisabled: viewModel.isRegionSelectionDisabled
                     ) {

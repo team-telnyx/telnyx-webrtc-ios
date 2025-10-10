@@ -461,8 +461,13 @@ public class Call {
     /**
         Creates an offer to start the calling process
      */
-    private func invite(callerName: String, callerNumber: String, destinationNumber: String, clientState: String? = nil,
-                        customHeaders:[String:String] = [:], preferredCodecs: [TxCodecCapability]? = nil, debug:Bool = false) {
+    private func invite(callerName: String,
+                        callerNumber: String,
+                        destinationNumber: String,
+                        clientState: String? = nil,
+                        customHeaders: [String:String] = [:],
+                        preferredCodecs: [TxCodecCapability]? = nil,
+                        debug:Bool = false) {
         self.direction = .OUTBOUND
         self.inviteCustomHeaders = customHeaders
         self.callInfo?.callerName = callerName
@@ -593,7 +598,13 @@ extension Call {
             Logger.log.e(message: "Call:: Please enter a destination number.")
             return
         }
-        invite(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState, customHeaders: customHeaders, preferredCodecs: preferredCodecs, debug: debug)
+        invite(callerName: callerName,
+               callerNumber: callerNumber,
+               destinationNumber: destinationNumber,
+               clientState: clientState,
+               customHeaders: customHeaders,
+               preferredCodecs: preferredCodecs,
+               debug: debug)
     }
 
     /// Hangup or reject an incoming call.
@@ -681,12 +692,14 @@ extension Call {
         self.statsReporter?.dispose()
         self.answerCustomHeaders = customHeaders
         self.configureStatsReporter(reportID: reportId)
-        self.peer = Peer(iceServers: self.iceServers, isAttach: true, forceRelayCandidate: self.forceRelayCandidate)
+        self.peer = Peer(iceServers: self.iceServers,
+                         isAttach: true,
+                         forceRelayCandidate: self.forceRelayCandidate)
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
         self.incomingOffer(sdp: remoteSdp)
-        self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "",completion: { (sdp, error)  in
+        self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", completion: { (sdp, error)  in
 
             if let error = error {
                 Logger.log.e(message: "Call:: Error creating the answering: \(error)")
@@ -700,7 +713,7 @@ extension Call {
         })
     }
     
-    private func configureStatsReporter(reportID:UUID? = nil) {
+    private func configureStatsReporter(reportID: UUID? = nil) {
         if (debug || enableQualityMetrics),
            let socket = self.socket {
             self.statsReporter?.dispose()
@@ -756,7 +769,10 @@ extension Call {
               let callInfo = self.callInfo,
               let callOptions = self.callOptions else { return }
 
-        let dtmfMessage = InfoMessage(sessionId: sessionId, dtmf: dtmf, callInfo: callInfo, callOptions: callOptions)
+        let dtmfMessage = InfoMessage(sessionId: sessionId,
+                                      dtmf: dtmf,
+                                      callInfo: callInfo,
+                                      callOptions: callOptions)
         guard let message = dtmfMessage.encode(),
               let socket = self.socket else { return }
         socket.sendMessage(message: message)

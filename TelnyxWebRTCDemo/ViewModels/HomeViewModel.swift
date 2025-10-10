@@ -60,9 +60,23 @@ class HomeViewModel: ObservableObject {
     var isAIAssistantDisabled: Bool {
         return isCallsActive || socketState == .connected || socketState == .clientReady
     }
-    
+
     init() {
         setupPreCallDiagnosticManager()
+    }
+
+    // MARK: - Preferred Audio Codecs
+
+    /// Gets the preferred audio codecs from UserDefaults
+    /// - Returns: Array of preferred audio codecs
+    func getPreferredAudioCodecs() -> [TxCodecCapability] {
+        return UserDefaults.standard.getPreferredAudioCodecs()
+    }
+
+    /// Sets the preferred audio codecs and saves them to UserDefaults
+    /// - Parameter codecs: Array of preferred audio codecs to save
+    func setPreferredAudioCodecs(_ codecs: [TxCodecCapability]) {
+        UserDefaults.standard.savePreferredAudioCodecs(codecs)
     }
     
     func setTxClient(_ client: TxClient) {
