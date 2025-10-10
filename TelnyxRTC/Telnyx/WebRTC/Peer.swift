@@ -679,14 +679,13 @@ extension Peer : RTCPeerConnectionDelegate {
 
         // We call the callback when the iceCandidate is added
         onIceCandidate?(candidate)
-        // Add the generated ICE candidate to the peer connection.
-        // This helps populate the local SDP with the ICE candidate information.
-        connection?.add(candidate, completionHandler: { error in
-            if let error = error {
-                Logger.log.e(message: "Peer:: Failed to add RTCIceCandidate: \(error)")
-            }
-        })
-        
+
+        // Note: We don't manually add ICE candidates with connection.add() because:
+        // 1. For offers, candidates are automatically included in the local SDP
+        // 2. For answers, candidates are automatically included in the answer SDP
+        // 3. We use Trickle ICE through signaling, not manual candidate addition
+        // Attempting to add candidates manually causes "The remote description was null" error
+
         gatheredICECandidates.append(candidate.serverUrl ?? "")
 
         // Start negotiation if an ICE candidate from the configured STUN or TURN server is gathered.
