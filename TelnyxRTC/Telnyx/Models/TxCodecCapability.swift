@@ -49,15 +49,41 @@ public struct TxCodecCapability: Codable, Equatable {
             "mimeType": mimeType,
             "clockRate": clockRate
         ]
-        
+
         if let channels = channels {
             dict["channels"] = channels
         }
-        
+
         if let sdpFmtpLine = sdpFmtpLine {
             dict["sdpFmtpLine"] = sdpFmtpLine
         }
-        
+
         return dict
+    }
+
+    /// Checks if this TxCodecCapability matches an RTCRtpCodecCapability
+    /// - Parameter rtcCodec: The RTCRtpCodecCapability to compare against
+    /// - Returns: true if the codecs match, false otherwise
+    internal func matches(_ rtcCodec: RTCRtpCodecCapability) -> Bool {
+        // Compare mimeType (case-insensitive)
+        guard rtcCodec.mimeType.lowercased() == self.mimeType.lowercased() else {
+            return false
+        }
+
+        // Compare clockRate
+        guard let rtcClockRate = rtcCodec.clockRate?.intValue,
+              rtcClockRate == self.clockRate else {
+            return false
+        }
+
+        // Compare channels if specified
+        if let expectedChannels = self.channels {
+            let rtcChannels = rtcCodec.numChannels?.intValue ?? 0
+            guard rtcChannels == expectedChannels else {
+                return false
+            }
+        }
+
+        return true
     }
 }

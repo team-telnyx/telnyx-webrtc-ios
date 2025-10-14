@@ -557,13 +557,14 @@ public class TxClient {
     /// - Parameters:
     ///     - answerAction : `CXAnswerCallAction` from callKit
     ///     - customHeaders: (Optional)
+    ///     - preferredCodecs: (Optional) Array of preferred audio codecs in priority order
     ///     - debug:  (Optional) to enable quality metrics for call
-    public func answerFromCallkit(answerAction:CXAnswerCallAction,customHeaders:[String:String] = [:],debug:Bool = false) {
+    public func answerFromCallkit(answerAction:CXAnswerCallAction,customHeaders:[String:String] = [:], preferredCodecs: [TxCodecCapability]? = nil, debug:Bool = false) {
         self.answerCallAction = answerAction
         ///answer call if currentPushCall is not nil
         ///This means the client has connected and we can safelyanswer
         if(self.calls[currentCallId] != nil){
-            self.calls[currentCallId]?.answer(customHeaders: customHeaders,debug: debug)
+            self.calls[currentCallId]?.answer(customHeaders: customHeaders, preferredCodecs: preferredCodecs, debug: debug)
             answerCallAction?.fulfill()
             resetPushVariables()
             Logger.log.i(message: "answered from callkit")

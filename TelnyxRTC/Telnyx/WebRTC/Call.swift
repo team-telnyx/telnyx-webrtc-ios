@@ -485,13 +485,13 @@ public class Call {
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
-        self.peer?.offer(completion: { (sdp, error)  in
-            
+        self.peer?.offer(preferredCodecs: preferredCodecs, completion: { (sdp, error)  in
+
             if let error = error {
                 Logger.log.i(message: "Call:: Error creating the offer: \(error)")
                 return
             }
-            
+
             guard let sdp = sdp else {
                 return
             }
@@ -644,7 +644,9 @@ extension Call {
     ///  - Parameters:
     ///         - customHeaders: (optional) Custom Headers to be passed over webRTC Messages, should be in the
     ///     format `X-key:Value` `X` is required for headers to be passed.
-    public func answer(customHeaders:[String:String] = [:],debug:Bool = false) {
+    ///         - preferredCodecs: (optional) Array of preferred audio codecs in priority order
+    ///         - debug: (optional) Enable debug mode for call quality metrics
+    public func answer(customHeaders:[String:String] = [:], preferredCodecs: [TxCodecCapability]? = nil, debug:Bool = false) {
         self.stopRingtone()
         self.stopRingbackTone()
         //TODO: Create an error if there's no remote SDP
@@ -659,7 +661,7 @@ extension Call {
         self.peer?.delegate = self
         self.peer?.socket = self.socket
         self.incomingOffer(sdp: remoteSdp)
-        self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "",completion: { (sdp, error)  in
+        self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", preferredCodecs: preferredCodecs, completion: { (sdp, error)  in
 
             if let error = error {
                 Logger.log.e(message: "Call:: Error creating the answering: \(error)")

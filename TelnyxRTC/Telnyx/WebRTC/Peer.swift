@@ -241,8 +241,52 @@ class Peer : NSObject, WebRTCEventHandler {
         return videoTrack
     }
 
+    /// Applies audio codec preferences to the peer connection's audio transceiver
+    /// This method should be called before creating an offer or answer
+    /// - Parameter preferredCodecs: Array of TxCodecCapability objects representing the preferred codec order
+    func applyAudioCodecPreferences(preferredCodecs: [TxCodecCapability]) {
+        guard let connection = self.connection else {
+            Logger.log.w(message: "Peer:: applyAudioCodecPreferences() - No peer connection available")
+            return
+        }
+
+        // Find the audio transceiver
+        guard let audioTransceiver = connection.transceivers.first(where: { $0.mediaType == .audio }) else {
+            Logger.log.w(message: "Peer:: applyAudioCodecPreferences() - No audio transceiver found")
+            return
+        }
+
+        // Get all supported audio codec capabilities from the factory
+        let capabilities = Peer.factory.rtpSenderCapabilities(forKind: kRTCMediaStreamTrackKindAudio)
+        let allCodecs = capabilities.codecs
+
+        // Match and order the codecs according to user preferences
+        var orderedCodecs: [RTCRtpCodecCapability] = []
+
+        for preferredCodec in preferredCodecs {
+            // Find matching RTCRtpCodecCapability from supported codecs
+            if let matchingCodec = allCodecs.first(where: { preferredCodec.matches($0) }) {
+                orderedCodecs.append(matchingCodec)
+            }
+        }
+
+        guard !orderedCodecs.isEmpty else {
+            Logger.log.w(message: "Peer:: applyAudioCodecPreferences() - No matching codecs found")
+            return
+        }
+
+        // Apply the ordered codec preferences
+        audioTransceiver.setCodecPreferences(orderedCodecs)
+        Logger.log.i(message: "Peer:: Applied codec preferences to audio transceiver: \(preferredCodecs.map { $0.mimeType }.joined(separator: ", "))")
+    }
+
     // MARK: Signaling OFFER
-    func offer(completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
+    func offer(preferredCodecs: [TxCodecCapability]? = nil, completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
+
+        // Apply codec preferences before creating offer
+        if let codecs = preferredCodecs, !codecs.isEmpty {
+            self.applyAudioCodecPreferences(preferredCodecs: codecs)
+        }
 
         let constrains = RTCMediaConstraints(mandatoryConstraints: self.mediaConstrains,
                                              optionalConstraints: nil)
@@ -270,19 +314,25 @@ class Peer : NSObject, WebRTCEventHandler {
 
 
     // MARK: Signaling ANSWER
-    func answer(callLegId: String, completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
+    func answer(callLegId: String, preferredCodecs: [TxCodecCapability]? = nil, completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
         self.negotiationEnded = false
+
+        // Apply codec preferences before creating answer
+        if let codecs = preferredCodecs, !codecs.isEmpty {
+            self.applyAudioCodecPreferences(preferredCodecs: codecs)
+        }
+
         let constrains = RTCMediaConstraints(mandatoryConstraints: self.mediaConstrains,
                                              optionalConstraints: nil)
         self.callLegID = callLegId
         self.connection?.answer(for: constrains) { (sdp, error) in
-            
+
             if let error = error {
                 Logger.log.e(message: "Peer:: error creating answer \(error)")
                 completion(sdp, error)
                 return
             }
-            
+
             //TODO: we should return an error. We don't have a local SDP
             guard let sdp = sdp else {
                 Logger.log.w(message: "Peer:: SDP is missing")

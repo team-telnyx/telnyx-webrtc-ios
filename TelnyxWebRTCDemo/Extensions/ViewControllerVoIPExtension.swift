@@ -201,11 +201,16 @@ extension ViewController : VoIPDelegate {
             }
             let headers =  ["X-test1":"ios-test1",
                             "X-test2":"ios-test2"]
-            
+
+            // Get preferred audio codecs from UserDefaults
+            let preferredCodecs = UserDefaults.standard.getPreferredAudioCodecs()
+
             let call = try telnyxClient?.newCall(callerName: callerName,
                                                  callerNumber: callerNumber,
                                                  destinationNumber: destinationNumber,
-                                                 callId: callUUID,customHeaders: headers)
+                                                 callId: callUUID,
+                                                 customHeaders: headers,
+                                                 preferredCodecs: preferredCodecs.isEmpty ? nil : preferredCodecs)
             completionHandler(call)
         } catch let error {
             print("ViewController:: executeCall Error \(error)")
