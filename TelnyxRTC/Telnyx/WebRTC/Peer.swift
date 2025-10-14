@@ -241,9 +241,22 @@ class Peer : NSObject, WebRTCEventHandler {
         return videoTrack
     }
 
-    /// Applies audio codec preferences to the peer connection's audio transceiver
-    /// This method should be called before creating an offer or answer
-    /// - Parameter preferredCodecs: Array of TxCodecCapability objects representing the preferred codec order
+    /// Applies audio codec preferences to the peer connection's audio transceiver.
+    ///
+    /// This internal method configures the WebRTC audio transceiver to use the specified codecs
+    /// in priority order. It should be called before creating an offer or answer to ensure the
+    /// codec preferences are included in the SDP negotiation.
+    ///
+    /// The method:
+    /// 1. Retrieves all supported audio codecs from the WebRTC framework
+    /// 2. Matches user preferences against supported codecs
+    /// 3. Applies the ordered codec list to the audio transceiver
+    ///
+    /// If no matching codecs are found, a warning is logged and no preferences are applied,
+    /// allowing WebRTC to use its default codec selection.
+    ///
+    /// - Parameter preferredCodecs: Array of TxCodecCapability objects representing the preferred codec order.
+    ///   Each codec must match a supported codec by mimeType, clockRate, and optionally channels.
     func applyAudioCodecPreferences(preferredCodecs: [TxCodecCapability]) {
         guard let connection = self.connection else {
             Logger.log.w(message: "Peer:: applyAudioCodecPreferences() - No peer connection available")
@@ -281,6 +294,18 @@ class Peer : NSObject, WebRTCEventHandler {
     }
 
     // MARK: Signaling OFFER
+    /// Creates a WebRTC offer for initiating an outbound call.
+    ///
+    /// This method generates an SDP offer that includes media capabilities and ICE candidates.
+    /// The offer is used to start the WebRTC negotiation process with the remote peer.
+    ///
+    /// - Parameters:
+    ///   - preferredCodecs: (optional) Array of preferred audio codecs in priority order.
+    ///     If provided, these codecs will be applied to the audio transceiver before creating the offer,
+    ///     ensuring they appear in the correct priority order in the SDP.
+    ///   - completion: Callback invoked when the offer is created.
+    ///     - sdp: The generated session description, or nil if an error occurred
+    ///     - error: An error if the offer creation failed, or nil on success
     func offer(preferredCodecs: [TxCodecCapability]? = nil, completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
 
         // Apply codec preferences before creating offer
@@ -314,6 +339,19 @@ class Peer : NSObject, WebRTCEventHandler {
 
 
     // MARK: Signaling ANSWER
+    /// Creates a WebRTC answer for responding to an incoming call.
+    ///
+    /// This method generates an SDP answer in response to an incoming offer.
+    /// The answer includes media capabilities and ICE candidates, completing the WebRTC negotiation.
+    ///
+    /// - Parameters:
+    ///   - callLegId: The call leg identifier for tracking this call session
+    ///   - preferredCodecs: (optional) Array of preferred audio codecs in priority order.
+    ///     If provided, these codecs will be applied to the audio transceiver before creating the answer,
+    ///     ensuring they appear in the correct priority order in the SDP.
+    ///   - completion: Callback invoked when the answer is created.
+    ///     - sdp: The generated session description, or nil if an error occurred
+    ///     - error: An error if the answer creation failed, or nil on success
     func answer(callLegId: String, preferredCodecs: [TxCodecCapability]? = nil, completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
         self.negotiationEnded = false
 
