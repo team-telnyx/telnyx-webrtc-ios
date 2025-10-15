@@ -51,3 +51,5 @@ push-notification-tool/.last-config.json
 *.key
 push-notification-tool/cert.pem
 push-notification-tool/key.pem
+
+.claude/settings.local.json
