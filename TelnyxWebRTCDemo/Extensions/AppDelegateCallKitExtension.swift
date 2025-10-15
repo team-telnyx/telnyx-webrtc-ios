@@ -198,7 +198,10 @@ extension AppDelegate : CXProviderDelegate {
             )
         }
 
-        self.telnyxClient?.answerFromCallkit(answerAction: action, customHeaders:  ["X-test-answer":"ios-test"],debug: true)
+        // Get preferred audio codecs from UserDefaults
+        let preferredCodecs = UserDefaults.standard.getPreferredAudioCodecs()
+
+        self.telnyxClient?.answerFromCallkit(answerAction: action, customHeaders:  ["X-test-answer":"ios-test"], preferredCodecs: preferredCodecs.isEmpty ? nil : preferredCodecs, debug: true)
     }
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {

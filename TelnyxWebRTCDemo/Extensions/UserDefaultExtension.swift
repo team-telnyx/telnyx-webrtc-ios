@@ -17,6 +17,7 @@ enum UserDefaultsKey: String {
     case forceRelayCandidate = "FORCE_RELAY_CANDIDATE"
     case webrtcStats = "WEBRTC_STATS"
     case sendWebRTCStatsViaSocket = "SEND_WEBRTC_STATS_VIA_SOCKET"
+    case preferredAudioCodecs = "PREFERRED_AUDIO_CODECS"
 }
 
 extension UserDefaults {
@@ -78,13 +79,33 @@ extension UserDefaults {
     func saveSendWebRTCStatsViaSocket(_ enabled: Bool) {
         set(enabled, forKey: UserDefaultsKey.sendWebRTCStatsViaSocket.rawValue)
     }
-    
+
     func getSendWebRTCStatsViaSocket() -> Bool {
         // Default to false if not set
         if object(forKey: UserDefaultsKey.sendWebRTCStatsViaSocket.rawValue) == nil {
             return false
         }
         return bool(forKey: UserDefaultsKey.sendWebRTCStatsViaSocket.rawValue)
+    }
+
+    // MARK: - Preferred Audio Codecs
+    func savePreferredAudioCodecs(_ codecs: [TxCodecCapability]) {
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(codecs) {
+            set(encoded, forKey: UserDefaultsKey.preferredAudioCodecs.rawValue)
+        }
+    }
+
+    func getPreferredAudioCodecs() -> [TxCodecCapability] {
+        guard let data = data(forKey: UserDefaultsKey.preferredAudioCodecs.rawValue) else {
+            return []
+        }
+        let decoder = JSONDecoder()
+        return (try? decoder.decode([TxCodecCapability].self, from: data)) ?? []
+    }
+
+    func deletePreferredAudioCodecs() {
+        removeObject(forKey: UserDefaultsKey.preferredAudioCodecs.rawValue)
     }
 }
 

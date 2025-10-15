@@ -365,6 +365,88 @@ This is a general example: In order to fully support inbound calls you will need
 ---
 
 
+## Preferred Audio Codecs
+
+The SDK allows you to configure preferred audio codecs for your WebRTC calls. This feature enables you to prioritize specific codecs based on your application's requirements for audio quality, bandwidth usage, or network conditions.
+
+### Getting Supported Codecs
+
+Query the list of audio codecs supported by the device and WebRTC framework:
+
+```swift
+// Get all supported audio codecs
+let supportedCodecs = telnyxClient.getSupportedAudioCodecs()
+
+// Print codec information
+for codec in supportedCodecs {
+    print("Codec: \(codec.mimeType), Clock Rate: \(codec.clockRate) Hz")
+}
+```
+
+### Setting Preferred Codecs
+
+**For Outbound Calls:**
+
+```swift
+// Define your preferred codecs in order of priority
+let preferredCodecs = [
+    TxCodecCapability(mimeType: "audio/opus", clockRate: 48000, channels: 2),
+    TxCodecCapability(mimeType: "audio/PCMU", clockRate: 8000, channels: 1)
+]
+
+// Create a call with preferred codecs
+let call = try telnyxClient.newCall(
+    callerName: "John Doe",
+    callerNumber: "1234567890",
+    destinationNumber: "18004377950",
+    callId: UUID(),
+    preferredCodecs: preferredCodecs  // Pass preferred codecs
+)
+```
+
+**For Inbound Calls:**
+
+```swift
+func onIncomingCall(call: Call) {
+    let preferredCodecs = [
+        TxCodecCapability(mimeType: "audio/opus", clockRate: 48000, channels: 2),
+        TxCodecCapability(mimeType: "audio/PCMU", clockRate: 8000, channels: 1)
+    ]
+
+    // Answer with preferred codecs
+    call.answer(preferredCodecs: preferredCodecs)
+}
+```
+
+### Common Codec Configurations
+
+**High Quality Audio (VoIP apps):**
+```swift
+let preferredCodecs = [
+    TxCodecCapability(mimeType: "audio/opus", clockRate: 48000, channels: 2)
+]
+```
+
+**Traditional Telephony Compatibility:**
+```swift
+let preferredCodecs = [
+    TxCodecCapability(mimeType: "audio/PCMU", clockRate: 8000, channels: 1),
+    TxCodecCapability(mimeType: "audio/PCMA", clockRate: 8000, channels: 1)
+]
+```
+
+**Low Bandwidth Optimization:**
+```swift
+let preferredCodecs = [
+    TxCodecCapability(mimeType: "audio/iLBC", clockRate: 8000),
+    TxCodecCapability(mimeType: "audio/PCMU", clockRate: 8000)
+]
+```
+
+For detailed documentation on codec selection, configuration options, and best practices, see the [Preferred Audio Codecs Guide](docs-markdown/audio-codecs/preferred-codecs.md).
+
+---
+
 ## Call Termination Reasons
 
 When a call ends, the SDK provides detailed information about why the call was terminated through the `CallTerminationReason` structure. This information is available in the `DONE` state of the call.

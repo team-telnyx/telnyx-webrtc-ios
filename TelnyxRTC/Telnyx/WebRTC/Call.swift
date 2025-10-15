@@ -461,14 +461,20 @@ public class Call {
     /**
         Creates an offer to start the calling process
      */
-    private func invite(callerName: String, callerNumber: String, destinationNumber: String, clientState: String? = nil,
-                        customHeaders:[String:String] = [:],debug:Bool = false) {
+    private func invite(callerName: String,
+                        callerNumber: String,
+                        destinationNumber: String,
+                        clientState: String? = nil,
+                        customHeaders: [String:String] = [:],
+                        preferredCodecs: [TxCodecCapability]? = nil,
+                        debug:Bool = false) {
         self.direction = .OUTBOUND
         self.inviteCustomHeaders = customHeaders
         self.callInfo?.callerName = callerName
         self.callInfo?.callerNumber = callerNumber
         self.callOptions = TxCallOptions(destinationNumber: destinationNumber,
-                                         clientState: clientState)
+                                         clientState: clientState,
+                                         preferredCodecs: preferredCodecs)
 
         self.enableQualityMetrics = debug
         // We need to:
@@ -479,13 +485,13 @@ public class Call {
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
-        self.peer?.offer(completion: { (sdp, error)  in
-            
+        self.peer?.offer(preferredCodecs: preferredCodecs, completion: { (sdp, error)  in
+
             if let error = error {
                 Logger.log.i(message: "Call:: Error creating the offer: \(error)")
                 return
             }
-            
+
             guard let sdp = sdp else {
                 return
             }
@@ -586,12 +592,19 @@ extension Call {
                           destinationNumber: String,
                           clientState: String? = nil,
                           customHeaders:[String:String] = [:],
+                          preferredCodecs: [TxCodecCapability]? = nil,
                           debug: Bool = false) {
         if (destinationNumber.isEmpty) {
             Logger.log.e(message: "Call:: Please enter a destination number.")
             return
         }
-        invite(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState, customHeaders: customHeaders,debug: debug)
+        invite(callerName: callerName,
+               callerNumber: callerNumber,
+               destinationNumber: destinationNumber,
+               clientState: clientState,
+               customHeaders: customHeaders,
+               preferredCodecs: preferredCodecs,
+               debug: debug)
     }
 
     /// Hangup or reject an incoming call.
@@ -626,12 +639,40 @@ extension Call {
     }
 
     /// Starts the process to answer the incoming call.
-    /// ### Example:
-    ///     call.answer()
-    ///  - Parameters:
-    ///         - customHeaders: (optional) Custom Headers to be passed over webRTC Messages, should be in the
-    ///     format `X-key:Value` `X` is required for headers to be passed.
-    public func answer(customHeaders:[String:String] = [:],debug:Bool = false) {
+    ///
+    /// Use this method to accept an incoming call and establish the WebRTC connection.
+    /// You can optionally specify preferred audio codecs to optimize call quality based on your requirements.
+    ///
+    /// ### Examples:
+    /// ```swift
+    /// // Basic answer
+    /// call.answer()
+    ///
+    /// // Answer with custom headers
+    /// call.answer(customHeaders: ["X-Custom-Header": "Value"])
+    ///
+    /// // Answer with preferred audio codecs
+    /// let preferredCodecs = [
+    ///     TxCodecCapability(mimeType: "audio/opus", clockRate: 48000, channels: 2),
+    ///     TxCodecCapability(mimeType: "audio/PCMU", clockRate: 8000, channels: 1)
+    /// ]
+    /// call.answer(preferredCodecs: preferredCodecs)
+    ///
+    /// // Answer with codecs and debug mode
+    /// call.answer(preferredCodecs: preferredCodecs, debug: true)
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - customHeaders: (optional) Custom Headers to be passed over webRTC Messages.
+    ///     Headers should be in the format `X-key:Value` where `X-` prefix is required for custom headers.
+    ///   - preferredCodecs: (optional) Array of preferred audio codecs in priority order.
+    ///     The SDK will attempt to use these codecs in the specified order during negotiation.
+    ///     If none of the preferred codecs are available, WebRTC will fall back to its default codec selection.
+    ///     Use `TxClient.getSupportedAudioCodecs()` to retrieve available codecs before setting preferences.
+    ///     See the [Preferred Audio Codecs Guide](https://github.com/team-telnyx/telnyx-webrtc-ios#preferred-audio-codecs) for more information.
+    ///   - debug: (optional) Enable debug mode for call quality metrics and WebRTC statistics.
+    ///     When enabled, real-time call quality metrics will be available through the `onCallQualityChange` callback.
+    public func answer(customHeaders:[String:String] = [:], preferredCodecs: [TxCodecCapability]? = nil, debug:Bool = false) {
         self.stopRingtone()
         self.stopRingbackTone()
         //TODO: Create an error if there's no remote SDP
@@ -646,7 +687,7 @@ extension Call {
         self.peer?.delegate = self
         self.peer?.socket = self.socket
         self.incomingOffer(sdp: remoteSdp)
-        self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "",completion: { (sdp, error)  in
+        self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", preferredCodecs: preferredCodecs, completion: { (sdp, error)  in
 
             if let error = error {
                 Logger.log.e(message: "Call:: Error creating the answering: \(error)")
@@ -679,12 +720,14 @@ extension Call {
         self.statsReporter?.dispose()
         self.answerCustomHeaders = customHeaders
         self.configureStatsReporter(reportID: reportId)
-        self.peer = Peer(iceServers: self.iceServers, isAttach: true, forceRelayCandidate: self.forceRelayCandidate)
+        self.peer = Peer(iceServers: self.iceServers,
+                         isAttach: true,
+                         forceRelayCandidate: self.forceRelayCandidate)
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
         self.incomingOffer(sdp: remoteSdp)
-        self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "",completion: { (sdp, error)  in
+        self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", completion: { (sdp, error)  in
 
             if let error = error {
                 Logger.log.e(message: "Call:: Error creating the answering: \(error)")
@@ -698,7 +741,7 @@ extension Call {
         })
     }
     
-    private func configureStatsReporter(reportID:UUID? = nil) {
+    private func configureStatsReporter(reportID: UUID? = nil) {
         if (debug || enableQualityMetrics),
            let socket = self.socket {
             self.statsReporter?.dispose()
@@ -754,7 +797,10 @@ extension Call {
               let callInfo = self.callInfo,
               let callOptions = self.callOptions else { return }
 
-        let dtmfMessage = InfoMessage(sessionId: sessionId, dtmf: dtmf, callInfo: callInfo, callOptions: callOptions)
+        let dtmfMessage = InfoMessage(sessionId: sessionId,
+                                      dtmf: dtmf,
+                                      callInfo: callInfo,
+                                      callOptions: callOptions)
         guard let message = dtmfMessage.encode(),
               let socket = self.socket else { return }
         socket.sendMessage(message: message)

@@ -50,6 +50,9 @@
 		9906F8C72E3C15CA00A02FE7 /* AIAssistantManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8C62E3C15CA00A02FE7 /* AIAssistantManager.swift */; };
 		9906F8C92E3CEA4600A02FE7 /* AIAssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8C82E3CEA4600A02FE7 /* AIAssistantView.swift */; };
 		9906F8CB2E3CEA6000A02FE7 /* AIAssistantViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8CA2E3CEA6000A02FE7 /* AIAssistantViewModel.swift */; };
+		990FC0482E9841BC009344DC /* TxCodecCapability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990FC0472E9841BC009344DC /* TxCodecCapability.swift */; };
+		990FC04A2E99387C009344DC /* CodecSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990FC0492E99387C009344DC /* CodecSelectionView.swift */; };
+		990FC04C2E996225009344DC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990FC04B2E996225009344DC /* SceneDelegate.swift */; };
 		9911247E2CF50092000C23BA /* Dictionary+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9911247D2CF50088000C23BA /* Dictionary+Extensions.swift */; };
 		991A6D442D3A96C100B29785 /* SplashScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991A6D432D3A96C100B29785 /* SplashScreen.swift */; };
 		991A6D492D3AB36E00B29785 /* SipCredentialsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991A6D482D3AB36E00B29785 /* SipCredentialsView.swift */; };
@@ -249,6 +252,9 @@
 		9906F8C62E3C15CA00A02FE7 /* AIAssistantManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistantManager.swift; sourceTree = "<group>"; };
 		9906F8C82E3CEA4600A02FE7 /* AIAssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistantView.swift; sourceTree = "<group>"; };
 		9906F8CA2E3CEA6000A02FE7 /* AIAssistantViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistantViewModel.swift; sourceTree = "<group>"; };
+		990FC0472E9841BC009344DC /* TxCodecCapability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxCodecCapability.swift; sourceTree = "<group>"; };
+		990FC0492E99387C009344DC /* CodecSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodecSelectionView.swift; sourceTree = "<group>"; };
+		990FC04B2E996225009344DC /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		9911247D2CF50088000C23BA /* Dictionary+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Dictionary+Extensions.swift"; sourceTree = "<group>"; };
 		991A6D432D3A96C100B29785 /* SplashScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreen.swift; sourceTree = "<group>"; };
 		991A6D462D3AB36E00B29785 /* SipCredentialHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialHeader.swift; sourceTree = "<group>"; };
@@ -565,6 +571,7 @@
 		B309D1E225F023F400A2AADF /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				990FC0472E9841BC009344DC /* TxCodecCapability.swift */,
 				3BE7C75E2E0334AB00FF74A1 /* Region.swift */,
 				3B21257B2DC8126B00E68EA6 /* CallQualityMetrics.swift */,
 				3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */,
@@ -582,6 +589,7 @@
 		B309D1FB25F028F100A2AADF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				990FC0492E99387C009344DC /* CodecSelectionView.swift */,
 				99D7C09B2E1E32DA00D47CE6 /* AudioWaveformView.swift */,
 				3BE7C7622E04292300FF74A1 /* RegionMenuView.swift */,
 				3BE7C7602E0421EB00FF74A1 /* OverflowMenuView.swift */,
@@ -698,6 +706,7 @@
 				995BF71E2CE8174B00454076 /* ViewControllers */,
 				B3AF24A825EE84410062EDA9 /* Extensions */,
 				B368BEEA25EDDD060032AE52 /* AppDelegate.swift */,
+				990FC04B2E996225009344DC /* SceneDelegate.swift */,
 				994651982D76339500049EF4 /* GoogleService-Info.plist */,
 				B368BEF025EDDD060032AE52 /* Main.storyboard */,
 				B368BEF325EDDD070032AE52 /* Assets.xcassets */,
@@ -1146,6 +1155,7 @@
 				996C67D22CFEA70F0056E508 /* RTCMediaStream+Extension.swift in Sources */,
 				996C67D72CFEA96B0056E508 /* RTCIceCandidate+Extension.swift in Sources */,
 				996C67C02CFEA5600056E508 /* RTCBundlePolicy+Extension.swift in Sources */,
+				990FC0482E9841BC009344DC /* TxCodecCapability.swift in Sources */,
 				9906F8C52E3C159900A02FE7 /* RingingAckMessage.swift in Sources */,
 				996C67BE2CFEA4D70056E508 /* RTClsCertPolicy+Extension.swift in Sources */,
 				B309D1E425F0240200A2AADF /* TxConfig.swift in Sources */,
@@ -1245,11 +1255,13 @@
 				998670382D3E9506001E1D01 /* Color+Extensions.swift in Sources */,
 				9906F8CB2E3CEA6000A02FE7 /* AIAssistantViewModel.swift in Sources */,
 				B368BEEB25EDDD060032AE52 /* AppDelegate.swift in Sources */,
+				990FC04C2E996225009344DC /* SceneDelegate.swift in Sources */,
 				99ADA9B22D488D98000C956A /* HomeViewController+VoIPExtension.swift in Sources */,
 				99FDD7392E3CF80100FF7F6E /* TranscriptDialogView.swift in Sources */,
 				99FF7B122D4BC71800DB1408 /* DTMFKeyboardViewModel.swift in Sources */,
 				99ADA94E2D47C9B6000C956A /* HomeViewModel.swift in Sources */,
 				9986703C2D3EAF64001E1D01 /* ErrorView.swift in Sources */,
+				990FC04A2E99387C009344DC /* CodecSelectionView.swift in Sources */,
 				3B7D29952DF1C2980094EB90 /* AppModel.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

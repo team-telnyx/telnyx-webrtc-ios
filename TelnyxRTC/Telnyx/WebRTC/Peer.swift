@@ -116,7 +116,7 @@ class Peer : NSObject, WebRTCEventHandler {
     
     // The `RTCPeerConnectionFactory` is in charge of creating new RTCPeerConnection instances.
     // A new RTCPeerConnection should be created every new call, but the factory is shared.
-    private static let factory: RTCPeerConnectionFactory = {
+    internal static let factory: RTCPeerConnectionFactory = {
         RTCInitializeSSL()
         let videoEncoderFactory = RTCDefaultVideoEncoderFactory()
         let videoDecoderFactory = RTCDefaultVideoDecoderFactory()
@@ -241,8 +241,77 @@ class Peer : NSObject, WebRTCEventHandler {
         return videoTrack
     }
 
+    /// Applies audio codec preferences to the peer connection's audio transceiver.
+    ///
+    /// This internal method configures the WebRTC audio transceiver to use the specified codecs
+    /// in priority order. It should be called before creating an offer or answer to ensure the
+    /// codec preferences are included in the SDP negotiation.
+    ///
+    /// The method:
+    /// 1. Retrieves all supported audio codecs from the WebRTC framework
+    /// 2. Matches user preferences against supported codecs
+    /// 3. Applies the ordered codec list to the audio transceiver
+    ///
+    /// If no matching codecs are found, a warning is logged and no preferences are applied,
+    /// allowing WebRTC to use its default codec selection.
+    ///
+    /// - Parameter preferredCodecs: Array of TxCodecCapability objects representing the preferred codec order.
+    ///   Each codec must match a supported codec by mimeType, clockRate, and optionally channels.
+    func applyAudioCodecPreferences(preferredCodecs: [TxCodecCapability]) {
+        guard let connection = self.connection else {
+            Logger.log.w(message: "Peer:: applyAudioCodecPreferences() - No peer connection available")
+            return
+        }
+
+        // Find the audio transceiver
+        guard let audioTransceiver = connection.transceivers.first(where: { $0.mediaType == .audio }) else {
+            Logger.log.w(message: "Peer:: applyAudioCodecPreferences() - No audio transceiver found")
+            return
+        }
+
+        // Get all supported audio codec capabilities from the factory
+        let capabilities = Peer.factory.rtpSenderCapabilities(forKind: kRTCMediaStreamTrackKindAudio)
+        let allCodecs = capabilities.codecs
+
+        // Match and order the codecs according to user preferences
+        var orderedCodecs: [RTCRtpCodecCapability] = []
+
+        for preferredCodec in preferredCodecs {
+            // Find matching RTCRtpCodecCapability from supported codecs
+            if let matchingCodec = allCodecs.first(where: { preferredCodec.matches($0) }) {
+                orderedCodecs.append(matchingCodec)
+            }
+        }
+
+        guard !orderedCodecs.isEmpty else {
+            Logger.log.w(message: "Peer:: applyAudioCodecPreferences() - No matching codecs found")
+            return
+        }
+
+        // Apply the ordered codec preferences
+        audioTransceiver.setCodecPreferences(orderedCodecs)
+        Logger.log.i(message: "Peer:: Applied codec preferences to audio transceiver: \(preferredCodecs.map { $0.mimeType }.joined(separator: ", "))")
+    }
+
     // MARK: Signaling OFFER
-    func offer(completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
+    /// Creates a WebRTC offer for initiating an outbound call.
+    ///
+    /// This method generates an SDP offer that includes media capabilities and ICE candidates.
+    /// The offer is used to start the WebRTC negotiation process with the remote peer.
+    ///
+    /// - Parameters:
+    ///   - preferredCodecs: (optional) Array of preferred audio codecs in priority order.
+    ///     If provided, these codecs will be applied to the audio transceiver before creating the offer,
+    ///     ensuring they appear in the correct priority order in the SDP.
+    ///   - completion: Callback invoked when the offer is created.
+    ///     - sdp: The generated session description, or nil if an error occurred
+    ///     - error: An error if the offer creation failed, or nil on success
+    func offer(preferredCodecs: [TxCodecCapability]? = nil, completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
+
+        // Apply codec preferences before creating offer
+        if let codecs = preferredCodecs, !codecs.isEmpty {
+            self.applyAudioCodecPreferences(preferredCodecs: codecs)
+        }
 
         let constrains = RTCMediaConstraints(mandatoryConstraints: self.mediaConstrains,
                                              optionalConstraints: nil)
@@ -270,19 +339,38 @@ class Peer : NSObject, WebRTCEventHandler {
 
 
     // MARK: Signaling ANSWER
-    func answer(callLegId: String, completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
+    /// Creates a WebRTC answer for responding to an incoming call.
+    ///
+    /// This method generates an SDP answer in response to an incoming offer.
+    /// The answer includes media capabilities and ICE candidates, completing the WebRTC negotiation.
+    ///
+    /// - Parameters:
+    ///   - callLegId: The call leg identifier for tracking this call session
+    ///   - preferredCodecs: (optional) Array of preferred audio codecs in priority order.
+    ///     If provided, these codecs will be applied to the audio transceiver before creating the answer,
+    ///     ensuring they appear in the correct priority order in the SDP.
+    ///   - completion: Callback invoked when the answer is created.
+    ///     - sdp: The generated session description, or nil if an error occurred
+    ///     - error: An error if the answer creation failed, or nil on success
+    func answer(callLegId: String, preferredCodecs: [TxCodecCapability]? = nil, completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
         self.negotiationEnded = false
+
+        // Apply codec preferences before creating answer
+        if let codecs = preferredCodecs, !codecs.isEmpty {
+            self.applyAudioCodecPreferences(preferredCodecs: codecs)
+        }
+
         let constrains = RTCMediaConstraints(mandatoryConstraints: self.mediaConstrains,
                                              optionalConstraints: nil)
         self.callLegID = callLegId
         self.connection?.answer(for: constrains) { (sdp, error) in
-            
+
             if let error = error {
                 Logger.log.e(message: "Peer:: error creating answer \(error)")
                 completion(sdp, error)
                 return
             }
-            
+
             //TODO: we should return an error. We don't have a local SDP
             guard let sdp = sdp else {
                 Logger.log.w(message: "Peer:: SDP is missing")
@@ -679,14 +767,13 @@ extension Peer : RTCPeerConnectionDelegate {
 
         // We call the callback when the iceCandidate is added
         onIceCandidate?(candidate)
-        // Add the generated ICE candidate to the peer connection.
-        // This helps populate the local SDP with the ICE candidate information.
-        connection?.add(candidate, completionHandler: { error in
-            if let error = error {
-                Logger.log.e(message: "Peer:: Failed to add RTCIceCandidate: \(error)")
-            }
-        })
-        
+
+        // Note: We don't manually add ICE candidates with connection.add() because:
+        // 1. For offers, candidates are automatically included in the local SDP
+        // 2. For answers, candidates are automatically included in the answer SDP
+        // 3. We use Trickle ICE through signaling, not manual candidate addition
+        // Attempting to add candidates manually causes "The remote description was null" error
+
         gatheredICECandidates.append(candidate.serverUrl ?? "")
 
         // Start negotiation if an ICE candidate from the configured STUN or TURN server is gathered.
