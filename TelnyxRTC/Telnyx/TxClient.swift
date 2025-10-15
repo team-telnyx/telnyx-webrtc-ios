@@ -154,6 +154,7 @@ public class TxClient {
     private var _isSpeakerEnabled: Bool = false
     private var enableQualityMetrics: Bool = false
     private var isACMResetInProgress: Bool = false
+    private var isNetworkReconnecting: Bool = false
     private var pendingAnonymousLoginMessage: AnonymousLoginMessage?
     
     /// AI Assistant Manager for handling AI-related functionality
@@ -238,6 +239,40 @@ public class TxClient {
     public func disableAudioSession(audioSession: AVAudioSession) {
         resetAudioConfiguration()
         setAudioSessionActive(false)
+    }
+    
+    /// Restores the audio session after successful network reconnection.
+    /// This method ensures that audio functionality is properly restored when a call
+    /// reconnects after a network switch (WiFi/LTE), addressing the issue where
+    /// audio would not work after successful reconnection in SDK v2.2.2.
+    private func restoreAudioSessionAfterNetworkReconnection() {
+        Logger.log.i(message: "[NETWORK_RECONNECT] TxClient:: Starting audio session restoration after network reconnection")
+        
+        // Delay the restoration to ensure the connection is fully established
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self = self else { return }
+            
+            // Only proceed if we have active calls
+            guard self.isCallsActive else {
+                Logger.log.w(message: "[NETWORK_RECONNECT] TxClient:: No active calls, skipping audio restoration")
+                self.isNetworkReconnecting = false
+                return
+            }
+            
+            Logger.log.i(message: "[NETWORK_RECONNECT] TxClient:: Restoring audio session for active calls")
+            
+            // Re-enable the audio session
+            let audioSession = AVAudioSession.sharedInstance()
+            self.enableAudioSession(audioSession: audioSession)
+            
+            // Ensure RTCAudioSession is properly activated
+            RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
+            
+            // Reset the network reconnection flag
+            self.isNetworkReconnecting = false
+            
+            Logger.log.i(message: "[NETWORK_RECONNECT] TxClient:: Audio session restoration completed")
+        }
     }
     
     /// The current audio route configuration.
@@ -1177,6 +1212,29 @@ extension TxClient: CallProtocol {
 
         guard let callId = call.callInfo?.callId else { return }
         
+        // Handle audio restoration after network reconnection when call becomes ACTIVE
+        if case .ACTIVE = call.callState, isNetworkReconnecting {
+            Logger.log.i(message: "[NETWORK_RECONNECT] TxClient:: Call state changed to ACTIVE after network reconnection, ensuring audio restoration")
+            
+            // Additional audio restoration to ensure audio works after reconnection
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+                guard let self = self else { return }
+                
+                let audioSession = AVAudioSession.sharedInstance()
+                
+                // Ensure audio session is active and properly configured
+                do {
+                    try audioSession.setActive(true)
+                    Logger.log.i(message: "[NETWORK_RECONNECT] TxClient:: Audio session reactivated after call state change to ACTIVE")
+                } catch {
+                    Logger.log.e(message: "[NETWORK_RECONNECT] TxClient:: Failed to reactivate audio session: \(error)")
+                }
+                
+                // Notify RTCAudioSession about the activation
+                RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
+            }
+        }
+        
         // Forward call state
         self.delegate?.onCallStateUpdated(callState: call.callState, callId: callId)
 
@@ -1188,6 +1246,12 @@ extension TxClient: CallProtocol {
             
             // Clear AI Assistant transcriptions when call ends
             self.aiAssistantManager.clearTranscriptions()
+            
+            // Reset network reconnection flag when call ends
+            if isNetworkReconnecting {
+                Logger.log.i(message: "[NETWORK_RECONNECT] TxClient:: Resetting network reconnection flag as call ended")
+                isNetworkReconnecting = false
+            }
             
             //Forward call ended state with termination reason if available
             if case let .DONE(reason) = call.callState {
@@ -1288,7 +1352,8 @@ extension TxClient : SocketDelegate {
         if self.isCallsActive {
             updateActiveCallsState(callState: CallState.RECONNECTING(reason: .networkSwitch))
             startReconnectTimeout()
-            Logger.log.i(message: "Reconnect Called : Calls are active")
+            isNetworkReconnecting = true
+            Logger.log.i(message: "[NETWORK_RECONNECT] TxClient:: Reconnect Called : Calls are active, network reconnection flag set")
         }else {
             return
         }
@@ -1361,6 +1426,12 @@ extension TxClient : SocketDelegate {
             let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
             let vertoLogin = LoginMessage(user: sipUser, password: password, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush,pushEnvironment: self.txConfig?.pushEnvironment,sessionId: self.sessionId!)
             self.socket?.sendMessage(message: vertoLogin.encode())
+        }
+        
+        // Handle audio session restoration after network reconnection
+        if isNetworkReconnecting {
+            Logger.log.i(message: "[NETWORK_RECONNECT] TxClient:: Socket reconnected after network switch, preparing audio session restoration")
+            restoreAudioSessionAfterNetworkReconnection()
         }
     }
     
