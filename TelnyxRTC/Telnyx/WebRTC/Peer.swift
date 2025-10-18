@@ -346,19 +346,11 @@ class Peer : NSObject, WebRTCEventHandler {
     ///
     /// - Parameters:
     ///   - callLegId: The call leg identifier for tracking this call session
-    ///   - preferredCodecs: (optional) Array of preferred audio codecs in priority order.
-    ///     If provided, these codecs will be applied to the audio transceiver before creating the answer,
-    ///     ensuring they appear in the correct priority order in the SDP.
     ///   - completion: Callback invoked when the answer is created.
     ///     - sdp: The generated session description, or nil if an error occurred
     ///     - error: An error if the answer creation failed, or nil on success
-    func answer(callLegId: String, preferredCodecs: [TxCodecCapability]? = nil, completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
+    func answer(callLegId: String, completion: @escaping (_ sdp: RTCSessionDescription?, _ error: Error?) -> Void) {
         self.negotiationEnded = false
-
-        // Apply codec preferences before creating answer
-        if let codecs = preferredCodecs, !codecs.isEmpty {
-            self.applyAudioCodecPreferences(preferredCodecs: codecs)
-        }
 
         let constrains = RTCMediaConstraints(mandatoryConstraints: self.mediaConstrains,
                                              optionalConstraints: nil)
