@@ -104,14 +104,63 @@ class TxCodecCapabilityTests: XCTestCase {
             channels: 2,
             sdpFmtpLine: "minptime=10;useinbandfec=1"
         )
-        
+
         do {
             let data = try JSONEncoder().encode(codec)
             let decodedCodec = try JSONDecoder().decode(TxCodecCapability.self, from: data)
-            
+
             XCTAssertEqual(codec, decodedCodec)
         } catch {
             XCTFail("Failed to encode/decode TxCodecCapability: \(error)")
         }
+    }
+
+    func testTxCodecCapabilityUniqueIdentifiers() {
+        // Test that codecs with the same mimeType but different clock rates have unique IDs
+        let telephoneEvent8k = TxCodecCapability(
+            mimeType: "audio/telephone-event",
+            clockRate: 8000
+        )
+
+        let telephoneEvent16k = TxCodecCapability(
+            mimeType: "audio/telephone-event",
+            clockRate: 16000
+        )
+
+        let telephoneEvent48k = TxCodecCapability(
+            mimeType: "audio/telephone-event",
+            clockRate: 48000
+        )
+
+        // Verify that IDs are unique
+        XCTAssertNotEqual(telephoneEvent8k.id, telephoneEvent16k.id)
+        XCTAssertNotEqual(telephoneEvent8k.id, telephoneEvent48k.id)
+        XCTAssertNotEqual(telephoneEvent16k.id, telephoneEvent48k.id)
+
+        // Verify expected ID format
+        XCTAssertEqual(telephoneEvent8k.id, "audio/telephone-event_8000")
+        XCTAssertEqual(telephoneEvent16k.id, "audio/telephone-event_16000")
+        XCTAssertEqual(telephoneEvent48k.id, "audio/telephone-event_48000")
+    }
+
+    func testTxCodecCapabilityIdentifiersWithChannels() {
+        // Test that codecs with channels include them in the ID
+        let codecWithChannels = TxCodecCapability(
+            mimeType: "audio/opus",
+            clockRate: 48000,
+            channels: 2
+        )
+
+        let codecWithoutChannels = TxCodecCapability(
+            mimeType: "audio/opus",
+            clockRate: 48000
+        )
+
+        // Verify that IDs are different when channels are specified
+        XCTAssertNotEqual(codecWithChannels.id, codecWithoutChannels.id)
+
+        // Verify expected ID format
+        XCTAssertEqual(codecWithChannels.id, "audio/opus_48000_2")
+        XCTAssertEqual(codecWithoutChannels.id, "audio/opus_48000")
     }
 }

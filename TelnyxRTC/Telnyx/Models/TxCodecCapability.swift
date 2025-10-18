@@ -11,7 +11,14 @@ import WebRTC
 
 /// Represents an audio codec capability that can be used for preferred codec selection
 /// This mirrors the RTCRtpCodecCapability structure from WebRTC
-public struct TxCodecCapability: Codable, Equatable {
+public struct TxCodecCapability: Codable, Equatable, Identifiable {
+    /// Unique identifier for the codec combining mimeType, clockRate, and channels
+    public var id: String {
+        if let channels = channels {
+            return "\(mimeType)_\(clockRate)_\(channels)"
+        }
+        return "\(mimeType)_\(clockRate)"
+    }
     /// The MIME type of the codec (e.g., "audio/opus", "audio/PCMA")
     public let mimeType: String
     
