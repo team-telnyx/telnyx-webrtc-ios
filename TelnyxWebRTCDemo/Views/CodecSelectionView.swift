@@ -55,7 +55,7 @@ struct CodecSelectionView: View {
                 // Codec List
                 ScrollView {
                     VStack(spacing: 8) {
-                        ForEach(availableCodecs, id: \.mimeType) { codec in
+                        ForEach(availableCodecs) { codec in
                             CodecRow(
                                 codec: codec,
                                 isSelected: selectedCodecs.contains(codec),

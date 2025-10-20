@@ -556,8 +556,7 @@ public class TxClient {
     /// Answers an incoming call from CallKit and manages the active call flow.
     ///
     /// This method should be called from the CXProviderDelegate's `provider(_:perform:)` method
-    /// when handling a `CXAnswerCallAction`. It properly integrates with CallKit to answer incoming calls
-    /// and supports configuring preferred audio codecs for optimal call quality.
+    /// when handling a `CXAnswerCallAction`. It properly integrates with CallKit to answer incoming calls.
     ///
     /// ### Examples:
     /// ```swift
@@ -566,15 +565,10 @@ public class TxClient {
     ///         // Basic answer
     ///         telnyxClient.answerFromCallkit(answerAction: action)
     ///
-    ///         // Answer with preferred audio codecs
-    ///         let preferredCodecs = [
-    ///             TxCodecCapability(mimeType: "audio/opus", clockRate: 48000, channels: 2),
-    ///             TxCodecCapability(mimeType: "audio/PCMU", clockRate: 8000, channels: 1)
-    ///         ]
+    ///         // Answer with custom headers and debug mode
     ///         telnyxClient.answerFromCallkit(
     ///             answerAction: action,
     ///             customHeaders: ["X-Custom-Header": "Value"],
-    ///             preferredCodecs: preferredCodecs,
     ///             debug: true
     ///         )
     ///     }
@@ -585,19 +579,14 @@ public class TxClient {
     ///   - answerAction: The `CXAnswerCallAction` provided by CallKit's provider delegate.
     ///   - customHeaders: (optional) Custom Headers to be passed over webRTC Messages.
     ///     Headers should be in the format `X-key:Value` where `X-` prefix is required for custom headers.
-    ///   - preferredCodecs: (optional) Array of preferred audio codecs in priority order.
-    ///     The SDK will attempt to use these codecs in the specified order during negotiation.
-    ///     If none of the preferred codecs are available, WebRTC will fall back to its default codec selection.
-    ///     Use `getSupportedAudioCodecs()` to retrieve available codecs before setting preferences.
-    ///     See the [Preferred Audio Codecs Guide](https://github.com/team-telnyx/telnyx-webrtc-ios#preferred-audio-codecs) for more information.
     ///   - debug: (optional) Enable debug mode for call quality metrics and WebRTC statistics.
     ///     When enabled, real-time call quality metrics will be available through the call's `onCallQualityChange` callback.
-    public func answerFromCallkit(answerAction:CXAnswerCallAction,customHeaders:[String:String] = [:], preferredCodecs: [TxCodecCapability]? = nil, debug:Bool = false) {
+    public func answerFromCallkit(answerAction:CXAnswerCallAction,customHeaders:[String:String] = [:], debug:Bool = false) {
         self.answerCallAction = answerAction
         ///answer call if currentPushCall is not nil
         ///This means the client has connected and we can safelyanswer
         if(self.calls[currentCallId] != nil){
-            self.calls[currentCallId]?.answer(customHeaders: customHeaders, preferredCodecs: preferredCodecs, debug: debug)
+            self.calls[currentCallId]?.answer(customHeaders: customHeaders, debug: debug)
             answerCallAction?.fulfill()
             resetPushVariables()
             Logger.log.i(message: "answered from callkit")

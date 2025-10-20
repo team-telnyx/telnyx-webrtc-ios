@@ -641,7 +641,6 @@ extension Call {
     /// Starts the process to answer the incoming call.
     ///
     /// Use this method to accept an incoming call and establish the WebRTC connection.
-    /// You can optionally specify preferred audio codecs to optimize call quality based on your requirements.
     ///
     /// ### Examples:
     /// ```swift
@@ -651,28 +650,16 @@ extension Call {
     /// // Answer with custom headers
     /// call.answer(customHeaders: ["X-Custom-Header": "Value"])
     ///
-    /// // Answer with preferred audio codecs
-    /// let preferredCodecs = [
-    ///     TxCodecCapability(mimeType: "audio/opus", clockRate: 48000, channels: 2),
-    ///     TxCodecCapability(mimeType: "audio/PCMU", clockRate: 8000, channels: 1)
-    /// ]
-    /// call.answer(preferredCodecs: preferredCodecs)
-    ///
-    /// // Answer with codecs and debug mode
-    /// call.answer(preferredCodecs: preferredCodecs, debug: true)
+    /// // Answer with debug mode
+    /// call.answer(debug: true)
     /// ```
     ///
     /// - Parameters:
     ///   - customHeaders: (optional) Custom Headers to be passed over webRTC Messages.
     ///     Headers should be in the format `X-key:Value` where `X-` prefix is required for custom headers.
-    ///   - preferredCodecs: (optional) Array of preferred audio codecs in priority order.
-    ///     The SDK will attempt to use these codecs in the specified order during negotiation.
-    ///     If none of the preferred codecs are available, WebRTC will fall back to its default codec selection.
-    ///     Use `TxClient.getSupportedAudioCodecs()` to retrieve available codecs before setting preferences.
-    ///     See the [Preferred Audio Codecs Guide](https://github.com/team-telnyx/telnyx-webrtc-ios#preferred-audio-codecs) for more information.
     ///   - debug: (optional) Enable debug mode for call quality metrics and WebRTC statistics.
     ///     When enabled, real-time call quality metrics will be available through the `onCallQualityChange` callback.
-    public func answer(customHeaders:[String:String] = [:], preferredCodecs: [TxCodecCapability]? = nil, debug:Bool = false) {
+    public func answer(customHeaders:[String:String] = [:], debug:Bool = false) {
         self.stopRingtone()
         self.stopRingbackTone()
         //TODO: Create an error if there's no remote SDP
@@ -687,7 +674,7 @@ extension Call {
         self.peer?.delegate = self
         self.peer?.socket = self.socket
         self.incomingOffer(sdp: remoteSdp)
-        self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", preferredCodecs: preferredCodecs, completion: { (sdp, error)  in
+        self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", completion: { (sdp, error)  in
 
             if let error = error {
                 Logger.log.e(message: "Call:: Error creating the answering: \(error)")
