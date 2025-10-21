@@ -24,3 +24,5 @@
 - PR #283: [WEBRTC-3000] - Fix User-Agent property in iOS SDK LoginMessage to align with Android
 - PR #282: [WEBRTC-2999] [Fix] Fix ACM reset disabling audio output on iOS speakerphone mode
 - PR #268: WEBRTC-2906: [iOS] Anonymous Login and Assistant within sample app
+- PR #288: [WEBRTC-3020] [FIX] Remove preferredCodecs parameter from answer flow
+- PR #285: WEBRTC-2903: Preferred Codec on invite - iOS
