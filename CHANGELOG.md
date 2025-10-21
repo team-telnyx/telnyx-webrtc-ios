@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [2.3.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.3.0) (2025-10-21)
+
+### Features
+- **Preferred Audio Codecs**: Added support for preferred audio codec selection
+  - `TxClient.getSupportedAudioCodecs()`: Query supported audio codecs available for calls
+  - `Call.setPreferredCodecs()`: Set preferred audio codecs for individual calls
+
 ## [2.2.2](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.2.2) (2025-10-08)
 
 ### Features

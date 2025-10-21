@@ -290,22 +290,45 @@ To check if TxClient is connected to Telnyx server.
 ### `answerFromCallkit(answerAction:customHeaders:debug:)`
 
 ```swift
-public func answerFromCallkit(answerAction:CXAnswerCallAction,customHeaders:[String:String] = [:],debug:Bool = false)
+public func answerFromCallkit(answerAction:CXAnswerCallAction,customHeaders:[String:String] = [:], debug:Bool = false)
 ```
 
-To answer and control callKit active flow
+Answers an incoming call from CallKit and manages the active call flow.
+
+This method should be called from the CXProviderDelegate's `provider(_:perform:)` method
+when handling a `CXAnswerCallAction`. It properly integrates with CallKit to answer incoming calls.
+
+### Examples:
+```swift
+extension CallKitProvider: CXProviderDelegate {
+    func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
+        // Basic answer
+        telnyxClient.answerFromCallkit(answerAction: action)
+
+        // Answer with custom headers and debug mode
+        telnyxClient.answerFromCallkit(
+            answerAction: action,
+            customHeaders: ["X-Custom-Header": "Value"],
+            debug: true
+        )
+    }
+}
+```
+
 - Parameters:
-    - answerAction : `CXAnswerCallAction` from callKit
-    - customHeaders: (Optional)
-    - debug:  (Optional) to enable quality metrics for call
+  - answerAction: The `CXAnswerCallAction` provided by CallKit's provider delegate.
+  - customHeaders: (optional) Custom Headers to be passed over webRTC Messages.
+    Headers should be in the format `X-key:Value` where `X-` prefix is required for custom headers.
+  - debug: (optional) Enable debug mode for call quality metrics and WebRTC statistics.
+    When enabled, real-time call quality metrics will be available through the call's `onCallQualityChange` callback.
 
 #### Parameters
 
 | Name | Description |
 | ---- | ----------- |
-| answerAction | `CXAnswerCallAction` from callKit |
-| customHeaders | (Optional) |
-| debug | (Optional) to enable quality metrics for call |
+| answerAction | The `CXAnswerCallAction` provided by CallKit’s provider delegate. |
+| customHeaders | (optional) Custom Headers to be passed over webRTC Messages. Headers should be in the format `X-key:Value` where `X-` prefix is required for custom headers. |
+| debug | (optional) Enable debug mode for call quality metrics and WebRTC statistics. When enabled, real-time call quality metrics will be available through the call’s `onCallQualityChange` callback. |
 
 ### `endCallFromCallkit(endAction:callId:)`
 
