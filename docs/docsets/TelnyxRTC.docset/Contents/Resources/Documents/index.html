@@ -16,7 +16,7 @@
     <a title="TelnyxRTC  Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="index.html">TelnyxRTC 2.2.2 Docs</a> (71% documented)</p>
+        <p><a href="index.html">TelnyxRTC 2.3.0 Docs</a> (72% documented)</p>
         <div class="header-right">
           <form role="search" action="search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -142,6 +142,9 @@
               </li>
               <li class="nav-group-task">
                 <a href="Structs/TxCallInfo.html">TxCallInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/TxCodecCapability.html">TxCodecCapability</a>
               </li>
               <li class="nav-group-task">
                 <a href="Structs/TxConfig.html">TxConfig</a>
@@ -524,6 +527,75 @@ extension ViewController: TxClientDelegate {
 </code></pre>
 
 <p>This is a general example: In order to fully support inbound calls you will need to implement PushKit + CallKit. For more information check <code>Setting up VoIP push notifications</code> section.</p>
+
+<hr>
+<h2 id='preferred-audio-codecs' class='heading'>Preferred Audio Codecs</h2>
+
+<p>The SDK allows you to configure preferred audio codecs for your WebRTC calls. This feature enables you to prioritize specific codecs based on your application&rsquo;s requirements for audio quality, bandwidth usage, or network conditions.</p>
+<h3 id='getting-supported-codecs' class='heading'>Getting Supported Codecs</h3>
+
+<p>Query the list of audio codecs supported by the device and WebRTC framework:</p>
+<pre class="highlight swift"><code><span class="c1">// Get all supported audio codecs</span>
+<span class="k">let</span> <span class="nv">supportedCodecs</span> <span class="o">=</span> <span class="n">telnyxClient</span><span class="o">.</span><span class="nf">getSupportedAudioCodecs</span><span class="p">()</span>
+
+<span class="c1">// Print codec information</span>
+<span class="k">for</span> <span class="n">codec</span> <span class="k">in</span> <span class="n">supportedCodecs</span> <span class="p">{</span>
+    <span class="nf">print</span><span class="p">(</span><span class="s">"Codec: </span><span class="se">\(</span><span class="n">codec</span><span class="o">.</span><span class="n">mimeType</span><span class="se">)</span><span class="s">, Clock Rate: </span><span class="se">\(</span><span class="n">codec</span><span class="o">.</span><span class="n">clockRate</span><span class="se">)</span><span class="s"> Hz"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id='setting-preferred-codecs' class='heading'>Setting Preferred Codecs</h3>
+
+<p><strong>For Outbound Calls:</strong></p>
+<pre class="highlight swift"><code><span class="c1">// Define your preferred codecs in order of priority</span>
+<span class="k">let</span> <span class="nv">preferredCodecs</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="kt">TxCodecCapability</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="s">"audio/opus"</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="mi">48000</span><span class="p">,</span> <span class="nv">channels</span><span class="p">:</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="kt">TxCodecCapability</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="s">"audio/PCMU"</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="mi">8000</span><span class="p">,</span> <span class="nv">channels</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span>
+<span class="p">]</span>
+
+<span class="c1">// Create a call with preferred codecs</span>
+<span class="k">let</span> <span class="nv">call</span> <span class="o">=</span> <span class="k">try</span> <span class="n">telnyxClient</span><span class="o">.</span><span class="nf">newCall</span><span class="p">(</span>
+    <span class="nv">callerName</span><span class="p">:</span> <span class="s">"John Doe"</span><span class="p">,</span>
+    <span class="nv">callerNumber</span><span class="p">:</span> <span class="s">"1234567890"</span><span class="p">,</span>
+    <span class="nv">destinationNumber</span><span class="p">:</span> <span class="s">"18004377950"</span><span class="p">,</span>
+    <span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">(),</span>
+    <span class="nv">preferredCodecs</span><span class="p">:</span> <span class="n">preferredCodecs</span>  <span class="c1">// Pass preferred codecs</span>
+<span class="p">)</span>
+</code></pre>
+
+<p><strong>For Inbound Calls:</strong></p>
+<pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">onIncomingCall</span><span class="p">(</span><span class="nv">call</span><span class="p">:</span> <span class="kt">Call</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">preferredCodecs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="kt">TxCodecCapability</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="s">"audio/opus"</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="mi">48000</span><span class="p">,</span> <span class="nv">channels</span><span class="p">:</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="kt">TxCodecCapability</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="s">"audio/PCMU"</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="mi">8000</span><span class="p">,</span> <span class="nv">channels</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="c1">// Answer with preferred codecs</span>
+    <span class="n">call</span><span class="o">.</span><span class="nf">answer</span><span class="p">(</span><span class="nv">preferredCodecs</span><span class="p">:</span> <span class="n">preferredCodecs</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id='common-codec-configurations' class='heading'>Common Codec Configurations</h3>
+
+<p><strong>High Quality Audio (VoIP apps):</strong></p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">preferredCodecs</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="kt">TxCodecCapability</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="s">"audio/opus"</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="mi">48000</span><span class="p">,</span> <span class="nv">channels</span><span class="p">:</span> <span class="mi">2</span><span class="p">)</span>
+<span class="p">]</span>
+</code></pre>
+
+<p><strong>Traditional Telephony Compatibility:</strong></p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">preferredCodecs</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="kt">TxCodecCapability</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="s">"audio/PCMU"</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="mi">8000</span><span class="p">,</span> <span class="nv">channels</span><span class="p">:</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="kt">TxCodecCapability</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="s">"audio/PCMA"</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="mi">8000</span><span class="p">,</span> <span class="nv">channels</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span>
+<span class="p">]</span>
+</code></pre>
+
+<p><strong>Low Bandwidth Optimization:</strong></p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">preferredCodecs</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="kt">TxCodecCapability</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="s">"audio/iLBC"</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="mi">8000</span><span class="p">),</span>
+    <span class="kt">TxCodecCapability</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="s">"audio/PCMU"</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="mi">8000</span><span class="p">)</span>
+<span class="p">]</span>
+</code></pre>
+
+<p>For detailed documentation on codec selection, configuration options, and best practices, see the <a href="docs-markdown/audio-codecs/preferred-codecs.md">Preferred Audio Codecs Guide</a>.</p>
 
 <hr>
 <h2 id='call-termination-reasons' class='heading'>Call Termination Reasons</h2>
@@ -1310,8 +1382,8 @@ user interface until there are no more active sessions.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-10-08)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-10-21)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.4</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>
     </div>

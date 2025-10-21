@@ -35,15 +35,37 @@ Hangup or reject an incoming call.
 ### `answer(customHeaders:debug:)`
 
 ```swift
-public func answer(customHeaders:[String:String] = [:],debug:Bool = false)
+public func answer(customHeaders:[String:String] = [:], debug:Bool = false)
 ```
 
 Starts the process to answer the incoming call.
-### Example:
-    call.answer()
- - Parameters:
-        - customHeaders: (optional) Custom Headers to be passed over webRTC Messages, should be in the
-    format `X-key:Value` `X` is required for headers to be passed.
+
+Use this method to accept an incoming call and establish the WebRTC connection.
+
+### Examples:
+```swift
+// Basic answer
+call.answer()
+
+// Answer with custom headers
+call.answer(customHeaders: ["X-Custom-Header": "Value"])
+
+// Answer with debug mode
+call.answer(debug: true)
+```
+
+- Parameters:
+  - customHeaders: (optional) Custom Headers to be passed over webRTC Messages.
+    Headers should be in the format `X-key:Value` where `X-` prefix is required for custom headers.
+  - debug: (optional) Enable debug mode for call quality metrics and WebRTC statistics.
+    When enabled, real-time call quality metrics will be available through the `onCallQualityChange` callback.
+
+#### Parameters
+
+| Name | Description |
+| ---- | ----------- |
+| customHeaders | (optional) Custom Headers to be passed over webRTC Messages. Headers should be in the format `X-key:Value` where `X-` prefix is required for custom headers. |
+| debug | (optional) Enable debug mode for call quality metrics and WebRTC statistics. When enabled, real-time call quality metrics will be available through the `onCallQualityChange` callback. |
 
 ### `dtmf(dtmf:)`
 
