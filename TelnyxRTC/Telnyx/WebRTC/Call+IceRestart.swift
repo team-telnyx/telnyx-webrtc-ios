@@ -129,8 +129,8 @@ extension Call {
                 
                 // Reset audio to clear jitter buffers after successful ICE restart
                 if self.shouldResetAudioAfterIceRestart {
-                    Logger.log.i(message: "[ICE-RESTART] Call:: Resetting audio to clear jitter buffers after ICE restart")
-                    self.resetAudioDevice()
+                    Logger.log.i(message: "[ICE-RESTART] Call:: Resetting audio to clear jitter buffers after ICE restart with preserved speaker state")
+                    self.resetAudioDeviceWithNetworkState()
                 }
                 
                 // Reset ICE restart flags
