@@ -802,13 +802,19 @@ extension Peer : RTCPeerConnectionDelegate {
             Logger.log.w(message: "Peer:: Cannot send trickle candidate - socket is nil")
             return
         }
-        
+
+        guard let callId = callLegID else {
+            Logger.log.w(message: "Peer:: Cannot send trickle candidate - callLegID is nil")
+            return
+        }
+
         let candidateMessage = CandidateMessage(
+            callId: callId,
             candidate: candidate.sdp,
             sdpMid: candidate.sdpMid ?? "",
-            sdpMLineIndex: Int(candidate.sdpMLineIndex)
+            sdpMLineIndex: Int32(candidate.sdpMLineIndex)
         )
-        
+
         if let message = candidateMessage.encode() {
             socket.sendMessage(message: message)
             Logger.log.s(message: "Peer:: Sent trickle candidate: \(message)")
@@ -820,9 +826,14 @@ extension Peer : RTCPeerConnectionDelegate {
         guard let socket = socket, useTrickleIce else {
             return
         }
-        
-        let endOfCandidatesMessage = EndOfCandidatesMessage()
-        
+
+        guard let callId = callLegID else {
+            Logger.log.w(message: "Peer:: Cannot send end of candidates - callLegID is nil")
+            return
+        }
+
+        let endOfCandidatesMessage = EndOfCandidatesMessage(callId: callId)
+
         if let message = endOfCandidatesMessage.encode() {
             socket.sendMessage(message: message)
             Logger.log.s(message: "Peer:: Sent end of candidates: \(message)")
