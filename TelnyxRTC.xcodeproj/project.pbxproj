@@ -45,6 +45,8 @@
 		44D1F514E45F03506FE8F857 /* Pods_TelnyxRTC_TelnyxRTCTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279B09E41685F86C3C8A83F3 /* Pods_TelnyxRTC_TelnyxRTCTests.framework */; };
 		8097534D667E46A79D43A02A8F6C3093 /* Call+IceRestart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3D8EC626B740CCBFC6D5A6178C87FE /* Call+IceRestart.swift */; };
 		853C8C4A7CC44D38A4D2AA0145A5C91B /* ICERestartMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD61A0D3085C477AB1B14626A82449EA /* ICERestartMessage.swift */; };
+		9905E4772EA81D41000AC89D /* CandidateMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9905E4762EA81D41000AC89D /* CandidateMessage.swift */; };
+		9905E4792EA81D50000AC89D /* EndOfCandidatesMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9905E4782EA81D50000AC89D /* EndOfCandidatesMessage.swift */; };
 		9906F63B2E391F5C00A02FE7 /* TxClientReconnectTimeoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F63A2E391F5C00A02FE7 /* TxClientReconnectTimeoutTests.swift */; };
 		9906F8C52E3C159900A02FE7 /* RingingAckMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8C42E3C159900A02FE7 /* RingingAckMessage.swift */; };
 		9906F8C72E3C15CA00A02FE7 /* AIAssistantManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8C62E3C15CA00A02FE7 /* AIAssistantManager.swift */; };
@@ -247,6 +249,8 @@
 		5957191CD6394C558F46DD60 /* Pods-TelnyxRTC.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC/Pods-TelnyxRTC.debug.xcconfig"; sourceTree = "<group>"; };
 		80349220CA4C22F67427BF9A /* Pods_TelnyxRTC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxRTC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		86027677A7D2417967A1DD1A /* Pods_TelnyxWebRTCDemo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxWebRTCDemo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		9905E4762EA81D41000AC89D /* CandidateMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandidateMessage.swift; sourceTree = "<group>"; };
+		9905E4782EA81D50000AC89D /* EndOfCandidatesMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndOfCandidatesMessage.swift; sourceTree = "<group>"; };
 		9906F63A2E391F5C00A02FE7 /* TxClientReconnectTimeoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxClientReconnectTimeoutTests.swift; sourceTree = "<group>"; };
 		9906F8C42E3C159900A02FE7 /* RingingAckMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RingingAckMessage.swift; sourceTree = "<group>"; };
 		9906F8C62E3C15CA00A02FE7 /* AIAssistantManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistantManager.swift; sourceTree = "<group>"; };
@@ -564,6 +568,8 @@
 				3B72695C2A9396BF00D2A602 /* DisablePushMessage.swift */,
 				3B49B7142AA9B0A20026D36D /* AttachCallMessage.swift */,
 				9906F8C42E3C159900A02FE7 /* RingingAckMessage.swift */,
+				9905E4762EA81D41000AC89D /* CandidateMessage.swift */,
+				9905E4782EA81D50000AC89D /* EndOfCandidatesMessage.swift */,
 			);
 			path = Verto;
 			sourceTree = "<group>";
@@ -1152,12 +1158,14 @@
 				B309D23125F06CA800A2AADF /* Peer.swift in Sources */,
 				EAA0358E635D404F9594CDA38CD57A76 /* Peer+IceRestart.swift in Sources */,
 				996C67CA2CFEA6740056E508 /* RTCIceTransportPolicy+Extension.swift in Sources */,
+				9905E4772EA81D41000AC89D /* CandidateMessage.swift in Sources */,
 				996C67D22CFEA70F0056E508 /* RTCMediaStream+Extension.swift in Sources */,
 				996C67D72CFEA96B0056E508 /* RTCIceCandidate+Extension.swift in Sources */,
 				996C67C02CFEA5600056E508 /* RTCBundlePolicy+Extension.swift in Sources */,
 				990FC0482E9841BC009344DC /* TxCodecCapability.swift in Sources */,
 				9906F8C52E3C159900A02FE7 /* RingingAckMessage.swift in Sources */,
 				996C67BE2CFEA4D70056E508 /* RTClsCertPolicy+Extension.swift in Sources */,
+				9905E4792EA81D50000AC89D /* EndOfCandidatesMessage.swift in Sources */,
 				B309D1E425F0240200A2AADF /* TxConfig.swift in Sources */,
 				B3AF248025EE7B1F0062EDA9 /* TxClientDelegate.swift in Sources */,
 				996C67CC2CFEA6910056E508 /* RTCSignalingState+Extension.swift in Sources */,
