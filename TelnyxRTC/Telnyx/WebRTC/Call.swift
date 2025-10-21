@@ -1063,6 +1063,11 @@ extension Call {
                 if let telnyxLegId = params["telnyx_leg_id"] as? String,
                    let telnyxLegIdUUID = UUID(uuidString: telnyxLegId) {
                     self.telnyxLegId = telnyxLegIdUUID
+
+                    // Update peer's callLegID and flush any pending trickle ICE candidates
+                    self.peer?.callLegID = telnyxLegIdUUID.uuidString
+                    Logger.log.i(message: "[TRICKLE-ICE] Call:: Updated peer.callLegID with telnyxLegId, flushing pending candidates")
+                    self.peer?.flushPendingTrickleCandidates()
                 } else {
                     Logger.log.w(message: "Call:: Telnyx Leg ID unavailable on RINGING message")
                 }

@@ -40,15 +40,35 @@ class Peer : NSObject, WebRTCEventHandler {
     
     /// Collection of gathered ICE candidates during connection setup
     internal var gatheredICECandidates: [String] = []
-    
+
+    /// Queue of pending ICE candidates waiting to be sent (used when callLegID is not yet available)
+    private var pendingTrickleCandidates: [RTCIceCandidate] = []
+
     /// Socket connection for signaling with the WebRTC server
     var socket: Socket?
-    
+
     /// Controls whether trickle ICE is enabled for this peer connection
     var useTrickleIce: Bool = false
 
     private let mediaConstrains = [kRTCMediaConstraintsOfferToReceiveAudio: kRTCMediaConstraintsValueTrue,
                                    kRTCMediaConstraintsOfferToReceiveVideo: kRTCMediaConstraintsValueFalse]
+
+    /// Removes ICE candidate lines from SDP for Trickle ICE mode
+    /// - Parameter sdp: The original SDP with candidates
+    /// - Returns: SDP without candidate lines
+    private func removeCandidatesFromSDP(_ sdp: String) -> String {
+        let lines = sdp.components(separatedBy: "\r\n")
+        let filteredLines = lines.filter { line in
+            // Keep all lines except candidate lines
+            !line.hasPrefix("a=candidate:")
+        }
+        let cleanedSDP = filteredLines.joined(separator: "\r\n")
+
+        let candidatesRemoved = lines.count - filteredLines.count
+        Logger.log.i(message: "[TRICKLE-ICE] Peer:: Removed \(candidatesRemoved) candidate lines from SDP")
+
+        return cleanedSDP
+    }
 
     weak var delegate: PeerDelegate?
     var connection : RTCPeerConnection?
@@ -301,8 +321,13 @@ class Peer : NSObject, WebRTCEventHandler {
     // MARK: Signaling OFFER
     /// Creates a WebRTC offer for initiating an outbound call.
     ///
-    /// This method generates an SDP offer that includes media capabilities and ICE candidates.
-    /// The offer is used to start the WebRTC negotiation process with the remote peer.
+    /// For Trickle ICE mode:
+    /// - Sends the SDP immediately without waiting for ICE candidates
+    /// - Candidates are sent separately as they are generated
+    ///
+    /// For traditional mode:
+    /// - Waits for ICE candidates to be gathered
+    /// - Sends SDP with candidates included
     ///
     /// - Parameters:
     ///   - preferredCodecs: (optional) Array of preferred audio codecs in priority order.
@@ -337,6 +362,24 @@ class Peer : NSObject, WebRTCEventHandler {
             //Once we set the local description, the ICE negotiation starts and at least one ICE candidate should be created.
             //Check RTCPeerConnectionDelegate :: didGenerate candidate
             self.connection?.setLocalDescription(sdp, completionHandler: { (error) in
+                // For Trickle ICE, send the SDP immediately via delegate without waiting for candidates
+                if self.useTrickleIce {
+                    Logger.log.i(message: "[TRICKLE-ICE] Peer:: offer() completed - sending SDP immediately without candidates (Trickle ICE mode)")
+                    // DO NOT set negotiationEnded = true here for Trickle ICE
+                    // We want candidates to continue being sent individually
+
+                    // Remove candidates from SDP for Trickle ICE
+                    if let localSDP = self.connection?.localDescription {
+                        let cleanedSDPString = self.removeCandidatesFromSDP(localSDP.sdp)
+                        let cleanedSDP = RTCSessionDescription(type: localSDP.type, sdp: cleanedSDPString)
+                        self.delegate?.onNegotiationEnded(sdp: cleanedSDP)
+                    } else {
+                        self.delegate?.onNegotiationEnded(sdp: nil)
+                    }
+                } else {
+                    Logger.log.i(message: "Peer:: offer() completed - will wait for ICE candidates (traditional mode)")
+                }
+
                 completion(sdp, nil)
             })
         }
@@ -346,8 +389,13 @@ class Peer : NSObject, WebRTCEventHandler {
     // MARK: Signaling ANSWER
     /// Creates a WebRTC answer for responding to an incoming call.
     ///
-    /// This method generates an SDP answer in response to an incoming offer.
-    /// The answer includes media capabilities and ICE candidates, completing the WebRTC negotiation.
+    /// For Trickle ICE mode:
+    /// - Sends the SDP answer immediately without waiting for ICE candidates
+    /// - Candidates are sent separately as they are generated
+    ///
+    /// For traditional mode:
+    /// - Waits for ICE candidates to be gathered
+    /// - Sends SDP with candidates included
     ///
     /// - Parameters:
     ///   - callLegId: The call leg identifier for tracking this call session
@@ -360,6 +408,11 @@ class Peer : NSObject, WebRTCEventHandler {
         let constrains = RTCMediaConstraints(mandatoryConstraints: self.mediaConstrains,
                                              optionalConstraints: nil)
         self.callLegID = callLegId
+        Logger.log.i(message: "[TRICKLE-ICE] Peer:: answer() - callLegID set to \(callLegId), flushing pending candidates")
+
+        // Flush any pending trickle ICE candidates now that we have the callLegID
+        self.flushPendingTrickleCandidates()
+
         self.connection?.answer(for: constrains) { (sdp, error) in
 
             if let error = error {
@@ -377,6 +430,24 @@ class Peer : NSObject, WebRTCEventHandler {
             //Once we set the local description, the ICE negotiation starts and at least one ICE candidate should be created.
             //Check RTCPeerConnectionDelegate :: didGenerate candidate
             self.connection?.setLocalDescription(sdp, completionHandler: { (error) in
+                // For Trickle ICE, send the SDP immediately via delegate without waiting for candidates
+                if self.useTrickleIce {
+                    Logger.log.i(message: "[TRICKLE-ICE] Peer:: answer() completed - sending SDP immediately without candidates (Trickle ICE mode)")
+                    // DO NOT set negotiationEnded = true here for Trickle ICE
+                    // We want candidates to continue being sent individually
+
+                    // Remove candidates from SDP for Trickle ICE
+                    if let localSDP = self.connection?.localDescription {
+                        let cleanedSDPString = self.removeCandidatesFromSDP(localSDP.sdp)
+                        let cleanedSDP = RTCSessionDescription(type: localSDP.type, sdp: cleanedSDPString)
+                        self.delegate?.onNegotiationEnded(sdp: cleanedSDP)
+                    } else {
+                        self.delegate?.onNegotiationEnded(sdp: nil)
+                    }
+                } else {
+                    Logger.log.i(message: "Peer:: answer() completed - will wait for ICE candidates (traditional mode)")
+                }
+
                 completion(sdp, nil)
             })
         }
@@ -384,13 +455,49 @@ class Peer : NSObject, WebRTCEventHandler {
 
     /**
      This code should be started when the first ICE candidate is created.
-     After that, each time a new ICE candidate should restart this timer until: NO more ICE candidates are been generated, or it took too longer to generate
-     the next ICE Candidate.
-     We need only Once ICE candidate in the SDP in order to start a webrtc connection.
+
+     For Trickle ICE:
+     - Sends the SDP immediately without waiting for all candidates
+     - Candidates are sent individually as they are generated
+
+     For non-Trickle ICE (traditional):
+     - Waits for candidates to accumulate using a timer
+     - Sends SDP with all candidates included after timeout
      */
     fileprivate func startNegotiation(peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
-        Logger.log.i(message: "Peer:: ICE negotiation updated.")
-        
+        Logger.log.i(message: "[TRICKLE-ICE] Peer:: startNegotiation called (useTrickleIce: \(useTrickleIce))")
+
+        // When using Trickle ICE, send the SDP immediately without waiting
+        if useTrickleIce {
+            // Only send once
+            if self.negotiationEnded {
+                Logger.log.i(message: "[TRICKLE-ICE] Peer:: SDP already sent, skipping")
+                return
+            }
+
+            Logger.log.i(message: "[TRICKLE-ICE] Peer:: Sending SDP immediately without candidates (Trickle ICE mode)")
+            self.negotiationEnded = true
+
+            // Handle ICE restart completion
+            if self.isIceRestarting, let completion = self.iceRestartCompletion {
+                self.iceRestartCompletion = nil
+                self.createFinalOfferWithCandidates(completion: completion)
+            } else {
+                // Send SDP immediately without candidates - candidates will be sent separately via trickle
+                if let localSDP = peerConnection.localDescription {
+                    let cleanedSDPString = self.removeCandidatesFromSDP(localSDP.sdp)
+                    let cleanedSDP = RTCSessionDescription(type: localSDP.type, sdp: cleanedSDPString)
+                    self.delegate?.onNegotiationEnded(sdp: cleanedSDP)
+                } else {
+                    self.delegate?.onNegotiationEnded(sdp: nil)
+                }
+            }
+            return
+        }
+
+        // Traditional non-trickle ICE: wait for candidates to accumulate
+        Logger.log.i(message: "Peer:: ICE negotiation updated (traditional mode)")
+
         //Restart the negotiation timer
         self.negotiationTimer?.invalidate()
         self.negotiationTimer = nil
@@ -403,7 +510,7 @@ class Peer : NSObject, WebRTCEventHandler {
                 }
                 self.negotiationTimer?.invalidate()
                 self.negotiationEnded = true
-                
+
                 // Handle ICE restart completion
                 if self.isIceRestarting, let completion = self.iceRestartCompletion {
                     self.iceRestartCompletion = nil
@@ -747,29 +854,32 @@ extension Peer : RTCPeerConnectionDelegate {
     func peerConnection(_ peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
         Logger.log.i(message: "[TRICKLE-ICE] Peer:: ICE candidate generated - sdpMid: \(candidate.sdpMid ?? "nil"), sdpMLineIndex: \(candidate.sdpMLineIndex)")
 
-        // During ICE restart, we should allow candidates even when connected
-        if !isIceRestarting {
-            // Check if the negotiation has already ended.
-            // If true, we avoid adding new ICE candidates since it's no longer necessary.
-            if negotiationEnded {
-                Logger.log.i(message: "[TRICKLE-ICE] Peer:: Skipping candidate - negotiation already ended")
-                return
-            }
-
-            // Check if the connection is already established (state is 'connected').
-            // If true, we skip adding new ICE candidates to prevent redundant additions.
-            if peerConnection.connectionState == .connected {
-                Logger.log.i(message: "[TRICKLE-ICE] Peer:: Skipping candidate - connection already established")
-                return
-            }
-        } else {
-            // Check if we already have enough candidates and should stop gathering
-            if let localDescription = peerConnection.localDescription {
-                let currentCandidateCount = localDescription.sdp.components(separatedBy: "a=candidate:").count - 1
-                if currentCandidateCount >= 3 { // We have enough candidates
-                    Logger.log.i(message: "[TRICKLE-ICE] Peer:: Skipping candidate - already have \(currentCandidateCount) candidates during ICE restart")
-                    // Don't add more candidates to avoid overwhelming the server
+        // For Trickle ICE, we always send candidates - don't skip based on negotiationEnded
+        if !useTrickleIce {
+            // Traditional mode: check if negotiation has ended or connection is established
+            if !isIceRestarting {
+                // Check if the negotiation has already ended.
+                // If true, we avoid adding new ICE candidates since it's no longer necessary.
+                if negotiationEnded {
+                    Logger.log.i(message: "[TRICKLE-ICE] Peer:: Skipping candidate - negotiation already ended (traditional mode)")
                     return
+                }
+
+                // Check if the connection is already established (state is 'connected').
+                // If true, we skip adding new ICE candidates to prevent redundant additions.
+                if peerConnection.connectionState == .connected {
+                    Logger.log.i(message: "[TRICKLE-ICE] Peer:: Skipping candidate - connection already established")
+                    return
+                }
+            } else {
+                // Check if we already have enough candidates and should stop gathering
+                if let localDescription = peerConnection.localDescription {
+                    let currentCandidateCount = localDescription.sdp.components(separatedBy: "a=candidate:").count - 1
+                    if currentCandidateCount >= 3 { // We have enough candidates
+                        Logger.log.i(message: "[TRICKLE-ICE] Peer:: Skipping candidate - already have \(currentCandidateCount) candidates during ICE restart")
+                        // Don't add more candidates to avoid overwhelming the server
+                        return
+                    }
                 }
             }
         }
@@ -794,11 +904,11 @@ extension Peer : RTCPeerConnectionDelegate {
         gatheredICECandidates.append(candidate.serverUrl ?? "")
 
         // Start negotiation if an ICE candidate from the configured STUN or TURN server is gathered.
-        // For trickle ICE, we still need to start negotiation but candidates are sent separately
-        if gatheredICECandidates.contains(InternalConfig.stunServer) ||
-            gatheredICECandidates.contains(InternalConfig.turnServer) {
+        // For trickle ICE, this won't do anything since we already sent the SDP
+        if !useTrickleIce && (gatheredICECandidates.contains(InternalConfig.stunServer) ||
+            gatheredICECandidates.contains(InternalConfig.turnServer)) {
 
-            Logger.log.i(message: "[TRICKLE-ICE] Peer:: Valid ICE candidate found from configured server - starting negotiation")
+            Logger.log.i(message: "Peer:: Valid ICE candidate found from configured server - starting negotiation (traditional mode)")
             self.startNegotiation(peerConnection: connection!, didGenerate: candidate)
         }
     }
@@ -815,8 +925,10 @@ extension Peer : RTCPeerConnectionDelegate {
             return
         }
 
+        // If callLegID is not available yet, queue the candidate for later
         guard let callId = callLegID else {
-            Logger.log.w(message: "[TRICKLE-ICE] Peer:: Cannot send trickle candidate - callLegID is nil")
+            Logger.log.i(message: "[TRICKLE-ICE] Peer:: callLegID not available yet, queueing candidate (queue size: \(pendingTrickleCandidates.count + 1))")
+            pendingTrickleCandidates.append(candidate)
             return
         }
 
@@ -836,6 +948,31 @@ extension Peer : RTCPeerConnectionDelegate {
         } else {
             Logger.log.e(message: "[TRICKLE-ICE] Peer:: ❌ Failed to encode candidate message")
         }
+    }
+
+    /// Sends all pending trickle ICE candidates that were queued before callLegID was available
+    /// This should be called after the callLegID is set (typically after receiving the INVITE response)
+    internal func flushPendingTrickleCandidates() {
+        guard useTrickleIce else {
+            Logger.log.i(message: "[TRICKLE-ICE] Peer:: flushPendingTrickleCandidates() skipped - Trickle ICE disabled")
+            return
+        }
+
+        guard !pendingTrickleCandidates.isEmpty else {
+            Logger.log.i(message: "[TRICKLE-ICE] Peer:: No pending candidates to flush")
+            return
+        }
+
+        Logger.log.i(message: "[TRICKLE-ICE] Peer:: Flushing \(pendingTrickleCandidates.count) pending trickle candidates")
+
+        let candidates = pendingTrickleCandidates
+        pendingTrickleCandidates.removeAll()
+
+        for candidate in candidates {
+            sendTrickleCandidate(candidate)
+        }
+
+        Logger.log.i(message: "[TRICKLE-ICE] Peer:: ✅ Finished flushing pending candidates")
     }
     
     /// Sends end of candidates signal for trickle ICE
