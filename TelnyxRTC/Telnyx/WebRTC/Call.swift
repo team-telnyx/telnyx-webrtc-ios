@@ -834,7 +834,7 @@ extension Call {
     /// Resets the audio device module with preserved speaker state from network change
     /// This method uses the speaker state saved at the time of network change to prevent
     /// iOS from incorrectly changing the audio route during network switching
-    private func resetAudioDeviceWithNetworkState() {
+    internal func resetAudioDeviceWithNetworkState() {
         Logger.log.i(message: "[ACM_RESET] Call:: resetAudioDeviceWithNetworkState() - Using saved speaker state from network change")
         if let savedSpeakerState = speakerStateAtNetworkChange {
             Logger.log.i(message: "[ACM_RESET] Call:: Using saved speaker state: \(savedSpeakerState)")
@@ -1086,10 +1086,16 @@ extension Call {
             Logger.log.w(message: "TxClient:: SocketDelegate Default method")
             break
         }
-        
+
+        // Restore speaker state after audio session is fully configured
+        // Use verification and retry logic to ensure speaker is actually restored
         if txClient.isSpeakerEnabled {
-            Logger.log.w(message: "Speaker Enabled")
-            txClient.setSpeaker()
+            Logger.log.w(message: "Speaker Enabled - will restore after audio session configuration")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak txClient] in
+                guard let txClient = txClient else { return }
+                Logger.log.i(message: "[ACM_RESET] Restoring speaker after attach/reconnect with verification")
+                txClient.restoreSpeakerAfterReconnect()
+            }
         }
     }
 }
