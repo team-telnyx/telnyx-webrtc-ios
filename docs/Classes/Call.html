@@ -17,7 +17,7 @@
     <a title="Call Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">TelnyxRTC 2.2.2 Docs</a> (71% documented)</p>
+        <p><a href="../index.html">TelnyxRTC 2.3.0 Docs</a> (72% documented)</p>
         <div class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -147,6 +147,9 @@
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/TxCallInfo.html">TxCallInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TxCodecCapability.html">TxCodecCapability</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/TxConfig.html">TxConfig</a>
@@ -837,8 +840,17 @@ This helps resolve audio delay issues by establishing new network paths</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Starts the process to answer the incoming call.</p>
-<h3 id='example' class='heading'>Example:</h3>
-<pre class="highlight swift"><code><span class="n">call</span><span class="o">.</span><span class="nf">answer</span><span class="p">()</span>
+
+<p>Use this method to accept an incoming call and establish the WebRTC connection.</p>
+<h3 id='examples' class='heading'>Examples:</h3>
+<pre class="highlight swift"><code><span class="c1">// Basic answer</span>
+<span class="n">call</span><span class="o">.</span><span class="nf">answer</span><span class="p">()</span>
+
+<span class="c1">// Answer with custom headers</span>
+<span class="n">call</span><span class="o">.</span><span class="nf">answer</span><span class="p">(</span><span class="nv">customHeaders</span><span class="p">:</span> <span class="p">[</span><span class="s">"X-Custom-Header"</span><span class="p">:</span> <span class="s">"Value"</span><span class="p">])</span>
+
+<span class="c1">// Answer with debug mode</span>
+<span class="n">call</span><span class="o">.</span><span class="nf">answer</span><span class="p">(</span><span class="nv">debug</span><span class="p">:</span> <span class="kc">true</span><span class="p">)</span>
 </code></pre>
 
                       </div>
@@ -849,6 +861,39 @@ This helps resolve audio delay issues by establishing new network paths</p>
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">answer</span><span class="p">(</span><span class="nv">customHeaders</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span> <span class="p">:</span> <span class="kt">String</span><span class="p">]</span> <span class="o">=</span> <span class="p">[:],</span> <span class="nv">debug</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">)</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>customHeaders</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(optional) Custom Headers to be passed over webRTC Messages.
+Headers should be in the format <code>X-key:Value</code> where <code>X-</code> prefix is required for custom headers.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>debug</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(optional) Enable debug mode for call quality metrics and WebRTC statistics.
+When enabled, real-time call quality metrics will be available through the <code><a href="../Classes/Call.html#/s:9TelnyxRTC4CallC02onC13QualityChangeyAA0cE7MetricsVcSgvp">onCallQualityChange</a></code> callback.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </section>
                   </div>
@@ -1152,8 +1197,8 @@ when sending multiple digits.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-10-08)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-10-21)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.4</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>
     </div>

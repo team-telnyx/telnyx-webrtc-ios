@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>MOSCalculator Class Reference</title>
+    <title>TxCodecCapability Structure Reference</title>
     <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
     <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
     <meta charset='utf-8'>
@@ -13,8 +13,8 @@
     <script src="../js/jazzy.search.js" defer></script>
   </head>
   <body>
-    <a name="//apple_ref/swift/Class/MOSCalculator" class="dashAnchor"></a>
-    <a title="MOSCalculator Class Reference"></a>
+    <a name="//apple_ref/swift/Struct/TxCodecCapability" class="dashAnchor"></a>
+    <a title="TxCodecCapability Structure Reference"></a>
     <header>
       <div class="content-wrapper">
         <p><a href="../index.html">TelnyxRTC 2.3.0 Docs</a> (72% documented)</p>
@@ -29,9 +29,9 @@
       <p id="breadcrumbs">
         <a href="../index.html">TelnyxRTC</a>
         <img id="carat" src="../img/carat.png" alt=""/>
-        <a href="../Classes.html">Classes</a>
+        <a href="../Structs.html">Structures</a>
         <img id="carat" src="../img/carat.png" alt=""/>
-        MOSCalculator Class Reference
+        TxCodecCapability Structure Reference
       </p>
     </div>
     <div class="content-wrapper">
@@ -173,15 +173,16 @@
       <article class="main-content">
         <section>
           <section class="section">
-            <h1>MOSCalculator</h1>
+            <h1>TxCodecCapability</h1>
               <div class="declaration">
                 <div class="language">
                   
-                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">MOSCalculator</span></code></pre>
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">TxCodecCapability</span> <span class="p">:</span> <span class="kt">Codable</span><span class="p">,</span> <span class="kt">Equatable</span><span class="p">,</span> <span class="kt">Identifiable</span></code></pre>
 
                 </div>
               </div>
-            <p>Utility class for calculating Mean Opinion Score (MOS) and call quality metrics</p>
+            <p>Represents an audio codec capability that can be used for preferred codec selection
+This mirrors the RTCRtpCodecCapability structure from WebRTC</p>
 
           </section>
           <section class="section task-group-section">
@@ -190,9 +191,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC13MOSCalculatorC12calculateMOS6jitter3rtt15packetsReceived0H4LostS2d_SdS2itFZ"></a>
-                    <a name="//apple_ref/swift/Method/calculateMOS(jitter:rtt:packetsReceived:packetsLost:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC13MOSCalculatorC12calculateMOS6jitter3rtt15packetsReceived0H4LostS2d_SdS2itFZ">calculateMOS(jitter:<wbr>rtt:<wbr>packetsReceived:<wbr>packetsLost:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC17TxCodecCapabilityV2idSSvp"></a>
+                    <a name="//apple_ref/swift/Property/id" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC17TxCodecCapabilityV2idSSvp">id</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -200,75 +201,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Calculates the Mean Opinion Score (MOS) based on WebRTC statistics</p>
+                        <p>Unique identifier for the codec combining mimeType, clockRate, and channels</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">calculateMOS</span><span class="p">(</span><span class="nv">jitter</span><span class="p">:</span> <span class="kt">Double</span><span class="p">,</span> <span class="nv">rtt</span><span class="p">:</span> <span class="kt">Double</span><span class="p">,</span> <span class="nv">packetsReceived</span><span class="p">:</span> <span class="kt">Int</span><span class="p">,</span> <span class="nv">packetsLost</span><span class="p">:</span> <span class="kt">Int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Double</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">id</span><span class="p">:</span> <span class="kt">String</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
 
                         </div>
-                      </div>
-                      <div>
-                        <h4>Parameters</h4>
-                        <table class="graybox">
-                          <tbody>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>jitter</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>Jitter in milliseconds</p>
-                                </div>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>rtt</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>Round-trip time in milliseconds</p>
-                                </div>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>packetsReceived</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>Number of packets received</p>
-                                </div>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>packetsLost</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>Number of packets lost</p>
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                      <div>
-                        <h4>Return Value</h4>
-                        <p>MOS score between 1.0 and 5.0</p>
                       </div>
                     </section>
                   </div>
@@ -276,9 +218,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC13MOSCalculatorC10getQuality3mosAA04CallE0OSd_tFZ"></a>
-                    <a name="//apple_ref/swift/Method/getQuality(mos:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC13MOSCalculatorC10getQuality3mosAA04CallE0OSd_tFZ">getQuality(mos:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC17TxCodecCapabilityV8mimeTypeSSvp"></a>
+                    <a name="//apple_ref/swift/Property/mimeType" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC17TxCodecCapabilityV8mimeTypeSSvp">mimeType</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -286,39 +228,124 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Determines call quality based on MOS score</p>
+                        <p>The MIME type of the codec (e.g., &ldquo;audio/opus&rdquo;, &ldquo;audio/PCMA&rdquo;)</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">getQuality</span><span class="p">(</span><span class="nv">mos</span><span class="p">:</span> <span class="kt">Double</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Enums/CallQuality.html">CallQuality</a></span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">mimeType</span><span class="p">:</span> <span class="kt">String</span></code></pre>
 
                         </div>
                       </div>
-                      <div>
-                        <h4>Parameters</h4>
-                        <table class="graybox">
-                          <tbody>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>mos</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>Mean Opinion Score</p>
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC17TxCodecCapabilityV9clockRateSivp"></a>
+                    <a name="//apple_ref/swift/Property/clockRate" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC17TxCodecCapabilityV9clockRateSivp">clockRate</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The clock rate of the codec in Hz</p>
+
                       </div>
-                      <div>
-                        <h4>Return Value</h4>
-                        <p>Call quality rating</p>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC17TxCodecCapabilityV8channelsSiSgvp"></a>
+                    <a name="//apple_ref/swift/Property/channels" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC17TxCodecCapabilityV8channelsSiSgvp">channels</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The number of audio channels (typically 1 or 2)</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">channels</span><span class="p">:</span> <span class="kt">Int</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC17TxCodecCapabilityV11sdpFmtpLineSSSgvp"></a>
+                    <a name="//apple_ref/swift/Property/sdpFmtpLine" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC17TxCodecCapabilityV11sdpFmtpLineSSSgvp">sdpFmtpLine</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The SDP format-specific parameters line</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">sdpFmtpLine</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC17TxCodecCapabilityV8mimeType9clockRate8channels11sdpFmtpLineACSS_S2iSgSSSgtcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(mimeType:clockRate:channels:sdpFmtpLine:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC17TxCodecCapabilityV8mimeType9clockRate8channels11sdpFmtpLineACSS_S2iSgSSSgtcfc">init(mimeType:<wbr>clockRate:<wbr>channels:<wbr>sdpFmtpLine:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="kt">Int</span><span class="p">,</span> <span class="nv">channels</span><span class="p">:</span> <span class="kt">Int</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">sdpFmtpLine</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span></code></pre>
+
+                        </div>
                       </div>
                     </section>
                   </div>

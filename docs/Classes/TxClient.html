@@ -17,7 +17,7 @@
     <a title="TxClient Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">TelnyxRTC 2.2.2 Docs</a> (71% documented)</p>
+        <p><a href="../index.html">TelnyxRTC 2.3.0 Docs</a> (72% documented)</p>
         <div class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -147,6 +147,9 @@
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/TxCallInfo.html">TxCallInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TxCodecCapability.html">TxCodecCapability</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/TxConfig.html">TxConfig</a>
@@ -783,7 +786,25 @@ This method cleans up the audio configuration and deactivates the session.</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>To answer and control callKit active flow</p>
+                        <p>Answers an incoming call from CallKit and manages the active call flow.</p>
+
+<p>This method should be called from the CXProviderDelegate&rsquo;s <code>provider(_:perform:)</code> method
+when handling a <code>CXAnswerCallAction</code>. It properly integrates with CallKit to answer incoming calls.</p>
+<h3 id='examples' class='heading'>Examples:</h3>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">CallKitProvider</span><span class="p">:</span> <span class="kt">CXProviderDelegate</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">provider</span><span class="p">(</span><span class="n">_</span> <span class="nv">provider</span><span class="p">:</span> <span class="kt">CXProvider</span><span class="p">,</span> <span class="n">perform</span> <span class="nv">action</span><span class="p">:</span> <span class="kt">CXAnswerCallAction</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// Basic answer</span>
+        <span class="n">telnyxClient</span><span class="o">.</span><span class="nf">answerFromCallkit</span><span class="p">(</span><span class="nv">answerAction</span><span class="p">:</span> <span class="n">action</span><span class="p">)</span>
+
+        <span class="c1">// Answer with custom headers and debug mode</span>
+        <span class="n">telnyxClient</span><span class="o">.</span><span class="nf">answerFromCallkit</span><span class="p">(</span>
+            <span class="nv">answerAction</span><span class="p">:</span> <span class="n">action</span><span class="p">,</span>
+            <span class="nv">customHeaders</span><span class="p">:</span> <span class="p">[</span><span class="s">"X-Custom-Header"</span><span class="p">:</span> <span class="s">"Value"</span><span class="p">],</span>
+            <span class="nv">debug</span><span class="p">:</span> <span class="kc">true</span>
+        <span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
 
                       </div>
                       <div class="declaration">
@@ -806,7 +827,7 @@ This method cleans up the audio configuration and deactivates the session.</p>
                               </td>
                               <td>
                                 <div>
-                                  <p><code>CXAnswerCallAction</code> from callKit</p>
+                                  <p>The <code>CXAnswerCallAction</code> provided by CallKit&rsquo;s provider delegate.</p>
                                 </div>
                               </td>
                             </tr>
@@ -818,7 +839,8 @@ This method cleans up the audio configuration and deactivates the session.</p>
                               </td>
                               <td>
                                 <div>
-                                  <p>(Optional)</p>
+                                  <p>(optional) Custom Headers to be passed over webRTC Messages.
+Headers should be in the format <code>X-key:Value</code> where <code>X-</code> prefix is required for custom headers.</p>
                                 </div>
                               </td>
                             </tr>
@@ -830,7 +852,8 @@ This method cleans up the audio configuration and deactivates the session.</p>
                               </td>
                               <td>
                                 <div>
-                                  <p>(Optional) to enable quality metrics for call</p>
+                                  <p>(optional) Enable debug mode for call quality metrics and WebRTC statistics.
+When enabled, real-time call quality metrics will be available through the call&rsquo;s <code>onCallQualityChange</code> callback.</p>
                                 </div>
                               </td>
                             </tr>
@@ -1207,9 +1230,9 @@ message is sent once the connection is established.</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC8TxClientC7newCall10callerName0G6Number011destinationI06callId11clientState13customHeaders5debugAA0F0CSS_S2S10Foundation4UUIDVSSSgSDyS2SGSbtKF"></a>
-                    <a name="//apple_ref/swift/Method/newCall(callerName:callerNumber:destinationNumber:callId:clientState:customHeaders:debug:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC8TxClientC7newCall10callerName0G6Number011destinationI06callId11clientState13customHeaders5debugAA0F0CSS_S2S10Foundation4UUIDVSSSgSDyS2SGSbtKF">newCall(callerName:<wbr>callerNumber:<wbr>destinationNumber:<wbr>callId:<wbr>clientState:<wbr>customHeaders:<wbr>debug:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC8TxClientC7newCall10callerName0G6Number011destinationI06callId11clientState13customHeaders15preferredCodecs5debugAA0F0CSS_S2S10Foundation4UUIDVSSSgSDyS2SGSayAA0C15CodecCapabilityVGSgSbtKF"></a>
+                    <a name="//apple_ref/swift/Method/newCall(callerName:callerNumber:destinationNumber:callId:clientState:customHeaders:preferredCodecs:debug:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxClientC7newCall10callerName0G6Number011destinationI06callId11clientState13customHeaders15preferredCodecs5debugAA0F0CSS_S2S10Foundation4UUIDVSSSgSDyS2SGSayAA0C15CodecCapabilityVGSgSbtKF">newCall(callerName:<wbr>callerNumber:<wbr>destinationNumber:<wbr>callId:<wbr>clientState:<wbr>customHeaders:<wbr>preferredCodecs:<wbr>debug:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1218,6 +1241,42 @@ message is sent once the connection is established.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates a new Call and starts the call sequence, negotiate the ICE Candidates and sends the invite.</p>
+
+<p>This method initiates an outbound call to the specified destination. The call will go through
+WebRTC negotiation, ICE candidate gathering, and SIP signaling to establish the connection.</p>
+<h3 id='examples' class='heading'>Examples:</h3>
+<pre class="highlight swift"><code><span class="c1">// Basic call</span>
+<span class="k">let</span> <span class="nv">call</span> <span class="o">=</span> <span class="k">try</span> <span class="n">telnyxClient</span><span class="o">.</span><span class="nf">newCall</span><span class="p">(</span>
+    <span class="nv">callerName</span><span class="p">:</span> <span class="s">"John Doe"</span><span class="p">,</span>
+    <span class="nv">callerNumber</span><span class="p">:</span> <span class="s">"1234567890"</span><span class="p">,</span>
+    <span class="nv">destinationNumber</span><span class="p">:</span> <span class="s">"18004377950"</span><span class="p">,</span>
+    <span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1">// Call with preferred audio codecs</span>
+<span class="k">let</span> <span class="nv">preferredCodecs</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="kt">TxCodecCapability</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="s">"audio/opus"</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="mi">48000</span><span class="p">,</span> <span class="nv">channels</span><span class="p">:</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="kt">TxCodecCapability</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="s">"audio/PCMU"</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="mi">8000</span><span class="p">,</span> <span class="nv">channels</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span>
+<span class="p">]</span>
+<span class="k">let</span> <span class="nv">call</span> <span class="o">=</span> <span class="k">try</span> <span class="n">telnyxClient</span><span class="o">.</span><span class="nf">newCall</span><span class="p">(</span>
+    <span class="nv">callerName</span><span class="p">:</span> <span class="s">"John Doe"</span><span class="p">,</span>
+    <span class="nv">callerNumber</span><span class="p">:</span> <span class="s">"1234567890"</span><span class="p">,</span>
+    <span class="nv">destinationNumber</span><span class="p">:</span> <span class="s">"18004377950"</span><span class="p">,</span>
+    <span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">(),</span>
+    <span class="nv">preferredCodecs</span><span class="p">:</span> <span class="n">preferredCodecs</span>
+<span class="p">)</span>
+
+<span class="c1">// Call with codecs and debug mode enabled</span>
+<span class="k">let</span> <span class="nv">call</span> <span class="o">=</span> <span class="k">try</span> <span class="n">telnyxClient</span><span class="o">.</span><span class="nf">newCall</span><span class="p">(</span>
+    <span class="nv">callerName</span><span class="p">:</span> <span class="s">"John Doe"</span><span class="p">,</span>
+    <span class="nv">callerNumber</span><span class="p">:</span> <span class="s">"1234567890"</span><span class="p">,</span>
+    <span class="nv">destinationNumber</span><span class="p">:</span> <span class="s">"18004377950"</span><span class="p">,</span>
+    <span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">(),</span>
+    <span class="nv">customHeaders</span><span class="p">:</span> <span class="p">[</span><span class="s">"X-Custom-Header"</span><span class="p">:</span> <span class="s">"Value"</span><span class="p">],</span>
+    <span class="nv">preferredCodecs</span><span class="p">:</span> <span class="n">preferredCodecs</span><span class="p">,</span>
+    <span class="nv">debug</span><span class="p">:</span> <span class="kc">true</span>
+<span class="p">)</span>
+</code></pre>
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     <ul>
@@ -1239,6 +1298,7 @@ message is sent once the connection is established.</p>
                     <span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">,</span>
                     <span class="nv">clientState</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
                     <span class="nv">customHeaders</span><span class="p">:[</span><span class="kt">String</span><span class="p">:</span><span class="kt">String</span><span class="p">]</span> <span class="o">=</span> <span class="p">[:],</span>
+                    <span class="nv">preferredCodecs</span><span class="p">:</span> <span class="p">[</span><span class="kt"><a href="../Structs/TxCodecCapability.html">TxCodecCapability</a></span><span class="p">]?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
                     <span class="nv">debug</span><span class="p">:</span><span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/Call.html">Call</a></span></code></pre>
 
                         </div>
@@ -1315,8 +1375,37 @@ message is sent once the connection is established.</p>
                               </td>
                               <td>
                                 <div>
-                                  <p>(optional) Custom Headers to be passed over webRTC Messages, should be in the
-format <code>X-key:Value</code> <code>X</code> is required for headers to be passed.</p>
+                                  <p>(optional) Custom Headers to be passed over webRTC Messages.
+Headers should be in the format <code>X-key:Value</code> where <code>X-</code> prefix is required for custom headers.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>preferredCodecs</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(optional) Array of preferred audio codecs in priority order.
+The SDK will attempt to use these codecs in the specified order during negotiation.
+If none of the preferred codecs are available, WebRTC will fall back to its default codec selection.
+Use <code><a href="../Classes/TxClient.html#/s:9TelnyxRTC8TxClientC23getSupportedAudioCodecsSayAA0C15CodecCapabilityVGyF">getSupportedAudioCodecs()</a></code> to retrieve available codecs before setting preferences.
+See the <a href="https://github.com/team-telnyx/telnyx-webrtc-ios#preferred-audio-codecs">Preferred Audio Codecs Guide</a> for more information.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>debug</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(optional) Enable debug mode for call quality metrics and WebRTC statistics.
+When enabled, real-time call quality metrics will be available through the call&rsquo;s <code>onCallQualityChange</code> callback.</p>
                                 </div>
                               </td>
                             </tr>
@@ -1326,6 +1415,47 @@ format <code>X-key:Value</code> <code>X</code> is required for headers to be pas
                       <div>
                         <h4>Return Value</h4>
                         <p>The call that has been created</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC8TxClientC23getSupportedAudioCodecsSayAA0C15CodecCapabilityVGyF"></a>
+                    <a name="//apple_ref/swift/Method/getSupportedAudioCodecs()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxClientC23getSupportedAudioCodecsSayAA0C15CodecCapabilityVGyF">getSupportedAudioCodecs()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns the list of supported audio codecs available for use in calls</p>
+
+<p>This method reuses the shared RTCPeerConnectionFactory instance for efficiency.
+The codec list is queried from WebRTC&rsquo;s native capabilities and remains consistent
+throughout the application lifecycle.</p>
+<h3 id='example' class='heading'>Example:</h3>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">supportedCodecs</span> <span class="o">=</span> <span class="n">telnyxClient</span><span class="o">.</span><span class="nf">getSupportedAudioCodecs</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">codec</span> <span class="k">in</span> <span class="n">supportedCodecs</span> <span class="p">{</span>
+    <span class="nf">print</span><span class="p">(</span><span class="s">"Codec: </span><span class="se">\(</span><span class="n">codec</span><span class="o">.</span><span class="n">mimeType</span><span class="se">)</span><span class="s">, Clock Rate: </span><span class="se">\(</span><span class="n">codec</span><span class="o">.</span><span class="n">clockRate</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getSupportedAudioCodecs</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="kt"><a href="../Structs/TxCodecCapability.html">TxCodecCapability</a></span><span class="p">]</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Array of TxCodecCapability objects representing available audio codecs</p>
                       </div>
                     </section>
                   </div>
@@ -1494,8 +1624,8 @@ This function will be executed when the app was closed and the user executes an 
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-10-08)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-10-21)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.4</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>
     </div>

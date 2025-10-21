@@ -57,6 +57,13 @@
       "warning": "undocumented"
     },
     {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxCodecCapability.swift",
+      "line": 34,
+      "symbol": "TxCodecCapability.init(mimeType:clockRate:channels:sdpFmtpLine:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxConfig.swift",
       "line": 11,
       "symbol": "PushEnvironment",
@@ -635,13 +642,6 @@
       "line": 55,
       "symbol": "CallState.Reason.serverError",
       "symbol_kind": "source.lang.swift.decl.enumelement",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Stats/WebRTCStatsReporter.swift",
-      "line": 551,
-      "symbol": "WebRTCStatsReporter.dispose()",
-      "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"
     }
   ],
