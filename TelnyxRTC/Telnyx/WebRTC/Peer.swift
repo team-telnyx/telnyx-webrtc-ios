@@ -643,13 +643,23 @@ extension Peer {
                 
                 // Configure WebRTC audio session
                 let configuration = RTCAudioSessionConfiguration.webRTC()
-                configuration.categoryOptions = [
+
+                // Build category options - include .defaultToSpeaker if speaker should be active
+                var categoryOptions: AVAudioSession.CategoryOptions = [
                     .duckOthers,
                     .allowBluetooth,
                 ]
-                
+
+                if preserveSpeakerState && wasSpeakerActive {
+                    categoryOptions.insert(.defaultToSpeaker)
+                    Logger.log.i(message: "[ACM_RESET] Peer:: Adding .defaultToSpeaker to audio session configuration (wasSpeakerActive: \(wasSpeakerActive))")
+                }
+
+                configuration.categoryOptions = categoryOptions
+
                 do {
                     try rtcAudioSession.setConfiguration(configuration)
+                    Logger.log.i(message: "[ACM_RESET] Peer:: RTCAudioSession configured with options: \(categoryOptions)")
                 } catch {
                     Logger.log.w(message: "[ACM_RESET] Peer:: Failed to set RTCAudioSession configuration on attempt \(attempt): \(error.localizedDescription)")
                 }
