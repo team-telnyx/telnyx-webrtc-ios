@@ -95,9 +95,9 @@ extension UserDefaults {
     }
 
     func getUseTrickleIce() -> Bool {
-        // Default to false if not set
+        // Default to true if not set (enabling Trickle ICE by default)
         if object(forKey: UserDefaultsKey.useTrickleIce.rawValue) == nil {
-            return false
+            return true
         }
         return bool(forKey: UserDefaultsKey.useTrickleIce.rawValue)
     }

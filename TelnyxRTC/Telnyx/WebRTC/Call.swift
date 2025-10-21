@@ -492,6 +492,7 @@ public class Call {
         // - Create the reporter to send the startReporting message before creating the peer connection
         // - Start the reporter once the peer connection is created
         self.configureStatsReporter()
+        Logger.log.i(message: "[TRICKLE-ICE] Call:: Creating Peer for outbound call with useTrickleIce = \(self.useTrickleIce)")
         self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate, useTrickleIce: self.useTrickleIce)
         self.startStatsReporter()
         self.peer?.delegate = self
@@ -679,6 +680,7 @@ extension Call {
         }
         self.answerCustomHeaders = customHeaders
         self.configureStatsReporter()
+        Logger.log.i(message: "[TRICKLE-ICE] Call:: Creating Peer for inbound call answer with useTrickleIce = \(self.useTrickleIce)")
         self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate, useTrickleIce: self.useTrickleIce)
         self.enableQualityMetrics = debug
         self.startStatsReporter()

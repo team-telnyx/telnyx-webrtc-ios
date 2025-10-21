@@ -394,12 +394,14 @@ extension HomeViewController {
                                 sipCredential: SipCredential?,
                                 deviceToken: String?) throws -> TxConfig {
         var txConfig: TxConfig?
-        
+
         // Get the forceRelayCandidate, webrtcStats, sendWebRTCStatsViaSocket, and useTrickleIce settings from UserDefaults
         let forceRelayCandidate = userDefaults.getForceRelayCandidate()
         let webrtcStats = userDefaults.getWebRTCStats()
         let sendWebRTCStatsViaSocket = userDefaults.getSendWebRTCStatsViaSocket()
         let useTrickleIce = userDefaults.getUseTrickleIce()
+
+        print("[TRICKLE-ICE] HomeViewController:: Creating TxConfig with useTrickleIce = \(useTrickleIce)")
 
         // Set the connection configuration object.
         // We can login with a user token: https://developers.telnyx.com/docs/v2/webrtc/quickstart
