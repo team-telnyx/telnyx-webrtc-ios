@@ -268,6 +268,11 @@ public class Call {
     /// This is independent of stats collection - stats can be collected without being sent via socket.
     public internal(set) var sendWebRTCStatsViaSocket: Bool = false
     
+    /// Controls whether the SDK should use trickle ICE for WebRTC signaling.
+    /// When enabled, ICE candidates are sent individually as they are discovered,
+    /// rather than waiting for all candidates to be gathered before sending the offer/answer.
+    public internal(set) var useTrickleIce: Bool = false
+    
     /// Controls whether the SDK should force TURN relay for peer connections.
     /// When enabled, the SDK will only use TURN relay candidates for ICE gathering,
     /// which prevents the "local network access" permission popup from appearing.
@@ -355,7 +360,8 @@ public class Call {
          debug: Bool = false,
          forceRelayCandidate: Bool = false,
          enableQualityMetrics: Bool = false,
-         sendWebRTCStatsViaSocket: Bool = false
+         sendWebRTCStatsViaSocket: Bool = false,
+         useTrickleIce: Bool = false
     ) {
         if isAttach {
             self.direction = CallDirection.ATTACH
@@ -393,6 +399,7 @@ public class Call {
         self.forceRelayCandidate = forceRelayCandidate
         self.enableQualityMetrics = enableQualityMetrics
         self.sendWebRTCStatsViaSocket = sendWebRTCStatsViaSocket
+        self.useTrickleIce = useTrickleIce
     }
     
     //Contructor for attachCalls
@@ -406,7 +413,8 @@ public class Call {
          iceServers: [RTCIceServer],
          debug: Bool = false,
          forceRelayCandidate: Bool = false,
-         sendWebRTCStatsViaSocket: Bool = false) {
+         sendWebRTCStatsViaSocket: Bool = false,
+         useTrickleIce: Bool = false) {
         self.direction = CallDirection.ATTACH
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
@@ -426,6 +434,7 @@ public class Call {
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
         self.sendWebRTCStatsViaSocket = sendWebRTCStatsViaSocket
+        self.useTrickleIce = useTrickleIce
     }
 
     /// Constructor for outgoing calls
@@ -437,7 +446,8 @@ public class Call {
          ringbackTone: String? = nil,
          iceServers: [RTCIceServer],
          debug: Bool = false,
-         forceRelayCandidate: Bool = false) {
+         forceRelayCandidate: Bool = false,
+         useTrickleIce: Bool = false) {
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
         //this is the signaling server socket
@@ -455,6 +465,7 @@ public class Call {
         self.updateCallState(callState: .NEW)
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
+        self.useTrickleIce = useTrickleIce
     }
 
     // MARK: - Private functions
@@ -481,7 +492,7 @@ public class Call {
         // - Create the reporter to send the startReporting message before creating the peer connection
         // - Start the reporter once the peer connection is created
         self.configureStatsReporter()
-        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate)
+        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate, useTrickleIce: self.useTrickleIce)
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
@@ -668,7 +679,7 @@ extension Call {
         }
         self.answerCustomHeaders = customHeaders
         self.configureStatsReporter()
-        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate)
+        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate, useTrickleIce: self.useTrickleIce)
         self.enableQualityMetrics = debug
         self.startStatsReporter()
         self.peer?.delegate = self
@@ -908,7 +919,8 @@ extension Call : PeerDelegate {
                                               sdp: sdp.sdp,
                                               callInfo: callInfo,
                                               callOptions: callOptions,
-                                              customHeaders: self.inviteCustomHeaders ?? [:])
+                                              customHeaders: self.inviteCustomHeaders ?? [:],
+                                              trickle: self.useTrickleIce)
             
             let message = inviteMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
@@ -931,7 +943,8 @@ extension Call : PeerDelegate {
             //Build the telnyx_rtc.answer message and send it
 
             let answerMessage = AnswerMessage(sessionId: sessionId, sdp: sdp.sdp, callInfo: callInfo, callOptions: callOptions,
-                                              customHeaders: self.answerCustomHeaders ?? [:]
+                                              customHeaders: self.answerCustomHeaders ?? [:],
+                                              trickle: self.useTrickleIce
             )
             let message = answerMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)

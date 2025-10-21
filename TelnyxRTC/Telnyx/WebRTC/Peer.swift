@@ -43,7 +43,9 @@ class Peer : NSObject, WebRTCEventHandler {
     
     /// Socket connection for signaling with the WebRTC server
     var socket: Socket?
-
+    
+    /// Controls whether trickle ICE is enabled for this peer connection
+    var useTrickleIce: Bool = false
 
     private let mediaConstrains = [kRTCMediaConstraintsOfferToReceiveAudio: kRTCMediaConstraintsValueTrue,
                                    kRTCMediaConstraintsOfferToReceiveVideo: kRTCMediaConstraintsValueFalse]
@@ -131,7 +133,8 @@ class Peer : NSObject, WebRTCEventHandler {
 
     required init(iceServers: [RTCIceServer],
                   isAttach: Bool = false,
-                  forceRelayCandidate: Bool = false) {
+                  forceRelayCandidate: Bool = false,
+                  useTrickleIce: Bool = false) {
         let config = RTCConfiguration()
         config.iceServers = iceServers
 
@@ -152,6 +155,7 @@ class Peer : NSObject, WebRTCEventHandler {
         self.connection = Peer.factory.peerConnection(with: config, constraints: constraints, delegate: nil)
 
         super.init()
+        self.useTrickleIce = useTrickleIce
         self.createMediaSenders()
         if (!isAttach) {
             self.configureAudioSession()
@@ -722,6 +726,11 @@ extension Peer : RTCPeerConnectionDelegate {
         onIceGatheringChange?(newState)
         Logger.log.s(message: "Peer:: connection didChange ICE gathering state: [\(newState.telnyx_to_string().uppercased())]")
         
+        // Send end of candidates signal when ICE gathering is complete for trickle ICE
+        if newState == .complete && useTrickleIce {
+            sendEndOfCandidates()
+        }
+        
         // Log ICE gathering state changes during ICE restart
         if self.isIceRestarting {
             // If ICE gathering is complete during ICE restart, trigger completion
@@ -760,6 +769,11 @@ extension Peer : RTCPeerConnectionDelegate {
         // We call the callback when the iceCandidate is added
         onIceCandidate?(candidate)
 
+        // Handle trickle ICE - send candidates individually as they are discovered
+        if useTrickleIce {
+            sendTrickleCandidate(candidate)
+        }
+
         // Note: We don't manually add ICE candidates with connection.add() because:
         // 1. For offers, candidates are automatically included in the local SDP
         // 2. For answers, candidates are automatically included in the answer SDP
@@ -769,6 +783,7 @@ extension Peer : RTCPeerConnectionDelegate {
         gatheredICECandidates.append(candidate.serverUrl ?? "")
 
         // Start negotiation if an ICE candidate from the configured STUN or TURN server is gathered.
+        // For trickle ICE, we still need to start negotiation but candidates are sent separately
         if gatheredICECandidates.contains(InternalConfig.stunServer) ||
             gatheredICECandidates.contains(InternalConfig.turnServer) {
             
@@ -779,6 +794,39 @@ extension Peer : RTCPeerConnectionDelegate {
     func peerConnection(_ peerConnection: RTCPeerConnection, didRemove candidates: [RTCIceCandidate]) {
         onRemoveIceCandidates?(candidates)
         Logger.log.i(message: "Peer:: connection didRemove [RTCIceCandidate]: \(candidates)")
+    }
+    
+    /// Sends individual ICE candidate via trickle ICE signaling
+    private func sendTrickleCandidate(_ candidate: RTCIceCandidate) {
+        guard let socket = socket else {
+            Logger.log.w(message: "Peer:: Cannot send trickle candidate - socket is nil")
+            return
+        }
+        
+        let candidateMessage = CandidateMessage(
+            candidate: candidate.sdp,
+            sdpMid: candidate.sdpMid ?? "",
+            sdpMLineIndex: Int(candidate.sdpMLineIndex)
+        )
+        
+        if let message = candidateMessage.encode() {
+            socket.sendMessage(message: message)
+            Logger.log.s(message: "Peer:: Sent trickle candidate: \(message)")
+        }
+    }
+    
+    /// Sends end of candidates signal for trickle ICE
+    private func sendEndOfCandidates() {
+        guard let socket = socket, useTrickleIce else {
+            return
+        }
+        
+        let endOfCandidatesMessage = EndOfCandidatesMessage()
+        
+        if let message = endOfCandidatesMessage.encode() {
+            socket.sendMessage(message: message)
+            Logger.log.s(message: "Peer:: Sent end of candidates: \(message)")
+        }
     }
     
     func peerConnection(_ peerConnection: RTCPeerConnection, didOpen dataChannel: RTCDataChannel) {

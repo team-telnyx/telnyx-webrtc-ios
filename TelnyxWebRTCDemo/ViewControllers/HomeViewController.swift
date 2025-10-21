@@ -260,6 +260,13 @@ extension HomeViewController {
             self.userDefaults.saveSendWebRTCStatsViaSocket(!currentSendWebRTCStatsViaSocket)
         }))
 
+        // Trickle ICE toggle
+        let currentUseTrickleIce = userDefaults.getUseTrickleIce()
+        let trickleIceTitle = currentUseTrickleIce ? "Disable Trickle ICE" : "Enable Trickle ICE"
+        alert.addAction(UIAlertAction(title: trickleIceTitle, style: .default, handler: { _ in
+            self.userDefaults.saveUseTrickleIce(!currentUseTrickleIce)
+        }))
+
         alert.addAction(UIAlertAction(title: "Copy APNS token", style: .default, handler: { _ in
             // To copy the APNS push token to pasteboard
             let token = UserDefaults().getPushToken()
@@ -388,10 +395,11 @@ extension HomeViewController {
                                 deviceToken: String?) throws -> TxConfig {
         var txConfig: TxConfig?
         
-        // Get the forceRelayCandidate, webrtcStats, and sendWebRTCStatsViaSocket settings from UserDefaults
+        // Get the forceRelayCandidate, webrtcStats, sendWebRTCStatsViaSocket, and useTrickleIce settings from UserDefaults
         let forceRelayCandidate = userDefaults.getForceRelayCandidate()
         let webrtcStats = userDefaults.getWebRTCStats()
         let sendWebRTCStatsViaSocket = userDefaults.getSendWebRTCStatsViaSocket()
+        let useTrickleIce = userDefaults.getUseTrickleIce()
 
         // Set the connection configuration object.
         // We can login with a user token: https://developers.telnyx.com/docs/v2/webrtc/quickstart
@@ -411,7 +419,9 @@ extension HomeViewController {
                                 // Enable Call Quality Metrics
                                 enableQualityMetrics: false,
                                 // Send WebRTC Stats Via Socket
-                                sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket)
+                                sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket,
+                                // Use Trickle ICE
+                                useTrickleIce: useTrickleIce)
         } else if let credential = sipCredential {
             // To obtain SIP credentials, please go to https://portal.telnyx.com
             txConfig = TxConfig(sipUser: credential.username,
@@ -429,7 +439,9 @@ extension HomeViewController {
                                 // Enable Call Quality Metrics
                                 enableQualityMetrics: false,
                                 // Send WebRTC Stats Via Socket
-                                sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket)
+                                sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket,
+                                // Use Trickle ICE
+                                useTrickleIce: useTrickleIce)
         }
 
         guard let config = txConfig else {

@@ -17,6 +17,7 @@ enum UserDefaultsKey: String {
     case forceRelayCandidate = "FORCE_RELAY_CANDIDATE"
     case webrtcStats = "WEBRTC_STATS"
     case sendWebRTCStatsViaSocket = "SEND_WEBRTC_STATS_VIA_SOCKET"
+    case useTrickleIce = "USE_TRICKLE_ICE"
     case preferredAudioCodecs = "PREFERRED_AUDIO_CODECS"
 }
 
@@ -86,6 +87,19 @@ extension UserDefaults {
             return false
         }
         return bool(forKey: UserDefaultsKey.sendWebRTCStatsViaSocket.rawValue)
+    }
+
+    // MARK: - Use Trickle ICE
+    func saveUseTrickleIce(_ enabled: Bool) {
+        set(enabled, forKey: UserDefaultsKey.useTrickleIce.rawValue)
+    }
+
+    func getUseTrickleIce() -> Bool {
+        // Default to false if not set
+        if object(forKey: UserDefaultsKey.useTrickleIce.rawValue) == nil {
+            return false
+        }
+        return bool(forKey: UserDefaultsKey.useTrickleIce.rawValue)
     }
 
     // MARK: - Preferred Audio Codecs
