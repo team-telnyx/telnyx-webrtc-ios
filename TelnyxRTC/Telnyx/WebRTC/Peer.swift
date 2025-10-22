@@ -507,7 +507,8 @@ extension Peer {
     /// - iOS AudioUnit/AVAudioSession buffering can remain in a state with large buffers
     /// 
     /// - Parameter preserveSpeakerState: Whether to preserve the current speakerphone state during reset
-    func resetAudioDeviceModule(preserveSpeakerState: Bool = true) {
+    /// - Parameter forceSpeakerState: Optional forced speaker state to use instead of detecting current state
+    func resetAudioDeviceModule(preserveSpeakerState: Bool = true, forceSpeakerState: Bool? = nil) {
         guard let connection = self.connection else {
             Logger.log.w(message: "[ACM_RESET] Peer:: resetAudioDeviceModule() - No active connection")
             return
@@ -525,9 +526,16 @@ extension Peer {
         // Save current audio route state before reset if preservation is enabled
         var wasSpeakerActive = false
         if preserveSpeakerState {
-            let currentRoute = AVAudioSession.sharedInstance().currentRoute
-            wasSpeakerActive = currentRoute.outputs.contains { $0.portType == .builtInSpeaker }
-            Logger.log.i(message: "[ACM_RESET] Peer:: Preserving audio route state - Speaker was active: \(wasSpeakerActive)")
+            if let forcedState = forceSpeakerState {
+                // Use the forced speaker state (saved at network change time)
+                wasSpeakerActive = forcedState
+                Logger.log.i(message: "[ACM_RESET] Peer:: Using forced speaker state from network change: \(wasSpeakerActive)")
+            } else {
+                // Detect current speaker state
+                let currentRoute = AVAudioSession.sharedInstance().currentRoute
+                wasSpeakerActive = currentRoute.outputs.contains { $0.portType == .builtInSpeaker }
+                Logger.log.i(message: "[ACM_RESET] Peer:: Detected current speaker state: \(wasSpeakerActive)")
+            }
         }
         
         // For Unified Plan, get audio tracks from transceivers
@@ -635,13 +643,23 @@ extension Peer {
                 
                 // Configure WebRTC audio session
                 let configuration = RTCAudioSessionConfiguration.webRTC()
-                configuration.categoryOptions = [
+
+                // Build category options - include .defaultToSpeaker if speaker should be active
+                var categoryOptions: AVAudioSession.CategoryOptions = [
                     .duckOthers,
                     .allowBluetooth,
                 ]
-                
+
+                if preserveSpeakerState && wasSpeakerActive {
+                    categoryOptions.insert(.defaultToSpeaker)
+                    Logger.log.i(message: "[ACM_RESET] Peer:: Adding .defaultToSpeaker to audio session configuration (wasSpeakerActive: \(wasSpeakerActive))")
+                }
+
+                configuration.categoryOptions = categoryOptions
+
                 do {
                     try rtcAudioSession.setConfiguration(configuration)
+                    Logger.log.i(message: "[ACM_RESET] Peer:: RTCAudioSession configured with options: \(categoryOptions)")
                 } catch {
                     Logger.log.w(message: "[ACM_RESET] Peer:: Failed to set RTCAudioSession configuration on attempt \(attempt): \(error.localizedDescription)")
                 }
