@@ -19,6 +19,9 @@ enum UserDefaultsKey: String {
     case sendWebRTCStatsViaSocket = "SEND_WEBRTC_STATS_VIA_SOCKET"
     case useTrickleIce = "USE_TRICKLE_ICE"
     case preferredAudioCodecs = "PREFERRED_AUDIO_CODECS"
+    case customServerEnabled = "CUSTOM_SERVER_ENABLED"
+    case customServerHost = "CUSTOM_SERVER_HOST"
+    case customServerPort = "CUSTOM_SERVER_PORT"
 }
 
 extension UserDefaults {
@@ -91,15 +94,24 @@ extension UserDefaults {
 
     // MARK: - Use Trickle ICE
     func saveUseTrickleIce(_ enabled: Bool) {
+        print("[TRICKLE-ICE] UserDefaults:: saveUseTrickleIce(\(enabled))")
         set(enabled, forKey: UserDefaultsKey.useTrickleIce.rawValue)
+        synchronize() // Force synchronization to ensure value is written immediately
+        print("[TRICKLE-ICE] UserDefaults:: Value saved and synchronized")
     }
 
     func getUseTrickleIce() -> Bool {
+        let storedObject = object(forKey: UserDefaultsKey.useTrickleIce.rawValue)
+
         // Default to true if not set (enabling Trickle ICE by default)
-        if object(forKey: UserDefaultsKey.useTrickleIce.rawValue) == nil {
+        if storedObject == nil {
+            print("[TRICKLE-ICE] UserDefaults:: getUseTrickleIce() - No stored value, returning default: true")
             return true
         }
-        return bool(forKey: UserDefaultsKey.useTrickleIce.rawValue)
+
+        let value = bool(forKey: UserDefaultsKey.useTrickleIce.rawValue)
+        print("[TRICKLE-ICE] UserDefaults:: getUseTrickleIce() - Stored value: \(value)")
+        return value
     }
 
     // MARK: - Preferred Audio Codecs
@@ -120,6 +132,31 @@ extension UserDefaults {
 
     func deletePreferredAudioCodecs() {
         removeObject(forKey: UserDefaultsKey.preferredAudioCodecs.rawValue)
+    }
+
+    // MARK: - Custom Server Configuration
+    func saveCustomServerEnabled(_ enabled: Bool) {
+        set(enabled, forKey: UserDefaultsKey.customServerEnabled.rawValue)
+    }
+
+    func getCustomServerEnabled() -> Bool {
+        return bool(forKey: UserDefaultsKey.customServerEnabled.rawValue)
+    }
+
+    func saveCustomServerHost(_ host: String) {
+        set(host, forKey: UserDefaultsKey.customServerHost.rawValue)
+    }
+
+    func getCustomServerHost() -> String {
+        return string(forKey: UserDefaultsKey.customServerHost.rawValue) ?? ""
+    }
+
+    func saveCustomServerPort(_ port: String) {
+        set(port, forKey: UserDefaultsKey.customServerPort.rawValue)
+    }
+
+    func getCustomServerPort() -> String {
+        return string(forKey: UserDefaultsKey.customServerPort.rawValue) ?? ""
     }
 }
 

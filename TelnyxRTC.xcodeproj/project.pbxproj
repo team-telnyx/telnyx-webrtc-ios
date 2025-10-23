@@ -90,6 +90,7 @@
 		9986703E2D3EC7A3001E1D01 /* View+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9986703D2D3EC7A0001E1D01 /* View+Extensions.swift */; };
 		998670402D40849C001E1D01 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9986703F2D408493001E1D01 /* HomeViewController.swift */; };
 		998670422D4096AA001E1D01 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998670412D4096A7001E1D01 /* HomeView.swift */; };
+		99A5A1032EAA5A0B006F3ED6 /* CustomServerConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A5A1022EAA5A0B006F3ED6 /* CustomServerConfigView.swift */; };
 		99ADA94E2D47C9B6000C956A /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA94C2D47C9B6000C956A /* HomeViewModel.swift */; };
 		99ADA9A82D4878FA000C956A /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9A72D4878ED000C956A /* ProfileView.swift */; };
 		99ADA9AA2D487ACC000C956A /* CallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9A92D487AC4000C956A /* CallView.swift */; };
@@ -292,6 +293,7 @@
 		9986703D2D3EC7A0001E1D01 /* View+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extensions.swift"; sourceTree = "<group>"; };
 		9986703F2D408493001E1D01 /* HomeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
 		998670412D4096A7001E1D01 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		99A5A1022EAA5A0B006F3ED6 /* CustomServerConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomServerConfigView.swift; sourceTree = "<group>"; };
 		99ADA94C2D47C9B6000C956A /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
 		99ADA9A72D4878ED000C956A /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		99ADA9A92D487AC4000C956A /* CallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallView.swift; sourceTree = "<group>"; };
@@ -595,6 +597,7 @@
 		B309D1FB25F028F100A2AADF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				99A5A1022EAA5A0B006F3ED6 /* CustomServerConfigView.swift */,
 				990FC0492E99387C009344DC /* CodecSelectionView.swift */,
 				99D7C09B2E1E32DA00D47CE6 /* AudioWaveformView.swift */,
 				3BE7C7622E04292300FF74A1 /* RegionMenuView.swift */,
@@ -1250,6 +1253,7 @@
 				99ADA9AA2D487ACC000C956A /* CallView.swift in Sources */,
 				99ADA9B02D4886E7000C956A /* CallViewModel.swift in Sources */,
 				9982C0412D53977B00FA91B4 /* TestConfiguration.swift in Sources */,
+				99A5A1032EAA5A0B006F3ED6 /* CustomServerConfigView.swift in Sources */,
 				9982C0422D53977B00FA91B4 /* AccessibilityIdentifiers.swift in Sources */,
 				9906F8C92E3CEA4600A02FE7 /* AIAssistantView.swift in Sources */,
 				3B7D29A52DF1CEA00094EB90 /* CallDirection.swift in Sources */,
