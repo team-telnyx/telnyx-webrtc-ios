@@ -497,6 +497,7 @@ public class Call {
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
+        self.peer?.sessionId = self.sessionId
         self.peer?.offer(preferredCodecs: preferredCodecs, completion: { (sdp, error)  in
 
             if let error = error {
@@ -686,6 +687,7 @@ extension Call {
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
+        self.peer?.sessionId = self.sessionId
         self.incomingOffer(sdp: remoteSdp)
         self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", completion: { (sdp, error)  in
 
@@ -726,6 +728,7 @@ extension Call {
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
+        self.peer?.sessionId = self.sessionId
         self.incomingOffer(sdp: remoteSdp)
         self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", completion: { (sdp, error)  in
 

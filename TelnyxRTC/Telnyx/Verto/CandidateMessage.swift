@@ -11,20 +11,22 @@ import Foundation
 class CandidateMessage : Message {
 
     init(callId: String,
+         sessionId: String,
          candidate: String,
          sdpMid: String,
          sdpMLineIndex: Int32) {
-        
+
         var params = [String: Any]()
         var dialogParams = [String: Any]()
-        
+
         dialogParams["callID"] = callId
-        
+
+        params["sessid"] = sessionId
         params["candidate"] = candidate
         params["sdpMid"] = sdpMid
         params["sdpMLineIndex"] = sdpMLineIndex
         params["dialogParams"] = dialogParams
-        
+
         super.init(params, method: .CANDIDATE)
     }
 }

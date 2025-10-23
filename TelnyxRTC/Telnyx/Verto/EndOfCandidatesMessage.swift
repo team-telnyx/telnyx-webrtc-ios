@@ -10,15 +10,16 @@ import Foundation
 
 class EndOfCandidatesMessage : Message {
 
-    init(callId: String) {
-        
+    init(callId: String, sessionId: String) {
+
         var params = [String: Any]()
         var dialogParams = [String: Any]()
-        
+
         dialogParams["callID"] = callId
-        
+
+        params["sessid"] = sessionId
         params["dialogParams"] = dialogParams
-        
+
         super.init(params, method: .END_OF_CANDIDATES)
     }
 }
