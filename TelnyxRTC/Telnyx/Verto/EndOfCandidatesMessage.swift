@@ -17,7 +17,6 @@ class EndOfCandidatesMessage : Message {
 
         dialogParams["callID"] = callId
 
-        params["sessid"] = sessionId
         params["dialogParams"] = dialogParams
 
         super.init(params, method: .END_OF_CANDIDATES)

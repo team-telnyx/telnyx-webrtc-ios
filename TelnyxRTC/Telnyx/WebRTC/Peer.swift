@@ -45,11 +45,8 @@ class Peer : NSObject, WebRTCEventHandler {
     /// Collection of gathered ICE candidates during connection setup
     internal var gatheredICECandidates: [String] = []
 
-    /// Queue of pending ICE candidates waiting to be sent (used when callLegID is not yet available)
-    private var pendingTrickleCandidates: [RTCIceCandidate] = []
-
-    /// Flag to track if ICE gathering has completed (used to send endOfCandidates when callLegID becomes available)
-    private var iceGatheringCompleted: Bool = false
+    /// Note: Queue system removed - candidates are now sent immediately using callId
+    /// from the INVITE message instead of waiting for callLegID from backend
 
     /// Socket connection for signaling with the WebRTC server
     var socket: Socket?
@@ -91,6 +88,13 @@ class Peer : NSObject, WebRTCEventHandler {
     private var videoCapturer: RTCVideoCapturer?
     private var localVideoTrack: RTCVideoTrack?
     private var remoteVideoTrack: RTCVideoTrack?
+
+    /// The call ID used in the INVITE message (callInfo.callId from Call)
+    /// This should be used for trickle ICE messages to match the INVITE
+    internal var callId: String?
+
+    /// The call leg ID received from backend (telnyxLegId from Call)
+    /// Only used for backward compatibility - new code should use callId
     internal var callLegID: String?
 
     //Data channel
@@ -417,11 +421,9 @@ class Peer : NSObject, WebRTCEventHandler {
 
         let constrains = RTCMediaConstraints(mandatoryConstraints: self.mediaConstrains,
                                              optionalConstraints: nil)
+        // Store callLegID for backward compatibility, but it's no longer used for trickle ICE
         self.callLegID = callLegId
-        Logger.log.i(message: "[TRICKLE-ICE] Peer:: answer() - callLegID set to \(callLegId), flushing pending candidates")
-
-        // Flush any pending trickle ICE candidates now that we have the callLegID
-        self.flushPendingTrickleCandidates()
+        Logger.log.i(message: "[TRICKLE-ICE] Peer:: answer() - callLegID received: \(callLegId) (note: using callId for trickle ICE)")
 
         self.connection?.answer(for: constrains) { (sdp, error) in
 
@@ -488,14 +490,7 @@ class Peer : NSObject, WebRTCEventHandler {
             self.negotiationTimer = nil
             DispatchQueue.main.async {
                 self.negotiationTimer = Timer.scheduledTimer(withTimeInterval: self.TRICKLE_ICE_TIMEOUT, repeats: false) { timer in
-                    // Check if we already sent endOfCandidates
-                    if self.iceGatheringCompleted {
-                        Logger.log.i(message: "[TRICKLE-ICE] Peer:: endOfCandidates already sent, skipping")
-                        return
-                    }
-
                     self.negotiationTimer?.invalidate()
-                    self.iceGatheringCompleted = true
 
                     Logger.log.i(message: "[TRICKLE-ICE] Peer:: No more candidates for \(self.TRICKLE_ICE_TIMEOUT)s - sending endOfCandidates")
                     self.sendEndOfCandidates()
@@ -841,12 +836,11 @@ extension Peer : RTCPeerConnectionDelegate {
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {
         onIceGatheringChange?(newState)
-        Logger.log.s(message: "[TRICKLE-ICE] Peer:: ICE gathering state changed to: [\(newState.telnyx_to_string().uppercased())] (useTrickleIce: \(useTrickleIce), callLegID: \(callLegID ?? "nil"))")
+        Logger.log.s(message: "[TRICKLE-ICE] Peer:: ICE gathering state changed to: [\(newState.telnyx_to_string().uppercased())] (useTrickleIce: \(useTrickleIce), callId: \(callId ?? "nil"))")
 
         // Send end of candidates signal when ICE gathering is complete for trickle ICE
         if newState == .complete && useTrickleIce {
-            iceGatheringCompleted = true
-            Logger.log.i(message: "[TRICKLE-ICE] Peer:: ICE gathering COMPLETE - attempting to send end of candidates signal")
+            Logger.log.i(message: "[TRICKLE-ICE] Peer:: ICE gathering COMPLETE - sending end of candidates signal")
             sendEndOfCandidates()
         }
 
@@ -945,17 +939,17 @@ extension Peer : RTCPeerConnectionDelegate {
             return
         }
 
-        // If callLegID is not available yet, queue the candidate for later
-        guard let callId = callLegID else {
-            Logger.log.i(message: "[TRICKLE-ICE] Peer:: callLegID not available yet, queueing candidate (queue size: \(pendingTrickleCandidates.count + 1))")
-            pendingTrickleCandidates.append(candidate)
+        // Use callId (from INVITE) instead of callLegID (from backend response)
+        // This ensures the candidate messages use the same callID as the INVITE message
+        guard let candidateCallId = callId else {
+            Logger.log.w(message: "[TRICKLE-ICE] Peer:: Cannot send trickle candidate - callId is nil")
             return
         }
 
-        Logger.log.i(message: "[TRICKLE-ICE] Peer:: Preparing to send candidate - callId: \(callId), sessionId: \(sessionId), sdpMid: \(candidate.sdpMid ?? "nil"), sdpMLineIndex: \(candidate.sdpMLineIndex)")
+        Logger.log.i(message: "[TRICKLE-ICE] Peer:: Preparing to send candidate - callId: \(candidateCallId), sessionId: \(sessionId), sdpMid: \(candidate.sdpMid ?? "nil"), sdpMLineIndex: \(candidate.sdpMLineIndex)")
 
         let candidateMessage = CandidateMessage(
-            callId: callId,
+            callId: candidateCallId,
             sessionId: sessionId,
             candidate: candidate.sdp,
             sdpMid: candidate.sdpMid ?? "",
@@ -971,37 +965,11 @@ extension Peer : RTCPeerConnectionDelegate {
         }
     }
 
-    /// Sends all pending trickle ICE candidates that were queued before callLegID was available
-    /// This should be called after the callLegID is set (typically after receiving the INVITE response)
+    /// NOTE: This method is no longer needed as candidates are sent immediately
+    /// using callId from INVITE instead of waiting for callLegID from backend
+    @available(*, deprecated, message: "No longer needed - candidates are sent immediately")
     internal func flushPendingTrickleCandidates() {
-        guard useTrickleIce else {
-            Logger.log.i(message: "[TRICKLE-ICE] Peer:: flushPendingTrickleCandidates() skipped - Trickle ICE disabled")
-            return
-        }
-
-        let hasPendingCandidates = !pendingTrickleCandidates.isEmpty
-
-        if hasPendingCandidates {
-            Logger.log.i(message: "[TRICKLE-ICE] Peer:: Flushing \(pendingTrickleCandidates.count) pending trickle candidates")
-
-            let candidates = pendingTrickleCandidates
-            pendingTrickleCandidates.removeAll()
-
-            for candidate in candidates {
-                sendTrickleCandidate(candidate)
-            }
-
-            Logger.log.i(message: "[TRICKLE-ICE] Peer:: ✅ Finished flushing pending candidates")
-        } else {
-            Logger.log.i(message: "[TRICKLE-ICE] Peer:: No pending candidates to flush")
-        }
-
-        // Check if ICE gathering completed before callLegID was available
-        // If so, send endOfCandidates now that we have the callLegID
-        if iceGatheringCompleted {
-            Logger.log.i(message: "[TRICKLE-ICE] Peer:: ICE gathering was already complete - sending end of candidates now")
-            sendEndOfCandidates()
-        }
+        Logger.log.i(message: "[TRICKLE-ICE] Peer:: flushPendingTrickleCandidates() - deprecated, no longer needed")
     }
     
     /// Sends end of candidates signal for trickle ICE
@@ -1016,14 +984,16 @@ extension Peer : RTCPeerConnectionDelegate {
             return
         }
 
-        guard let callId = callLegID else {
-            Logger.log.w(message: "[TRICKLE-ICE] Peer:: Cannot send end of candidates - callLegID is nil")
+        // Use callId (from INVITE) instead of callLegID (from backend response)
+        // This ensures the endOfCandidates message uses the same callID as the INVITE and candidate messages
+        guard let endCallId = callId else {
+            Logger.log.w(message: "[TRICKLE-ICE] Peer:: Cannot send end of candidates - callId is nil")
             return
         }
 
-        Logger.log.i(message: "[TRICKLE-ICE] Peer:: Preparing to send END OF CANDIDATES signal for callId: \(callId), sessionId: \(sessionId)")
+        Logger.log.i(message: "[TRICKLE-ICE] Peer:: Preparing to send END OF CANDIDATES signal for callId: \(endCallId), sessionId: \(sessionId)")
 
-        let endOfCandidatesMessage = EndOfCandidatesMessage(callId: callId, sessionId: sessionId)
+        let endOfCandidatesMessage = EndOfCandidatesMessage(callId: endCallId, sessionId: sessionId)
 
         if let message = endOfCandidatesMessage.encode() {
             socket.sendMessage(message: message)

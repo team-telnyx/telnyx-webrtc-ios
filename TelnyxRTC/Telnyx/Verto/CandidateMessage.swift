@@ -21,7 +21,6 @@ class CandidateMessage : Message {
 
         dialogParams["callID"] = callId
 
-        params["sessid"] = sessionId
         params["candidate"] = candidate
         params["sdpMid"] = sdpMid
         params["sdpMLineIndex"] = sdpMLineIndex

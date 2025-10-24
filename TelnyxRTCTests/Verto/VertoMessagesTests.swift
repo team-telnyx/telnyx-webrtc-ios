@@ -442,8 +442,6 @@ class VertoMessagesTests: XCTestCase {
         let encodedMessage: String = candidateMessage.encode() ?? ""
         let decodedMessage = Message().decode(message: encodedMessage)
 
-        // Verify sessid parameter
-        XCTAssertEqual(decodedMessage?.params?["sessid"] as! String, sessionId)
 
         // Verify candidate parameters
         XCTAssertEqual(decodedMessage?.params?["candidate"] as! String, candidate)
@@ -477,8 +475,6 @@ class VertoMessagesTests: XCTestCase {
         let encodedMessage: String = endOfCandidatesMessage.encode() ?? ""
         let decodedMessage = Message().decode(message: encodedMessage)
 
-        // Verify sessid parameter
-        XCTAssertEqual(decodedMessage?.params?["sessid"] as! String, sessionId)
 
         // Verify dialogParams
         let dialogParams = decodedMessage?.params?["dialogParams"] as! [String: Any]

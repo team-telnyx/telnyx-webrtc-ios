@@ -498,6 +498,9 @@ public class Call {
         self.peer?.delegate = self
         self.peer?.socket = self.socket
         self.peer?.sessionId = self.sessionId
+        // Set callId for trickle ICE messages - must match the callID sent in INVITE
+        self.peer?.callId = self.callInfo?.callId.uuidString.lowercased()
+        Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.callInfo?.callId.uuidString.lowercased() ?? "nil") for trickle ICE")
         self.peer?.offer(preferredCodecs: preferredCodecs, completion: { (sdp, error)  in
 
             if let error = error {
@@ -688,6 +691,9 @@ extension Call {
         self.peer?.delegate = self
         self.peer?.socket = self.socket
         self.peer?.sessionId = self.sessionId
+        // Set callId for trickle ICE messages - must match the callID from the incoming INVITE
+        self.peer?.callId = self.callInfo?.callId.uuidString.lowercased()
+        Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.callInfo?.callId.uuidString.lowercased() ?? "nil") for trickle ICE")
         self.incomingOffer(sdp: remoteSdp)
         self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", completion: { (sdp, error)  in
 
@@ -729,6 +735,9 @@ extension Call {
         self.peer?.delegate = self
         self.peer?.socket = self.socket
         self.peer?.sessionId = self.sessionId
+        // Set callId for trickle ICE messages - must match the callID from ATTACH
+        self.peer?.callId = self.callInfo?.callId.uuidString.lowercased()
+        Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.callInfo?.callId.uuidString.lowercased() ?? "nil") for ATTACH")
         self.incomingOffer(sdp: remoteSdp)
         self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", completion: { (sdp, error)  in
 
