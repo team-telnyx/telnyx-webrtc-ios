@@ -471,6 +471,13 @@ public class TxClient {
         }
     }
 
+    /// Public method to restore speaker after reconnection with verification and retry
+    /// This is called from Call.swift after attach/reconnect to ensure speaker state is preserved
+    internal func restoreSpeakerAfterReconnect() {
+        Logger.log.i(message: "[ACM_RESET] TxClient:: restoreSpeakerAfterReconnect() - Starting speaker restoration")
+        restoreSpeakerWithVerification(maxAttempts: 5)
+    }
+
     // MARK: - Connection handling
     /// Connects to the iOS cloglient to the Telnyx signaling server using the desired login credentials.
     /// - Parameters:

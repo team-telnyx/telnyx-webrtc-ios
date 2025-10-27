@@ -8,6 +8,7 @@
 
 import Foundation
 import WebRTC
+import AVFoundation
 
 
 /// Data class to hold detailed reasons for call termination.
@@ -216,6 +217,9 @@ public class Call {
     
     /// Flag to track if we need to reset audio after ICE restart
     internal var shouldResetAudioAfterIceRestart: Bool = false
+    
+    /// Speaker state saved at the time of network change (before iOS can change audio route)
+    private var speakerStateAtNetworkChange: Bool? = nil
     
     /// Previous ICE connection state for monitoring transitions
     private var previousIceConnectionState: RTCIceConnectionState = .new
@@ -851,6 +855,22 @@ extension Call {
         Logger.log.i(message: "[ACM_RESET] Call:: resetAudioDevice() - Manually resetting audio device to clear delay")
         self.peer?.resetAudioDeviceModule()
     }
+    
+    /// Resets the audio device module with preserved speaker state from network change
+    /// This method uses the speaker state saved at the time of network change to prevent
+    /// iOS from incorrectly changing the audio route during network switching
+    internal func resetAudioDeviceWithNetworkState() {
+        Logger.log.i(message: "[ACM_RESET] Call:: resetAudioDeviceWithNetworkState() - Using saved speaker state from network change")
+        if let savedSpeakerState = speakerStateAtNetworkChange {
+            Logger.log.i(message: "[ACM_RESET] Call:: Using saved speaker state: \(savedSpeakerState)")
+            self.peer?.resetAudioDeviceModule(preserveSpeakerState: true, forceSpeakerState: savedSpeakerState)
+            // Clear the saved state after use
+            speakerStateAtNetworkChange = nil
+        } else {
+            Logger.log.i(message: "[ACM_RESET] Call:: No saved speaker state, using current detection")
+            self.peer?.resetAudioDeviceModule()
+        }
+    }
 }
 
 // MARK: - Hold / Unhold handling
@@ -980,6 +1000,8 @@ extension Call {
            let action = result["action"] as? String,
            action == "updateMedia" {
             self.handleIceRestartResponse(message: message, dataMessage: dataMessage, txClient: txClient)
+            // ICE restart response already handles speaker preservation through ACM reset mechanism
+            // No need for additional speaker restoration logic at the end of this method
             return
         }
 
@@ -1118,10 +1140,16 @@ extension Call {
             Logger.log.w(message: "TxClient:: SocketDelegate Default method")
             break
         }
-        
+
+        // Restore speaker state after audio session is fully configured
+        // Use verification and retry logic to ensure speaker is actually restored
         if txClient.isSpeakerEnabled {
-            Logger.log.w(message: "Speaker Enabled")
-            txClient.setSpeaker()
+            Logger.log.w(message: "Speaker Enabled - will restore after audio session configuration")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak txClient] in
+                guard let txClient = txClient else { return }
+                Logger.log.i(message: "[ACM_RESET] Restoring speaker after attach/reconnect with verification")
+                txClient.restoreSpeakerAfterReconnect()
+            }
         }
     }
 }
@@ -1208,6 +1236,11 @@ extension Call {
         if previousState == .disconnected && newState == .failed {
             Logger.log.w(message: "Call:: ICE connection failed after disconnect - attempting ICE restart")
             
+            // Save current speaker state immediately before iOS can change audio route due to network change
+            let currentRoute = AVAudioSession.sharedInstance().currentRoute
+            speakerStateAtNetworkChange = currentRoute.outputs.contains { $0.portType == .builtInSpeaker }
+            Logger.log.i(message: "Call:: Saved speaker state at network change: \(speakerStateAtNetworkChange ?? false)")
+            
             // Trigger ICE restart to recover from failed state
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                 self?.performIceRestart { success, error in
@@ -1229,11 +1262,16 @@ extension Call {
         // Case 2: connected -> disconnected: Reset audio buffers (only on reconnection)
         if previousState == .connected && newState == .disconnected && hasBeenConnectedBefore {
             Logger.log.w(message: "[ACM_RESET] Call:: ICE connection disconnected during active call - resetting audio buffers")
+            
+            // Save current speaker state immediately before iOS can change audio route due to network change
+            let currentRoute = AVAudioSession.sharedInstance().currentRoute
+            speakerStateAtNetworkChange = currentRoute.outputs.contains { $0.portType == .builtInSpeaker }
+            Logger.log.i(message: "Call:: Saved speaker state at network disconnect: \(speakerStateAtNetworkChange ?? false)")
 
             // Reset audio device module to clear accumulated buffers
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
                 Logger.log.i(message: "[ACM_RESET] Call:: Triggering resetAudioDeviceModule from ICE disconnect")
-                self?.peer?.resetAudioDeviceModule()
+                self?.resetAudioDeviceWithNetworkState()
             }
         }
 
@@ -1244,7 +1282,7 @@ extension Call {
             // Reset audio device module to clear accumulated buffers
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
                 Logger.log.i(message: "[ACM_RESET] Call:: Triggering resetAudioDeviceModule from ICE reconnection")
-                self?.peer?.resetAudioDeviceModule()
+                self?.resetAudioDeviceWithNetworkState()
             }
         }
     }
