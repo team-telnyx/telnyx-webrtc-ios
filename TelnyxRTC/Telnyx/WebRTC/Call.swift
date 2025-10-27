@@ -1091,7 +1091,29 @@ extension Call {
             // Handle other MODIFY actions (hold/unhold, etc.)
             // ICE restart is handled at the beginning of the method
             break
-            
+
+        case .CANDIDATE:
+            // Handle incoming remote ICE candidate for trickle ICE
+            if let params = message.params {
+                guard let candidateString = params["candidate"] as? String else {
+                    Logger.log.w(message: "[TRICKLE-ICE] Call:: CANDIDATE message missing candidate string")
+                    return
+                }
+
+                let sdpMid = params["sdpMid"] as? String
+                let sdpMLineIndex = params["sdpMLineIndex"] as? Int32 ?? 0
+
+                Logger.log.i(message: "[TRICKLE-ICE] Call:: Received remote candidate - forwarding to peer")
+                self.peer?.handleRemoteCandidate(candidateString: candidateString, sdpMid: sdpMid, sdpMLineIndex: sdpMLineIndex)
+            }
+            break
+
+        case .END_OF_CANDIDATES:
+            // Handle end of remote candidates signal for trickle ICE
+            Logger.log.i(message: "[TRICKLE-ICE] Call:: Received END_OF_CANDIDATES - forwarding to peer")
+            self.peer?.handleEndOfRemoteCandidates()
+            break
+
         default:
             Logger.log.w(message: "TxClient:: SocketDelegate Default method")
             break

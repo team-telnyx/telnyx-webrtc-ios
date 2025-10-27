@@ -1021,6 +1021,43 @@ extension Peer : RTCPeerConnectionDelegate {
             Logger.log.e(message: "[TRICKLE-ICE] Peer:: ❌ Failed to encode end of candidates message")
         }
     }
+
+    /// Handles incoming remote ICE candidate from trickle ICE signaling
+    /// - Parameters:
+    ///   - candidateString: The ICE candidate string
+    ///   - sdpMid: The media stream identification
+    ///   - sdpMLineIndex: The media line index
+    func handleRemoteCandidate(candidateString: String, sdpMid: String?, sdpMLineIndex: Int32) {
+        guard let connection = connection else {
+            Logger.log.w(message: "[TRICKLE-ICE] Peer:: Cannot add remote candidate - connection is nil")
+            return
+        }
+
+        guard useTrickleIce else {
+            Logger.log.w(message: "[TRICKLE-ICE] Peer:: Ignoring remote candidate - trickle ICE is disabled")
+            return
+        }
+
+        Logger.log.i(message: "[TRICKLE-ICE] Peer:: Received remote candidate - sdpMid: \(sdpMid ?? "nil"), sdpMLineIndex: \(sdpMLineIndex)")
+        Logger.log.i(message: "[TRICKLE-ICE] Peer:: Candidate: \(candidateString.prefix(100))...")
+
+        let candidate = RTCIceCandidate(sdp: candidateString, sdpMLineIndex: sdpMLineIndex, sdpMid: sdpMid)
+
+        connection.add(candidate) { error in
+            if let error = error {
+                Logger.log.e(message: "[TRICKLE-ICE] Peer:: ❌ Failed to add remote candidate: \(error.localizedDescription)")
+            } else {
+                Logger.log.s(message: "[TRICKLE-ICE] Peer:: ✅ Successfully added remote candidate")
+            }
+        }
+    }
+
+    /// Handles end of remote candidates signal from trickle ICE signaling
+    func handleEndOfRemoteCandidates() {
+        Logger.log.i(message: "[TRICKLE-ICE] Peer:: Received END OF REMOTE CANDIDATES signal")
+        // In WebRTC, we don't need to do anything special when remote candidates end
+        // The connection will complete once all candidates have been processed
+    }
     
     func peerConnection(_ peerConnection: RTCPeerConnection, didOpen dataChannel: RTCDataChannel) {
         onDataChannel?(dataChannel)
