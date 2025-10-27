@@ -26,3 +26,4 @@
 - PR #268: WEBRTC-2906: [iOS] Anonymous Login and Assistant within sample app
 - PR #288: [WEBRTC-3020] [FIX] Remove preferredCodecs parameter from answer flow
 - PR #285: WEBRTC-2903: Preferred Codec on invite - iOS
+- PR #292: [WEBRTC-3026] [FIX] Speaker state not preserved during network reconnection and ACM reset
