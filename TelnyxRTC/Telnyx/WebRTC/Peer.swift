@@ -387,10 +387,11 @@ class Peer : NSObject, WebRTCEventHandler {
                     // DO NOT set negotiationEnded = true here for Trickle ICE
                     // We want candidates to continue being sent individually
 
-                    // Remove candidates from SDP for Trickle ICE
+                    // Remove candidates from SDP and add trickle ICE capability for Trickle ICE
                     if let localSDP = self.connection?.localDescription {
                         let cleanedSDPString = self.removeCandidatesFromSDP(localSDP.sdp)
-                        let cleanedSDP = RTCSessionDescription(type: localSDP.type, sdp: cleanedSDPString)
+                        let modifiedSDPString = SdpUtils.addTrickleIceCapability(cleanedSDPString, useTrickleIce: self.useTrickleIce)
+                        let cleanedSDP = RTCSessionDescription(type: localSDP.type, sdp: modifiedSDPString)
                         self.delegate?.onNegotiationEnded(sdp: cleanedSDP)
                     } else {
                         self.delegate?.onNegotiationEnded(sdp: nil)
@@ -454,10 +455,11 @@ class Peer : NSObject, WebRTCEventHandler {
                     // DO NOT set negotiationEnded = true here for Trickle ICE
                     // We want candidates to continue being sent individually
 
-                    // Remove candidates from SDP for Trickle ICE
+                    // Remove candidates from SDP and add trickle ICE capability for Trickle ICE
                     if let localSDP = self.connection?.localDescription {
                         let cleanedSDPString = self.removeCandidatesFromSDP(localSDP.sdp)
-                        let cleanedSDP = RTCSessionDescription(type: localSDP.type, sdp: cleanedSDPString)
+                        let modifiedSDPString = SdpUtils.addTrickleIceCapability(cleanedSDPString, useTrickleIce: self.useTrickleIce)
+                        let cleanedSDP = RTCSessionDescription(type: localSDP.type, sdp: modifiedSDPString)
                         self.delegate?.onNegotiationEnded(sdp: cleanedSDP)
                     } else {
                         self.delegate?.onNegotiationEnded(sdp: nil)
