@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [2.3.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.3.1) (2025-10-27)
+
+### Bug Fixes
+- Fixed speaker state preservation during network reconnection and manual ACM (AudioDeviceModule) reset to prevent speakerphone from deactivating when switching networks
+
 ## [2.3.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.3.0) (2025-10-21)
 
 ### Features
