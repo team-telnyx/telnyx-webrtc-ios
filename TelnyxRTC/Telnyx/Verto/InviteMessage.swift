@@ -15,7 +15,8 @@ class InviteMessage : Message {
          sdp: String,
          callInfo: TxCallInfo,
          callOptions: TxCallOptions,
-         customHeaders:[String:String] = [:]
+         customHeaders:[String:String] = [:],
+         trickle: Bool = false
     ) {
         var params = [String: Any]()
         var dialogParams = [String: Any]()
@@ -46,6 +47,9 @@ class InviteMessage : Message {
         params["sessionId"] = sessionId
         params["sdp"] = sdp
         params["dialogParams"] = dialogParams
+        if trickle {
+            params["trickle"] = true
+        }
 
         super.init(params, method: .INVITE)
     }

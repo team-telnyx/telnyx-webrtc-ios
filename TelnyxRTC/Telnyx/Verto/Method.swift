@@ -34,4 +34,6 @@ enum Method : String {
     case ATTACH_CALL = "telnyx_rtc.attachCalls"
     case DISABLE_PUSH = "telnyx_rtc.disable_push_notification"  // "telnyx_rtc.disablePush"
     case AI_CONVERSATION = "ai_conversation"
+    case CANDIDATE = "telnyx_rtc.candidate"
+    case END_OF_CANDIDATES = "telnyx_rtc.endOfCandidates"
 }
