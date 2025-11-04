@@ -1,17 +1,15 @@
-# Anonymous Login
-
-Anonymous login allows you to connect to AI assistants without traditional SIP credentials. This simplified authentication method is specifically designed for AI agent interactions.
+# Anonymous Connection for AI Agents
 
 ## Overview
 
-The `anonymousLogin()` method establishes a connection to the Telnyx backend and authenticates with a specific AI assistant using only a target ID. No username, password, or token is required.
+The `anonymousLogin` method allows you to connect to AI assistants without traditional authentication credentials. This is the first step in establishing communication with a Telnyx AI Agent.
 
 ## Method Signature
 
 ```swift
 public func anonymousLogin(
-    targetId: String, 
-    targetType: String = "ai_assistant", 
+    targetId: String,
+    targetType: String = "ai_assistant",
     targetVersionId: String? = nil,
     userVariables: [String: Any] = [:],
     reconnection: Bool = false,
@@ -21,261 +19,158 @@ public func anonymousLogin(
 
 ## Parameters
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `targetId` | `String` | Required | The unique identifier of the AI assistant |
-| `targetType` | `String` | `"ai_assistant"` | The type of target (typically "ai_assistant") |
-| `targetVersionId` | `String?` | `nil` | Optional version identifier for the AI assistant |
-| `userVariables` | `[String: Any]` | `[:]` | Optional user variables to pass to the AI assistant |
-| `reconnection` | `Bool` | `false` | Whether this is a reconnection attempt |
-| `serverConfiguration` | `TxServerConfiguration` | `TxServerConfiguration()` | Server configuration settings |
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `targetId` | String | Yes | - | The ID of your AI assistant |
+| `targetType` | String | No | "ai_assistant" | The type of target |
+| `targetVersionId` | String? | No | nil | Optional version ID of the target. If not provided, uses latest version |
+| `userVariables` | [String: Any] | No | [:] | Optional user variables to include |
+| `reconnection` | Bool | No | false | Whether this is a reconnection attempt |
+| `serverConfiguration` | TxServerConfiguration | No | TxServerConfiguration() | Server configuration (signaling server URL and STUN/TURN servers) |
 
-## Basic Usage
+### TxServerConfiguration Properties
 
-### Simple Anonymous Login
+| Property | Type | Description |
+|----------|------|-------------|
+| `signalingServer` | URL? | Custom signaling server URL (e.g., `wss://your-server.com`) |
+| `webRTCIceServers` | [RTCIceServer]? | Custom STUN/TURN servers for WebRTC connections |
+
+## Usage Example
 
 ```swift
-import TelnyxRTC
-
-class AIViewController: UIViewController {
-    private let client = TxClient()
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        client.delegate = self
-        connectToAIAssistant()
-    }
-    
-    private func connectToAIAssistant() {
-        // Connect to AI assistant with minimal configuration
-        client.anonymousLogin(targetId: "your-ai-assistant-id")
-    }
-}
-
-extension AIViewController: TxClientDelegate {
-    func onClientReady() {
-        print("Successfully connected to AI assistant")
-        // Ready to start conversations
-    }
-    
-    func onClientError(error: Error) {
-        print("Connection failed: \(error.localizedDescription)")
-    }
+do {
+    client.anonymousLogin(
+        targetId: "your_assistant_id",
+        // targetType: "ai_assistant", // This is the default value
+        // targetVersionId: "your_assistant_version_id", // Optional
+        // userVariables: ["user_id": "12345"], // Optional user variables
+    )
+    // You are now connected and can make a call to the AI Assistant.
+} catch {
+    // Handle connection error
+    print("Connection failed: \(error.localizedDescription)")
 }
 ```
 
-## Connection Flow
+## Advanced Usage
 
-The anonymous login process follows these steps:
-
-1. **Socket Connection**: If not already connected, establishes WebSocket connection to Telnyx backend
-2. **Authentication**: Sends anonymous login message with target information
-3. **Session Lock**: After successful login, all subsequent calls route to the specified AI assistant
-4. **Ready State**: Client becomes ready for AI assistant interactions
+### With User Variables
 
 ```swift
-class AIConnectionManager {
-    private let client = TxClient()
-    private var connectionState: ConnectionState = .disconnected
-    
-    enum ConnectionState {
-        case disconnected
-        case connecting
-        case authenticating
-        case ready
-        case error(Error)
-    }
-    
-    func connect(to assistantId: String) {
-        connectionState = .connecting
-        client.delegate = self
-        
-        client.anonymousLogin(
-            targetId: assistantId,
-            userVariables: [
-                "connection_time": Date().timeIntervalSince1970,
-                "client_version": "iOS-1.0"
-            ]
-        )
-    }
-}
+client.anonymousLogin(
+    targetId: "your_assistant_id",
+    userVariables: [
+        "user_id": "12345",
+        "session_context": "support_chat",
+        "language": "en-US"
+    ]
+)
+```
 
-extension AIConnectionManager: TxClientDelegate {
-    func onSocketConnected() {
-        connectionState = .authenticating
-        print("Socket connected, authenticating...")
-    }
-    
+### With Version Control
+
+```swift
+client.anonymousLogin(
+    targetId: "your_assistant_id",
+    targetVersionId: "v1.2.0" // Use specific version
+)
+```
+
+### With Custom Server Configuration
+
+```swift
+import WebRTC
+
+// Example 1: Custom signaling server only
+let customSignalingServer = URL(string: "wss://your-custom-signaling-server.com")!
+let config1 = TxServerConfiguration(signalingServer: customSignalingServer)
+
+client.anonymousLogin(
+    targetId: "your_assistant_id",
+    serverConfiguration: config1
+)
+
+// Example 2: Custom STUN/TURN servers only
+let stunServer = RTCIceServer(urlStrings: ["stun:stun.example.com:3478"])
+let turnServer = RTCIceServer(
+    urlStrings: ["turn:turn.example.com:3478?transport=tcp"],
+    username: "your-username",
+    credential: "your-password"
+)
+let config2 = TxServerConfiguration(webRTCIceServers: [stunServer, turnServer])
+
+client.anonymousLogin(
+    targetId: "your_assistant_id",
+    serverConfiguration: config2
+)
+
+// Example 3: Full custom configuration (signaling server + STUN/TURN)
+let customConfig = TxServerConfiguration(
+    signalingServer: customSignalingServer,
+    webRTCIceServers: [stunServer, turnServer]
+)
+
+client.anonymousLogin(
+    targetId: "your_assistant_id",
+    serverConfiguration: customConfig
+)
+```
+
+## Important Notes
+
+- **Call Routing**: After a successful anonymous connection, any subsequent call, regardless of the destination, will be directed to the specified AI Assistant
+- **Session Lock**: The session becomes locked to the AI assistant until disconnection
+- **Version Control**: If `targetVersionId` is not provided, the SDK will use the latest available version
+- **Error Handling**: Monitor delegate callbacks for authentication errors
+- **Server Configuration**: You can customize:
+  - **Signaling Server**: Custom WebSocket server URL for SIP signaling (e.g., `wss://your-server.com`)
+  - **ICE Servers**: Custom STUN/TURN servers for NAT traversal and media relay
+- **Default Configuration**: If no custom configuration is provided, the SDK uses Telnyx's default servers
+
+## Delegate Response Handling
+
+Listen for connection responses using the delegate methods:
+
+```swift
+extension YourViewController: TxClientDelegate {
     func onClientReady() {
-        connectionState = .ready
-        print("AI assistant ready for conversations")
+        // Handle successful anonymous connection
+        print("Anonymous connection successful")
     }
-    
+
     func onClientError(error: Error) {
-        connectionState = .error(error)
-        print("Connection error: \(error)")
+        // Handle connection errors
+        print("Connection error: \(error.localizedDescription)")
     }
-    
+
     func onSocketDisconnected() {
-        connectionState = .disconnected
         print("Disconnected from AI assistant")
-    }
-}
-```
-
-## Session Management
-
-After anonymous login, the client session is locked to the specified AI assistant:
-
-```swift
-class AISessionManager {
-    private let client = TxClient()
-    private var currentAssistantId: String?
-    
-    func switchAssistant(to newAssistantId: String) {
-        // Disconnect current session
-        client.disconnect()
-        
-        // Connect to new assistant
-        currentAssistantId = newAssistantId
-        client.anonymousLogin(targetId: newAssistantId)
-    }
-    
-    func reconnectToCurrentAssistant() {
-        guard let assistantId = currentAssistantId else {
-            print("No current assistant to reconnect to")
-            return
-        }
-        
-        client.anonymousLogin(
-            targetId: assistantId,
-            reconnection: true
-        )
     }
 }
 ```
 
 ## Error Handling
 
-Implement comprehensive error handling for connection issues:
+Common errors you might encounter:
 
 ```swift
-extension AIViewController: TxClientDelegate {
-    func onClientError(error: Error) {
-        if let txError = error as? TxError {
-            switch txError {
-            case .socketFailure(let reason):
-                handleSocketError(reason)
-            case .clientConfigurationFailure(let reason):
-                handleConfigError(reason)
-            case .serverError(let reason):
-                handleServerError(reason)
-            default:
-                handleGenericError(txError)
-            }
-        } else {
-            print("Unknown error: \(error.localizedDescription)")
-        }
-    }
-    
-    private func handleSocketError(_ reason: TxError.SocketFailureReason) {
-        switch reason {
-        case .connectionTimeout:
-            print("Connection timeout - check network")
-            retryConnection()
-        case .authenticationFailed:
-            print("Authentication failed - check target ID")
+func onClientError(error: Error) {
+    if let txError = error as? TxError {
+        switch txError {
+        case .socketFailure:
+            print("Invalid assistant ID or authentication failed")
+        case .clientConfigurationFailure:
+            print("Network connection failed")
         default:
-            print("Socket error: \(reason)")
-        }
-    }
-    
-    private func retryConnection() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-            self.connectToAIAssistant()
+            print("Unexpected error: \(txError)")
         }
     }
 }
 ```
-
-## Best Practices
-
-### 1. Connection State Management
-
-Always track connection state to prevent multiple simultaneous connections:
-
-```swift
-class AIClient {
-    private let client = TxClient()
-    private var isConnecting = false
-    
-    func connectToAssistant(_ assistantId: String) {
-        guard !isConnecting && !client.isConnected else {
-            print("Already connected or connecting")
-            return
-        }
-        
-        isConnecting = true
-        client.anonymousLogin(targetId: assistantId)
-    }
-}
-```
-
-### 2. User Variables
-
-Use user variables to provide context to the AI assistant:
-
-```swift
-let contextVariables: [String: Any] = [
-    "user_name": "John Doe",
-    "user_type": "premium",
-    "previous_interactions": 5,
-    "preferred_language": "en-US",
-    "session_context": "product_support"
-]
-
-client.anonymousLogin(
-    targetId: "support-assistant",
-    userVariables: contextVariables
-)
-```
-
-### 3. Cleanup
-
-Properly disconnect when done:
-
-```swift
-class AIViewController: UIViewController {
-    private let client = TxClient()
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        
-        if isMovingFromParent {
-            client.disconnect()
-            client.delegate = nil
-        }
-    }
-}
-```
-
-## Security Considerations
-
-- Anonymous login is designed for AI assistant interactions only
-- Target IDs should be validated on your backend
-- Consider implementing session timeouts for security
-- User variables should not contain sensitive information
 
 ## Next Steps
 
-After successful anonymous login:
-
-1. **[Start Conversations](starting-conversations.md)** - Learn how to initiate calls with AI assistants
-2. **[Handle Transcripts](transcript-updates.md)** - Process real-time conversation transcripts
-3. **[Send Messages](text-messaging.md)** - Implement text messaging during calls
-
-## Related Documentation
-
-- [TxClient](../classes/TxClient.md) - Complete client API reference
-- [TxServerConfiguration](../structs/TxServerConfiguration.md) - Server configuration options
-- [TxError](../enums/TxError.md) - Error handling reference
+After successful anonymous connection:
+1. [Start a conversation](https://developers.telnyx.com/development/webrtc/ios-sdk/ai-agent/starting-conversations) using `newInvite()`
+2. [Set up transcript updates](https://developers.telnyx.com/development/webrtc/ios-sdk/ai-agent/transcript-updates) to receive real-time conversation data
+3. [Send text messages](https://developers.telnyx.com/development/webrtc/ios-sdk/ai-agent/text-messaging) during active calls
