@@ -1,190 +1,93 @@
-# AI Agent Integration
+# AI Agent Usage
 
-The Telnyx iOS WebRTC SDK provides comprehensive support for AI Agent functionality, enabling developers to create intelligent voice applications with real-time conversation capabilities.
+The iOS WebRTC SDK supports [Voice AI Agent](https://telnyx.com/products/voice-ai-agents) implementations.
 
-## Overview
+To get started, follow the steps [described here](https://telnyx.com/resources/ai-assistant-builder) to build your first AI Assistant.
 
-AI Agents are intelligent assistants that can engage in natural voice conversations with users. The iOS SDK provides seamless integration with Telnyx AI Agents through a simplified authentication flow and real-time communication features.
+Once your AI Agent is up and running, you can use the SDK to communicate with your AI Agent with the following steps:
 
-## Key Features
+## Pre-developed AI Widget
 
-### 🔐 Anonymous Authentication
-- Connect to AI assistants without traditional SIP credentials
-- Simplified login process using target ID and type
-- Automatic session management
+If you don't want to develop your own custom AI Agent interface from scratch, you can utilize our pre-developed AI Agent widget that provides a drop-in solution for voice AI interactions.
 
-### 🗣️ Voice Conversations
-- Real-time voice communication with AI assistants
-- Automatic call answering by AI agents
-- High-quality audio processing
+### iOS Telnyx Voice AI Widget
 
-### 📝 Live Transcriptions
-- Real-time conversation transcripts
-- Role-based message identification (user/assistant)
-- Partial and final transcript updates
-- Custom publisher for iOS 12.0+ compatibility
+The **iOS Telnyx Voice AI Widget** is a standalone, embeddable widget that provides a complete voice AI assistant interface using the Telnyx WebRTC SDK.
 
-### 💬 Mixed Communication
-- Send text messages during voice calls
-- Seamless voice and text interaction
-- Rich conversation context
+**Repository**: [https://github.com/team-telnyx/ios-telnyx-voice-ai-widget](https://github.com/team-telnyx/ios-telnyx-voice-ai-widget)
 
-### ⚙️ Widget Settings
-- Customizable AI assistant interface
-- Theme and language configuration
-- Audio visualizer settings
-- Custom styling options
+**Swift Package Manager**: `https://github.com/team-telnyx/ios-telnyx-voice-ai-widget.git`
+
+**CocoaPods**: `pod 'TelnyxVoiceAIWidget', '~> 1.0.0'`
+
+### Key Features
+
+- **Drop-in Solution**: Easy integration with minimal setup
+- **Multiple UI States**: Collapsed, loading, expanded, and transcript views
+- **Icon-Only Mode**: Floating action button-style interface for minimal UI footprint
+- **Audio Visualizer**: Real-time audio visualization during conversations
+- **Theme Support**: Light and dark theme compatibility
+- **Responsive Design**: Optimized for various screen sizes
+- **Voice Controls**: Mute/unmute and call management
+- **Transcript View**: Full conversation history with text input
+- **Customizable Styling**: Fine-tuned UI customization options
+
+### Quick Integration
+
+```swift
+import TelnyxVoiceAIWidget
+
+struct ContentView: View {
+    @State private var showWidget = false
+
+    var body: some View {
+        AIAssistantWidget(
+            assistantId: "your-assistant-id",
+            shouldInitialize: showWidget
+        )
+    }
+}
+```
+
+### Icon-Only Mode
+
+```swift
+AIAssistantWidget(
+    assistantId: "your-assistant-id",
+    shouldInitialize: true,
+    iconOnly: true // Enables floating action button mode
+)
+```
+
+This widget handles all the complexity of AI Agent integration, providing a production-ready solution that you can customize to match your app's design.
+
+## Documentation Structure
+
+This directory contains detailed documentation for AI Agent integration:
+
+- [Anonymous Login](https://developers.telnyx.com/development/webrtc/ios-sdk/ai-agent/anonymous-login) - How to connect to AI assistants without traditional authentication
+- [Starting Conversations](https://developers.telnyx.com/development/webrtc/ios-sdk/ai-agent/starting-conversations) - How to initiate calls with AI assistants
+- [Transcript Updates](https://developers.telnyx.com/development/webrtc/ios-sdk/ai-agent/transcript-updates) - Real-time conversation transcripts
+- [Text Messaging](https://developers.telnyx.com/development/webrtc/ios-sdk/ai-agent/text-messaging) - Send text messages during active calls
 
 ## Quick Start
 
-Here's a minimal example to get started with AI Agent integration:
+1. **Anonymous Login**: Use `anonymousLogin()` to connect to your AI assistant
+2. **Start Conversation**: Use `newInvite()` to initiate a call (destination is ignored)
+3. **Receive Transcripts**: Subscribe to transcript updates for real-time conversation updates
+4. **Send Text Messages**: Use `sendAIAssistantMessage()` to send text during active calls
 
-```swift
-import TelnyxRTC
+## Key Features
 
-class AIAgentViewController: UIViewController {
-    private let client = TxClient()
-    private var currentCall: Call?
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        client.delegate = self
-        setupAIAgent()
-    }
-    
-    private func setupAIAgent() {
-        // Step 1: Anonymous login to AI assistant
-        client.anonymousLogin(
-            targetId: "your-ai-assistant-id",
-            targetType: "ai_assistant"
-        )
-    }
-    
-    private func startConversation() {
-        // Step 2: Start conversation (destination ignored after anonymous login)
-        currentCall = client.newInvite(
-            callerName: "User",
-            callerNumber: "user",
-            destinationNumber: "ai-assistant", // Ignored after anonymous login
-            callId: UUID()
-        )
-    }
-    
-    private func sendTextMessage() {
-        // Step 3: Send text message during call
-        let success = client.sendAIAssistantMessage("Hello, can you help me?")
-        print("Message sent: \(success)")
-    }
-    
-    private func subscribeToTranscripts() {
-        // Step 4: Listen to real-time transcripts
-        let cancellable = client.aiAssistantManager.subscribeToTranscriptUpdates { transcripts in
-            DispatchQueue.main.async {
-                self.updateTranscriptUI(transcripts)
-            }
-        }
-        // Store cancellable to manage subscription lifecycle
-    }
-    
-    private func updateTranscriptUI(_ transcripts: [TranscriptionItem]) {
-        for transcript in transcripts {
-            print("\(transcript.role): \(transcript.content)")
-        }
-    }
-}
+- **No Authentication Required**: Connect to AI assistants without SIP credentials
+- **Real-time Transcripts**: Get live conversation updates with role identification
+- **Mixed Communication**: Combine voice and text messaging in the same conversation
+- **Widget Settings**: Access AI conversation configuration settings
+- **Standard Call Controls**: Use existing call management methods (mute, hold, end call)
 
-extension AIAgentViewController: TxClientDelegate {
-    func onClientReady() {
-        print("Client ready - can start AI conversation")
-        startConversation()
-    }
-    
-    func onIncomingCall(call: Call) {
-        // AI assistants typically auto-answer
-        currentCall = call
-        call.answer()
-    }
-    
-    func onCallStateUpdated(callState: CallState, callId: UUID) {
-        switch callState {
-        case .ACTIVE:
-            print("AI conversation active")
-            subscribeToTranscripts()
-        case .DONE:
-            print("AI conversation ended")
-        default:
-            break
-        }
-    }
-}
-```
+## Important Notes
 
-## Implementation Steps
-
-1. **[Anonymous Login](anonymous-login.md)** - Authenticate with AI assistants without SIP credentials
-2. **[Starting Conversations](starting-conversations.md)** - Initiate calls with AI agents
-3. **[Transcript Updates](transcript-updates.md)** - Handle real-time conversation transcripts
-4. **[Text Messaging](text-messaging.md)** - Send text messages during voice calls
-
-## Architecture
-
-The AI Agent functionality is built around several key components:
-
-- **`TxClient`** - Main client with `anonymousLogin()` and `sendAIAssistantMessage()` methods
-- **`AIAssistantManager`** - Manages AI assistant state, transcripts, and widget settings
-- **`TranscriptionItem`** - Represents individual transcript entries with role identification
-- **`WidgetSettings`** - Configuration for AI assistant interface customization
-
-## Best Practices
-
-### Error Handling
-Always implement proper error handling for AI agent operations:
-
-```swift
-// Check connection state before operations
-if client.isConnected {
-    let success = client.sendAIAssistantMessage("Hello")
-    if !success {
-        print("Failed to send message - check connection")
-    }
-}
-```
-
-### Memory Management
-Properly manage subscription lifecycles:
-
-```swift
-class AIAgentManager {
-    private var transcriptCancellable: TranscriptCancellable?
-    
-    func startListening() {
-        transcriptCancellable = client.aiAssistantManager.subscribeToTranscriptUpdates { _ in
-            // Handle updates
-        }
-    }
-    
-    deinit {
-        transcriptCancellable?.cancel()
-    }
-}
-```
-
-### UI Updates
-Always update UI on the main thread:
-
-```swift
-client.aiAssistantManager.subscribeToTranscriptUpdates { transcripts in
-    DispatchQueue.main.async {
-        self.updateTranscriptView(transcripts)
-    }
-}
-```
-
-## Next Steps
-
-- Explore [Anonymous Login](anonymous-login.md) for authentication details
-- Learn about [Starting Conversations](starting-conversations.md) for call initiation
-- Understand [Transcript Updates](transcript-updates.md) for real-time messaging
-- Implement [Text Messaging](text-messaging.md) for mixed communication
-
-For complete API reference, see the [AIAssistantManager](../classes/AIAssistantManager.md) and [TxClient](../classes/TxClient.md) documentation.
+- After `anonymousLogin()`, all subsequent calls are routed to the specified AI assistant
+- Transcript functionality is only available for AI assistant conversations
+- AI assistants automatically answer calls - no manual answer required
+- Text messages appear in transcript updates alongside spoken conversation
