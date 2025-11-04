@@ -194,48 +194,6 @@ extension AIConversationManager: TxClientDelegate {
 }
 ```
 
-## Multiple AI Assistants
-
-Handle switching between different AI assistants:
-
-```swift
-class MultiAIManager {
-    private let client = TxClient()
-    private var currentAssistant: String?
-    private var activeCall: Call?
-    
-    func switchToAssistant(_ assistantId: String, context: [String: Any] = [:]) {
-        // End current conversation if active
-        if let call = activeCall {
-            call.hangup()
-        }
-        
-        // Disconnect and reconnect to new assistant
-        client.disconnect()
-        currentAssistant = assistantId
-        
-        client.anonymousLogin(
-            targetId: assistantId,
-            userVariables: context
-        )
-    }
-    
-    func startConversationWithCurrentAssistant() {
-        guard currentAssistant != nil else {
-            print("No assistant selected")
-            return
-        }
-        
-        activeCall = client.newInvite(
-            callerName: "User",
-            callerNumber: "user",
-            destinationNumber: "assistant",
-            callId: UUID()
-        )
-    }
-}
-```
-
 ## Call Configuration Options
 
 ### Audio Settings

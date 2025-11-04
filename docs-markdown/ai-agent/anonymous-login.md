@@ -64,36 +64,6 @@ extension AIViewController: TxClientDelegate {
 }
 ```
 
-### Advanced Configuration
-
-```swift
-private func connectWithAdvancedConfig() {
-    // Custom server configuration
-    let serverConfig = TxServerConfiguration(
-        signalingServer: "wss://rtc.telnyx.com",
-        turnServer: "turn:turn.telnyx.com:3478",
-        stunServer: "stun:stun.telnyx.com:3478"
-    )
-    
-    // User variables for context
-    let userVariables: [String: Any] = [
-        "user_id": "12345",
-        "session_type": "support",
-        "language": "en-US",
-        "timezone": "America/New_York"
-    ]
-    
-    client.anonymousLogin(
-        targetId: "support-ai-assistant",
-        targetType: "ai_assistant",
-        targetVersionId: "v2.1",
-        userVariables: userVariables,
-        reconnection: false,
-        serverConfiguration: serverConfig
-    )
-}
-```
-
 ## Connection Flow
 
 The anonymous login process follows these steps:
