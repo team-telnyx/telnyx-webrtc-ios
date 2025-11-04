@@ -73,7 +73,7 @@ This directory contains detailed documentation for AI Agent integration:
 ## Quick Start
 
 1. **Anonymous Login**: Use `anonymousLogin()` to connect to your AI assistant
-2. **Start Conversation**: Use `newInvite()` to initiate a call (destination is ignored)
+2. **Start Conversation**: Use `newCall()` to initiate a call (destination is ignored)
 3. **Receive Transcripts**: Subscribe to transcript updates for real-time conversation updates
 4. **Send Text Messages**: Use `sendAIAssistantMessage()` to send text during active calls
 

@@ -171,6 +171,6 @@ func onClientError(error: Error) {
 ## Next Steps
 
 After successful anonymous connection:
-1. [Start a conversation](https://developers.telnyx.com/development/webrtc/ios-sdk/ai-agent/starting-conversations) using `newInvite()`
+1. [Start a conversation](https://developers.telnyx.com/development/webrtc/ios-sdk/ai-agent/starting-conversations) using `newCall()`
 2. [Set up transcript updates](https://developers.telnyx.com/development/webrtc/ios-sdk/ai-agent/transcript-updates) to receive real-time conversation data
 3. [Send text messages](https://developers.telnyx.com/development/webrtc/ios-sdk/ai-agent/text-messaging) during active calls
