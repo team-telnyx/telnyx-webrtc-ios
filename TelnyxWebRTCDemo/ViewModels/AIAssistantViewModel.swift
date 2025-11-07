@@ -311,15 +311,21 @@ class AIAssistantViewModel: ObservableObject {
     }
     
     func sendMessage(_ message: String) {
-        print("AIAssistantViewModel:: Sending text message: \(message)")
+        sendMessage(message, base64Image: nil)
+    }
+    
+    func sendMessage(_ message: String, base64Image: String?, imageFormat: String = "jpeg") {
+        let hasImage = base64Image != nil && !base64Image!.isEmpty
+        let logMessage = hasImage ? "text message with image" : "text message"
+        print("AIAssistantViewModel:: Sending \(logMessage): \(message)")
         
         guard let telnyxClient = appDelegate.telnyxClient else {
             errorMessage = "Telnyx Client not available"
             return
         }
         
-        // Use the TxClient method for sending AI assistant messages
-        let success = telnyxClient.sendAIAssistantMessage(message)
+        // Use the TxClient method for sending AI assistant messages with optional image
+        let success = telnyxClient.sendAIAssistantMessage(message, base64Image: base64Image, imageFormat: imageFormat)
         
         if !success {
             errorMessage = "Failed to send message to AI Assistant"
@@ -336,6 +342,21 @@ class AIAssistantViewModel: ObservableObject {
     /// - Parameter message: The text message to send
     func sendTextMessage(_ message: String) {
         sendMessage(message)
+    }
+    
+    /// Send a text message with image to AI Assistant during active call
+    /// - Parameters:
+    ///   - message: The text message to send
+    ///   - image: UIImage to send (will be converted to Base64 JPEG)
+    ///   - compressionQuality: JPEG compression quality (0.0 to 1.0, defaults to 0.8)
+    func sendMessageWithImage(_ message: String, image: UIImage, compressionQuality: CGFloat = 0.8) {
+        guard let imageData = image.jpegData(compressionQuality: compressionQuality) else {
+            errorMessage = "Failed to convert image to JPEG data"
+            return
+        }
+        
+        let base64Image = imageData.base64EncodedString()
+        sendMessage(message, base64Image: base64Image, imageFormat: "jpeg")
     }
     
     /// Get current transcriptions (Android compatibility method)

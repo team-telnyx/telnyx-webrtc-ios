@@ -609,6 +609,17 @@ public class AIAssistantManager {
     /// - Returns: True if message was sent successfully, false otherwise
     @discardableResult
     public func sendAIAssistantMessage(_ message: String) -> Bool {
+        return sendAIAssistantMessage(message, base64Image: nil)
+    }
+    
+    /// Send a text message with optional Base64 encoded image to AI Assistant during active call
+    /// - Parameters:
+    ///   - message: The text message to send
+    ///   - base64Image: Optional Base64 encoded image data (without data URL prefix)
+    ///   - imageFormat: Image format (jpeg, png, etc.). Defaults to "jpeg"
+    /// - Returns: True if message was sent successfully, false otherwise
+    @discardableResult
+    public func sendAIAssistantMessage(_ message: String, base64Image: String?, imageFormat: String = "jpeg") -> Bool {
         guard isConnected else {
             logger.w(message: "AIAssistantManager:: Cannot send message - not connected to AI Assistant")
             return false
@@ -619,16 +630,24 @@ public class AIAssistantManager {
             return false
         }
         
-        logger.i(message: "AIAssistantManager:: Sending text message to AI Assistant: '\(message)'")
+        let hasImage = base64Image != nil && !base64Image!.isEmpty
+        let logMessage = hasImage ? "text message with image" : "text message"
+        logger.i(message: "AIAssistantManager:: Sending \(logMessage) to AI Assistant: '\(message)'")
         
         // Create a transcription item for the user's text message
+        var metadata: [String: Any] = ["message_type": "text_input"]
+        if hasImage {
+            metadata["has_image"] = true
+            metadata["image_format"] = imageFormat
+        }
+        
         let textTranscription = TranscriptionItem(
             id: UUID().uuidString,
             role: "user",
             content: message,
             isPartial: false,
-            itemType: "text_message",
-            metadata: ["message_type": "text_input"]
+            itemType: hasImage ? "text_message_with_image" : "text_message",
+            metadata: metadata
         )
         
         // Add to transcriptions
@@ -640,8 +659,8 @@ public class AIAssistantManager {
             return false
         }
         
-        // Create AI conversation message
-        let aiConversationMessage = AIConversationMessage(message: message)
+        // Create AI conversation message with optional image
+        let aiConversationMessage = AIConversationMessage(message: message, base64Image: base64Image, imageFormat: imageFormat)
         
         // Send the message
         guard let encodedMessage = aiConversationMessage.encode() else {

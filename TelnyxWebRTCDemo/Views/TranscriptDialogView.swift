@@ -17,6 +17,8 @@ struct TranscriptDialogView: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var textFieldState = TextFieldState()
     @State private var localTranscriptions: [TranscriptionItem] = []
+    @State private var selectedImage: UIImage?
+    @State private var showImagePicker = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -104,7 +106,40 @@ struct TranscriptDialogView: View {
                 VStack(spacing: 0) {
                     Divider()
                     
+                    // Selected Image Preview
+                    if let selectedImage = selectedImage {
+                        HStack {
+                            Image(uiImage: selectedImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(maxHeight: 100)
+                                .cornerRadius(8)
+                            
+                            Spacer()
+                            
+                            Button(action: {
+                                self.selectedImage = nil
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.gray.opacity(0.1))
+                    }
+                    
                     HStack(spacing: 12) {
+                        // Image picker button
+                        Button(action: {
+                            showImagePicker = true
+                        }) {
+                            Image(systemName: selectedImage != nil ? "photo.fill" : "photo")
+                                .font(.system(size: 18))
+                                .foregroundColor(selectedImage != nil ? Color(hex: "#00E3AA") : .gray)
+                        }
+                        
                         TextField("Type a message...", text: $textFieldState.text)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .autocapitalization(.sentences)
@@ -117,11 +152,10 @@ struct TranscriptDialogView: View {
                                 .frame(width: 40, height: 40)
                                 .background(
                                     Circle()
-                                        .fill(textFieldState.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 
-                                              Color.gray : Color(hex: "#00E3AA"))
+                                        .fill(canSendMessage ? Color(hex: "#00E3AA") : Color.gray)
                                 )
                         }
-                        .disabled(textFieldState.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .disabled(!canSendMessage)
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
@@ -140,14 +174,33 @@ struct TranscriptDialogView: View {
             // Update local transcriptions when notification is received
             localTranscriptions = viewModel.transcriptions
         }
+        .sheet(isPresented: $showImagePicker) {
+            ImagePicker(selectedImage: $selectedImage)
+        }
+    }
+    
+    private var canSendMessage: Bool {
+        return !textFieldState.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || selectedImage != nil
     }
     
     private func sendMessage() {
         let message = textFieldState.text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !message.isEmpty else { return }
         
-        viewModel.sendMessage(message)
+        // Allow sending if we have either text or image
+        guard !message.isEmpty || selectedImage != nil else { return }
+        
+        // Use default message if only image is provided
+        let finalMessage = message.isEmpty ? "What do you see in this image?" : message
+        
+        if let image = selectedImage {
+            viewModel.sendMessageWithImage(finalMessage, image: image)
+        } else {
+            viewModel.sendMessage(finalMessage)
+        }
+        
+        // Clear input
         textFieldState.text = ""
+        selectedImage = nil
     }
 }
 
@@ -316,6 +369,49 @@ struct TranscriptItemView: View, Equatable {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         return formatter.string(from: date)
+    }
+}
+
+// MARK: - Image Picker
+
+struct ImagePicker: UIViewControllerRepresentable {
+    @Binding var selectedImage: UIImage?
+    @Environment(\.presentationMode) var presentationMode
+    
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.delegate = context.coordinator
+        picker.sourceType = .photoLibrary
+        picker.allowsEditing = true
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePicker
+        
+        init(_ parent: ImagePicker) {
+            self.parent = parent
+        }
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let editedImage = info[.editedImage] as? UIImage {
+                parent.selectedImage = editedImage
+            } else if let originalImage = info[.originalImage] as? UIImage {
+                parent.selectedImage = originalImage
+            }
+            
+            parent.presentationMode.wrappedValue.dismiss()
+        }
+        
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.presentationMode.wrappedValue.dismiss()
+        }
     }
 }
 
