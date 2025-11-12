@@ -4,6 +4,8 @@ The Telnyx iOS Client WebRTC SDK makes use of APNS in order to deliver push noti
 
 ### Creating a VoIP push certificate
 
+For official Apple documentation, see [Create VoIP Services Certificates](https://developer.apple.com/help/account/certificates/create-voip-services-certificates).
+
 In order to generate VoIP push certificates you will need:
 - An Apple developer account
 - App BundleID
@@ -16,7 +18,7 @@ In order to generate VoIP push certificates you will need:
 5. Select the __BundleID__ of the target application, and click "__Continue__"
 6. Then, you will be requested to upload a CSR from your Mac.
 
-7. In order to generate a CSR:
+7. In order to generate a CSR (for detailed instructions, see [Create a Certificate Signing Request](https://developer.apple.com/help/account/certificates/create-a-certificate-signing-request)):
    a. Open the KeyChain Access of your mac.
    b. Go to Keychain Access >> Certificate Assistance > Request a Certificate from a Certificate Authority.
    c. Add your email address and select "Save to disk" option, and click "__Continue__"
