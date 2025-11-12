@@ -29,7 +29,8 @@ In order to generate VoIP push certificates you will need:
 7. In order to generate a CSR:
    a. Open the KeyChain Access of your mac.
    b. Go to Keychain Access >> Certificate Assistance > Request a Certificate from a Certificate Authority.
-   ![ios-export-voipservices-request](/img/ios-request-cert-keychain.png)
+   <img width="696" height="298" alt="Screenshot 2025-11-12 at 11 05 58 AM" src="https://github.com/user-attachments/assets/5c6417b0-c1c5-4512-8f76-a9379054ea26" />
+
 
 c. Add your email address and select “Save to disk” option, and click “__Continue__”
 ![ios-cert-information](/img/ios-cert-information.png)
