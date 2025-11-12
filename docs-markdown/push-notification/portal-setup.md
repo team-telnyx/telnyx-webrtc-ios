@@ -62,7 +62,7 @@ $ openssl rsa -in key.pem -out key.pem
 
 #### Assign your iOS Push Credential to a SIP Connection:
 1. Go to the __SIP Connections__ section on the left panel.
-2. Open the Settings menu of the SIP connection that you want to add a Push Credential or [create a new SIP Connection](/docs/voice/sip-trunking/quickstart).
+2. Open the Settings menu of the SIP connection that you want to add a Push Credential or [create a new SIP Connection](https://developers.telnyx.com/docs/voice/sip-trunking/quickstart).
 3. Select the WEBRTC tab.
 4. Go to the iOS Section and select the PN credential created on "__Create an iOS Push Credential__"
 
