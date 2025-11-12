@@ -459,33 +459,61 @@ public class AIAssistantManager {
         // Handle content - it can be either a string (direct content) or an array of content items
         var transcriptText = ""
         var contentType = "text"
-        
+        var imageUrls: [String] = []
+
         if let contentString = item["content"] as? String {
             // Handle direct string content (like in the example message)
             transcriptText = contentString
             contentType = "text"
             logger.i(message: "AIAssistantManager:: Found direct string content: '\(transcriptText)'")
         } else if let contentArray = item["content"] as? [[String: Any]] {
-            // Handle array of content items (existing format)
+            // Handle array of content items (matching JavaScript implementation)
             for content in contentArray {
-                if let type = content["type"] as? String,
-                   let transcript = content["transcript"] as? String {
+                let type = content["type"] as? String
+
+                // Extract text content
+                if type == "text", let text = content["text"] as? String {
+                    transcriptText += text
+                    contentType = "text"
+                    logger.i(message: "AIAssistantManager:: Found text content: '\(text)'")
+                }
+                // Also support legacy transcript field
+                else if let transcript = content["transcript"] as? String {
                     transcriptText = transcript
-                    contentType = type
-                    logger.i(message: "AIAssistantManager:: Found content array item: '\(transcriptText)'")
-                    break // Use the first valid content item
+                    contentType = type ?? "text"
+                    logger.i(message: "AIAssistantManager:: Found transcript content: '\(transcript)'")
+                }
+
+                // Extract image content (matching JavaScript implementation)
+                if type == "image_url",
+                   let imageUrl = content["image_url"] as? [String: Any],
+                   let url = imageUrl["url"] as? String {
+                    imageUrls.append(url)
+                    logger.i(message: "AIAssistantManager:: Found image attachment with URL")
                 }
             }
         }
-        
-        // Ensure we have transcript content
-        guard !transcriptText.isEmpty else {
-            logger.w(message: "AIAssistantManager:: No valid transcript content found in conversation item")
+
+        // Allow empty transcript if we have images
+        if transcriptText.isEmpty && imageUrls.isEmpty {
+            logger.w(message: "AIAssistantManager:: No valid content found in conversation item")
             return
         }
-        
-        logger.i(message: "AIAssistantManager:: Processing user transcript: '\(transcriptText)' for item_id: \(itemId)")
-        
+
+        logger.i(message: "AIAssistantManager:: Processing user transcript: '\(transcriptText)' with \(imageUrls.count) image(s) for item_id: \(itemId)")
+
+        // Create metadata with image information
+        var metadata: [String: Any] = [
+            "status": status as Any,
+            "content_type": contentType as Any
+        ]
+
+        if !imageUrls.isEmpty {
+            metadata["has_image"] = true
+            metadata["image_urls"] = imageUrls
+            contentType = "text_message_with_image"
+        }
+
         // Create a transcription item for the user's speech using Android-style properties
         let transcription = TranscriptionItem(
             id: itemId,
@@ -495,10 +523,7 @@ public class AIAssistantManager {
             timestamp: Date(),
             confidence: nil, // No confidence provided for user transcripts
             itemType: contentType,
-            metadata: [
-                "status": status as Any,
-                "content_type": contentType as Any
-            ]
+            metadata: metadata
         )
         
         // Check if we already have a transcription with this ID to update
