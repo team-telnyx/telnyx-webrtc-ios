@@ -315,18 +315,20 @@ class AIAssistantViewModel: ObservableObject {
     }
     
     func sendMessage(_ message: String, base64Image: String?, imageFormat: String = "jpeg") {
+        // Convert single image to array for new API
+        let base64Images = base64Image.map { [$0] }
         let hasImage = base64Image != nil && !base64Image!.isEmpty
         let logMessage = hasImage ? "text message with image" : "text message"
         print("AIAssistantViewModel:: Sending \(logMessage): \(message)")
-        
+
         guard let telnyxClient = appDelegate.telnyxClient else {
             errorMessage = "Telnyx Client not available"
             return
         }
-        
-        // Use the TxClient method for sending AI assistant messages with optional image
-        let success = telnyxClient.sendAIAssistantMessage(message, base64Image: base64Image, imageFormat: imageFormat)
-        
+
+        // Use the TxClient method for sending AI assistant messages with optional images
+        let success = telnyxClient.sendAIAssistantMessage(message, base64Images: base64Images, imageFormat: imageFormat)
+
         if !success {
             errorMessage = "Failed to send message to AI Assistant"
         }
@@ -354,9 +356,20 @@ class AIAssistantViewModel: ObservableObject {
             errorMessage = "Failed to convert image to JPEG data"
             return
         }
-        
+
         let base64Image = imageData.base64EncodedString()
-        sendMessage(message, base64Image: base64Image, imageFormat: "jpeg")
+
+        guard let telnyxClient = appDelegate.telnyxClient else {
+            errorMessage = "Telnyx Client not available"
+            return
+        }
+
+        // Use the new multi-image API directly
+        let success = telnyxClient.sendAIAssistantMessage(message, base64Images: [base64Image], imageFormat: "jpeg")
+
+        if !success {
+            errorMessage = "Failed to send message with image to AI Assistant"
+        }
     }
     
     /// Get current transcriptions (Android compatibility method)
@@ -436,10 +449,14 @@ extension AIAssistantViewModel: AIAssistantManagerDelegate {
             guard let self = self else { return }
             self.isConnected = isConnected
             self.isLoading = false
-            
-            if isConnected, let targetId = targetId {
-                // Save the successful targetId to UserDefaults
-                self.saveLastTargetId(targetId)
+
+            if isConnected {
+                // Save the targetId from user input when connection is successful
+                let userInputTargetId = self.targetIdInput.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !userInputTargetId.isEmpty {
+                    print("AIAssistantViewModel saving successful targetId to UserDefaults: \(userInputTargetId)")
+                    self.saveLastTargetId(userInputTargetId)
+                }
             } else {
                 self.sessionId = nil
                 self.callState = .NEW

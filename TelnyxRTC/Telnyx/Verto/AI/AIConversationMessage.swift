@@ -126,47 +126,6 @@ class AIConversationMessage: Message {
         
         super.init(params, method: .AI_CONVERSATION)
     }
-    
-    /// Initialize AI conversation message with text and optional Base64 encoded image
-    /// - Parameters:
-    ///   - message: The text message to send to AI assistant
-    ///   - base64Image: Optional Base64 encoded image data (without data URL prefix)
-    ///   - imageFormat: Image format (jpeg, png, etc.). Defaults to "jpeg"
-    @available(*, deprecated, message: "Use init(message:base64Images:imageFormat:) for better support of multiple images")
-    init(message: String, base64Image: String?, imageFormat: String = "jpeg") {
-        var contentArray: [ConversationContent] = []
-
-        // Add text content
-        let textContent = ConversationContent(type: "input_text", text: message)
-        contentArray.append(textContent)
-
-        // Add image content if provided
-        if let base64Image = base64Image, !base64Image.isEmpty {
-            let dataURL = "data:image/\(imageFormat);base64,\(base64Image)"
-            let imageURL = ImageURL(url: dataURL)
-            let imageContent = ConversationContent(type: "image_url", imageURL: imageURL)
-            contentArray.append(imageContent)
-        }
-
-        // Create conversation item
-        let item = ConversationItem(
-            id: UUID().uuidString,
-            type: "message",
-            role: "user",
-            content: contentArray
-        )
-
-        // Create AI conversation parameters
-        let aiParams = AiConversationParams(
-            type: "conversation.item.create",
-            item: item
-        )
-
-        // Convert to dictionary for message params
-        let params = aiParams.toDictionary()
-
-        super.init(params, method: .AI_CONVERSATION)
-    }
 
     /// Initialize AI conversation message with text and multiple Base64 encoded images
     /// - Parameters:

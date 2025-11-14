@@ -655,20 +655,6 @@ public class AIAssistantManager {
         return sendAIAssistantMessage(message, base64Images: nil)
     }
 
-    /// Send a text message with optional Base64 encoded image to AI Assistant during active call
-    /// - Parameters:
-    ///   - message: The text message to send
-    ///   - base64Image: Optional Base64 encoded image data (without data URL prefix)
-    ///   - imageFormat: Image format (jpeg, png, etc.). Defaults to "jpeg"
-    /// - Returns: True if message was sent successfully, false otherwise
-    @available(*, deprecated, message: "Use sendAIAssistantMessage(_:base64Images:imageFormat:) for better support of multiple images")
-    @discardableResult
-    public func sendAIAssistantMessage(_ message: String, base64Image: String?, imageFormat: String = "jpeg") -> Bool {
-        // Convert single image to array for new API
-        let images = base64Image != nil ? [base64Image!] : nil
-        return sendAIAssistantMessage(message, base64Images: images, imageFormat: imageFormat)
-    }
-
     /// Send a text message with multiple Base64 encoded images to AI Assistant during active call
     /// - Parameters:
     ///   - message: The text message to send
