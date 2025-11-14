@@ -129,10 +129,11 @@ class AIConversationMessage: Message {
 
     /// Initialize AI conversation message with text and multiple Base64 encoded images
     /// - Parameters:
+    ///   - messageId: Unique identifier for the message (for deduplication)
     ///   - message: The text message to send to AI assistant
     ///   - base64Images: Optional array of Base64 encoded image data (without data URL prefix)
     ///   - imageFormat: Image format (jpeg, png, etc.). Defaults to "jpeg"
-    init(message: String, base64Images: [String]?, imageFormat: String = "jpeg") {
+    init(messageId: String, message: String, base64Images: [String]?, imageFormat: String = "jpeg") {
         var contentArray: [ConversationContent] = []
 
         // Add text content if not empty
@@ -158,9 +159,9 @@ class AIConversationMessage: Message {
             }
         }
 
-        // Create conversation item
+        // Create conversation item with provided ID for deduplication
         let item = ConversationItem(
-            id: UUID().uuidString,
+            id: messageId,
             type: "message",
             role: "user",
             content: contentArray

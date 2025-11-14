@@ -677,6 +677,9 @@ public class AIAssistantManager {
         let logMessage = imageCount > 0 ? "text message with \(imageCount) image(s)" : "text message"
         logger.i(message: "AIAssistantManager:: Sending \(logMessage) to AI Assistant: '\(message)'")
 
+        let messageId = UUID().uuidString
+        logger.i(message: "AIAssistantManager:: Generated message ID: \(messageId)")
+
         // Create data URLs for images
         var imageDataUrls: [String]? = nil
         if let base64Images = base64Images, !base64Images.isEmpty {
@@ -689,7 +692,7 @@ public class AIAssistantManager {
             }
         }
 
-        // Create a transcription item for the user's text message
+        // Create a transcription item for the user's text message with the same ID
         var metadata: [String: Any] = ["message_type": "text_input"]
         if imageCount > 0 {
             metadata["has_image"] = true
@@ -698,7 +701,7 @@ public class AIAssistantManager {
         }
 
         let textTranscription = TranscriptionItem(
-            id: UUID().uuidString,
+            id: messageId,  // Use same ID for deduplication
             role: "user",
             content: message.isEmpty ? "Image attached" : message,
             isPartial: false,
@@ -707,7 +710,7 @@ public class AIAssistantManager {
             imageUrls: imageDataUrls
         )
 
-        // Add to transcriptions
+        // Add to transcriptions (will be replaced by server response with same ID)
         addTranscription(textTranscription)
 
         // Send message via socket
@@ -716,8 +719,8 @@ public class AIAssistantManager {
             return false
         }
 
-        // Create AI conversation message with multiple images
-        let aiConversationMessage = AIConversationMessage(message: message, base64Images: base64Images, imageFormat: imageFormat)
+        // Create AI conversation message with the same message ID for deduplication
+        let aiConversationMessage = AIConversationMessage(messageId: messageId, message: message, base64Images: base64Images, imageFormat: imageFormat)
 
         // Send the message
         guard let encodedMessage = aiConversationMessage.encode() else {
@@ -726,7 +729,7 @@ public class AIAssistantManager {
         }
 
         socket.sendMessage(message: encodedMessage)
-        logger.i(message: "AIAssistantManager:: AI conversation message sent successfully")
+        logger.i(message: "AIAssistantManager:: AI conversation message sent successfully with ID: \(messageId)")
 
         return true
     }
