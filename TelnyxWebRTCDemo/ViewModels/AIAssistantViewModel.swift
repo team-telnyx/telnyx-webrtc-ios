@@ -24,13 +24,12 @@ class AIAssistantViewModel: ObservableObject {
     @Published var transcriptions: [TranscriptionItem] = []
     @Published var widgetSettings: WidgetSettings?
     @Published var errorMessage: String?
-    
-    private let lastTargetIdKey = "LastAIAssistantTargetId"
-    
+
     private var currentCall: Call?
     private var cancellables: [Any] = []
     private var originalVoipDelegate: VoIPDelegate?
     private var hasSetupDelegates = false
+    private var pendingTargetId: String? // Store targetId being used for connection
     private var appDelegate: AppDelegate {
         return UIApplication.shared.delegate as! AppDelegate
     }
@@ -55,13 +54,17 @@ class AIAssistantViewModel: ObservableObject {
     }
     
     private func loadLastTargetId() {
-        if let savedTargetId = UserDefaults.standard.string(forKey: lastTargetIdKey) {
+        if let savedTargetId = UserDefaults.standard.getAIAssistantTargetId() {
             targetIdInput = savedTargetId
+            print("AIAssistantViewModel:: Loaded saved targetId: \(savedTargetId)")
+        } else {
+            print("AIAssistantViewModel:: No saved targetId found")
         }
     }
-    
+
     private func saveLastTargetId(_ targetId: String) {
-        UserDefaults.standard.set(targetId, forKey: lastTargetIdKey)
+        UserDefaults.standard.saveAIAssistantTargetId(targetId)
+        print("AIAssistantViewModel:: Saved targetId to UserDefaults: \(targetId)")
     }
     
     deinit {
@@ -190,25 +193,29 @@ class AIAssistantViewModel: ObservableObject {
     }
     
     func connectToAssistant() {
-        guard !targetIdInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+        let trimmedTargetId = targetIdInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTargetId.isEmpty else {
             errorMessage = "Please enter a valid Target ID"
             return
         }
-        
-        print("AIAssistantViewModel connectToAssistant called")
-        
+
+        print("AIAssistantViewModel connectToAssistant called with targetId: \(trimmedTargetId)")
+
+        // Store the targetId we're attempting to connect with
+        pendingTargetId = trimmedTargetId
+
         // Set up delegates - this will work for both first connection and reconnection
         setupAIAssistantDelegate()
-        
+
         // Clear any previous error messages
         errorMessage = nil
-        
+
         isLoading = true
         loadingMessage = "Connecting to AI Assistant..."
-        
+
         // Use the new connectWithAIAssistant method that properly establishes connection
         appDelegate.telnyxClient?.anonymousLogin(
-            targetId: targetIdInput.trimmingCharacters(in: .whitespacesAndNewlines),
+            targetId: trimmedTargetId,
             targetType: "ai_assistant",
             targetVersionId: nil
         )
@@ -444,20 +451,33 @@ extension AIAssistantViewModel: AIAssistantManagerDelegate {
     }
     
     func onAIAssistantConnectionStateChanged(isConnected: Bool, targetId: String?) {
-        print("AIAssistantViewModel onAIAssistantConnectionStateChanged - isConnected: \(isConnected), targetId: \(String(describing: targetId))")
+        print("AIAssistantViewModel onAIAssistantConnectionStateChanged - isConnected: \(isConnected), targetId: \(String(describing: targetId)), pendingTargetId: \(String(describing: self.pendingTargetId))")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.isConnected = isConnected
             self.isLoading = false
 
             if isConnected {
-                // Save the targetId from user input when connection is successful
-                let userInputTargetId = self.targetIdInput.trimmingCharacters(in: .whitespacesAndNewlines)
-                if !userInputTargetId.isEmpty {
-                    print("AIAssistantViewModel saving successful targetId to UserDefaults: \(userInputTargetId)")
-                    self.saveLastTargetId(userInputTargetId)
+                // Save the targetId that was used for this successful connection
+                if let successfulTargetId = self.pendingTargetId {
+                    print("AIAssistantViewModel saving successful targetId: \(successfulTargetId)")
+                    self.saveLastTargetId(successfulTargetId)
+
+                    // Verify it was saved
+                    if let savedValue = UserDefaults.standard.getAIAssistantTargetId() {
+                        print("AIAssistantViewModel verified saved targetId: \(savedValue)")
+                    } else {
+                        print("AIAssistantViewModel ERROR: Failed to save targetId")
+                    }
+
+                    // Clear pending after successful save
+                    self.pendingTargetId = nil
+                } else {
+                    print("AIAssistantViewModel WARNING: No pendingTargetId to save")
                 }
             } else {
+                // Clear pending on failed connection
+                self.pendingTargetId = nil
                 self.sessionId = nil
                 self.callState = .NEW
                 self.currentCall = nil
