@@ -193,6 +193,166 @@ class AIAssistantManagerTests: XCTestCase {
         // Then
         XCTAssertFalse(processed)
     }
+    
+    // MARK: - Base64 Image Message Tests
+    
+    func testSendAIAssistantMessageWithBase64Image() {
+        // Given
+        let mockSocket = MockSocket()
+        aiAssistantManager.setSocket(mockSocket)
+        aiAssistantManager.updateConnectionState(connected: true, targetId: "test-target")
+        
+        let message = "What is in this image?"
+        let base64Image = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+        
+        // When
+        let result = aiAssistantManager.sendAIAssistantMessage(message, base64Image: base64Image, imageFormat: "png")
+        
+        // Then
+        XCTAssertTrue(result)
+        XCTAssertEqual(mockSocket.sentMessages.count, 1)
+        
+        // Verify the message structure
+        if let sentMessage = mockSocket.sentMessages.first,
+           let messageData = sentMessage.data(using: .utf8),
+           let json = try? JSONSerialization.jsonObject(with: messageData) as? [String: Any],
+           let params = json["params"] as? [String: Any],
+           let item = params["item"] as? [String: Any],
+           let content = item["content"] as? [[String: Any]] {
+            
+            XCTAssertEqual(content.count, 2) // Text + Image
+            
+            // Check text content
+            let textContent = content[0]
+            XCTAssertEqual(textContent["type"] as? String, "input_text")
+            XCTAssertEqual(textContent["text"] as? String, message)
+            
+            // Check image content
+            let imageContent = content[1]
+            XCTAssertEqual(imageContent["type"] as? String, "image_url")
+            if let imageUrl = imageContent["image_url"] as? [String: Any] {
+                let expectedUrl = "data:image/png;base64,\(base64Image)"
+                XCTAssertEqual(imageUrl["url"] as? String, expectedUrl)
+            } else {
+                XCTFail("Image URL not found in message")
+            }
+        } else {
+            XCTFail("Failed to parse sent message")
+        }
+    }
+    
+    func testSendAIAssistantMessageWithoutImage() {
+        // Given
+        let mockSocket = MockSocket()
+        aiAssistantManager.setSocket(mockSocket)
+        aiAssistantManager.updateConnectionState(connected: true, targetId: "test-target")
+        
+        let message = "Hello without image"
+        
+        // When
+        let result = aiAssistantManager.sendAIAssistantMessage(message, base64Image: nil)
+        
+        // Then
+        XCTAssertTrue(result)
+        XCTAssertEqual(mockSocket.sentMessages.count, 1)
+        
+        // Verify the message structure
+        if let sentMessage = mockSocket.sentMessages.first,
+           let messageData = sentMessage.data(using: .utf8),
+           let json = try? JSONSerialization.jsonObject(with: messageData) as? [String: Any],
+           let params = json["params"] as? [String: Any],
+           let item = params["item"] as? [String: Any],
+           let content = item["content"] as? [[String: Any]] {
+            
+            XCTAssertEqual(content.count, 1) // Only text
+            
+            // Check text content
+            let textContent = content[0]
+            XCTAssertEqual(textContent["type"] as? String, "input_text")
+            XCTAssertEqual(textContent["text"] as? String, message)
+        } else {
+            XCTFail("Failed to parse sent message")
+        }
+    }
+    
+    func testSendAIAssistantMessageWithEmptyBase64Image() {
+        // Given
+        let mockSocket = MockSocket()
+        aiAssistantManager.setSocket(mockSocket)
+        aiAssistantManager.updateConnectionState(connected: true, targetId: "test-target")
+        
+        let message = "Hello with empty image"
+        
+        // When
+        let result = aiAssistantManager.sendAIAssistantMessage(message, base64Image: "", imageFormat: "jpeg")
+        
+        // Then
+        XCTAssertTrue(result)
+        XCTAssertEqual(mockSocket.sentMessages.count, 1)
+        
+        // Verify the message structure (should only contain text)
+        if let sentMessage = mockSocket.sentMessages.first,
+           let messageData = sentMessage.data(using: .utf8),
+           let json = try? JSONSerialization.jsonObject(with: messageData) as? [String: Any],
+           let params = json["params"] as? [String: Any],
+           let item = params["item"] as? [String: Any],
+           let content = item["content"] as? [[String: Any]] {
+            
+            XCTAssertEqual(content.count, 1) // Only text, no image
+            
+            // Check text content
+            let textContent = content[0]
+            XCTAssertEqual(textContent["type"] as? String, "input_text")
+            XCTAssertEqual(textContent["text"] as? String, message)
+        } else {
+            XCTFail("Failed to parse sent message")
+        }
+    }
+    
+    func testConversationContentImageURL() {
+        // Given
+        let base64Data = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+        let dataURL = "data:image/jpeg;base64,\(base64Data)"
+        let imageURL = ImageURL(url: dataURL)
+        
+        // When
+        let content = ConversationContent(type: "image_url", imageURL: imageURL)
+        let dict = content.toDictionary()
+        
+        // Then
+        XCTAssertEqual(dict["type"] as? String, "image_url")
+        XCTAssertNil(dict["text"])
+        
+        if let imageUrlDict = dict["image_url"] as? [String: Any] {
+            XCTAssertEqual(imageUrlDict["url"] as? String, dataURL)
+        } else {
+            XCTFail("Image URL dictionary not found")
+        }
+    }
+    
+    func testConversationContentTextOnly() {
+        // Given
+        let text = "Hello world"
+        
+        // When
+        let content = ConversationContent(type: "input_text", text: text)
+        let dict = content.toDictionary()
+        
+        // Then
+        XCTAssertEqual(dict["type"] as? String, "input_text")
+        XCTAssertEqual(dict["text"] as? String, text)
+        XCTAssertNil(dict["image_url"])
+    }
+}
+
+// MARK: - Mock Socket
+
+class MockSocket: Socket {
+    var sentMessages: [String] = []
+    
+    override func sendMessage(message: String) {
+        sentMessages.append(message)
+    }
 }
 
 // MARK: - Mock Delegate

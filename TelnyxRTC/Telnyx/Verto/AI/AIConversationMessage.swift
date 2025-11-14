@@ -8,21 +8,51 @@
 
 import Foundation
 
-/// Represents conversation content for AI assistant messages
-public struct ConversationContent {
-    public let type: String
-    public let text: String
+/// Represents image URL data for AI assistant messages
+public struct ImageURL {
+    public let url: String
     
-    public init(type: String = "input_text", text: String) {
-        self.type = type
-        self.text = text
+    public init(url: String) {
+        self.url = url
     }
     
     public func toDictionary() -> [String: Any] {
-        return [
-            "type": type,
-            "text": text
-        ]
+        return ["url": url]
+    }
+}
+
+/// Represents conversation content for AI assistant messages
+public struct ConversationContent {
+    public let type: String
+    public let text: String?
+    public let imageURL: ImageURL?
+    
+    /// Initialize with text content
+    public init(type: String = "input_text", text: String) {
+        self.type = type
+        self.text = text
+        self.imageURL = nil
+    }
+    
+    /// Initialize with image URL content
+    public init(type: String = "image_url", imageURL: ImageURL) {
+        self.type = type
+        self.text = nil
+        self.imageURL = imageURL
+    }
+    
+    public func toDictionary() -> [String: Any] {
+        var dict: [String: Any] = ["type": type]
+        
+        if let text = text {
+            dict["text"] = text
+        }
+        
+        if let imageURL = imageURL {
+            dict["image_url"] = imageURL.toDictionary()
+        }
+        
+        return dict
     }
 }
 
@@ -94,6 +124,58 @@ class AIConversationMessage: Message {
         // Convert to dictionary for message params
         let params = aiParams.toDictionary()
         
+        super.init(params, method: .AI_CONVERSATION)
+    }
+
+    /// Initialize AI conversation message with text and multiple Base64 encoded images
+    /// - Parameters:
+    ///   - messageId: Unique identifier for the message (for deduplication)
+    ///   - message: The text message to send to AI assistant
+    ///   - base64Images: Optional array of Base64 encoded image data (without data URL prefix)
+    ///   - imageFormat: Image format (jpeg, png, etc.). Defaults to "jpeg"
+    init(messageId: String, message: String, base64Images: [String]?, imageFormat: String = "jpeg") {
+        var contentArray: [ConversationContent] = []
+
+        // Add text content if not empty
+        if !message.isEmpty {
+            let textContent = ConversationContent(type: "input_text", text: message)
+            contentArray.append(textContent)
+        }
+
+        // Add image content for each provided image
+        if let base64Images = base64Images, !base64Images.isEmpty {
+            for base64Image in base64Images where !base64Image.isEmpty {
+                // Auto-detect data URL format or add it
+                let dataURL: String
+                if base64Image.starts(with: "data:image/") {
+                    dataURL = base64Image
+                } else {
+                    dataURL = "data:image/\(imageFormat);base64,\(base64Image)"
+                }
+
+                let imageURL = ImageURL(url: dataURL)
+                let imageContent = ConversationContent(type: "image_url", imageURL: imageURL)
+                contentArray.append(imageContent)
+            }
+        }
+
+        // Create conversation item with provided ID for deduplication
+        let item = ConversationItem(
+            id: messageId,
+            type: "message",
+            role: "user",
+            content: contentArray
+        )
+
+        // Create AI conversation parameters
+        let aiParams = AiConversationParams(
+            type: "conversation.item.create",
+            item: item
+        )
+
+        // Convert to dictionary for message params
+        let params = aiParams.toDictionary()
+
         super.init(params, method: .AI_CONVERSATION)
     }
     

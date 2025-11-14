@@ -24,13 +24,12 @@ class AIAssistantViewModel: ObservableObject {
     @Published var transcriptions: [TranscriptionItem] = []
     @Published var widgetSettings: WidgetSettings?
     @Published var errorMessage: String?
-    
-    private let lastTargetIdKey = "LastAIAssistantTargetId"
-    
+
     private var currentCall: Call?
     private var cancellables: [Any] = []
     private var originalVoipDelegate: VoIPDelegate?
     private var hasSetupDelegates = false
+    private var pendingTargetId: String? // Store targetId being used for connection
     private var appDelegate: AppDelegate {
         return UIApplication.shared.delegate as! AppDelegate
     }
@@ -55,13 +54,17 @@ class AIAssistantViewModel: ObservableObject {
     }
     
     private func loadLastTargetId() {
-        if let savedTargetId = UserDefaults.standard.string(forKey: lastTargetIdKey) {
+        if let savedTargetId = UserDefaults.standard.getAIAssistantTargetId() {
             targetIdInput = savedTargetId
+            print("AIAssistantViewModel:: Loaded saved targetId: \(savedTargetId)")
+        } else {
+            print("AIAssistantViewModel:: No saved targetId found")
         }
     }
-    
+
     private func saveLastTargetId(_ targetId: String) {
-        UserDefaults.standard.set(targetId, forKey: lastTargetIdKey)
+        UserDefaults.standard.saveAIAssistantTargetId(targetId)
+        print("AIAssistantViewModel:: Saved targetId to UserDefaults: \(targetId)")
     }
     
     deinit {
@@ -190,25 +193,29 @@ class AIAssistantViewModel: ObservableObject {
     }
     
     func connectToAssistant() {
-        guard !targetIdInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+        let trimmedTargetId = targetIdInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTargetId.isEmpty else {
             errorMessage = "Please enter a valid Target ID"
             return
         }
-        
-        print("AIAssistantViewModel connectToAssistant called")
-        
+
+        print("AIAssistantViewModel connectToAssistant called with targetId: \(trimmedTargetId)")
+
+        // Store the targetId we're attempting to connect with
+        pendingTargetId = trimmedTargetId
+
         // Set up delegates - this will work for both first connection and reconnection
         setupAIAssistantDelegate()
-        
+
         // Clear any previous error messages
         errorMessage = nil
-        
+
         isLoading = true
         loadingMessage = "Connecting to AI Assistant..."
-        
+
         // Use the new connectWithAIAssistant method that properly establishes connection
         appDelegate.telnyxClient?.anonymousLogin(
-            targetId: targetIdInput.trimmingCharacters(in: .whitespacesAndNewlines),
+            targetId: trimmedTargetId,
             targetType: "ai_assistant",
             targetVersionId: nil
         )
@@ -311,16 +318,24 @@ class AIAssistantViewModel: ObservableObject {
     }
     
     func sendMessage(_ message: String) {
-        print("AIAssistantViewModel:: Sending text message: \(message)")
-        
+        sendMessage(message, base64Image: nil)
+    }
+    
+    func sendMessage(_ message: String, base64Image: String?, imageFormat: String = "jpeg") {
+        // Convert single image to array for new API
+        let base64Images = base64Image.map { [$0] }
+        let hasImage = base64Image != nil && !base64Image!.isEmpty
+        let logMessage = hasImage ? "text message with image" : "text message"
+        print("AIAssistantViewModel:: Sending \(logMessage): \(message)")
+
         guard let telnyxClient = appDelegate.telnyxClient else {
             errorMessage = "Telnyx Client not available"
             return
         }
-        
-        // Use the TxClient method for sending AI assistant messages
-        let success = telnyxClient.sendAIAssistantMessage(message)
-        
+
+        // Use the TxClient method for sending AI assistant messages with optional images
+        let success = telnyxClient.sendAIAssistantMessage(message, base64Images: base64Images, imageFormat: imageFormat)
+
         if !success {
             errorMessage = "Failed to send message to AI Assistant"
         }
@@ -336,6 +351,32 @@ class AIAssistantViewModel: ObservableObject {
     /// - Parameter message: The text message to send
     func sendTextMessage(_ message: String) {
         sendMessage(message)
+    }
+    
+    /// Send a text message with image to AI Assistant during active call
+    /// - Parameters:
+    ///   - message: The text message to send
+    ///   - image: UIImage to send (will be converted to Base64 JPEG)
+    ///   - compressionQuality: JPEG compression quality (0.0 to 1.0, defaults to 0.8)
+    func sendMessageWithImage(_ message: String, image: UIImage, compressionQuality: CGFloat = 0.8) {
+        guard let imageData = image.jpegData(compressionQuality: compressionQuality) else {
+            errorMessage = "Failed to convert image to JPEG data"
+            return
+        }
+
+        let base64Image = imageData.base64EncodedString()
+
+        guard let telnyxClient = appDelegate.telnyxClient else {
+            errorMessage = "Telnyx Client not available"
+            return
+        }
+
+        // Use the new multi-image API directly
+        let success = telnyxClient.sendAIAssistantMessage(message, base64Images: [base64Image], imageFormat: "jpeg")
+
+        if !success {
+            errorMessage = "Failed to send message with image to AI Assistant"
+        }
     }
     
     /// Get current transcriptions (Android compatibility method)
@@ -410,16 +451,33 @@ extension AIAssistantViewModel: AIAssistantManagerDelegate {
     }
     
     func onAIAssistantConnectionStateChanged(isConnected: Bool, targetId: String?) {
-        print("AIAssistantViewModel onAIAssistantConnectionStateChanged - isConnected: \(isConnected), targetId: \(String(describing: targetId))")
+        print("AIAssistantViewModel onAIAssistantConnectionStateChanged - isConnected: \(isConnected), targetId: \(String(describing: targetId)), pendingTargetId: \(String(describing: self.pendingTargetId))")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.isConnected = isConnected
             self.isLoading = false
-            
-            if isConnected, let targetId = targetId {
-                // Save the successful targetId to UserDefaults
-                self.saveLastTargetId(targetId)
+
+            if isConnected {
+                // Save the targetId that was used for this successful connection
+                if let successfulTargetId = self.pendingTargetId {
+                    print("AIAssistantViewModel saving successful targetId: \(successfulTargetId)")
+                    self.saveLastTargetId(successfulTargetId)
+
+                    // Verify it was saved
+                    if let savedValue = UserDefaults.standard.getAIAssistantTargetId() {
+                        print("AIAssistantViewModel verified saved targetId: \(savedValue)")
+                    } else {
+                        print("AIAssistantViewModel ERROR: Failed to save targetId")
+                    }
+
+                    // Clear pending after successful save
+                    self.pendingTargetId = nil
+                } else {
+                    print("AIAssistantViewModel WARNING: No pendingTargetId to save")
+                }
             } else {
+                // Clear pending on failed connection
+                self.pendingTargetId = nil
                 self.sessionId = nil
                 self.callState = .NEW
                 self.currentCall = nil

@@ -18,6 +18,7 @@ enum UserDefaultsKey: String {
     case webrtcStats = "WEBRTC_STATS"
     case sendWebRTCStatsViaSocket = "SEND_WEBRTC_STATS_VIA_SOCKET"
     case preferredAudioCodecs = "PREFERRED_AUDIO_CODECS"
+    case aiAssistantTargetId = "AI_ASSISTANT_TARGET_ID"
 }
 
 extension UserDefaults {
@@ -106,6 +107,20 @@ extension UserDefaults {
 
     func deletePreferredAudioCodecs() {
         removeObject(forKey: UserDefaultsKey.preferredAudioCodecs.rawValue)
+    }
+
+    // MARK: - AI Assistant Target ID
+    func saveAIAssistantTargetId(_ targetId: String) {
+        set(targetId, forKey: UserDefaultsKey.aiAssistantTargetId.rawValue)
+        synchronize() // Force immediate write
+    }
+
+    func getAIAssistantTargetId() -> String? {
+        return string(forKey: UserDefaultsKey.aiAssistantTargetId.rawValue)
+    }
+
+    func deleteAIAssistantTargetId() {
+        removeObject(forKey: UserDefaultsKey.aiAssistantTargetId.rawValue)
     }
 }
 
