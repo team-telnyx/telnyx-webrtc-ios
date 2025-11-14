@@ -344,21 +344,15 @@ struct TranscriptItemView: View, Equatable {
                             Circle()
                                 .fill(Color.orange)
                                 .frame(width: 4, height: 4)
-                            
+
                             Text("Recording...")
                                 .font(.system(size: 10, weight: .medium))
                                 .foregroundColor(Color.orange)
                         }
                     }
-                    
+
                     Spacer()
-                    
-                    if let confidence = item.confidence {
-                        Text("Confidence: \(Int(confidence * 100))%")
-                            .font(.system(size: 10, weight: .regular))
-                            .foregroundColor(Color.gray.opacity(0.6))
-                    }
-                    
+
                     if let itemType = item.itemType {
                         Text(itemType)
                             .font(.system(size: 9, weight: .medium))

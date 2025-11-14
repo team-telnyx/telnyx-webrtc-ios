@@ -18,7 +18,6 @@ public struct TranscriptionItem {
     public let timestamp: Date // When the transcription was created
 
     // Optional Android properties
-    public let confidence: Double? // Confidence score (0.0 to 1.0)
     public let itemType: String? // Type of item (e.g., "message", "transcription", "text_message")
     public let metadata: [String: Any]? // Additional metadata for extensibility
 
@@ -50,13 +49,12 @@ public struct TranscriptionItem {
     }
 
     // Android-style initializer (primary)
-    public init(id: String = UUID().uuidString, role: String, content: String, isPartial: Bool = false, timestamp: Date = Date(), confidence: Double? = nil, itemType: String? = nil, metadata: [String: Any]? = nil, imageUrls: [String]? = nil) {
+    public init(id: String = UUID().uuidString, role: String, content: String, isPartial: Bool = false, timestamp: Date = Date(), itemType: String? = nil, metadata: [String: Any]? = nil, imageUrls: [String]? = nil) {
         self.id = id
         self.role = role
         self.content = content
         self.isPartial = isPartial
         self.timestamp = timestamp
-        self.confidence = confidence
         self.itemType = itemType
         self.metadata = metadata
         self.imageUrls = imageUrls
@@ -70,11 +68,11 @@ public struct TranscriptionItem {
         self.content = text
         self.isPartial = !isFinal
         self.timestamp = timestamp
-        self.confidence = confidence
         self.itemType = itemType
         self.metadata = metadata
         // Extract imageUrls from metadata if present for backward compatibility
         self.imageUrls = metadata?["image_urls"] as? [String]
+        // Note: confidence parameter is ignored as it's no longer part of the model
     }
 }
 
@@ -410,7 +408,6 @@ public class AIAssistantManager {
             content: delta,
             isPartial: true, // Delta messages are incremental, not final
             timestamp: Date(),
-            confidence: 1.0, // High confidence for AI responses
             itemType: "response_delta",
             metadata: [
                 "response_id": responseId as Any,
@@ -431,7 +428,6 @@ public class AIAssistantManager {
                 content: existing.content + delta,
                 isPartial: existing.isPartial,
                 timestamp: Date(),
-                confidence: existing.confidence,
                 itemType: existing.itemType,
                 metadata: existing.metadata
             )
@@ -538,7 +534,6 @@ public class AIAssistantManager {
             content: transcriptText.isEmpty ? "Image attached" : transcriptText,
             isPartial: !isCompleted, // Partial if in progress, final if completed
             timestamp: Date(),
-            confidence: nil, // No confidence provided for user transcripts
             itemType: contentType,
             metadata: metadata,
             imageUrls: imageUrls.isEmpty ? nil : imageUrls
@@ -928,10 +923,9 @@ public class AIAssistantManager {
               !content.isEmpty else {
             return nil
         }
-        
+
         let id = data["id"] as? String ?? UUID().uuidString
         let role = data["role"] as? String ?? data["speaker"] as? String ?? "unknown"
-        let confidence = data["confidence"] as? Double
         let itemType = data["itemType"] as? String ?? data["type"] as? String
         
         // Parse isPartial (Android-style) or derive from isFinal (legacy)
@@ -964,7 +958,6 @@ public class AIAssistantManager {
             content: content,
             isPartial: isPartial,
             timestamp: timestamp,
-            confidence: confidence,
             itemType: itemType,
             metadata: metadata
         )
