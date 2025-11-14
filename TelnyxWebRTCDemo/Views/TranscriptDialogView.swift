@@ -297,6 +297,18 @@ struct TranscriptItemView: View, Equatable {
                     }
                 }
                 
+                // Images (if any) - displayed above message bubble
+                if item.hasImages, let imageUrls = item.imageUrls {
+                    HStack(spacing: 8) {
+                        ForEach(imageUrls.indices, id: \.self) { index in
+                            DataURLImageView(dataURL: imageUrls[index])
+                                .frame(width: 150, height: 150)
+                                .cornerRadius(8)
+                        }
+                    }
+                    .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: isUser ? .trailing : .leading)
+                }
+
                 // Message content with Android-compatible styling
                 HStack {
                     if !isUser && isAssistant {
@@ -305,7 +317,7 @@ struct TranscriptItemView: View, Equatable {
                             .foregroundColor(nameColor)
                             .padding(.leading, 8)
                     }
-                    
+
                     Text(item.content)
                         .font(.system(size: 15, weight: .regular))
                         .foregroundColor(textColor)
@@ -316,7 +328,7 @@ struct TranscriptItemView: View, Equatable {
                                 .fill(bubbleColor)
                         )
                         .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: isUser ? .trailing : .leading)
-                    
+
                     if isUser {
                         Image(systemName: "person.fill")
                             .font(.system(size: 14))
@@ -412,6 +424,79 @@ struct ImagePicker: UIViewControllerRepresentable {
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
             parent.presentationMode.wrappedValue.dismiss()
         }
+    }
+}
+
+// MARK: - Data URL Image View
+
+struct DataURLImageView: View {
+    let dataURL: String
+    @State private var image: UIImage?
+    @State private var isLoading: Bool = true
+    @State private var hasError: Bool = false
+
+    var body: some View {
+        Group {
+            if let image = image {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .clipped()
+            } else if isLoading {
+                ZStack {
+                    Color.gray.opacity(0.2)
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle())
+                }
+            } else if hasError {
+                ZStack {
+                    Color.gray.opacity(0.2)
+                    Image(systemName: "photo.fill.on.rectangle.fill")
+                        .font(.system(size: 30))
+                        .foregroundColor(.gray)
+                }
+            }
+        }
+        .onAppear {
+            decodeDataURL()
+        }
+    }
+
+    private func decodeDataURL() {
+        DispatchQueue.global(qos: .userInitiated).async {
+            guard let url = URL(string: dataURL),
+                  let data = url.dataRepresentation,
+                  let decodedImage = UIImage(data: data) else {
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                    self.hasError = true
+                }
+                return
+            }
+
+            DispatchQueue.main.async {
+                self.image = decodedImage
+                self.isLoading = false
+            }
+        }
+    }
+}
+
+// MARK: - URL Extension for Data URL
+
+extension URL {
+    var dataRepresentation: Data? {
+        // Parse data URL format: data:image/jpeg;base64,<base64-string>
+        guard scheme == "data" else { return nil }
+
+        let urlString = absoluteString
+
+        // Split by comma to get the base64 part
+        guard let commaIndex = urlString.firstIndex(of: ",") else { return nil }
+        let base64String = String(urlString[urlString.index(after: commaIndex)...])
+
+        // Decode base64
+        return Data(base64Encoded: base64String, options: .ignoreUnknownCharacters)
     }
 }
 

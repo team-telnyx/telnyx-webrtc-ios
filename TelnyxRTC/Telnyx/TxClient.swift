@@ -779,12 +779,27 @@ public class TxClient {
     ///   - base64Image: Optional Base64 encoded image data (without data URL prefix)
     ///   - imageFormat: Image format (jpeg, png, etc.). Defaults to "jpeg"
     /// - Returns: True if message was sent successfully, false otherwise
+    @available(*, deprecated, message: "Use sendAIAssistantMessage(_:base64Images:imageFormat:) for better support of multiple images")
     @discardableResult
     public func sendAIAssistantMessage(_ message: String, base64Image: String?, imageFormat: String = "jpeg") -> Bool {
         let hasImage = base64Image != nil && !base64Image!.isEmpty
         let logMessage = hasImage ? "text message with image" : "text message"
         Logger.log.i(message: "TxClient:: sendAIAssistantMessage() \(logMessage): '\(message)'")
         return aiAssistantManager.sendAIAssistantMessage(message, base64Image: base64Image, imageFormat: imageFormat)
+    }
+
+    /// Send a text message with multiple Base64 encoded images to AI Assistant during active call
+    /// - Parameters:
+    ///   - message: The text message to send to AI assistant
+    ///   - base64Images: Optional array of Base64 encoded image data (without data URL prefix)
+    ///   - imageFormat: Image format (jpeg, png, etc.). Defaults to "jpeg"
+    /// - Returns: True if message was sent successfully, false otherwise
+    @discardableResult
+    public func sendAIAssistantMessage(_ message: String, base64Images: [String]?, imageFormat: String = "jpeg") -> Bool {
+        let imageCount = base64Images?.count ?? 0
+        let logMessage = imageCount > 0 ? "text message with \(imageCount) image(s)" : "text message"
+        Logger.log.i(message: "TxClient:: sendAIAssistantMessage() \(logMessage): '\(message)'")
+        return aiAssistantManager.sendAIAssistantMessage(message, base64Images: base64Images, imageFormat: imageFormat)
     }
 
     /// This function check the gateway status updates to determine if the current user has been successfully

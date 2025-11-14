@@ -16,27 +16,41 @@ public struct TranscriptionItem {
     public let content: String // The transcribed text content
     public let isPartial: Bool // true if still recording, false if final
     public let timestamp: Date // When the transcription was created
-    
+
     // Optional Android properties
     public let confidence: Double? // Confidence score (0.0 to 1.0)
     public let itemType: String? // Type of item (e.g., "message", "transcription", "text_message")
     public let metadata: [String: Any]? // Additional metadata for extensibility
-    
+
+    // Image support (Flutter-compatible)
+    public let imageUrls: [String]? // Array of image URLs (data URLs with base64)
+
     // Legacy iOS properties (computed for backward compatibility)
     public var speaker: String {
         return role
     }
-    
+
     public var text: String {
         return content
     }
-    
+
     public var isFinal: Bool {
         return !isPartial
     }
-    
+
+    // Helper method to check if transcription has images (Flutter-compatible)
+    public var hasImages: Bool {
+        guard let urls = imageUrls else { return false }
+        return !urls.isEmpty
+    }
+
+    // Image count helper
+    public var imageCount: Int {
+        return imageUrls?.count ?? 0
+    }
+
     // Android-style initializer (primary)
-    public init(id: String = UUID().uuidString, role: String, content: String, isPartial: Bool = false, timestamp: Date = Date(), confidence: Double? = nil, itemType: String? = nil, metadata: [String: Any]? = nil) {
+    public init(id: String = UUID().uuidString, role: String, content: String, isPartial: Bool = false, timestamp: Date = Date(), confidence: Double? = nil, itemType: String? = nil, metadata: [String: Any]? = nil, imageUrls: [String]? = nil) {
         self.id = id
         self.role = role
         self.content = content
@@ -45,8 +59,9 @@ public struct TranscriptionItem {
         self.confidence = confidence
         self.itemType = itemType
         self.metadata = metadata
+        self.imageUrls = imageUrls
     }
-    
+
     // Legacy iOS initializer (for backward compatibility)
     @available(*, deprecated, message: "Use Android-style initializer with role and content parameters")
     public init(id: String, timestamp: Date, speaker: String, text: String, confidence: Double? = nil, isFinal: Bool = true, itemType: String? = nil, metadata: [String: Any]? = nil) {
@@ -58,6 +73,8 @@ public struct TranscriptionItem {
         self.confidence = confidence
         self.itemType = itemType
         self.metadata = metadata
+        // Extract imageUrls from metadata if present for backward compatibility
+        self.imageUrls = metadata?["image_urls"] as? [String]
     }
 }
 
@@ -510,7 +527,7 @@ public class AIAssistantManager {
 
         if !imageUrls.isEmpty {
             metadata["has_image"] = true
-            metadata["image_urls"] = imageUrls
+            metadata["image_count"] = imageUrls.count
             contentType = "text_message_with_image"
         }
 
@@ -518,12 +535,13 @@ public class AIAssistantManager {
         let transcription = TranscriptionItem(
             id: itemId,
             role: "user", // This is from the user
-            content: transcriptText,
+            content: transcriptText.isEmpty ? "Image attached" : transcriptText,
             isPartial: !isCompleted, // Partial if in progress, final if completed
             timestamp: Date(),
             confidence: nil, // No confidence provided for user transcripts
             itemType: contentType,
-            metadata: metadata
+            metadata: metadata,
+            imageUrls: imageUrls.isEmpty ? nil : imageUrls
         )
         
         // Check if we already have a transcription with this ID to update
@@ -634,68 +652,96 @@ public class AIAssistantManager {
     /// - Returns: True if message was sent successfully, false otherwise
     @discardableResult
     public func sendAIAssistantMessage(_ message: String) -> Bool {
-        return sendAIAssistantMessage(message, base64Image: nil)
+        return sendAIAssistantMessage(message, base64Images: nil)
     }
-    
+
     /// Send a text message with optional Base64 encoded image to AI Assistant during active call
     /// - Parameters:
     ///   - message: The text message to send
     ///   - base64Image: Optional Base64 encoded image data (without data URL prefix)
     ///   - imageFormat: Image format (jpeg, png, etc.). Defaults to "jpeg"
     /// - Returns: True if message was sent successfully, false otherwise
+    @available(*, deprecated, message: "Use sendAIAssistantMessage(_:base64Images:imageFormat:) for better support of multiple images")
     @discardableResult
     public func sendAIAssistantMessage(_ message: String, base64Image: String?, imageFormat: String = "jpeg") -> Bool {
+        // Convert single image to array for new API
+        let images = base64Image != nil ? [base64Image!] : nil
+        return sendAIAssistantMessage(message, base64Images: images, imageFormat: imageFormat)
+    }
+
+    /// Send a text message with multiple Base64 encoded images to AI Assistant during active call
+    /// - Parameters:
+    ///   - message: The text message to send
+    ///   - base64Images: Optional array of Base64 encoded image data (without data URL prefix)
+    ///   - imageFormat: Image format (jpeg, png, etc.). Defaults to "jpeg"
+    /// - Returns: True if message was sent successfully, false otherwise
+    @discardableResult
+    public func sendAIAssistantMessage(_ message: String, base64Images: [String]?, imageFormat: String = "jpeg") -> Bool {
         guard isConnected else {
             logger.w(message: "AIAssistantManager:: Cannot send message - not connected to AI Assistant")
             return false
         }
-        
-        guard !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            logger.w(message: "AIAssistantManager:: Cannot send empty message")
+
+        guard !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || (base64Images?.isEmpty == false) else {
+            logger.w(message: "AIAssistantManager:: Cannot send empty message without images")
             return false
         }
-        
-        let hasImage = base64Image != nil && !base64Image!.isEmpty
-        let logMessage = hasImage ? "text message with image" : "text message"
+
+        let imageCount = base64Images?.count ?? 0
+        let logMessage = imageCount > 0 ? "text message with \(imageCount) image(s)" : "text message"
         logger.i(message: "AIAssistantManager:: Sending \(logMessage) to AI Assistant: '\(message)'")
-        
+
+        // Create data URLs for images
+        var imageDataUrls: [String]? = nil
+        if let base64Images = base64Images, !base64Images.isEmpty {
+            imageDataUrls = base64Images.map { base64Image in
+                if base64Image.starts(with: "data:image/") {
+                    return base64Image
+                } else {
+                    return "data:image/\(imageFormat);base64,\(base64Image)"
+                }
+            }
+        }
+
         // Create a transcription item for the user's text message
         var metadata: [String: Any] = ["message_type": "text_input"]
-        if hasImage {
+        if imageCount > 0 {
             metadata["has_image"] = true
+            metadata["image_count"] = imageCount
             metadata["image_format"] = imageFormat
         }
-        
+
         let textTranscription = TranscriptionItem(
             id: UUID().uuidString,
             role: "user",
-            content: message,
+            content: message.isEmpty ? "Image attached" : message,
             isPartial: false,
-            itemType: hasImage ? "text_message_with_image" : "text_message",
-            metadata: metadata
+            itemType: imageCount > 0 ? "text_message_with_image" : "text_message",
+            metadata: metadata,
+            imageUrls: imageDataUrls
         )
-        
+
         // Add to transcriptions
         addTranscription(textTranscription)
-        
+
         // Send message via socket
         guard let socket = self.socket else {
             logger.w(message: "AIAssistantManager:: Cannot send message - socket not available")
             return false
         }
-        
-        // Create AI conversation message with optional image
-        let aiConversationMessage = AIConversationMessage(message: message, base64Image: base64Image, imageFormat: imageFormat)
-        
+
+        // Create AI conversation message with multiple images
+        let aiConversationMessage = AIConversationMessage(message: message, base64Images: base64Images, imageFormat: imageFormat)
+
         // Send the message
         guard let encodedMessage = aiConversationMessage.encode() else {
             logger.e(message: "AIAssistantManager:: Failed to encode AI conversation message")
             return false
         }
-        
+
         socket.sendMessage(message: encodedMessage)
         logger.i(message: "AIAssistantManager:: AI conversation message sent successfully")
-        
+
         return true
     }
     
