@@ -319,18 +319,28 @@ struct AIAssistantView: View {
         .overlay(
             Group {
                 if viewModel.isLoading {
-                    Color.black.opacity(0.3)
-                        .ignoresSafeArea()
-                    
-                    VStack {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "#00E3AA")))
-                            .scaleEffect(1.5)
-                        
-                        Text(viewModel.loadingMessage)
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(Color(hex: "#1D1D1D"))
-                            .padding(.top, 20)
+                    ZStack {
+                        Color.black.opacity(0.4)
+                            .ignoresSafeArea()
+
+                        VStack(spacing: 20) {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "#00E3AA")))
+                                .scaleEffect(1.5)
+
+                            Text(viewModel.loadingMessage)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(Color(hex: "#1D1D1D"))
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.horizontal, 40)
+                        .padding(.vertical, 30)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.white)
+                                .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 10)
+                        )
+                        .padding(.horizontal, 40)
                     }
                 }
             }
