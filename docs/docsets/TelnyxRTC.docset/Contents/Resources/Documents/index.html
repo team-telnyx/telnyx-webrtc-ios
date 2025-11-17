@@ -16,7 +16,7 @@
     <a title="TelnyxRTC  Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="index.html">TelnyxRTC 2.3.1 Docs</a> (72% documented)</p>
+        <p><a href="index.html">TelnyxRTC 2.4.0 Docs</a> (71% documented)</p>
         <div class="header-right">
           <form role="search" action="search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -136,6 +136,9 @@
               </li>
               <li class="nav-group-task">
                 <a href="Structs/ConversationItem.html">ConversationItem</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/ImageURL.html">ImageURL</a>
               </li>
               <li class="nav-group-task">
                 <a href="Structs/TranscriptionItem.html">TranscriptionItem</a>
@@ -527,6 +530,104 @@ extension ViewController: TxClientDelegate {
 </code></pre>
 
 <p>This is a general example: In order to fully support inbound calls you will need to implement PushKit + CallKit. For more information check <code>Setting up VoIP push notifications</code> section.</p>
+
+<hr>
+<h2 id='ai-agent-integration' class='heading'>AI Agent Integration</h2>
+
+<p>The Telnyx iOS WebRTC SDK provides comprehensive support for AI Agent functionality, enabling intelligent voice applications with real-time conversation capabilities.</p>
+<h3 id='key-features' class='heading'>Key Features</h3>
+
+<ul>
+<li><strong>Anonymous Authentication</strong>: Connect to AI assistants without SIP credentials</li>
+<li><strong>Real-time Transcripts</strong>: Live conversation transcripts with role identification</li>
+<li><strong>Mixed Communication</strong>: Send text messages during voice calls</li>
+<li><strong>Widget Settings</strong>: Customizable AI assistant interface</li>
+</ul>
+<h3 id='quick-start' class='heading'>Quick Start</h3>
+<pre class="highlight swift"><code><span class="kd">import</span> <span class="kt">TelnyxRTC</span>
+
+<span class="kd">class</span> <span class="kt">AIAgentViewController</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">client</span> <span class="o">=</span> <span class="kt">TxClient</span><span class="p">()</span>
+    <span class="kd">private</span> <span class="k">var</span> <span class="nv">currentCall</span><span class="p">:</span> <span class="kt">Call</span><span class="p">?</span>
+
+    <span class="k">override</span> <span class="kd">func</span> <span class="nf">viewDidLoad</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">super</span><span class="o">.</span><span class="nf">viewDidLoad</span><span class="p">()</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">delegate</span> <span class="o">=</span> <span class="k">self</span>
+        <span class="nf">setupAIAgent</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="kd">private</span> <span class="kd">func</span> <span class="nf">setupAIAgent</span><span class="p">()</span> <span class="p">{</span>
+        <span class="c1">// Step 1: Anonymous login to AI assistant</span>
+        <span class="n">client</span><span class="o">.</span><span class="nf">anonymousLogin</span><span class="p">(</span>
+            <span class="nv">targetId</span><span class="p">:</span> <span class="s">"your-ai-assistant-id"</span><span class="p">,</span>
+            <span class="nv">targetType</span><span class="p">:</span> <span class="s">"ai_assistant"</span>
+        <span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">private</span> <span class="kd">func</span> <span class="nf">startConversation</span><span class="p">()</span> <span class="p">{</span>
+        <span class="c1">// Step 2: Start conversation (destination ignored after anonymous login)</span>
+        <span class="n">currentCall</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="nf">newInvite</span><span class="p">(</span>
+            <span class="nv">callerName</span><span class="p">:</span> <span class="s">"User"</span><span class="p">,</span>
+            <span class="nv">callerNumber</span><span class="p">:</span> <span class="s">"user"</span><span class="p">,</span>
+            <span class="nv">destinationNumber</span><span class="p">:</span> <span class="s">"ai-assistant"</span><span class="p">,</span> <span class="c1">// Ignored after anonymous login</span>
+            <span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">()</span>
+        <span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">private</span> <span class="kd">func</span> <span class="nf">sendTextMessage</span><span class="p">()</span> <span class="p">{</span>
+        <span class="c1">// Step 3: Send text message during call</span>
+        <span class="k">let</span> <span class="nv">success</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="nf">sendAIAssistantMessage</span><span class="p">(</span><span class="s">"Hello, can you help me?"</span><span class="p">)</span>
+        <span class="nf">print</span><span class="p">(</span><span class="s">"Message sent: </span><span class="se">\(</span><span class="n">success</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">private</span> <span class="kd">func</span> <span class="nf">subscribeToTranscripts</span><span class="p">()</span> <span class="p">{</span>
+        <span class="c1">// Step 4: Listen to real-time transcripts</span>
+        <span class="k">let</span> <span class="nv">cancellable</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">aiAssistantManager</span><span class="o">.</span><span class="n">subscribeToTranscriptUpdates</span> <span class="p">{</span> <span class="n">transcripts</span> <span class="k">in</span>
+            <span class="kt">DispatchQueue</span><span class="o">.</span><span class="n">main</span><span class="o">.</span><span class="k">async</span> <span class="p">{</span>
+                <span class="k">self</span><span class="o">.</span><span class="nf">updateTranscriptUI</span><span class="p">(</span><span class="n">transcripts</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="c1">// Store cancellable to manage subscription lifecycle</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">extension</span> <span class="kt">AIAgentViewController</span><span class="p">:</span> <span class="kt">TxClientDelegate</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">onClientReady</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nf">print</span><span class="p">(</span><span class="s">"Client ready - can start AI conversation"</span><span class="p">)</span>
+        <span class="nf">startConversation</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">onCallStateUpdated</span><span class="p">(</span><span class="nv">callState</span><span class="p">:</span> <span class="kt">CallState</span><span class="p">,</span> <span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">switch</span> <span class="n">callState</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="o">.</span><span class="kt">ACTIVE</span><span class="p">:</span>
+            <span class="nf">print</span><span class="p">(</span><span class="s">"AI conversation active"</span><span class="p">)</span>
+            <span class="nf">subscribeToTranscripts</span><span class="p">()</span>
+        <span class="k">case</span> <span class="o">.</span><span class="kt">DONE</span><span class="p">:</span>
+            <span class="nf">print</span><span class="p">(</span><span class="s">"AI conversation ended"</span><span class="p">)</span>
+        <span class="k">default</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id='implementation-steps' class='heading'>Implementation Steps</h3>
+
+<ol>
+<li><strong><a href="docs-markdown/ai-agent/anonymous-login.md">Anonymous Login</a></strong> - Authenticate with AI assistants without SIP credentials</li>
+<li><strong><a href="docs-markdown/ai-agent/starting-conversations.md">Starting Conversations</a></strong> - Initiate calls with AI agents</li>
+<li><strong><a href="docs-markdown/ai-agent/transcript-updates.md">Transcript Updates</a></strong> - Handle real-time conversation transcripts</li>
+<li><strong><a href="docs-markdown/ai-agent/text-messaging.md">Text Messaging</a></strong> - Send text messages during voice calls</li>
+</ol>
+<h3 id='complete-documentation' class='heading'>Complete Documentation</h3>
+
+<p>For comprehensive AI Agent integration documentation, see:</p>
+
+<ul>
+<li><strong><a href="docs-markdown/ai-agent/introduction.md">AI Agent Introduction</a></strong> - Overview and architecture</li>
+<li><strong><a href="docs-markdown/classes/AIAssistantManager.md">AIAssistantManager API</a></strong> - Complete API reference</li>
+<li><strong><a href="docs-markdown/structs/TranscriptionItem.md">TranscriptionItem Structure</a></strong> - Transcript data format</li>
+<li><strong><a href="docs-markdown/structs/WidgetSettings.md">WidgetSettings Configuration</a></strong> - UI customization options</li>
+</ul>
 
 <hr>
 <h2 id='preferred-audio-codecs' class='heading'>Preferred Audio Codecs</h2>
@@ -1382,7 +1483,7 @@ user interface until there are no more active sessions.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-10-27)</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-11-17)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.4</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>
