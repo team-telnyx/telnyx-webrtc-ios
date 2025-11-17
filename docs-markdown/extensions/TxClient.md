@@ -84,6 +84,9 @@ let call = try telnyxClient.newCall(
   - clientState: (optional) Custom state in string format encoded in base64
   - customHeaders: (optional) Custom Headers to be passed over webRTC Messages.
     Headers should be in the format `X-key:Value` where `X-` prefix is required for custom headers.
+    When calling AI Agents, headers with the `X-` prefix will be mapped to dynamic variables
+    (e.g., `X-Account-Number` becomes `{{account_number}}`). Hyphens in header names are
+    converted to underscores in variable names.
   - preferredCodecs: (optional) Array of preferred audio codecs in priority order.
     The SDK will attempt to use these codecs in the specified order during negotiation.
     If none of the preferred codecs are available, WebRTC will fall back to its default codec selection.
@@ -106,7 +109,7 @@ let call = try telnyxClient.newCall(
 | destinationNumber | The destination `SIP user address` (sip:YourSipUser@sip.telnyx.com) or `phone number`. |
 | callId | The current call UUID. |
 | clientState | (optional) Custom state in string format encoded in base64 |
-| customHeaders | (optional) Custom Headers to be passed over webRTC Messages. Headers should be in the format `X-key:Value` where `X-` prefix is required for custom headers. |
+| customHeaders | (optional) Custom Headers to be passed over webRTC Messages. Headers should be in the format `X-key:Value` where `X-` prefix is required for custom headers. When calling AI Agents, headers with the `X-` prefix will be mapped to dynamic variables (e.g., `X-Account-Number` becomes `{{account_number}}`). Hyphens in header names are converted to underscores in variable names. |
 | preferredCodecs | (optional) Array of preferred audio codecs in priority order. The SDK will attempt to use these codecs in the specified order during negotiation. If none of the preferred codecs are available, WebRTC will fall back to its default codec selection. Use `getSupportedAudioCodecs()` to retrieve available codecs before setting preferences. See the  for more information. |
 | debug | (optional) Enable debug mode for call quality metrics and WebRTC statistics. When enabled, real-time call quality metrics will be available through the call’s `onCallQualityChange` callback. |
 

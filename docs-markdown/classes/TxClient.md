@@ -319,6 +319,9 @@ extension CallKitProvider: CXProviderDelegate {
   - answerAction: The `CXAnswerCallAction` provided by CallKit's provider delegate.
   - customHeaders: (optional) Custom Headers to be passed over webRTC Messages.
     Headers should be in the format `X-key:Value` where `X-` prefix is required for custom headers.
+    When calling AI Agents, headers with the `X-` prefix will be mapped to dynamic variables
+    (e.g., `X-Account-Number` becomes `{{account_number}}`). Hyphens in header names are
+    converted to underscores in variable names.
   - debug: (optional) Enable debug mode for call quality metrics and WebRTC statistics.
     When enabled, real-time call quality metrics will be available through the call's `onCallQualityChange` callback.
 
@@ -327,7 +330,7 @@ extension CallKitProvider: CXProviderDelegate {
 | Name | Description |
 | ---- | ----------- |
 | answerAction | The `CXAnswerCallAction` provided by CallKit’s provider delegate. |
-| customHeaders | (optional) Custom Headers to be passed over webRTC Messages. Headers should be in the format `X-key:Value` where `X-` prefix is required for custom headers. |
+| customHeaders | (optional) Custom Headers to be passed over webRTC Messages. Headers should be in the format `X-key:Value` where `X-` prefix is required for custom headers. When calling AI Agents, headers with the `X-` prefix will be mapped to dynamic variables (e.g., `X-Account-Number` becomes `{{account_number}}`). Hyphens in header names are converted to underscores in variable names. |
 | debug | (optional) Enable debug mode for call quality metrics and WebRTC statistics. When enabled, real-time call quality metrics will be available through the call’s `onCallQualityChange` callback. |
 
 ### `endCallFromCallkit(endAction:callId:)`
@@ -424,3 +427,24 @@ Send a text message to AI Assistant during active call (mixed-mode communication
 | Name | Description |
 | ---- | ----------- |
 | message | The text message to send to AI assistant |
+
+### `sendAIAssistantMessage(_:base64Images:imageFormat:)`
+
+```swift
+public func sendAIAssistantMessage(_ message: String, base64Images: [String]?, imageFormat: String = "jpeg") -> Bool
+```
+
+Send a text message with multiple Base64 encoded images to AI Assistant during active call
+- Parameters:
+  - message: The text message to send to AI assistant
+  - base64Images: Optional array of Base64 encoded image data (without data URL prefix)
+  - imageFormat: Image format (jpeg, png, etc.). Defaults to "jpeg"
+- Returns: True if message was sent successfully, false otherwise
+
+#### Parameters
+
+| Name | Description |
+| ---- | ----------- |
+| message | The text message to send to AI assistant |
+| base64Images | Optional array of Base64 encoded image data (without data URL prefix) |
+| imageFormat | Image format (jpeg, png, etc.). Defaults to “jpeg” |
