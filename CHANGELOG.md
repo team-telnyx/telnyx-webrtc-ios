@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [2.4.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.4.0) (2025-11-17)
+
+### Features
+- **AI Agent Image Support**: Added ability to send Base64 encoded images to AI assistants during conversations through `sendAIAssistantMessage()` method with multi-image support
+
 ## [2.3.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.3.1) (2025-10-27)
 
 ### Bug Fixes
