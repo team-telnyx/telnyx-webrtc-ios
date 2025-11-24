@@ -932,7 +932,8 @@ extension TxClient {
                         clientState: String? = nil,
                         customHeaders:[String:String] = [:],
                         preferredCodecs: [TxCodecCapability]? = nil,
-                        debug:Bool = false) throws -> Call {
+                        debug:Bool = false,
+                        audioConstraints: AudioConstraints? = nil) throws -> Call {
         //User needs to be logged in to get a sessionId
         guard let sessionId = self.sessionId else {
             throw TxError.callFailed(reason: .sessionIdIsRequired)
@@ -958,7 +959,8 @@ extension TxClient {
                         iceServers: self.serverConfiguration.webRTCIceServers,
                         debug: self.txConfig?.debug ?? false,
                         forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
-                        sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false)
+                        sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
+                        audioConstraints: audioConstraints)
         call.newCall(callerName: callerName,
                      callerNumber: callerNumber,
                      destinationNumber: destinationNumber,
@@ -1014,7 +1016,8 @@ extension TxClient {
                                     telnyxSessionId: String,
                                     telnyxLegId: String,
                                     customHeaders:[String:String] = [:],
-                                    isAttach:Bool = false
+                                    isAttach:Bool = false,
+                                    audioConstraints: AudioConstraints? = nil
     ) {
 
         guard let sessionId = self.sessionId,
@@ -1035,7 +1038,8 @@ extension TxClient {
                         isAttach: isAttach,
                         debug: self.txConfig?.debug ?? false,
                         forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
-                        sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false)
+                        sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
+                        audioConstraints: audioConstraints)
         call.callInfo?.callerName = callerName
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)
@@ -1133,7 +1137,8 @@ extension TxClient {
                                                                     iceServers: self.serverConfiguration.webRTCIceServers,
                                                                     debug: self.txConfig?.debug ?? false,
                                                                     forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
-                                                                    sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false)
+                                                                    sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
+                                                                    audioConstraints: nil)
                 }
             } catch let error {
                 Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
@@ -1564,7 +1569,8 @@ extension TxClient : SocketDelegate {
                                                 remoteSdp: sdp,
                                                 telnyxSessionId: telnyxSessionId,
                                                 telnyxLegId: telnyxLegId,
-                                                customHeaders: customHeaders)
+                                                customHeaders: customHeaders,
+                                                audioConstraints: nil)
                         if(isCallFromPush){
                             /*FileLogger.shared.log("INVITE : \(message) \n")
                             FileLogger.shared.log("INVITE telnyxLegId: \(telnyxLegId) \n") */
@@ -1621,7 +1627,8 @@ extension TxClient : SocketDelegate {
                                             telnyxSessionId: telnyxSessionId,
                                             telnyxLegId: telnyxLegId,
                                             customHeaders: customHeaders,
-                                            isAttach: true
+                                            isAttach: true,
+                                            audioConstraints: nil
                     )
                     
                 }

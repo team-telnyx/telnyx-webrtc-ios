@@ -54,6 +54,7 @@ class Peer : NSObject, WebRTCEventHandler {
     //Audio
     private var localAudioTrack: RTCAudioTrack?
     private let rtcAudioSession =  RTCAudioSession.sharedInstance()
+    private let audioConstraints: AudioConstraints?
 
     //Video
     private var videoCapturer: RTCVideoCapturer?
@@ -131,7 +132,9 @@ class Peer : NSObject, WebRTCEventHandler {
 
     required init(iceServers: [RTCIceServer],
                   isAttach: Bool = false,
-                  forceRelayCandidate: Bool = false) {
+                  forceRelayCandidate: Bool = false,
+                  audioConstraints: AudioConstraints? = nil) {
+        self.audioConstraints = audioConstraints
         let config = RTCConfiguration()
         config.iceServers = iceServers
 
@@ -218,7 +221,16 @@ class Peer : NSObject, WebRTCEventHandler {
     }
 
     private func createAudioTrack() -> RTCAudioTrack {
-        let audioConstrains = RTCMediaConstraints(mandatoryConstraints: nil, optionalConstraints: nil)
+        let effectiveConstraints = audioConstraints ?? AudioConstraints.default
+        
+        let optionalConstraints: [String: String] = [
+            "googEchoCancellation": effectiveConstraints.echoCancellation ? kRTCMediaConstraintsValueTrue : kRTCMediaConstraintsValueFalse,
+            "googNoiseSuppression": effectiveConstraints.noiseSuppression ? kRTCMediaConstraintsValueTrue : kRTCMediaConstraintsValueFalse,
+            "googAutoGainControl": effectiveConstraints.autoGainControl ? kRTCMediaConstraintsValueTrue : kRTCMediaConstraintsValueFalse
+        ]
+        
+        let audioConstrains = RTCMediaConstraints(mandatoryConstraints: nil, 
+                                                optionalConstraints: optionalConstraints)
         let audioSource = Peer.factory.audioSource(with: audioConstrains)
         //TODO: trackId should be auto generated.
         let audioTrack = Peer.factory.audioTrack(with: audioSource, trackId: AUDIO_TRACK_ID)
