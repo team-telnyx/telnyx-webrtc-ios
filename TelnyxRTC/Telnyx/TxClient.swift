@@ -12,7 +12,7 @@ import WebRTC
 import CallKit
 
 // MARK: - Notification Names
-extension Notification.Name {
+public extension Notification.Name {
     static let telnyxWebSocketMessageReceived = Notification.Name("TelnyxWebSocketMessageReceived")
 }
 
