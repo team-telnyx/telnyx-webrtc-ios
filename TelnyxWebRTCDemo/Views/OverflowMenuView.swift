@@ -16,6 +16,7 @@ struct OverflowMenuView: View {
     @Binding var selectedRegion: Region
     @Binding var showAIAssistant: Bool
     @Binding var showCodecSelection: Bool
+    @Binding var showAudioConstraints: Bool
     @ObservedObject var viewModel: HomeViewModel
 
 
@@ -56,6 +57,16 @@ struct OverflowMenuView: View {
                         if !viewModel.isRegionSelectionDisabled {
                             showMenu = false
                             showCodecSelection = true
+                        }
+                    }
+                    MenuButton(
+                        title: "Audio Constraints",
+                        icon: "slider.horizontal.3",
+                        isDisabled: viewModel.isRegionSelectionDisabled
+                    ) {
+                        if !viewModel.isRegionSelectionDisabled {
+                            showMenu = false
+                            showAudioConstraints = true
                         }
                     }
                     MenuButton(

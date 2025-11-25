@@ -19,6 +19,7 @@ struct HomeView: View {
     @State private var showMenu = false
     @State private var showAIAssistant = false
     @State private var showCodecSelection = false
+    @State private var showAudioConstraints = false
 
     @State private var showRegionMenu = false
     @StateObject private var aiAssistantViewModel = AIAssistantViewModel()
@@ -182,6 +183,7 @@ struct HomeView: View {
                               selectedRegion: $profileViewModel.selectedRegion,
                               showAIAssistant: $showAIAssistant,
                               showCodecSelection: $showCodecSelection,
+                              showAudioConstraints: $showAudioConstraints,
                               viewModel: viewModel
                           )
                 
@@ -201,6 +203,12 @@ struct HomeView: View {
             .sheet(isPresented: $showCodecSelection) {
                 CodecSelectionView(
                     isPresented: $showCodecSelection,
+                    viewModel: viewModel
+                )
+            }
+            .sheet(isPresented: $showAudioConstraints) {
+                AudioConstraintsView(
+                    isPresented: $showAudioConstraints,
                     viewModel: viewModel
                 )
             }

@@ -206,6 +206,7 @@ public class Call {
     weak var socket: Socket?
     weak var delegate: CallProtocol?
     var iceServers: [RTCIceServer]
+    var audioConstraints: AudioConstraints?
 
     var remoteSdp: String?
     var callOptions: TxCallOptions?
@@ -359,7 +360,8 @@ public class Call {
          debug: Bool = false,
          forceRelayCandidate: Bool = false,
          enableQualityMetrics: Bool = false,
-         sendWebRTCStatsViaSocket: Bool = false
+         sendWebRTCStatsViaSocket: Bool = false,
+         audioConstraints: AudioConstraints? = nil
     ) {
         if isAttach {
             self.direction = CallDirection.ATTACH
@@ -380,6 +382,7 @@ public class Call {
 
         // Configure iceServers
         self.iceServers = iceServers
+        self.audioConstraints = audioConstraints
 
         if !isAttach {
             //Ringtone and ringbacktone
@@ -410,7 +413,8 @@ public class Call {
          iceServers: [RTCIceServer],
          debug: Bool = false,
          forceRelayCandidate: Bool = false,
-         sendWebRTCStatsViaSocket: Bool = false) {
+         sendWebRTCStatsViaSocket: Bool = false,
+         audioConstraints: AudioConstraints? = nil) {
         self.direction = CallDirection.ATTACH
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
@@ -426,6 +430,7 @@ public class Call {
 
         // Configure iceServers
         self.iceServers = iceServers
+        self.audioConstraints = audioConstraints
         
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
@@ -441,7 +446,8 @@ public class Call {
          ringbackTone: String? = nil,
          iceServers: [RTCIceServer],
          debug: Bool = false,
-         forceRelayCandidate: Bool = false) {
+         forceRelayCandidate: Bool = false,
+         audioConstraints: AudioConstraints? = nil) {
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
         //this is the signaling server socket
@@ -451,6 +457,7 @@ public class Call {
 
         // Configure iceServers
         self.iceServers = iceServers
+        self.audioConstraints = audioConstraints
 
         //Ringtone and ringbacktone
         self.ringTonePlayer = self.buildAudioPlayer(fileName: ringtone,fileType: .RINGTONE)
@@ -485,7 +492,7 @@ public class Call {
         // - Create the reporter to send the startReporting message before creating the peer connection
         // - Start the reporter once the peer connection is created
         self.configureStatsReporter()
-        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate)
+        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate, audioConstraints: self.audioConstraints)
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
@@ -675,7 +682,7 @@ extension Call {
         }
         self.answerCustomHeaders = customHeaders
         self.configureStatsReporter()
-        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate)
+        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate, audioConstraints: self.audioConstraints)
         self.enableQualityMetrics = debug
         self.startStatsReporter()
         self.peer?.delegate = self
@@ -716,7 +723,8 @@ extension Call {
         self.configureStatsReporter(reportID: reportId)
         self.peer = Peer(iceServers: self.iceServers,
                          isAttach: true,
-                         forceRelayCandidate: self.forceRelayCandidate)
+                         forceRelayCandidate: self.forceRelayCandidate,
+                         audioConstraints: self.audioConstraints)
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
