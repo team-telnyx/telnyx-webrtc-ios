@@ -50,6 +50,7 @@
 		9906F8C72E3C15CA00A02FE7 /* AIAssistantManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8C62E3C15CA00A02FE7 /* AIAssistantManager.swift */; };
 		9906F8C92E3CEA4600A02FE7 /* AIAssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8C82E3CEA4600A02FE7 /* AIAssistantView.swift */; };
 		9906F8CB2E3CEA6000A02FE7 /* AIAssistantViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8CA2E3CEA6000A02FE7 /* AIAssistantViewModel.swift */; };
+		990BBB642ED6246C00CF6DF0 /* AudioConstraints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990BBB632ED6246C00CF6DF0 /* AudioConstraints.swift */; };
 		990FC0482E9841BC009344DC /* TxCodecCapability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990FC0472E9841BC009344DC /* TxCodecCapability.swift */; };
 		990FC04A2E99387C009344DC /* CodecSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990FC0492E99387C009344DC /* CodecSelectionView.swift */; };
 		990FC04C2E996225009344DC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990FC04B2E996225009344DC /* SceneDelegate.swift */; };
@@ -252,6 +253,7 @@
 		9906F8C62E3C15CA00A02FE7 /* AIAssistantManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistantManager.swift; sourceTree = "<group>"; };
 		9906F8C82E3CEA4600A02FE7 /* AIAssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistantView.swift; sourceTree = "<group>"; };
 		9906F8CA2E3CEA6000A02FE7 /* AIAssistantViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistantViewModel.swift; sourceTree = "<group>"; };
+		990BBB632ED6246C00CF6DF0 /* AudioConstraints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioConstraints.swift; sourceTree = "<group>"; };
 		990FC0472E9841BC009344DC /* TxCodecCapability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxCodecCapability.swift; sourceTree = "<group>"; };
 		990FC0492E99387C009344DC /* CodecSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodecSelectionView.swift; sourceTree = "<group>"; };
 		990FC04B2E996225009344DC /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -571,6 +573,7 @@
 		B309D1E225F023F400A2AADF /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				990BBB632ED6246C00CF6DF0 /* AudioConstraints.swift */,
 				990FC0472E9841BC009344DC /* TxCodecCapability.swift */,
 				3BE7C75E2E0334AB00FF74A1 /* Region.swift */,
 				3B21257B2DC8126B00E68EA6 /* CallQualityMetrics.swift */,
@@ -1133,6 +1136,7 @@
 				B36FC8C02612794A00A30BC4 /* Logger.swift in Sources */,
 				B3AF248B25EE7C350062EDA9 /* Socket.swift in Sources */,
 				3B21257E2DC8129700E68EA6 /* MOSCalculator.swift in Sources */,
+				990BBB642ED6246C00CF6DF0 /* AudioConstraints.swift in Sources */,
 				3B758F1E2BF97E8C00D50069 /* FileLoger.swift in Sources */,
 				996C67D42CFEA72C0056E508 /* RTCMediaStreamTrack+Extension.swift in Sources */,
 				996C67CE2CFEA6AF0056E508 /* RTCIceConnectionState+Extension.swift in Sources */,
