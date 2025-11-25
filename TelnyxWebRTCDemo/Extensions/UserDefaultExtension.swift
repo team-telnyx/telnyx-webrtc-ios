@@ -19,6 +19,7 @@ enum UserDefaultsKey: String {
     case sendWebRTCStatsViaSocket = "SEND_WEBRTC_STATS_VIA_SOCKET"
     case preferredAudioCodecs = "PREFERRED_AUDIO_CODECS"
     case aiAssistantTargetId = "AI_ASSISTANT_TARGET_ID"
+    case audioConstraints = "AUDIO_CONSTRAINTS"
 }
 
 extension UserDefaults {
@@ -121,6 +122,31 @@ extension UserDefaults {
 
     func deleteAIAssistantTargetId() {
         removeObject(forKey: UserDefaultsKey.aiAssistantTargetId.rawValue)
+    }
+
+    // MARK: - Audio Constraints
+    func saveAudioConstraints(_ constraints: AudioConstraints) {
+        let dict: [String: Bool] = [
+            "echoCancellation": constraints.echoCancellation,
+            "noiseSuppression": constraints.noiseSuppression,
+            "autoGainControl": constraints.autoGainControl
+        ]
+        set(dict, forKey: UserDefaultsKey.audioConstraints.rawValue)
+    }
+
+    func getAudioConstraints() -> AudioConstraints {
+        guard let dict = dictionary(forKey: UserDefaultsKey.audioConstraints.rawValue) else {
+            return AudioConstraints.default
+        }
+        return AudioConstraints(
+            echoCancellation: dict["echoCancellation"] as? Bool ?? true,
+            noiseSuppression: dict["noiseSuppression"] as? Bool ?? true,
+            autoGainControl: dict["autoGainControl"] as? Bool ?? true
+        )
+    }
+
+    func deleteAudioConstraints() {
+        removeObject(forKey: UserDefaultsKey.audioConstraints.rawValue)
     }
 }
 

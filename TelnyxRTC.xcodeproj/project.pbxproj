@@ -51,6 +51,7 @@
 		9906F8C92E3CEA4600A02FE7 /* AIAssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8C82E3CEA4600A02FE7 /* AIAssistantView.swift */; };
 		9906F8CB2E3CEA6000A02FE7 /* AIAssistantViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8CA2E3CEA6000A02FE7 /* AIAssistantViewModel.swift */; };
 		990BBB642ED6246C00CF6DF0 /* AudioConstraints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990BBB632ED6246C00CF6DF0 /* AudioConstraints.swift */; };
+		990BBB662ED637F200CF6DF0 /* AudioConstraintsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990BBB652ED637F200CF6DF0 /* AudioConstraintsView.swift */; };
 		990FC0482E9841BC009344DC /* TxCodecCapability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990FC0472E9841BC009344DC /* TxCodecCapability.swift */; };
 		990FC04A2E99387C009344DC /* CodecSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990FC0492E99387C009344DC /* CodecSelectionView.swift */; };
 		990FC04C2E996225009344DC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990FC04B2E996225009344DC /* SceneDelegate.swift */; };
@@ -254,6 +255,7 @@
 		9906F8C82E3CEA4600A02FE7 /* AIAssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistantView.swift; sourceTree = "<group>"; };
 		9906F8CA2E3CEA6000A02FE7 /* AIAssistantViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistantViewModel.swift; sourceTree = "<group>"; };
 		990BBB632ED6246C00CF6DF0 /* AudioConstraints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioConstraints.swift; sourceTree = "<group>"; };
+		990BBB652ED637F200CF6DF0 /* AudioConstraintsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioConstraintsView.swift; sourceTree = "<group>"; };
 		990FC0472E9841BC009344DC /* TxCodecCapability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxCodecCapability.swift; sourceTree = "<group>"; };
 		990FC0492E99387C009344DC /* CodecSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodecSelectionView.swift; sourceTree = "<group>"; };
 		990FC04B2E996225009344DC /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -592,6 +594,7 @@
 		B309D1FB25F028F100A2AADF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				990BBB652ED637F200CF6DF0 /* AudioConstraintsView.swift */,
 				990FC0492E99387C009344DC /* CodecSelectionView.swift */,
 				99D7C09B2E1E32DA00D47CE6 /* AudioWaveformView.swift */,
 				3BE7C7622E04292300FF74A1 /* RegionMenuView.swift */,
@@ -1230,6 +1233,7 @@
 				3BA535E72DFB9BE3005AF0F4 /* PreCallDiagnosisBottomSheet.swift in Sources */,
 				995BF7202CE8175B00454076 /* SipCredentialsViewController.swift in Sources */,
 				3B7D29A72DF1D5100094EB90 /* CallHistoryManager.swift in Sources */,
+				990BBB662ED637F200CF6DF0 /* AudioConstraintsView.swift in Sources */,
 				B3B8F53726E7D4EF0007B583 /* AppDelegateTelnyxVoIPExtension.swift in Sources */,
 				9986703E2D3EC7A3001E1D01 /* View+Extensions.swift in Sources */,
 				9986703A2D3E9DCE001E1D01 /* SipInputCredentialsView.swift in Sources */,

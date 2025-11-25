@@ -258,13 +258,18 @@ extension HomeViewController : VoIPDelegate {
             let preferredCodecs = UserDefaults.standard.getPreferredAudioCodecs()
             print("Preferred audio codecs: \(preferredCodecs)")
 
+            // Get audio constraints from storage
+            let audioConstraints = UserDefaults.standard.getAudioConstraints()
+            print("Audio constraints: EC=\(audioConstraints.echoCancellation), NS=\(audioConstraints.noiseSuppression), AGC=\(audioConstraints.autoGainControl)")
+
             let call = try telnyxClient?.newCall(callerName: sipCred.callerName ?? "",
                                                  callerNumber: sipCred.callerNumber ?? "",
                                                  destinationNumber: destinationNumber,
                                                  callId: callUUID,
                                                  customHeaders: headers,
                                                  preferredCodecs: preferredCodecs.isEmpty ? nil : preferredCodecs,
-                                                 debug: true)
+                                                 debug: true,
+                                                 audioConstraints: audioConstraints)
             
             
             CallHistoryManager.shared.handleStartCallAction(

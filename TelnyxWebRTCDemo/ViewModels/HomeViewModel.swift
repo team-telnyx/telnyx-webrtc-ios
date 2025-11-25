@@ -78,6 +78,20 @@ class HomeViewModel: ObservableObject {
     func setPreferredAudioCodecs(_ codecs: [TxCodecCapability]) {
         UserDefaults.standard.savePreferredAudioCodecs(codecs)
     }
+
+    // MARK: - Audio Constraints
+
+    /// Gets the audio constraints from UserDefaults
+    /// - Returns: AudioConstraints with the saved settings or defaults
+    func getAudioConstraints() -> AudioConstraints {
+        return UserDefaults.standard.getAudioConstraints()
+    }
+
+    /// Sets the audio constraints and saves them to UserDefaults
+    /// - Parameter constraints: AudioConstraints to save
+    func setAudioConstraints(_ constraints: AudioConstraints) {
+        UserDefaults.standard.saveAudioConstraints(constraints)
+    }
     
     func setTxClient(_ client: TxClient) {
         self.txClient = client
