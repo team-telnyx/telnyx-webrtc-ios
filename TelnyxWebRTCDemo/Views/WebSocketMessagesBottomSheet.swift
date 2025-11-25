@@ -11,7 +11,7 @@ import TelnyxRTC
 
 struct WebSocketMessagesBottomSheet: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var messageManager = WebSocketMessageManager.shared
+    @ObservedObject private var messageManager = WebSocketMessageManager.shared
     @State private var showingShareSheet = false
     @State private var shareText = ""
     

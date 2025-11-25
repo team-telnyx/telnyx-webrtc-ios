@@ -71,6 +71,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         self.initPushKit()
         self.initCallKit()
 
+        // Initialize WebSocketMessageManager to start capturing messages from the beginning
+        _ = WebSocketMessageManager.shared
+
         return true
     }
     
