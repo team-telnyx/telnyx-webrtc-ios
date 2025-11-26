@@ -16,6 +16,7 @@ struct OverflowMenuView: View {
     @Binding var selectedRegion: Region
     @Binding var showAIAssistant: Bool
     @Binding var showCodecSelection: Bool
+    @Binding var showWebSocketMessages: Bool
     @ObservedObject var viewModel: HomeViewModel
 
 
@@ -28,6 +29,14 @@ struct OverflowMenuView: View {
             VStack {
                 Spacer()
                 VStack(alignment: .leading, spacing: 10) {
+                    MenuButton(
+                        title: "Websocket Messages",
+                        icon: "message.circle",
+                        isDisabled: false
+                    ) {
+                        showMenu = false
+                        showWebSocketMessages = true
+                    }
                     MenuButton(
                         title: "AI Assistant",
                         icon: "brain",

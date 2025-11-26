@@ -11,6 +11,11 @@ import AVFoundation
 import WebRTC
 import CallKit
 
+// MARK: - Notification Names
+public extension Notification.Name {
+    static let telnyxWebSocketMessageReceived = Notification.Name("TelnyxWebSocketMessageReceived")
+}
+
 /// The `TelnyxRTC` client connects your application to the Telnyx backend,
 /// enabling you to make outgoing calls and handle incoming calls.
 ///
@@ -1425,6 +1430,10 @@ extension TxClient : SocketDelegate {
      */
     func onMessageReceived(message: String) {
         Logger.log.i(message: "TxClient:: SocketDelegate onMessageReceived() message: \(message)")
+        
+        // Post notification for websocket message capture
+        NotificationCenter.default.post(name: .telnyxWebSocketMessageReceived, object: nil, userInfo: ["message": message])
+        
         guard let vertoMessage = Message().decode(message: message) else { return }
         
         // Process message through AI Assistant Manager
