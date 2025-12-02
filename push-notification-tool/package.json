@@ -28,5 +28,8 @@
     "@types/readline-sync": "^1.4.4",
     "typescript": "^5.0.0",
     "ts-node": "^10.9.0"
+  },
+  "overrides": {
+    "node-forge": "^1.3.2"
   }
 }
