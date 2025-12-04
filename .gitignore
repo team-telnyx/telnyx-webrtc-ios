@@ -43,6 +43,7 @@ push-notification-tool/node_modules/
 push-notification-tool/dist/
 push-notification-tool/*.log
 push-notification-tool/.last-config.json
+push-notification-tool/package-lock.json
 
 # Certificate files - IMPORTANT: Never commit these!
 *.p8
