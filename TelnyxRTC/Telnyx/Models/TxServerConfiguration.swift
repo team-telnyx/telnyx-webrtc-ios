@@ -74,7 +74,9 @@ public struct TxServerConfiguration {
         if let webRTCIceServers = webRTCIceServers {
             self.webRTCIceServers = webRTCIceServers
         } else {
-            self.webRTCIceServers = InternalConfig.default.webRTCIceServers
+            self.webRTCIceServers = (environment == .production)
+                ? InternalConfig.default.prodWebRTCIceServers
+                : InternalConfig.default.devWebRTCIceServers
         }
     }
 }
