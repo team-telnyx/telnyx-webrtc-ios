@@ -786,10 +786,16 @@ extension Peer : RTCPeerConnectionDelegate {
 
         gatheredICECandidates.append(candidate.serverUrl ?? "")
 
-        // Start negotiation if an ICE candidate from the configured STUN or TURN server is gathered.
-        if gatheredICECandidates.contains(InternalConfig.stunServer) ||
-            gatheredICECandidates.contains(InternalConfig.turnServer) {
-            
+        // Start negotiation if an ICE candidate from any configured STUN or TURN server is gathered.
+        // Check both production and development servers to support both environments.
+        let configuredServers = [
+            InternalConfig.prodStunServer,
+            InternalConfig.prodTurnServer,
+            InternalConfig.devStunServer,
+            InternalConfig.devTurnServer
+        ]
+        
+        if gatheredICECandidates.contains(where: { configuredServers.contains($0) }) {
             self.startNegotiation(peerConnection: connection!, didGenerate: candidate)
         }
     }
