@@ -60,7 +60,8 @@ public struct TxServerConfiguration {
                 self.signalingServer = signalingServer
             }
         } else {
-            let baseURL = (environment == .production) ? InternalConfig.default.prodSignalingServer : InternalConfig.default.developmentSignalingServer
+            // Always use production server unless explicitly set to development
+            let baseURL = (environment == .development) ? InternalConfig.default.developmentSignalingServer : InternalConfig.default.prodSignalingServer
             if let rtc_id = rtc_id {
                 let query = createQuery(with: rtc_id)
                 let pushRtcServer = "wss://\(regionPrefix)\(baseURL.host ?? "")\(query)"
@@ -74,9 +75,10 @@ public struct TxServerConfiguration {
         if let webRTCIceServers = webRTCIceServers {
             self.webRTCIceServers = webRTCIceServers
         } else {
-            self.webRTCIceServers = (environment == .production)
-                ? InternalConfig.default.prodWebRTCIceServers
-                : InternalConfig.default.devWebRTCIceServers
+            // Always use production servers unless explicitly set to development
+            self.webRTCIceServers = (environment == .development)
+                ? InternalConfig.default.devWebRTCIceServers
+                : InternalConfig.default.prodWebRTCIceServers
         }
     }
 }
