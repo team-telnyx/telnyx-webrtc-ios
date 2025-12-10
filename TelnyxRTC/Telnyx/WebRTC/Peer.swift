@@ -51,6 +51,10 @@ class Peer : NSObject, WebRTCEventHandler {
     weak var delegate: PeerDelegate?
     var connection : RTCPeerConnection?
 
+    /// Configured ICE servers for this peer connection
+    /// Used to validate gathered ICE candidates against configured servers
+    private var configuredIceServers: [RTCIceServer]
+
     //Audio
     private var localAudioTrack: RTCAudioTrack?
     private let rtcAudioSession =  RTCAudioSession.sharedInstance()
@@ -132,6 +136,8 @@ class Peer : NSObject, WebRTCEventHandler {
     required init(iceServers: [RTCIceServer],
                   isAttach: Bool = false,
                   forceRelayCandidate: Bool = false) {
+        self.configuredIceServers = iceServers
+
         let config = RTCConfiguration()
         config.iceServers = iceServers
 
@@ -786,16 +792,18 @@ extension Peer : RTCPeerConnectionDelegate {
 
         gatheredICECandidates.append(candidate.serverUrl ?? "")
 
-        // Start negotiation if an ICE candidate from any configured STUN or TURN server is gathered.
-        // Check both production and development servers to support both environments.
-        let configuredServers = [
-            InternalConfig.prodStunServer,
-            InternalConfig.prodTurnServer,
-            InternalConfig.devStunServer,
-            InternalConfig.devTurnServer
-        ]
-        
-        if gatheredICECandidates.contains(where: { configuredServers.contains($0) }) {
+        // Start negotiation if an ICE candidate from the configured STUN or TURN server is gathered.
+        // Extract server URLs from the configured ice servers for this peer connection
+        let configuredServerUrls = configuredIceServers.flatMap { $0.urlStrings }
+
+        if gatheredICECandidates.contains(where: { gatheredUrl in
+            configuredServerUrls.contains { configuredUrl in
+                // Extract the base URL without transport parameters for comparison
+                let gatheredBase = gatheredUrl.components(separatedBy: "?").first ?? gatheredUrl
+                let configuredBase = configuredUrl.components(separatedBy: "?").first ?? configuredUrl
+                return gatheredBase == configuredBase
+            }
+        }) {
             self.startNegotiation(peerConnection: connection!, didGenerate: candidate)
         }
     }
