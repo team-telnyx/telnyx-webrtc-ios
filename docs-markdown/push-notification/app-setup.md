@@ -11,12 +11,12 @@ The following setup is required in your application to receive Telnyx VoIP push 
 3. In the top-left corner of the right-hand pane in Xcode, select your app's target.
 4. Press the  +Capabilities button.
 <p align="center">
-      <img width="294" alt="Screen Shot 2021-11-26 at 13 34 12" src="https://user-images.githubusercontent.com/75636882/143610180-04e2a98c-bb08-4f06-b81a-9a3a4231d389.png">
+      <img width="294" alt="Screen Shot 2021-11-26 at 13 34 12" src="https://user-images.githubusercontent.com/75636882/143610180-04e2a98c-bb08-4f06-b81a-9a3a4231d389.png" />
 </p>
 
 6. Enable Push Notifications
 <p align="center">
-      <img width="269" alt="Screen Shot 2021-11-26 at 13 35 51" src="https://user-images.githubusercontent.com/75636882/143610372-abab46cc-dd2a-4712-9020-240f9dbaaaf7.png">
+      <img width="269" alt="Screen Shot 2021-11-26 at 13 35 51" src="https://user-images.githubusercontent.com/75636882/143610372-abab46cc-dd2a-4712-9020-240f9dbaaaf7.png" />
 </p>
 
 #### b. Configure PushKit into your app:
