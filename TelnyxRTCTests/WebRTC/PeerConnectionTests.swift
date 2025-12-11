@@ -17,7 +17,7 @@ class PeerConnectionTests: XCTestCase {
         print("PeerConnectionTests:: setUpWithError")
         //Setup the SDK
         let config = InternalConfig.default
-        self.peerConnection = Peer(iceServers: config.webRTCIceServers)
+        self.peerConnection = Peer(iceServers: config.prodWebRTCIceServers)
     }
 
     override func tearDownWithError() throws {
