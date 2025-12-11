@@ -15,7 +15,7 @@ Quality rating for a WebRTC call based on MOS score
 case excellent
 ```
 
-MOS > 4.2
+`MOS > 4.2`
 
 ### `good`
 
