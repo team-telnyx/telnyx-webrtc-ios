@@ -135,6 +135,13 @@ __*Important*__:
 - You will need to provide `pushMetaData` to `processVoIPNotification()` to get Push calls to work.
 - You will need to implement 'CallKit' to report an incoming call when there’s a VoIP push notification. On iOS 13.0 and later, if you fail to report a call to CallKit, the system will terminate your app. More information on [Apple docs](https://developer.apple.com/documentation/pushkit/pkpushregistrydelegate/2875784-pushregistry) 
 
+
+## Multidevice Push Notifications
+
+Telnyx WebRTC supports multidevice push notifications. A single user can have up to 5 device tokens (either iOS - APNS or Android - FCM). When a user logs into the socket and provides a push token, our services will register this token to that user - allowing it to receive push notifications for incoming calls. If a 6th registration is made, the least recently used token will be removed.
+
+This effectively means that you can have up to 5 devices that can receive push notifications for the same incoming call.
+
 ## Disable Push Notification
 
 Push notifications can be disabled for the current user by calling :
