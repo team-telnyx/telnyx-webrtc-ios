@@ -1,5 +1,7 @@
 # Reference Documentation
 
+<img src="logo.png">
+
 ## Protocols
 
 -   [AIAssistantManagerDelegate](protocols/AIAssistantManagerDelegate.md)

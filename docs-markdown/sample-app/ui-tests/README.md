@@ -2,6 +2,8 @@
 
 This guide explains how to set up, build, and run UI Tests for the Telnyx WebRTC iOS Demo app on Firebase Test Lab.
 
+<hr>
+
 ## Prerequisites
 
 - Xcode installed on your macOS system
