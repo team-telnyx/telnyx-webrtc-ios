@@ -45,6 +45,10 @@ push-notification-tool/*.log
 push-notification-tool/.last-config.json
 push-notification-tool/package-lock.json
 
+# Documentation markdown linting
+docs-markdown/node_modules/
+docs-markdown/package-lock.json
+
 # Certificate files - IMPORTANT: Never commit these!
 *.p8
 *.p12

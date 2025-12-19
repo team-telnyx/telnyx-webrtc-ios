@@ -1,0 +1,16 @@
+{
+  "name": "docs-markdown",
+  "version": "1.0.0",
+  "description": "Documentation markdown files for iOS WebRTC SDK",
+  "scripts": {
+    "lint": "eslint . --ext .md",
+    "lint:fix": "eslint . --ext .md --fix"
+  },
+  "keywords": [],
+  "author": "Telnyx",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^9.39.1",
+    "eslint-plugin-mdx": "^3.6.2"
+  }
+}
