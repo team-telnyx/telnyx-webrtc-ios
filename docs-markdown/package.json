@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "description": "Documentation markdown files for iOS WebRTC SDK",
   "scripts": {
-    "lint": "eslint . --ext .md",
-    "lint:fix": "eslint . --ext .md --fix"
+    "lint": "bash lint-as-mdx.sh",
+    "lint:mdx": "eslint . --ext .mdx",
+    "lint:mdx:fix": "eslint . --ext .mdx --fix",
+    "lint:basic": "eslint . --ext .md"
   },
   "keywords": [],
   "author": "Telnyx",
