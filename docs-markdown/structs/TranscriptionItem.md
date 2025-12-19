@@ -39,12 +39,6 @@ public let isPartial: Bool
 public let timestamp: Date
 ```
 
-### `confidence`
-
-```swift
-public let confidence: Double?
-```
-
 ### `itemType`
 
 ```swift
@@ -55,6 +49,12 @@ public let itemType: String?
 
 ```swift
 public let metadata: [String: Any]?
+```
+
+### `imageUrls`
+
+```swift
+public let imageUrls: [String]?
 ```
 
 ### `speaker`
@@ -75,11 +75,23 @@ public var text: String
 public var isFinal: Bool
 ```
 
-## Methods
-### `init(id:role:content:isPartial:timestamp:confidence:itemType:metadata:)`
+### `hasImages`
 
 ```swift
-public init(id: String = UUID().uuidString, role: String, content: String, isPartial: Bool = false, timestamp: Date = Date(), confidence: Double? = nil, itemType: String? = nil, metadata: [String: Any]? = nil)
+public var hasImages: Bool
+```
+
+### `imageCount`
+
+```swift
+public var imageCount: Int
+```
+
+## Methods
+### `init(id:role:content:isPartial:timestamp:itemType:metadata:imageUrls:)`
+
+```swift
+public init(id: String = UUID().uuidString, role: String, content: String, isPartial: Bool = false, timestamp: Date = Date(), itemType: String? = nil, metadata: [String: Any]? = nil, imageUrls: [String]? = nil)
 ```
 
 ### `init(id:timestamp:speaker:text:confidence:isFinal:itemType:metadata:)`

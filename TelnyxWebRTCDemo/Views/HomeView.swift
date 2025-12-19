@@ -21,6 +21,7 @@ struct HomeView: View {
     @State private var showCodecSelection = false
 
     @State private var showRegionMenu = false
+    @State private var showWebSocketMessages = false
     @StateObject private var aiAssistantViewModel = AIAssistantViewModel()
     
     let onConnect: () -> Void
@@ -182,6 +183,7 @@ struct HomeView: View {
                               selectedRegion: $profileViewModel.selectedRegion,
                               showAIAssistant: $showAIAssistant,
                               showCodecSelection: $showCodecSelection,
+                              showWebSocketMessages: $showWebSocketMessages,
                               viewModel: viewModel
                           )
                 
@@ -206,6 +208,9 @@ struct HomeView: View {
             }
             .fullScreenCover(isPresented: $showAIAssistant) {
                 AIAssistantView(viewModel: aiAssistantViewModel)
+            }
+            .sheet(isPresented: $showWebSocketMessages) {
+                WebSocketMessagesBottomSheet()
             }
         }
     }

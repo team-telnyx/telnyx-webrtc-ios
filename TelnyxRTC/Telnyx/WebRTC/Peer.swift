@@ -80,6 +80,10 @@ class Peer : NSObject, WebRTCEventHandler {
     weak var delegate: PeerDelegate?
     var connection : RTCPeerConnection?
 
+    /// Configured ICE servers for this peer connection
+    /// Used to validate gathered ICE candidates against configured servers
+    private var configuredIceServers: [RTCIceServer]
+
     //Audio
     private var localAudioTrack: RTCAudioTrack?
     private let rtcAudioSession =  RTCAudioSession.sharedInstance()
@@ -173,6 +177,8 @@ class Peer : NSObject, WebRTCEventHandler {
                   isAttach: Bool = false,
                   forceRelayCandidate: Bool = false,
                   useTrickleIce: Bool = false) {
+        self.configuredIceServers = iceServers
+
         let config = RTCConfiguration()
         config.iceServers = iceServers
 
@@ -936,19 +942,33 @@ extension Peer : RTCPeerConnectionDelegate {
         // 3. We use Trickle ICE through signaling, not manual candidate addition
         // Attempting to add candidates manually causes "The remote description was null" error
 
-        gatheredICECandidates.append(candidate.serverUrl ?? "")
-
         // Start negotiation timer based on mode:
         // For Trickle ICE mode: ALWAYS start/restart timer for every candidate to detect when candidates stop arriving
         // For traditional mode: only start timer when an ICE candidate from the configured STUN or TURN server is gathered
         if useTrickleIce {
             Logger.log.i(message: "[TRICKLE-ICE] Peer:: ICE candidate generated - starting/restarting negotiation timer for endOfCandidates detection")
             self.startNegotiation(peerConnection: connection!, didGenerate: candidate)
-        } else if gatheredICECandidates.contains(InternalConfig.stunServer) ||
-                  gatheredICECandidates.contains(InternalConfig.turnServer) {
-            Logger.log.i(message: "Peer:: Valid ICE candidate found from configured server - starting negotiation (traditional mode)")
-            self.startNegotiation(peerConnection: connection!, didGenerate: candidate)
+        } else {
+
+            gatheredICECandidates.append(candidate.serverUrl ?? "")
+
+            // Start negotiation if an ICE candidate from the configured STUN or TURN server is gathered.
+            // Extract server URLs from the configured ice servers for this peer connection
+            let configuredServerUrls = configuredIceServers.flatMap { $0.urlStrings }
+
+            if gatheredICECandidates.contains(where: { gatheredUrl in
+                configuredServerUrls.contains { configuredUrl in
+                    // Extract the base URL without transport parameters for comparison
+                    let gatheredBase = gatheredUrl.components(separatedBy: "?").first ?? gatheredUrl
+                    let configuredBase = configuredUrl.components(separatedBy: "?").first ?? configuredUrl
+                    return gatheredBase == configuredBase
+                }
+            }) {
+                Logger.log.i(message: "Peer:: Valid ICE candidate found from configured server - starting negotiation (traditional mode)")
+                self.startNegotiation(peerConnection: connection!, didGenerate: candidate)
+            }
         }
+      
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didRemove candidates: [RTCIceCandidate]) {

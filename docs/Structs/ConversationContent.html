@@ -17,7 +17,7 @@
     <a title="ConversationContent Structure Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">TelnyxRTC 2.3.0 Docs</a> (72% documented)</p>
+        <p><a href="../index.html">TelnyxRTC 2.4.0 Docs</a> (71% documented)</p>
         <div class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -143,6 +143,9 @@
                 <a href="../Structs/ConversationItem.html">ConversationItem</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Structs/ImageURL.html">ImageURL</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/TranscriptionItem.html">TranscriptionItem</a>
               </li>
               <li class="nav-group-task">
@@ -217,9 +220,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC19ConversationContentV4textSSvp"></a>
+                    <a name="/s:9TelnyxRTC19ConversationContentV4textSSSgvp"></a>
                     <a name="//apple_ref/swift/Property/text" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC19ConversationContentV4textSSvp">text</a>
+                    <a class="token" href="#/s:9TelnyxRTC19ConversationContentV4textSSSgvp">text</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -234,7 +237,34 @@
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">text</span><span class="p">:</span> <span class="kt">String</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">text</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC19ConversationContentV8imageURLAA05ImageF0VSgvp"></a>
+                    <a name="//apple_ref/swift/Property/imageURL" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC19ConversationContentV8imageURLAA05ImageF0VSgvp">imageURL</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">imageURL</span><span class="p">:</span> <span class="kt"><a href="../Structs/ImageURL.html">ImageURL</a></span><span class="p">?</span></code></pre>
 
                         </div>
                       </div>
@@ -254,7 +284,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Initialize with text content</p>
 
                       </div>
                       <div class="declaration">
@@ -262,6 +292,33 @@
                         <div class="language">
                           <p class="aside-title">Swift</p>
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">type</span><span class="p">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">"input_text"</span><span class="p">,</span> <span class="nv">text</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC19ConversationContentV4type8imageURLACSS_AA05ImageG0Vtcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(type:imageURL:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC19ConversationContentV4type8imageURLACSS_AA05ImageG0Vtcfc">init(type:<wbr>imageURL:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Initialize with image URL content</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">type</span><span class="p">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">"image_url"</span><span class="p">,</span> <span class="nv">imageURL</span><span class="p">:</span> <span class="kt"><a href="../Structs/ImageURL.html">ImageURL</a></span><span class="p">)</span></code></pre>
 
                         </div>
                       </div>
@@ -300,7 +357,7 @@
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-10-21)</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-11-17)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.4</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>

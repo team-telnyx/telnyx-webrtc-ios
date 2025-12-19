@@ -677,6 +677,9 @@ extension Call {
     /// - Parameters:
     ///   - customHeaders: (optional) Custom Headers to be passed over webRTC Messages.
     ///     Headers should be in the format `X-key:Value` where `X-` prefix is required for custom headers.
+    ///     When calling AI Agents, headers with the `X-` prefix will be mapped to dynamic variables
+    ///     (e.g., `X-Account-Number` becomes `{{account_number}}`). Hyphens in header names are
+    ///     converted to underscores in variable names.
     ///   - debug: (optional) Enable debug mode for call quality metrics and WebRTC statistics.
     ///     When enabled, real-time call quality metrics will be available through the `onCallQualityChange` callback.
     public func answer(customHeaders:[String:String] = [:], debug:Bool = false) {

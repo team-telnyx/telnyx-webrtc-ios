@@ -17,7 +17,7 @@
     <a title="AIAssistantManager Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">TelnyxRTC 2.3.0 Docs</a> (72% documented)</p>
+        <p><a href="../index.html">TelnyxRTC 2.4.0 Docs</a> (71% documented)</p>
         <div class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -141,6 +141,9 @@
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/ConversationItem.html">ConversationItem</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ImageURL.html">ImageURL</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/TranscriptionItem.html">TranscriptionItem</a>
@@ -845,6 +848,81 @@ This class manages AI assistant connections, message handling, and state managem
                 <li class="item">
                   <div>
                     <code>
+                    <a name="/s:9TelnyxRTC18AIAssistantManagerC04sendC7Message_12base64Images11imageFormatSbSS_SaySSGSgSStF"></a>
+                    <a name="//apple_ref/swift/Method/sendAIAssistantMessage(_:base64Images:imageFormat:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC04sendC7Message_12base64Images11imageFormatSbSS_SaySSGSgSStF">sendAIAssistantMessage(_:<wbr>base64Images:<wbr>imageFormat:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Send a text message with multiple Base64 encoded images to AI Assistant during active call</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@discardableResult</span>
+<span class="kd">public</span> <span class="kd">func</span> <span class="nf">sendAIAssistantMessage</span><span class="p">(</span><span class="n">_</span> <span class="nv">message</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">base64Images</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">]?,</span> <span class="nv">imageFormat</span><span class="p">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">"jpeg"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>message</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The text message to send</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>base64Images</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional array of Base64 encoded image data (without data URL prefix)</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>imageFormat</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Image format (jpeg, png, etc.). Defaults to &ldquo;jpeg&rdquo;</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>True if message was sent successfully, false otherwise</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
                     <a name="/s:9TelnyxRTC18AIAssistantManagerC22sendVoiceTranscriptionySbAA0G4ItemVF"></a>
                     <a name="//apple_ref/swift/Method/sendVoiceTranscription(_:)" class="dashAnchor"></a>
                     <a class="token" href="#/s:9TelnyxRTC18AIAssistantManagerC22sendVoiceTranscriptionySbAA0G4ItemVF">sendVoiceTranscription(_:<wbr>)</a>
@@ -1298,7 +1376,7 @@ This class manages AI assistant connections, message handling, and state managem
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-10-21)</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-11-17)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.4</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>

@@ -26,3 +26,7 @@
 - PR #268: WEBRTC-2906: [iOS] Anonymous Login and Assistant within sample app
 - PR #288: [WEBRTC-3020] [FIX] Remove preferredCodecs parameter from answer flow
 - PR #285: WEBRTC-2903: Preferred Codec on invite - iOS
+- PR #292: [WEBRTC-3026] [FIX] Speaker state not preserved during network reconnection and ACM reset
+- PR #299: [WEBRTC-3080] Improve push notification portal setup documentation
+- PR #297: WEBRTC-3068: [iOS] Allow for Base64 encoded image in text message
+- PR #295: [WEBRTC-3057] - Add AI Agent documentation to iOS WebRTC SDK

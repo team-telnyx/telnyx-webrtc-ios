@@ -52,6 +52,8 @@
 		9906F8C72E3C15CA00A02FE7 /* AIAssistantManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8C62E3C15CA00A02FE7 /* AIAssistantManager.swift */; };
 		9906F8C92E3CEA4600A02FE7 /* AIAssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8C82E3CEA4600A02FE7 /* AIAssistantView.swift */; };
 		9906F8CB2E3CEA6000A02FE7 /* AIAssistantViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8CA2E3CEA6000A02FE7 /* AIAssistantViewModel.swift */; };
+		990BBB602ED609C900CF6DF0 /* WebSocketMessagesBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990BBB5F2ED609C900CF6DF0 /* WebSocketMessagesBottomSheet.swift */; };
+		990BBB622ED60A8A00CF6DF0 /* WebSocketMessageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990BBB612ED60A8A00CF6DF0 /* WebSocketMessageManager.swift */; };
 		990FC0482E9841BC009344DC /* TxCodecCapability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990FC0472E9841BC009344DC /* TxCodecCapability.swift */; };
 		990FC04A2E99387C009344DC /* CodecSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990FC0492E99387C009344DC /* CodecSelectionView.swift */; };
 		990FC04C2E996225009344DC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990FC04B2E996225009344DC /* SceneDelegate.swift */; };
@@ -258,6 +260,8 @@
 		9906F8C62E3C15CA00A02FE7 /* AIAssistantManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistantManager.swift; sourceTree = "<group>"; };
 		9906F8C82E3CEA4600A02FE7 /* AIAssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistantView.swift; sourceTree = "<group>"; };
 		9906F8CA2E3CEA6000A02FE7 /* AIAssistantViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistantViewModel.swift; sourceTree = "<group>"; };
+		990BBB5F2ED609C900CF6DF0 /* WebSocketMessagesBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketMessagesBottomSheet.swift; sourceTree = "<group>"; };
+		990BBB612ED60A8A00CF6DF0 /* WebSocketMessageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketMessageManager.swift; sourceTree = "<group>"; };
 		990FC0472E9841BC009344DC /* TxCodecCapability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxCodecCapability.swift; sourceTree = "<group>"; };
 		990FC0492E99387C009344DC /* CodecSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodecSelectionView.swift; sourceTree = "<group>"; };
 		990FC04B2E996225009344DC /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -469,6 +473,7 @@
 				3B45B3982E0ADD6200383668 /* CallHistoryManager.swift */,
 				3BA535E82DFBA37C005AF0F4 /* PreCallDiagnosticManager.swift */,
 				995BF71A2CE7EBF800454076 /* SipCredentialsManager.swift */,
+				990BBB612ED60A8A00CF6DF0 /* WebSocketMessageManager.swift */,
 			);
 			path = Managers;
 			sourceTree = "<group>";
@@ -620,6 +625,7 @@
 				991A6D432D3A96C100B29785 /* SplashScreen.swift */,
 				9906F8C82E3CEA4600A02FE7 /* AIAssistantView.swift */,
 				99FDD7382E3CF80100FF7F6E /* TranscriptDialogView.swift */,
+				990BBB5F2ED609C900CF6DF0 /* WebSocketMessagesBottomSheet.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1233,6 +1239,7 @@
 			files = (
 				995BF7132CE7E8F100454076 /* WebRTCEnvironmentExtension.swift in Sources */,
 				B3B1D9A426545807008D28C9 /* UserDefaultExtension.swift in Sources */,
+				990BBB602ED609C900CF6DF0 /* WebSocketMessagesBottomSheet.swift in Sources */,
 				99ADA9AE2D487DE5000C956A /* ProfileViewModel.swift in Sources */,
 				B32AE8BB26D6952500C7C6F4 /* AppDelegateCallKitExtension.swift in Sources */,
 				998670422D4096AA001E1D01 /* HomeView.swift in Sources */,
@@ -1251,6 +1258,7 @@
 				99ADA9A82D4878FA000C956A /* ProfileView.swift in Sources */,
 				998670402D40849C001E1D01 /* HomeViewController.swift in Sources */,
 				3B7D299F2DF1C6F70094EB90 /* CallHistoryDatabase.swift in Sources */,
+				990BBB622ED60A8A00CF6DF0 /* WebSocketMessageManager.swift in Sources */,
 				3BE84BA82D9C944A00CA1B70 /* DestinationToggle.swift in Sources */,
 				3BA535E92DFBA37C005AF0F4 /* PreCallDiagnosticManager.swift in Sources */,
 				995BF7162CE7EB2600454076 /* SipUserCredential.swift in Sources */,
@@ -1335,7 +1343,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.3.0;
+				MARKETING_VERSION = 2.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp.TelnyxWebRTCDemoUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
@@ -1359,7 +1367,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.3.0;
+				MARKETING_VERSION = 2.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp.TelnyxWebRTCDemoUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -1520,7 +1528,7 @@
 					"@loader_path/Frameworks",
 					"$(BUILT_PRODUCTS_DIR)/Starscream",
 				);
-				MARKETING_VERSION = 2.3.0;
+				MARKETING_VERSION = 2.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.WebRTCSDK;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1556,7 +1564,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.3.0;
+				MARKETING_VERSION = 2.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.WebRTCSDK;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -1627,7 +1635,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.3.0;
+				MARKETING_VERSION = 2.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp;
 				PRODUCT_NAME = "Telnyx WebRTC";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1654,7 +1662,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.3.0;
+				MARKETING_VERSION = 2.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp;
 				PRODUCT_NAME = "Telnyx WebRTC";
 				PROVISIONING_PROFILE_SPECIFIER = "";

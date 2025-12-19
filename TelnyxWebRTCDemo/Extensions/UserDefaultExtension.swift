@@ -22,6 +22,7 @@ enum UserDefaultsKey: String {
     case customServerEnabled = "CUSTOM_SERVER_ENABLED"
     case customServerHost = "CUSTOM_SERVER_HOST"
     case customServerPort = "CUSTOM_SERVER_PORT"
+    case aiAssistantTargetId = "AI_ASSISTANT_TARGET_ID"
 }
 
 extension UserDefaults {
@@ -157,6 +158,20 @@ extension UserDefaults {
 
     func getCustomServerPort() -> String {
         return string(forKey: UserDefaultsKey.customServerPort.rawValue) ?? ""
+    }
+
+    // MARK: - AI Assistant Target ID
+    func saveAIAssistantTargetId(_ targetId: String) {
+        set(targetId, forKey: UserDefaultsKey.aiAssistantTargetId.rawValue)
+        synchronize() // Force immediate write
+    }
+
+    func getAIAssistantTargetId() -> String? {
+        return string(forKey: UserDefaultsKey.aiAssistantTargetId.rawValue)
+    }
+
+    func deleteAIAssistantTargetId() {
+        removeObject(forKey: UserDefaultsKey.aiAssistantTargetId.rawValue)
     }
 }
 

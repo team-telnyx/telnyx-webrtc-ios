@@ -192,6 +192,27 @@ Send a text message to AI Assistant during active call (mixed-mode communication
 | ---- | ----------- |
 | message | The text message to send |
 
+### `sendAIAssistantMessage(_:base64Images:imageFormat:)`
+
+```swift
+public func sendAIAssistantMessage(_ message: String, base64Images: [String]?, imageFormat: String = "jpeg") -> Bool
+```
+
+Send a text message with multiple Base64 encoded images to AI Assistant during active call
+- Parameters:
+  - message: The text message to send
+  - base64Images: Optional array of Base64 encoded image data (without data URL prefix)
+  - imageFormat: Image format (jpeg, png, etc.). Defaults to "jpeg"
+- Returns: True if message was sent successfully, false otherwise
+
+#### Parameters
+
+| Name | Description |
+| ---- | ----------- |
+| message | The text message to send |
+| base64Images | Optional array of Base64 encoded image data (without data URL prefix) |
+| imageFormat | Image format (jpeg, png, etc.). Defaults to “jpeg” |
+
 ### `sendVoiceTranscription(_:)`
 
 ```swift

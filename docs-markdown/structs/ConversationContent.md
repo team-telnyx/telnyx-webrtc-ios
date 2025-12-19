@@ -18,7 +18,13 @@ public let type: String
 ### `text`
 
 ```swift
-public let text: String
+public let text: String?
+```
+
+### `imageURL`
+
+```swift
+public let imageURL: ImageURL?
 ```
 
 ## Methods
@@ -27,6 +33,16 @@ public let text: String
 ```swift
 public init(type: String = "input_text", text: String)
 ```
+
+Initialize with text content
+
+### `init(type:imageURL:)`
+
+```swift
+public init(type: String = "image_url", imageURL: ImageURL)
+```
+
+Initialize with image URL content
 
 ### `toDictionary()`
 

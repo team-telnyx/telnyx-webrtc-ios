@@ -15,7 +15,7 @@ Quality rating for a WebRTC call based on MOS score
 case excellent
 ```
 
-MOS > 4.2
+`MOS > 4.2`
 
 ### `good`
 
@@ -23,7 +23,7 @@ MOS > 4.2
 case good
 ```
 
-4.1 <= MOS <= 4.2
+`4.1 <= MOS <= 4.2`
 
 ### `fair`
 
@@ -31,7 +31,7 @@ case good
 case fair
 ```
 
-3.7 <= MOS <= 4.0
+`3.7 <= MOS <= 4.0`
 
 ### `poor`
 
@@ -39,7 +39,7 @@ case fair
 case poor
 ```
 
-3.1 <= MOS <= 3.6
+`3.1 <= MOS <= 3.6`
 
 ### `bad`
 
@@ -47,7 +47,7 @@ case poor
 case bad
 ```
 
-MOS <= 3.0
+`MOS <= 3.0`
 
 ### `unknown`
 

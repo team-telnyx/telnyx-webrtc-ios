@@ -11,6 +11,11 @@ import AVFoundation
 import WebRTC
 import CallKit
 
+// MARK: - Notification Names
+public extension Notification.Name {
+    static let telnyxWebSocketMessageReceived = Notification.Name("TelnyxWebSocketMessageReceived")
+}
+
 /// The `TelnyxRTC` client connects your application to the Telnyx backend,
 /// enabling you to make outgoing calls and handle incoming calls.
 ///
@@ -586,6 +591,9 @@ public class TxClient {
     ///   - answerAction: The `CXAnswerCallAction` provided by CallKit's provider delegate.
     ///   - customHeaders: (optional) Custom Headers to be passed over webRTC Messages.
     ///     Headers should be in the format `X-key:Value` where `X-` prefix is required for custom headers.
+    ///     When calling AI Agents, headers with the `X-` prefix will be mapped to dynamic variables
+    ///     (e.g., `X-Account-Number` becomes `{{account_number}}`). Hyphens in header names are
+    ///     converted to underscores in variable names.
     ///   - debug: (optional) Enable debug mode for call quality metrics and WebRTC statistics.
     ///     When enabled, real-time call quality metrics will be available through the call's `onCallQualityChange` callback.
     public func answerFromCallkit(answerAction:CXAnswerCallAction,customHeaders:[String:String] = [:], debug:Bool = false) {
@@ -770,6 +778,20 @@ public class TxClient {
         return aiAssistantManager.sendAIAssistantMessage(message)
     }
 
+    /// Send a text message with multiple Base64 encoded images to AI Assistant during active call
+    /// - Parameters:
+    ///   - message: The text message to send to AI assistant
+    ///   - base64Images: Optional array of Base64 encoded image data (without data URL prefix)
+    ///   - imageFormat: Image format (jpeg, png, etc.). Defaults to "jpeg"
+    /// - Returns: True if message was sent successfully, false otherwise
+    @discardableResult
+    public func sendAIAssistantMessage(_ message: String, base64Images: [String]?, imageFormat: String = "jpeg") -> Bool {
+        let imageCount = base64Images?.count ?? 0
+        let logMessage = imageCount > 0 ? "text message with \(imageCount) image(s)" : "text message"
+        Logger.log.i(message: "TxClient:: sendAIAssistantMessage() \(logMessage): '\(message)'")
+        return aiAssistantManager.sendAIAssistantMessage(message, base64Images: base64Images, imageFormat: imageFormat)
+    }
+
     /// This function check the gateway status updates to determine if the current user has been successfully
     /// registered and can start receiving and/or making calls.
     /// - Parameter newState: The new gateway state received from B2BUA
@@ -893,6 +915,9 @@ extension TxClient {
     ///   - clientState: (optional) Custom state in string format encoded in base64
     ///   - customHeaders: (optional) Custom Headers to be passed over webRTC Messages.
     ///     Headers should be in the format `X-key:Value` where `X-` prefix is required for custom headers.
+    ///     When calling AI Agents, headers with the `X-` prefix will be mapped to dynamic variables
+    ///     (e.g., `X-Account-Number` becomes `{{account_number}}`). Hyphens in header names are
+    ///     converted to underscores in variable names.
     ///   - preferredCodecs: (optional) Array of preferred audio codecs in priority order.
     ///     The SDK will attempt to use these codecs in the specified order during negotiation.
     ///     If none of the preferred codecs are available, WebRTC will fall back to its default codec selection.
@@ -1408,6 +1433,10 @@ extension TxClient : SocketDelegate {
      */
     func onMessageReceived(message: String) {
         Logger.log.i(message: "TxClient:: SocketDelegate onMessageReceived() message: \(message)")
+        
+        // Post notification for websocket message capture
+        NotificationCenter.default.post(name: .telnyxWebSocketMessageReceived, object: nil, userInfo: ["message": message])
+        
         guard let vertoMessage = Message().decode(message: message) else { return }
         
         // Process message through AI Assistant Manager

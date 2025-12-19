@@ -197,6 +197,32 @@ Before submitting changes, it's crucial to verify and update relevant documentat
    - Describe main responsibilities
    - Include implementation examples
 
+#### Mintlify-Compatible Documentation Formatting
+
+All documentation must be compatible with Mintlify's markdown linter:
+
+1. **Code Formatting in Swift Comments**
+   - Use backticks to format code expressions, ranges, and technical values
+   - Example: `/// \`MOS > 4.2\`` instead of `/// MOS > 4.2`
+   - Format enum case conditions with backticks: `/// \`3.7 <= MOS <= 4.0\``
+   - Apply to numeric comparisons, ranges, variable names, and code snippets
+
+2. **HTML Tags in Markdown Files**
+   - Always use self-closing format for void elements
+   - Use `<img />` instead of `<img>`
+   - Use `<br />` instead of `</br>` or `<br>`
+   - Ensure all HTML attributes are properly quoted
+
+3. **Auto-Generated vs Manual Documentation**
+   - **Auto-generated** (do NOT edit manually): `docs-markdown/enums/`, `docs-markdown/classes/`, `docs-markdown/structs/`, `docs-markdown/protocols/`
+   - **Manual** (edit directly): `docs-markdown/push-notification/*.md`, `docs-markdown/webrtc-stats/*.md`, `docs-markdown/error-handling/*.md`
+   - When modifying Swift documentation comments, regenerate docs with: `fastlane generate_docs_markdown`
+
+4. **Regenerating Documentation**
+   - After changing Swift documentation comments in SDK files, always run `fastlane generate_docs_markdown`
+   - Verify the generated markdown passes Mintlify linting
+   - Only commit the regenerated documentation if it improves formatting or fixes errors
+
 ### Xcode Command Limitations
 
 All Xcode-related commands and tests should be skipped if Claude is not running on a macOS system with Xcode installed. In such cases, proceed with the requested changes without executing any Xcode commands.

@@ -364,6 +364,103 @@ This is a general example: In order to fully support inbound calls you will need
 
 ---
 
+## AI Agent Integration
+
+The Telnyx iOS WebRTC SDK provides comprehensive support for AI Agent functionality, enabling intelligent voice applications with real-time conversation capabilities.
+
+### Key Features
+
+- **Anonymous Authentication**: Connect to AI assistants without SIP credentials
+- **Real-time Transcripts**: Live conversation transcripts with role identification
+- **Mixed Communication**: Send text messages during voice calls
+- **Widget Settings**: Customizable AI assistant interface
+
+### Quick Start
+
+```swift
+import TelnyxRTC
+
+class AIAgentViewController: UIViewController {
+    private let client = TxClient()
+    private var currentCall: Call?
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        client.delegate = self
+        setupAIAgent()
+    }
+    
+    private func setupAIAgent() {
+        // Step 1: Anonymous login to AI assistant
+        client.anonymousLogin(
+            targetId: "your-ai-assistant-id",
+            targetType: "ai_assistant"
+        )
+    }
+    
+    private func startConversation() {
+        // Step 2: Start conversation (destination ignored after anonymous login)
+        currentCall = client.newInvite(
+            callerName: "User",
+            callerNumber: "user",
+            destinationNumber: "ai-assistant", // Ignored after anonymous login
+            callId: UUID()
+        )
+    }
+    
+    private func sendTextMessage() {
+        // Step 3: Send text message during call
+        let success = client.sendAIAssistantMessage("Hello, can you help me?")
+        print("Message sent: \(success)")
+    }
+    
+    private func subscribeToTranscripts() {
+        // Step 4: Listen to real-time transcripts
+        let cancellable = client.aiAssistantManager.subscribeToTranscriptUpdates { transcripts in
+            DispatchQueue.main.async {
+                self.updateTranscriptUI(transcripts)
+            }
+        }
+        // Store cancellable to manage subscription lifecycle
+    }
+}
+
+extension AIAgentViewController: TxClientDelegate {
+    func onClientReady() {
+        print("Client ready - can start AI conversation")
+        startConversation()
+    }
+    
+    func onCallStateUpdated(callState: CallState, callId: UUID) {
+        switch callState {
+        case .ACTIVE:
+            print("AI conversation active")
+            subscribeToTranscripts()
+        case .DONE:
+            print("AI conversation ended")
+        default:
+            break
+        }
+    }
+}
+```
+
+### Implementation Steps
+
+1. **[Anonymous Login](docs-markdown/ai-agent/anonymous-login.md)** - Authenticate with AI assistants without SIP credentials
+2. **[Starting Conversations](docs-markdown/ai-agent/starting-conversations.md)** - Initiate calls with AI agents
+3. **[Transcript Updates](docs-markdown/ai-agent/transcript-updates.md)** - Handle real-time conversation transcripts
+4. **[Text Messaging](docs-markdown/ai-agent/text-messaging.md)** - Send text messages during voice calls
+
+### Complete Documentation
+
+For comprehensive AI Agent integration documentation, see:
+- **[AI Agent Introduction](docs-markdown/ai-agent/introduction.md)** - Overview and architecture
+- **[AIAssistantManager API](docs-markdown/classes/AIAssistantManager.md)** - Complete API reference
+- **[TranscriptionItem Structure](docs-markdown/structs/TranscriptionItem.md)** - Transcript data format
+- **[WidgetSettings Configuration](docs-markdown/structs/WidgetSettings.md)** - UI customization options
+
+---
 
 ## Preferred Audio Codecs
 
