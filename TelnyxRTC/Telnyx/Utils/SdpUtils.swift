@@ -129,4 +129,72 @@ class SdpUtils {
         Logger.log.i(message: "SdpUtils :: Removed ICE candidates from SDP for trickle ICE")
         return modifiedSdp
     }
+
+    /// Cleans an ICE candidate string to remove WebRTC-specific extensions.
+    /// Extracts only the RFC 5245/8838 standard fields from a WebRTC candidate string.
+    ///
+    /// Standard format: candidate:<foundation> <component> <transport> <priority> <IP address> <port> typ <candidate-type> [raddr <IP>] [rport <port>]
+    ///
+    /// - Parameter candidateString: The raw candidate string from WebRTC (e.g., from RTCIceCandidate.sdp)
+    /// - Returns: The cleaned candidate string with only RFC-compliant fields
+    static func cleanCandidateString(_ candidateString: String) -> String {
+        Logger.log.i(message: "[CANDIDATE-CLEAN] SdpUtils:: Original candidate: \(candidateString)")
+
+        // Split the candidate string into parts
+        let parts = candidateString.trimmingCharacters(in: .whitespaces).components(separatedBy: " ")
+
+        // Validate candidate format
+        guard !parts.isEmpty, parts[0].hasPrefix("candidate:") else {
+            Logger.log.w(message: "[CANDIDATE-CLEAN] SdpUtils:: Invalid candidate format: \(candidateString)")
+            return candidateString
+        }
+
+        var cleanedParts: [String] = []
+        var i = 0
+
+        // Process standard fields: foundation(0), component(1), transport(2), priority(3), IP(4), port(5), typ(6), candidate-type(7)
+        // Also keep raddr and rport pairs for relay candidates
+        while i < parts.count {
+            let part = parts[i]
+
+            // Keep standard candidate fields (indices 0-7)
+            if i < 8 {
+                cleanedParts.append(part)
+                i += 1
+                continue
+            }
+
+            // Keep raddr and its value
+            if part == "raddr" && i + 1 < parts.count {
+                cleanedParts.append(part)
+                cleanedParts.append(parts[i + 1])
+                i += 2
+                continue
+            }
+
+            // Keep rport and its value
+            if part == "rport" && i + 1 < parts.count {
+                cleanedParts.append(part)
+                cleanedParts.append(parts[i + 1])
+                i += 2
+                continue
+            }
+
+            // Skip WebRTC-specific extensions (network-id, generation, ufrag, network-cost)
+            if part == "network-id" || part == "generation" || part == "ufrag" || part == "network-cost" {
+                // Skip the extension and its value
+                i += 2
+                continue
+            }
+
+            // Skip any other unknown fields
+            Logger.log.i(message: "[CANDIDATE-CLEAN] SdpUtils:: Skipping unknown field: \(part)")
+            i += 1
+        }
+
+        let cleanedCandidate = cleanedParts.joined(separator: " ")
+        Logger.log.i(message: "[CANDIDATE-CLEAN] SdpUtils:: Cleaned candidate: \(cleanedCandidate)")
+
+        return cleanedCandidate
+    }
 }
