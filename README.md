@@ -791,6 +791,29 @@ For detailed documentation on setting up push notifications, see:
 - [Portal Setup](https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/portal-setup) - Set up your Telnyx Portal account with VoIP push credentials
 - [Troubleshooting](https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/troubleshooting) - Debug common push notification issues
 
+---
+
+## Trickle ICE
+
+The SDK supports Trickle ICE, which enables faster call setup by sending ICE candidates incrementally as they are discovered, rather than waiting for all candidates before establishing the connection.
+
+### Key Features
+
+- **Faster Call Establishment**: Candidates are sent immediately as discovered, reducing connection time
+- **Automatic Management**: No configuration required - the SDK handles Trickle ICE automatically
+- **Smart Queuing**: Answering side queues candidates until ANSWER is sent to prevent race conditions
+- **Candidate Cleaning**: WebRTC extensions are removed for maximum server compatibility
+
+### How It Works
+
+**Outbound Calls**: Candidates are sent immediately as they are generated
+
+**Inbound Calls**: Candidates are queued until the call is answered, then flushed all at once followed by real-time sending of new candidates
+
+This approach prevents race conditions where candidates might arrive before the answer, ensuring reliable call setup.
+
+For comprehensive documentation on Trickle ICE implementation, troubleshooting, and technical details, see the [Trickle ICE Guide](docs-markdown/trickle-ice/trickle-ice.md).
+
 ### Testing VoIP Push Notifications
 
 The repository includes a dedicated testing tool to help validate your VoIP push notification setup. This tool allows you to send test push notifications directly to your device using your own certificates and configuration.

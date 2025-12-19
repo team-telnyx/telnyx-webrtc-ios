@@ -304,6 +304,8 @@ extension AppDelegate : CXProviderDelegate {
             let forceRelayCandidate = userDefaults.getForceRelayCandidate()
             let webrtcStats = userDefaults.getWebRTCStats()
             let sendWebRTCStatsViaSocket = userDefaults.getSendWebRTCStatsViaSocket()
+            let useTrickleIce = userDefaults.getUseTrickleIce()
+            print("[TRICKLE-ICE] AppDelegate:: Processing VoIP notification with useTrickleIce = \(useTrickleIce)")
             //Sets the login credentials and the ringtone/ringback configurations if required.
             //Ringtone / ringback tone files are not mandatory.
             let txConfig = TxConfig(token: token,
@@ -320,7 +322,9 @@ extension AppDelegate : CXProviderDelegate {
                                     // Enable Call Quality Metrics
                                     enableQualityMetrics: true,
                                     // Send WebRTC Stats Via Socket
-                                    sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket)
+                                    sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket,
+                                    // Use Trickle ICE
+                                    useTrickleIce: useTrickleIce)
             
             do {
                 try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)
@@ -335,6 +339,8 @@ extension AppDelegate : CXProviderDelegate {
             let forceRelayCandidate = userDefaults.getForceRelayCandidate()
             let webrtcStats = userDefaults.getWebRTCStats()
             let sendWebRTCStatsViaSocket = userDefaults.getSendWebRTCStatsViaSocket()
+            let useTrickleIce = userDefaults.getUseTrickleIce()
+            print("[TRICKLE-ICE] AppDelegate:: Processing VoIP notification (SIP) with useTrickleIce = \(useTrickleIce)")
             //Sets the login credentials and the ringtone/ringback configurations if required.
             //Ringtone / ringback tone files are not mandatory.
             let txConfig = TxConfig(sipUser: sipUser,
@@ -352,7 +358,9 @@ extension AppDelegate : CXProviderDelegate {
                                     // Enable Call Quality Metrics
                                     enableQualityMetrics: true,
                                     // Send WebRTC Stats Via Socket
-                                    sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket)
+                                    sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket,
+                                    // Use Trickle ICE
+                                    useTrickleIce: useTrickleIce)
             
             do {
                 try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)

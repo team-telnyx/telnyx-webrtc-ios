@@ -963,7 +963,8 @@ extension TxClient {
                         iceServers: self.serverConfiguration.webRTCIceServers,
                         debug: self.txConfig?.debug ?? false,
                         forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
-                        sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false)
+                        sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
+                        useTrickleIce: self.txConfig?.useTrickleIce ?? false)
         call.newCall(callerName: callerName,
                      callerNumber: callerNumber,
                      destinationNumber: destinationNumber,
@@ -1040,7 +1041,8 @@ extension TxClient {
                         isAttach: isAttach,
                         debug: self.txConfig?.debug ?? false,
                         forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
-                        sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false)
+                        sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
+                        useTrickleIce: self.txConfig?.useTrickleIce ?? false)
         call.callInfo?.callerName = callerName
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)
@@ -1138,7 +1140,8 @@ extension TxClient {
                                                                     iceServers: self.serverConfiguration.webRTCIceServers,
                                                                     debug: self.txConfig?.debug ?? false,
                                                                     forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
-                                                                    sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false)
+                                                                    sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
+                                                                    useTrickleIce: self.txConfig?.useTrickleIce ?? false)
                 }
             } catch let error {
                 Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")

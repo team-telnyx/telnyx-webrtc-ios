@@ -272,6 +272,11 @@ public class Call {
     /// This is independent of stats collection - stats can be collected without being sent via socket.
     public internal(set) var sendWebRTCStatsViaSocket: Bool = false
     
+    /// Controls whether the SDK should use trickle ICE for WebRTC signaling.
+    /// When enabled, ICE candidates are sent individually as they are discovered,
+    /// rather than waiting for all candidates to be gathered before sending the offer/answer.
+    public internal(set) var useTrickleIce: Bool = false
+    
     /// Controls whether the SDK should force TURN relay for peer connections.
     /// When enabled, the SDK will only use TURN relay candidates for ICE gathering,
     /// which prevents the "local network access" permission popup from appearing.
@@ -359,7 +364,8 @@ public class Call {
          debug: Bool = false,
          forceRelayCandidate: Bool = false,
          enableQualityMetrics: Bool = false,
-         sendWebRTCStatsViaSocket: Bool = false
+         sendWebRTCStatsViaSocket: Bool = false,
+         useTrickleIce: Bool = false
     ) {
         if isAttach {
             self.direction = CallDirection.ATTACH
@@ -397,6 +403,7 @@ public class Call {
         self.forceRelayCandidate = forceRelayCandidate
         self.enableQualityMetrics = enableQualityMetrics
         self.sendWebRTCStatsViaSocket = sendWebRTCStatsViaSocket
+        self.useTrickleIce = useTrickleIce
     }
     
     //Contructor for attachCalls
@@ -410,7 +417,8 @@ public class Call {
          iceServers: [RTCIceServer],
          debug: Bool = false,
          forceRelayCandidate: Bool = false,
-         sendWebRTCStatsViaSocket: Bool = false) {
+         sendWebRTCStatsViaSocket: Bool = false,
+         useTrickleIce: Bool = false) {
         self.direction = CallDirection.ATTACH
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
@@ -430,6 +438,7 @@ public class Call {
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
         self.sendWebRTCStatsViaSocket = sendWebRTCStatsViaSocket
+        self.useTrickleIce = useTrickleIce
     }
 
     /// Constructor for outgoing calls
@@ -441,7 +450,8 @@ public class Call {
          ringbackTone: String? = nil,
          iceServers: [RTCIceServer],
          debug: Bool = false,
-         forceRelayCandidate: Bool = false) {
+         forceRelayCandidate: Bool = false,
+         useTrickleIce: Bool = false) {
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
         //this is the signaling server socket
@@ -459,6 +469,7 @@ public class Call {
         self.updateCallState(callState: .NEW)
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
+        self.useTrickleIce = useTrickleIce
     }
 
     // MARK: - Private functions
@@ -485,10 +496,15 @@ public class Call {
         // - Create the reporter to send the startReporting message before creating the peer connection
         // - Start the reporter once the peer connection is created
         self.configureStatsReporter()
-        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate)
+        Logger.log.i(message: "[TRICKLE-ICE] Call:: Creating Peer for outbound call with useTrickleIce = \(self.useTrickleIce)")
+        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate, useTrickleIce: self.useTrickleIce, isAnswering: false)
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
+        self.peer?.sessionId = self.sessionId
+        // Set callId for trickle ICE messages - must match the callID sent in INVITE
+        self.peer?.callId = self.callInfo?.callId.uuidString.lowercased()
+        Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.callInfo?.callId.uuidString.lowercased() ?? "nil") for trickle ICE")
         self.peer?.offer(preferredCodecs: preferredCodecs, completion: { (sdp, error)  in
 
             if let error = error {
@@ -675,11 +691,16 @@ extension Call {
         }
         self.answerCustomHeaders = customHeaders
         self.configureStatsReporter()
-        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate)
+        Logger.log.i(message: "[TRICKLE-ICE] Call:: Creating Peer for inbound call answer with useTrickleIce = \(self.useTrickleIce)")
+        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate, useTrickleIce: self.useTrickleIce, isAnswering: true)
         self.enableQualityMetrics = debug
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
+        self.peer?.sessionId = self.sessionId
+        // Set callId for trickle ICE messages - must match the callID from the incoming INVITE
+        self.peer?.callId = self.callInfo?.callId.uuidString.lowercased()
+        Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.callInfo?.callId.uuidString.lowercased() ?? "nil") for trickle ICE")
         self.incomingOffer(sdp: remoteSdp)
         self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", completion: { (sdp, error)  in
 
@@ -716,10 +737,16 @@ extension Call {
         self.configureStatsReporter(reportID: reportId)
         self.peer = Peer(iceServers: self.iceServers,
                          isAttach: true,
-                         forceRelayCandidate: self.forceRelayCandidate)
+                         forceRelayCandidate: self.forceRelayCandidate,
+                         useTrickleIce: false,
+                         isAnswering: false)
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
+        self.peer?.sessionId = self.sessionId
+        // Set callId for trickle ICE messages - must match the callID from ATTACH
+        self.peer?.callId = self.callInfo?.callId.uuidString.lowercased()
+        Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.callInfo?.callId.uuidString.lowercased() ?? "nil") for ATTACH")
         self.incomingOffer(sdp: remoteSdp)
         self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", completion: { (sdp, error)  in
 
@@ -931,7 +958,8 @@ extension Call : PeerDelegate {
                                               sdp: sdp.sdp,
                                               callInfo: callInfo,
                                               callOptions: callOptions,
-                                              customHeaders: self.inviteCustomHeaders ?? [:])
+                                              customHeaders: self.inviteCustomHeaders ?? [:],
+                                              trickle: self.useTrickleIce)
             
             let message = inviteMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
@@ -954,11 +982,15 @@ extension Call : PeerDelegate {
             //Build the telnyx_rtc.answer message and send it
 
             let answerMessage = AnswerMessage(sessionId: sessionId, sdp: sdp.sdp, callInfo: callInfo, callOptions: callOptions,
-                                              customHeaders: self.answerCustomHeaders ?? [:]
+                                              customHeaders: self.answerCustomHeaders ?? [:],
+                                              trickle: self.useTrickleIce
             )
             let message = answerMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
             Logger.log.s(message:"Send answer >> \(answerMessage)")
+
+            // Flush queued ICE candidates after sending ANSWER (for trickle ICE on answering side)
+            self.peer?.flushQueuedCandidatesAfterAnswer()
         }
     }
 }
@@ -1073,6 +1105,11 @@ extension Call {
                 if let telnyxLegId = params["telnyx_leg_id"] as? String,
                    let telnyxLegIdUUID = UUID(uuidString: telnyxLegId) {
                     self.telnyxLegId = telnyxLegIdUUID
+
+                    // Update peer's callLegID and flush any pending trickle ICE candidates
+                    self.peer?.callLegID = telnyxLegIdUUID.uuidString
+                    Logger.log.i(message: "[TRICKLE-ICE] Call:: Updated peer.callLegID with telnyxLegId, flushing pending candidates")
+                    self.peer?.flushPendingTrickleCandidates()
                 } else {
                     Logger.log.w(message: "Call:: Telnyx Leg ID unavailable on RINGING message")
                 }
@@ -1084,7 +1121,29 @@ extension Call {
             // Handle other MODIFY actions (hold/unhold, etc.)
             // ICE restart is handled at the beginning of the method
             break
-            
+
+        case .CANDIDATE:
+            // Handle incoming remote ICE candidate for trickle ICE
+            if let params = message.params {
+                guard let candidateString = params["candidate"] as? String else {
+                    Logger.log.w(message: "[TRICKLE-ICE] Call:: CANDIDATE message missing candidate string")
+                    return
+                }
+
+                let sdpMid = params["sdpMid"] as? String
+                let sdpMLineIndex = params["sdpMLineIndex"] as? Int32 ?? 0
+
+                Logger.log.i(message: "[TRICKLE-ICE] Call:: Received remote candidate - forwarding to peer")
+                self.peer?.handleRemoteCandidate(candidateString: candidateString, sdpMid: sdpMid, sdpMLineIndex: sdpMLineIndex)
+            }
+            break
+
+        case .END_OF_CANDIDATES:
+            // Handle end of remote candidates signal for trickle ICE
+            Logger.log.i(message: "[TRICKLE-ICE] Call:: Received END_OF_CANDIDATES - forwarding to peer")
+            self.peer?.handleEndOfRemoteCandidates()
+            break
+
         default:
             Logger.log.w(message: "TxClient:: SocketDelegate Default method")
             break
