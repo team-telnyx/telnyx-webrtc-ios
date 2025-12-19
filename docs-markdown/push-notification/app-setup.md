@@ -2,8 +2,6 @@
 
 ### VoIP Push - App Setup
 
-<input type="text" placeholder="Example input">
-
 The following setup is required in your application to receive Telnyx VoIP push notifications:
 
 #### a. Add Push Notifications capability to your Xcode project

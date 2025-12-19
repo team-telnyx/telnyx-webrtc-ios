@@ -1,7 +1,6 @@
 ## WebRTC Statistics
 
-The SDK provides WebRTC statistics functionality to assist with troubleshooting and monitoring call quality.<br>
-This feature is controlled through the `debug` flag in the `TxClient` configuration.
+The SDK provides WebRTC statistics functionality to assist with troubleshooting and monitoring call quality. This feature is controlled through the `debug` flag in the `TxClient` configuration.
 
 ### Enabling WebRTC Statistics
 
