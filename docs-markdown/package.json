@@ -1,0 +1,18 @@
+{
+  "name": "docs-markdown",
+  "version": "1.0.0",
+  "description": "Documentation markdown files for iOS WebRTC SDK",
+  "scripts": {
+    "lint": "bash lint-as-mdx.sh",
+    "lint:mdx": "eslint . --ext .mdx",
+    "lint:mdx:fix": "eslint . --ext .mdx --fix",
+    "lint:basic": "eslint . --ext .md"
+  },
+  "keywords": [],
+  "author": "Telnyx",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^9.39.1",
+    "eslint-plugin-mdx": "^3.6.2"
+  }
+}
