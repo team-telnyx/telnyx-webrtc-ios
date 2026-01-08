@@ -69,6 +69,13 @@ public struct TxConfig {
     /// Custom logger implementation for handling SDK logs
     /// If not provided, the default logger will be used
     public internal(set) var customLogger: TxLogger?
+    
+    /// Controls whether the SDK should use trickle ICE for WebRTC signaling.
+    /// When enabled, ICE candidates are sent individually as they are discovered,
+    /// rather than waiting for all candidates to be gathered before sending the offer/answer.
+    /// - Note: This improves call setup time by allowing ICE connectivity checks to start earlier.
+    /// - Important: This setting is disabled by default to maintain compatibility with existing implementations.
+    public internal(set) var useTrickleIce: Bool = false
 
     // MARK: - Initializers
 
@@ -88,6 +95,7 @@ public struct TxConfig {
     ///   - enableQualityMetrics: (Optional) Controls whether the SDK should deliver call quality metrics. Default is false.
     ///   - sendWebRTCStatsViaSocket: (Optional) Whether to send WebRTC statistics via socket to Telnyx servers. Default is false.
     ///   - reconnectTimeOut: (Optional) Maximum time in seconds the SDK will attempt to reconnect a call after network disruption. Default is 60 seconds.
+    ///   - useTrickleIce: (Optional) Controls whether the SDK should use trickle ICE for WebRTC signaling. Default is false.
     public init(sipUser: String, password: String,
                 pushDeviceToken: String? = nil,
                 ringtone: String? = nil,
@@ -100,7 +108,8 @@ public struct TxConfig {
                 forceRelayCandidate: Bool = false,
                 enableQualityMetrics: Bool = false,
                 sendWebRTCStatsViaSocket: Bool = false,
-                reconnectTimeOut: Double = DEFAULT_TIMEOUT
+                reconnectTimeOut: Double = DEFAULT_TIMEOUT,
+                useTrickleIce: Bool = false
     ) {
         self.sipUser = sipUser
         self.password = password
@@ -119,6 +128,7 @@ public struct TxConfig {
         self.enableQualityMetrics = enableQualityMetrics
         self.sendWebRTCStatsViaSocket = sendWebRTCStatsViaSocket
         self.reconnectTimeout = reconnectTimeOut
+        self.useTrickleIce = useTrickleIce
         Logger.log.verboseLevel = logLevel
         Logger.log.customLogger = customLogger ?? TxDefaultLogger()
     }
@@ -138,6 +148,7 @@ public struct TxConfig {
     ///   - enableQualityMetrics: (Optional) Controls whether the SDK should deliver call quality metrics. Default is false.
     ///   - sendWebRTCStatsViaSocket: (Optional) Whether to send WebRTC statistics via socket to Telnyx servers. Default is false.
     ///   - reconnectTimeOut: (Optional) Maximum time in seconds the SDK will attempt to reconnect a call after network disruption. Default is 60 seconds.
+    ///   - useTrickleIce: (Optional) Controls whether the SDK should use trickle ICE for WebRTC signaling. Default is false.
     public init(token: String,
                 pushDeviceToken: String? = nil,
                 ringtone: String? = nil,
@@ -150,7 +161,8 @@ public struct TxConfig {
                 forceRelayCandidate: Bool = false,
                 enableQualityMetrics: Bool = false,
                 sendWebRTCStatsViaSocket: Bool = false,
-                reconnectTimeOut: Double = DEFAULT_TIMEOUT
+                reconnectTimeOut: Double = DEFAULT_TIMEOUT,
+                useTrickleIce: Bool = false
     ) {
         self.token = token
         if let pushToken = pushDeviceToken {
@@ -167,6 +179,7 @@ public struct TxConfig {
         self.customLogger = customLogger
         self.reconnectClient = reconnectClient
         self.reconnectTimeout = reconnectTimeOut
+        self.useTrickleIce = useTrickleIce
         Logger.log.verboseLevel = logLevel
         Logger.log.customLogger = customLogger ?? TxDefaultLogger()
     }

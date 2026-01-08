@@ -180,6 +180,10 @@ extension HomeViewController {
     func initViews() {
         sipCredentialsVC.delegate = self
         hideKeyboardWhenTappedAround()
+
+        // Initialize UserDefaults with default values if not set
+        initializeUserDefaults()
+
         reachability.whenReachable = { reachability in
             if reachability.connection == .wifi {
                 print("Reachable via WiFi")
@@ -202,6 +206,29 @@ extension HomeViewController {
         }
 
         initEnvironment()
+    }
+
+    /// Initialize UserDefaults with default values on first launch if not already set
+    private func initializeUserDefaults() {
+        // Check if this is the first launch by looking for a specific flag
+        let hasInitializedDefaults = userDefaults.bool(forKey: "HasInitializedTrickleICEDefaults")
+
+        if !hasInitializedDefaults {
+            print("[TRICKLE-ICE] HomeViewController:: First launch - initializing UserDefaults with default values")
+
+            // Set default value for Trickle ICE (true by default)
+            if userDefaults.object(forKey: "USE_TRICKLE_ICE") == nil {
+                userDefaults.saveUseTrickleIce(true)
+                print("[TRICKLE-ICE] HomeViewController:: Set default useTrickleIce = true")
+            }
+
+            // Mark that we've initialized defaults
+            userDefaults.set(true, forKey: "HasInitializedTrickleICEDefaults")
+            userDefaults.synchronize()
+            print("[TRICKLE-ICE] HomeViewController:: UserDefaults initialization complete")
+        } else {
+            print("[TRICKLE-ICE] HomeViewController:: UserDefaults already initialized, current value: \(userDefaults.getUseTrickleIce())")
+        }
     }
 }
 
@@ -227,6 +254,12 @@ extension HomeViewController: SipCredentialsViewControllerDelegate {
 extension HomeViewController {
     private func showHiddenOptions() {
         let alert = UIAlertController(title: "Options", message: "", preferredStyle: .actionSheet)
+
+        // Custom Server Configuration option
+        alert.addAction(UIAlertAction(title: "Configure Custom Server", style: .default, handler: { _ in
+            self.showCustomServerConfig()
+        }))
+
         alert.addAction(UIAlertAction(title: "Development Environment", style: .default, handler: { _ in
             self.serverConfig = TxServerConfiguration(environment: .development)
             self.userDefaults.saveEnvironment(.development)
@@ -260,6 +293,29 @@ extension HomeViewController {
             self.userDefaults.saveSendWebRTCStatsViaSocket(!currentSendWebRTCStatsViaSocket)
         }))
 
+        // Trickle ICE toggle
+        let currentUseTrickleIce = userDefaults.getUseTrickleIce()
+        print("[TRICKLE-ICE] HomeViewController:: Current useTrickleIce value from UserDefaults: \(currentUseTrickleIce)")
+        let trickleIceTitle = currentUseTrickleIce ? "Disable Trickle ICE" : "Enable Trickle ICE"
+        alert.addAction(UIAlertAction(title: trickleIceTitle, style: .default, handler: { _ in
+            let newValue = !currentUseTrickleIce
+            print("[TRICKLE-ICE] HomeViewController:: Saving useTrickleIce = \(newValue)")
+            self.userDefaults.saveUseTrickleIce(newValue)
+
+            // Verify the value was saved correctly
+            let savedValue = self.userDefaults.getUseTrickleIce()
+            print("[TRICKLE-ICE] HomeViewController:: Verified saved useTrickleIce = \(savedValue)")
+
+            // Show confirmation alert
+            let confirmAlert = UIAlertController(
+                title: "Trickle ICE \(newValue ? "Enabled" : "Disabled")",
+                message: "Please disconnect and reconnect to apply the changes.",
+                preferredStyle: .alert
+            )
+            confirmAlert.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(confirmAlert, animated: true)
+        }))
+
         alert.addAction(UIAlertAction(title: "Copy APNS token", style: .default, handler: { _ in
             // To copy the APNS push token to pasteboard
             let token = UserDefaults().getPushToken()
@@ -282,7 +338,18 @@ extension HomeViewController {
             let sdkVersion = Bundle(for: TxClient.self).infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
             let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
 
-            let env = self.serverConfig?.environment == .development ? "Development" : "Production "
+            // Check if custom server is enabled
+            let customServerEnabled = self.userDefaults.getCustomServerEnabled()
+            let customHost = self.userDefaults.getCustomServerHost()
+            let customPort = self.userDefaults.getCustomServerPort()
+
+            let env: String
+            if customServerEnabled && !customHost.isEmpty && !customPort.isEmpty {
+                env = "Custom (\(customHost):\(customPort))"
+            } else {
+                env = self.serverConfig?.environment == .development ? "Development" : "Production "
+            }
+
             self.viewModel.environment = "\(env) TelnyxSDK [v\(sdkVersion)] - App [v\(appVersion)]"
         }
     }
@@ -292,6 +359,15 @@ extension HomeViewController {
             self.serverConfig = TxServerConfiguration(environment: .development,region: profileViewModel.selectedRegion)
         }
         updateEnvironment()
+    }
+
+    private func showCustomServerConfig() {
+        let customServerView = CustomServerConfigView(onSave: { [weak self] in
+            // Refresh environment info when configuration is saved
+            self?.updateEnvironment()
+        })
+        let hostingController = UIHostingController(rootView: customServerView)
+        present(hostingController, animated: true, completion: nil)
     }
 }
 
@@ -317,7 +393,22 @@ extension HomeViewController {
             // Start the connection timeout timer
             startConnectionTimer()
 
-            if let serverConfig = serverConfig {
+            // Check if custom server is enabled
+            let customServerEnabled = userDefaults.getCustomServerEnabled()
+            let customHost = userDefaults.getCustomServerHost()
+            let customPort = userDefaults.getCustomServerPort()
+
+            if customServerEnabled && !customHost.isEmpty && !customPort.isEmpty {
+                // Use custom server configuration
+                let customServerURLString = "wss://\(customHost):\(customPort)"
+                if let customServerURL = URL(string: customServerURLString) {
+                    let customServerConfig = TxServerConfiguration(signalingServer: customServerURL)
+                    print("Custom Server: \(customServerURLString)")
+                    try telnyxClient.connect(txConfig: txConfig, serverConfiguration: customServerConfig)
+                } else {
+                    throw NSError(domain: "ViewController", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid custom server URL: \(customServerURLString)"])
+                }
+            } else if let serverConfig = serverConfig {
                 print("Development Server ")
                 try telnyxClient.connect(txConfig: txConfig, serverConfiguration: serverConfig)
             } else {
@@ -387,11 +478,14 @@ extension HomeViewController {
                                 sipCredential: SipCredential?,
                                 deviceToken: String?) throws -> TxConfig {
         var txConfig: TxConfig?
-        
-        // Get the forceRelayCandidate, webrtcStats, and sendWebRTCStatsViaSocket settings from UserDefaults
+
+        // Get the forceRelayCandidate, webrtcStats, sendWebRTCStatsViaSocket, and useTrickleIce settings from UserDefaults
         let forceRelayCandidate = userDefaults.getForceRelayCandidate()
         let webrtcStats = userDefaults.getWebRTCStats()
         let sendWebRTCStatsViaSocket = userDefaults.getSendWebRTCStatsViaSocket()
+        let useTrickleIce = userDefaults.getUseTrickleIce()
+
+        print("[TRICKLE-ICE] HomeViewController:: Creating TxConfig with useTrickleIce = \(useTrickleIce)")
 
         // Set the connection configuration object.
         // We can login with a user token: https://developers.telnyx.com/docs/v2/webrtc/quickstart
@@ -411,7 +505,9 @@ extension HomeViewController {
                                 // Enable Call Quality Metrics
                                 enableQualityMetrics: false,
                                 // Send WebRTC Stats Via Socket
-                                sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket)
+                                sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket,
+                                // Use Trickle ICE
+                                useTrickleIce: useTrickleIce)
         } else if let credential = sipCredential {
             // To obtain SIP credentials, please go to https://portal.telnyx.com
             txConfig = TxConfig(sipUser: credential.username,
@@ -429,7 +525,9 @@ extension HomeViewController {
                                 // Enable Call Quality Metrics
                                 enableQualityMetrics: false,
                                 // Send WebRTC Stats Via Socket
-                                sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket)
+                                sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket,
+                                // Use Trickle ICE
+                                useTrickleIce: useTrickleIce)
         }
 
         guard let config = txConfig else {

@@ -45,6 +45,8 @@
 		44D1F514E45F03506FE8F857 /* Pods_TelnyxRTC_TelnyxRTCTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279B09E41685F86C3C8A83F3 /* Pods_TelnyxRTC_TelnyxRTCTests.framework */; };
 		8097534D667E46A79D43A02A8F6C3093 /* Call+IceRestart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3D8EC626B740CCBFC6D5A6178C87FE /* Call+IceRestart.swift */; };
 		853C8C4A7CC44D38A4D2AA0145A5C91B /* ICERestartMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD61A0D3085C477AB1B14626A82449EA /* ICERestartMessage.swift */; };
+		9905E4772EA81D41000AC89D /* CandidateMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9905E4762EA81D41000AC89D /* CandidateMessage.swift */; };
+		9905E4792EA81D50000AC89D /* EndOfCandidatesMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9905E4782EA81D50000AC89D /* EndOfCandidatesMessage.swift */; };
 		9906F63B2E391F5C00A02FE7 /* TxClientReconnectTimeoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F63A2E391F5C00A02FE7 /* TxClientReconnectTimeoutTests.swift */; };
 		9906F8C52E3C159900A02FE7 /* RingingAckMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8C42E3C159900A02FE7 /* RingingAckMessage.swift */; };
 		9906F8C72E3C15CA00A02FE7 /* AIAssistantManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8C62E3C15CA00A02FE7 /* AIAssistantManager.swift */; };
@@ -60,6 +62,7 @@
 		991A6D492D3AB36E00B29785 /* SipCredentialsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991A6D482D3AB36E00B29785 /* SipCredentialsView.swift */; };
 		991A6D4A2D3AB36E00B29785 /* SipCredentialHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991A6D462D3AB36E00B29785 /* SipCredentialHeader.swift */; };
 		991A6D4B2D3AB36E00B29785 /* SipCredentialRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991A6D472D3AB36E00B29785 /* SipCredentialRow.swift */; };
+		9925169E2EB00952007B0085 /* SdpUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9925169D2EB00952007B0085 /* SdpUtils.swift */; };
 		994651932D76202C00049EF4 /* TelnyxWebRTCDemoUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D498D12D565D1F00A7B38F /* TelnyxWebRTCDemoUITests.swift */; };
 		994651942D76203100049EF4 /* TestConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D498D42D567A2C00A7B38F /* TestConstants.swift */; };
 		994651952D76204800049EF4 /* AccessibilityIdentifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9982C03E2D53977B00FA91B4 /* AccessibilityIdentifiers.swift */; };
@@ -90,6 +93,7 @@
 		9986703E2D3EC7A3001E1D01 /* View+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9986703D2D3EC7A0001E1D01 /* View+Extensions.swift */; };
 		998670402D40849C001E1D01 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9986703F2D408493001E1D01 /* HomeViewController.swift */; };
 		998670422D4096AA001E1D01 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998670412D4096A7001E1D01 /* HomeView.swift */; };
+		99A5A1032EAA5A0B006F3ED6 /* CustomServerConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A5A1022EAA5A0B006F3ED6 /* CustomServerConfigView.swift */; };
 		99ADA94E2D47C9B6000C956A /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA94C2D47C9B6000C956A /* HomeViewModel.swift */; };
 		99ADA9A82D4878FA000C956A /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9A72D4878ED000C956A /* ProfileView.swift */; };
 		99ADA9AA2D487ACC000C956A /* CallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9A92D487AC4000C956A /* CallView.swift */; };
@@ -249,6 +253,8 @@
 		5957191CD6394C558F46DD60 /* Pods-TelnyxRTC.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC/Pods-TelnyxRTC.debug.xcconfig"; sourceTree = "<group>"; };
 		80349220CA4C22F67427BF9A /* Pods_TelnyxRTC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxRTC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		86027677A7D2417967A1DD1A /* Pods_TelnyxWebRTCDemo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxWebRTCDemo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		9905E4762EA81D41000AC89D /* CandidateMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandidateMessage.swift; sourceTree = "<group>"; };
+		9905E4782EA81D50000AC89D /* EndOfCandidatesMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndOfCandidatesMessage.swift; sourceTree = "<group>"; };
 		9906F63A2E391F5C00A02FE7 /* TxClientReconnectTimeoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxClientReconnectTimeoutTests.swift; sourceTree = "<group>"; };
 		9906F8C42E3C159900A02FE7 /* RingingAckMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RingingAckMessage.swift; sourceTree = "<group>"; };
 		9906F8C62E3C15CA00A02FE7 /* AIAssistantManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistantManager.swift; sourceTree = "<group>"; };
@@ -264,6 +270,7 @@
 		991A6D462D3AB36E00B29785 /* SipCredentialHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialHeader.swift; sourceTree = "<group>"; };
 		991A6D472D3AB36E00B29785 /* SipCredentialRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialRow.swift; sourceTree = "<group>"; };
 		991A6D482D3AB36E00B29785 /* SipCredentialsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialsView.swift; sourceTree = "<group>"; };
+		9925169D2EB00952007B0085 /* SdpUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SdpUtils.swift; sourceTree = "<group>"; };
 		9946517F2D761F7800049EF4 /* TelnyxWebRTCDemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TelnyxWebRTCDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		994651982D76339500049EF4 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		995BF7122CE7E8EB00454076 /* WebRTCEnvironmentExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCEnvironmentExtension.swift; sourceTree = "<group>"; };
@@ -292,6 +299,7 @@
 		9986703D2D3EC7A0001E1D01 /* View+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extensions.swift"; sourceTree = "<group>"; };
 		9986703F2D408493001E1D01 /* HomeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
 		998670412D4096A7001E1D01 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		99A5A1022EAA5A0B006F3ED6 /* CustomServerConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomServerConfigView.swift; sourceTree = "<group>"; };
 		99ADA94C2D47C9B6000C956A /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
 		99ADA9A72D4878ED000C956A /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		99ADA9A92D487AC4000C956A /* CallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallView.swift; sourceTree = "<group>"; };
@@ -569,6 +577,8 @@
 				3B72695C2A9396BF00D2A602 /* DisablePushMessage.swift */,
 				3B49B7142AA9B0A20026D36D /* AttachCallMessage.swift */,
 				9906F8C42E3C159900A02FE7 /* RingingAckMessage.swift */,
+				9905E4762EA81D41000AC89D /* CandidateMessage.swift */,
+				9905E4782EA81D50000AC89D /* EndOfCandidatesMessage.swift */,
 			);
 			path = Verto;
 			sourceTree = "<group>";
@@ -594,6 +604,7 @@
 		B309D1FB25F028F100A2AADF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				99A5A1022EAA5A0B006F3ED6 /* CustomServerConfigView.swift */,
 				990FC0492E99387C009344DC /* CodecSelectionView.swift */,
 				99D7C09B2E1E32DA00D47CE6 /* AudioWaveformView.swift */,
 				3BE7C7622E04292300FF74A1 /* RegionMenuView.swift */,
@@ -747,6 +758,7 @@
 				3B758F1D2BF97E8C00D50069 /* FileLoger.swift */,
 				B36FC8BF2612794A00A30BC4 /* Logger.swift */,
 				99D717732D6E195100471D44 /* TxLogger.swift */,
+				9925169D2EB00952007B0085 /* SdpUtils.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -1152,18 +1164,21 @@
 				99B6DFF82CF522140010CA96 /* WebRTCStatsEvent.swift in Sources */,
 				B32AE8B326CD4F9200C7C6F4 /* TxServerConfiguration.swift in Sources */,
 				B368BEE125EDDC7D0032AE52 /* TxClient.swift in Sources */,
+				9925169E2EB00952007B0085 /* SdpUtils.swift in Sources */,
 				B309D28625F184A100A2AADF /* AnswerMessage.swift in Sources */,
 				3B1BE6F72AA9A467000B7962 /* TxPushIPConfig.swift in Sources */,
 				996C67C22CFEA5870056E508 /* RTCSdpSemantics+Extension.swift in Sources */,
 				B309D23125F06CA800A2AADF /* Peer.swift in Sources */,
 				EAA0358E635D404F9594CDA38CD57A76 /* Peer+IceRestart.swift in Sources */,
 				996C67CA2CFEA6740056E508 /* RTCIceTransportPolicy+Extension.swift in Sources */,
+				9905E4772EA81D41000AC89D /* CandidateMessage.swift in Sources */,
 				996C67D22CFEA70F0056E508 /* RTCMediaStream+Extension.swift in Sources */,
 				996C67D72CFEA96B0056E508 /* RTCIceCandidate+Extension.swift in Sources */,
 				996C67C02CFEA5600056E508 /* RTCBundlePolicy+Extension.swift in Sources */,
 				990FC0482E9841BC009344DC /* TxCodecCapability.swift in Sources */,
 				9906F8C52E3C159900A02FE7 /* RingingAckMessage.swift in Sources */,
 				996C67BE2CFEA4D70056E508 /* RTClsCertPolicy+Extension.swift in Sources */,
+				9905E4792EA81D50000AC89D /* EndOfCandidatesMessage.swift in Sources */,
 				B309D1E425F0240200A2AADF /* TxConfig.swift in Sources */,
 				B3AF248025EE7B1F0062EDA9 /* TxClientDelegate.swift in Sources */,
 				996C67CC2CFEA6910056E508 /* RTCSignalingState+Extension.swift in Sources */,
@@ -1250,6 +1265,7 @@
 				99ADA9AA2D487ACC000C956A /* CallView.swift in Sources */,
 				99ADA9B02D4886E7000C956A /* CallViewModel.swift in Sources */,
 				9982C0412D53977B00FA91B4 /* TestConfiguration.swift in Sources */,
+				99A5A1032EAA5A0B006F3ED6 /* CustomServerConfigView.swift in Sources */,
 				9982C0422D53977B00FA91B4 /* AccessibilityIdentifiers.swift in Sources */,
 				9906F8C92E3CEA4600A02FE7 /* AIAssistantView.swift in Sources */,
 				3B7D29A52DF1CEA00094EB90 /* CallDirection.swift in Sources */,

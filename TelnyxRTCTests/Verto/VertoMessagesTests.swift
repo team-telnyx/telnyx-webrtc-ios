@@ -417,4 +417,71 @@ class VertoMessagesTests: XCTestCase {
         let decodedMethod = decodedMessage?.method
         XCTAssertEqual(decodedMethod, Method.ANONYMOUS_LOGIN)
     }
+
+    /**
+     Test verto Candidate message (Trickle ICE)
+     */
+    func testCandidateMessage() {
+        print("VertoMessagesTest :: testCandidateMessage()")
+
+        let sessionId = "<sessionId>"
+        let callId = UUID.init().uuidString.lowercased()
+        let candidate = "candidate:1 1 UDP 2130706431 192.168.1.1 54321 typ host"
+        let sdpMid = "0"
+        let sdpMLineIndex: Int32 = 0
+
+        let candidateMessage = CandidateMessage(
+            callId: callId,
+            sessionId: sessionId,
+            candidate: candidate,
+            sdpMid: sdpMid,
+            sdpMLineIndex: sdpMLineIndex
+        )
+
+        // Encode and decode the Candidate message
+        let encodedMessage: String = candidateMessage.encode() ?? ""
+        let decodedMessage = Message().decode(message: encodedMessage)
+
+
+        // Verify candidate parameters
+        XCTAssertEqual(decodedMessage?.params?["candidate"] as! String, candidate)
+        XCTAssertEqual(decodedMessage?.params?["sdpMid"] as! String, sdpMid)
+        XCTAssertEqual(decodedMessage?.params?["sdpMLineIndex"] as! Int32, sdpMLineIndex)
+
+        // Verify dialogParams
+        let dialogParams = decodedMessage?.params?["dialogParams"] as! [String: Any]
+        XCTAssertEqual(dialogParams["callID"] as! String, callId)
+
+        // Verify method
+        let decodedMethod = decodedMessage?.method
+        XCTAssertEqual(decodedMethod, Method.CANDIDATE)
+    }
+
+    /**
+     Test verto End of Candidates message (Trickle ICE)
+     */
+    func testEndOfCandidatesMessage() {
+        print("VertoMessagesTest :: testEndOfCandidatesMessage()")
+
+        let sessionId = "<sessionId>"
+        let callId = UUID.init().uuidString.lowercased()
+
+        let endOfCandidatesMessage = EndOfCandidatesMessage(
+            callId: callId,
+            sessionId: sessionId
+        )
+
+        // Encode and decode the End of Candidates message
+        let encodedMessage: String = endOfCandidatesMessage.encode() ?? ""
+        let decodedMessage = Message().decode(message: encodedMessage)
+
+
+        // Verify dialogParams
+        let dialogParams = decodedMessage?.params?["dialogParams"] as! [String: Any]
+        XCTAssertEqual(dialogParams["callID"] as! String, callId)
+
+        // Verify method
+        let decodedMethod = decodedMessage?.method
+        XCTAssertEqual(decodedMethod, Method.END_OF_CANDIDATES)
+    }
 }
