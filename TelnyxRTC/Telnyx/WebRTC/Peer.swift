@@ -465,9 +465,16 @@ class Peer : NSObject, WebRTCEventHandler {
                 return
             }
 
+            // Mark local answer created milestone
+            CallTimingBenchmark.shared.mark("local_answer_created")
+
             //Once we set the local description, the ICE negotiation starts and at least one ICE candidate should be created.
             //Check RTCPeerConnectionDelegate :: didGenerate candidate
             self.connection?.setLocalDescription(sdp, completionHandler: { (error) in
+                
+                // Mark local answer SDP set milestone
+                CallTimingBenchmark.shared.mark("local_answer_sdp_set")
+                
                 // For Trickle ICE, send the SDP immediately via delegate without waiting for candidates
                 if self.useTrickleIce {
                     Logger.log.i(message: "[TRICKLE-ICE] Peer:: answer() completed - sending SDP immediately without candidates (Trickle ICE mode)")
@@ -480,6 +487,9 @@ class Peer : NSObject, WebRTCEventHandler {
                         let modifiedSDPString = SdpUtils.addTrickleIceCapability(cleanedSDPString, useTrickleIce: self.useTrickleIce)
                         let cleanedSDP = RTCSessionDescription(type: localSDP.type, sdp: modifiedSDPString)
                         self.delegate?.onNegotiationEnded(sdp: cleanedSDP)
+                        
+                        // Mark answer sent milestone for trickle ICE
+                        CallTimingBenchmark.shared.mark("answer_sent")
                     } else {
                         self.delegate?.onNegotiationEnded(sdp: nil)
                     }
@@ -886,11 +896,24 @@ extension Peer : RTCPeerConnectionDelegate {
         onIceConnectionChange?(newState)
         onIceConnectionStateChange?(newState)
         Logger.log.i(message: "Peer:: connection didChange ICE connection state: [\(newState.telnyx_to_string().uppercased())]")
+        
+        // Benchmark all ICE connection state transitions
+        CallTimingBenchmark.shared.mark("ice_state_\(newState.telnyx_to_string())")
+        
+        // End benchmark when ICE connection reaches connected state
+        if newState == .connected {
+            CallTimingBenchmark.shared.end()
+        }
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {
         onIceGatheringChange?(newState)
         Logger.log.s(message: "[TRICKLE-ICE] Peer:: ICE gathering state changed to: [\(newState.telnyx_to_string().uppercased())] (useTrickleIce: \(useTrickleIce), callId: \(callId ?? "nil"))")
+
+        // Mark ice_gathering_complete milestone when gathering is complete
+        if newState == .complete {
+            CallTimingBenchmark.shared.mark("ice_gathering_complete")
+        }
 
         // Send end of candidates signal when ICE gathering is complete for trickle ICE
         if newState == .complete && useTrickleIce {
@@ -911,6 +934,9 @@ extension Peer : RTCPeerConnectionDelegate {
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
         Logger.log.i(message: "[TRICKLE-ICE] Peer:: ICE candidate generated - sdpMid: \(candidate.sdpMid ?? "nil"), sdpMLineIndex: \(candidate.sdpMLineIndex)")
+
+        // Mark first ICE candidate for benchmark (only the first one)
+        CallTimingBenchmark.shared.markFirstCandidate()
 
         // For Trickle ICE, we always send candidates - don't skip based on negotiationEnded
         if !useTrickleIce {

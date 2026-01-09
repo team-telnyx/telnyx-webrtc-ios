@@ -42,6 +42,7 @@
 		3BE7C7632E04292300FF74A1 /* RegionMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE7C7622E04292300FF74A1 /* RegionMenuView.swift */; };
 		3BE84BA82D9C944A00CA1B70 /* DestinationToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE84BA72D9C944A00CA1B70 /* DestinationToggle.swift */; };
 		3BF1D5842BEB7B8F0097453F /* TelnyxRTC.podspec in Resources */ = {isa = PBXBuildFile; fileRef = 3BF1D5832BEB7B8F0097453F /* TelnyxRTC.podspec */; };
+		3BFE53822F0FF3D800DA31E8 /* CallTimingBenchmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BFE53812F0FF3D800DA31E8 /* CallTimingBenchmark.swift */; };
 		44D1F514E45F03506FE8F857 /* Pods_TelnyxRTC_TelnyxRTCTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279B09E41685F86C3C8A83F3 /* Pods_TelnyxRTC_TelnyxRTCTests.framework */; };
 		8097534D667E46A79D43A02A8F6C3093 /* Call+IceRestart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3D8EC626B740CCBFC6D5A6178C87FE /* Call+IceRestart.swift */; };
 		853C8C4A7CC44D38A4D2AA0145A5C91B /* ICERestartMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD61A0D3085C477AB1B14626A82449EA /* ICERestartMessage.swift */; };
@@ -249,6 +250,7 @@
 		3BE7C7622E04292300FF74A1 /* RegionMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionMenuView.swift; sourceTree = "<group>"; };
 		3BE84BA72D9C944A00CA1B70 /* DestinationToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DestinationToggle.swift; sourceTree = "<group>"; };
 		3BF1D5832BEB7B8F0097453F /* TelnyxRTC.podspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TelnyxRTC.podspec; sourceTree = "<group>"; };
+		3BFE53812F0FF3D800DA31E8 /* CallTimingBenchmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallTimingBenchmark.swift; sourceTree = "<group>"; };
 		4C3D8EC626B740CCBFC6D5A6178C87FE /* Call+IceRestart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Call+IceRestart.swift"; sourceTree = "<group>"; };
 		5957191CD6394C558F46DD60 /* Pods-TelnyxRTC.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC/Pods-TelnyxRTC.debug.xcconfig"; sourceTree = "<group>"; };
 		80349220CA4C22F67427BF9A /* Pods_TelnyxRTC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxRTC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -753,6 +755,7 @@
 		B36FC8BE2612791E00A30BC4 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				3BFE53812F0FF3D800DA31E8 /* CallTimingBenchmark.swift */,
 				3B21257D2DC8129700E68EA6 /* MOSCalculator.swift */,
 				3BABEA382D5F595A00B7C79C /* NetworkMonitor.swift */,
 				3B758F1D2BF97E8C00D50069 /* FileLoger.swift */,
@@ -1194,6 +1197,7 @@
 				B3E0B0662656ED73005E7431 /* InfoMessage.swift in Sources */,
 				B3E1029A25F2C16500227DCE /* ModifyMessage.swift in Sources */,
 				B309D24025F06EA600A2AADF /* InviteMessage.swift in Sources */,
+				3BFE53822F0FF3D800DA31E8 /* CallTimingBenchmark.swift in Sources */,
 				3B72695D2A9396BF00D2A602 /* DisablePushMessage.swift in Sources */,
 				B309D22925F06C6900A2AADF /* Call.swift in Sources */,
 				8097534D667E46A79D43A02A8F6C3093 /* Call+IceRestart.swift in Sources */,

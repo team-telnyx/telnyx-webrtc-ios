@@ -525,12 +525,20 @@ public class Call {
         sdp: Is the remote SDP to configure in the current RTCPeerConnection
      */
     private func answered(sdp: String, custumHeaders:[String:String] = [:]) {
+        // Start benchmark timer for outbound call when answer is received
+        // For outbound calls, we don't track the time waiting for the remote party to answer
+        CallTimingBenchmark.shared.start(isOutbound: true)
+        
         let remoteDescription = RTCSessionDescription(type: .answer, sdp: sdp)
         self.peer?.connection?.setRemoteDescription(remoteDescription, completionHandler: { (error) in
             if let error = error  {
                 Logger.log.e(message: "Call:: Error setting remote description: \(error)")
                 return
             }
+            
+            // Mark remote answer SDP set milestone for outbound calls
+            CallTimingBenchmark.shared.mark("remote_answer_sdp_set")
+            
             self.answerCustomHeaders = custumHeaders
             self.updateCallState(callState: .ACTIVE)
             Logger.log.e(message: "Call:: connected")
@@ -685,6 +693,10 @@ extension Call {
     public func answer(customHeaders:[String:String] = [:], debug:Bool = false) {
         self.stopRingtone()
         self.stopRingbackTone()
+        
+        // Start benchmark timer for inbound call
+        CallTimingBenchmark.shared.start(isOutbound: false)
+        
         //TODO: Create an error if there's no remote SDP
         guard let remoteSdp = self.remoteSdp else {
             return
@@ -692,7 +704,15 @@ extension Call {
         self.answerCustomHeaders = customHeaders
         self.configureStatsReporter()
         Logger.log.i(message: "[TRICKLE-ICE] Call:: Creating Peer for inbound call answer with useTrickleIce = \(self.useTrickleIce)")
+        
+        // Mark media stream acquired (audio session will be configured by Peer)
+        CallTimingBenchmark.shared.mark("media_stream_acquired")
+        
         self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate, useTrickleIce: self.useTrickleIce, isAnswering: true)
+        
+        // Mark peer connection created
+        CallTimingBenchmark.shared.mark("peer_connection_created")
+        
         self.enableQualityMetrics = debug
         self.startStatsReporter()
         self.peer?.delegate = self
@@ -702,6 +722,10 @@ extension Call {
         self.peer?.callId = self.callInfo?.callId.uuidString.lowercased()
         Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.callInfo?.callId.uuidString.lowercased() ?? "nil") for trickle ICE")
         self.incomingOffer(sdp: remoteSdp)
+        
+        // Mark remote SDP set (after incomingOffer sets the remote description)
+        CallTimingBenchmark.shared.mark("remote_sdp_set")
+        
         self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", completion: { (sdp, error)  in
 
             if let error = error {
