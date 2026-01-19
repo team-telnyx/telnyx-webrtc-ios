@@ -13,3 +13,5 @@ echo "New version: $version";
 sed -i '' 's/spec.version = .*/spec.version = "'$version'"/' TelnyxRTC.podspec
 # Replace version in info.plist file
 sed -i '' 's/MARKETING_VERSION = .*/MARKETING_VERSION = '"$version"';/' TelnyxRTC.xcodeproj/project.pbxproj
+# Replace SDK_VERSION in Message.swift
+sed -i '' 's/internal static let SDK_VERSION = .*/internal static let SDK_VERSION = "'$version'"/' TelnyxRTC/Telnyx/Verto/Message.swift

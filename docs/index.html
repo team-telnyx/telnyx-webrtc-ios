@@ -16,7 +16,7 @@
     <a title="TelnyxRTC  Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="index.html">TelnyxRTC 2.0.0 Docs</a> (80% documented)</p>
+        <p><a href="index.html">TelnyxRTC 2.4.0 Docs</a> (71% documented)</p>
         <div class="header-right">
           <form role="search" action="search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -36,6 +36,9 @@
             <a href="Classes.html">Classes</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
+                <a href="Classes/AIAssistantManager.html">AIAssistantManager</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="Classes/Call.html">Call</a>
               </li>
               <li class="nav-group-task">
@@ -43,6 +46,12 @@
               </li>
               <li class="nav-group-task">
                 <a href="Classes/MOSCalculator.html">MOSCalculator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/TranscriptCancellable.html">TranscriptCancellable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/TranscriptPublisher.html">TranscriptPublisher</a>
               </li>
               <li class="nav-group-task">
                 <a href="Classes/TxClient.html">TxClient</a>
@@ -71,6 +80,9 @@
                 <a href="Enums/PushEnvironment.html">PushEnvironment</a>
               </li>
               <li class="nav-group-task">
+                <a href="Enums/Region.html">Region</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="Enums/TxError.html">TxError</a>
               </li>
               <li class="nav-group-task">
@@ -94,6 +106,9 @@
             <a href="Protocols.html">Protocols</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
+                <a href="Protocols/AIAssistantManagerDelegate.html">AIAssistantManagerDelegate</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="Protocols/TxClientDelegate.html">TxClientDelegate</a>
               </li>
               <li class="nav-group-task">
@@ -105,13 +120,34 @@
             <a href="Structs.html">Structures</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
+                <a href="Structs/AiConversationParams.html">AiConversationParams</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/AudioVisualizerConfig.html">AudioVisualizerConfig</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="Structs/CallQualityMetrics.html">CallQualityMetrics</a>
               </li>
               <li class="nav-group-task">
                 <a href="Structs/CallTerminationReason.html">CallTerminationReason</a>
               </li>
               <li class="nav-group-task">
+                <a href="Structs/ConversationContent.html">ConversationContent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/ConversationItem.html">ConversationItem</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/ImageURL.html">ImageURL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/TranscriptionItem.html">TranscriptionItem</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="Structs/TxCallInfo.html">TxCallInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/TxCodecCapability.html">TxCodecCapability</a>
               </li>
               <li class="nav-group-task">
                 <a href="Structs/TxConfig.html">TxConfig</a>
@@ -125,6 +161,9 @@
               <li class="nav-group-task">
                 <a href="Structs/TxServerConfiguration.html">TxServerConfiguration</a>
               </li>
+              <li class="nav-group-task">
+                <a href="Structs/WidgetSettings.html">WidgetSettings</a>
+              </li>
             </ul>
           </li>
         </ul>
@@ -133,34 +172,9 @@
         <section>
           <section class="section">
             
-            <h1 id='telnyx-webrtc-ios' class='heading'>telnyx-webrtc-ios</h1>
+            <h1 id='telnyx-webrtc-ios' class='heading'>Telnyx-webrtc-ios</h1>
 
-<p>Enable Telnyx real-time communication services on iOS. :telephone_receiver: :fire:</p>
-<h2 id='table-of-contents' class='heading'>Table of Contents</h2>
-
-<ul>
-<li><a href="#project-structure">Project Structure</a></li>
-<li><a href="#project-setup">Project Setup</a></li>
-<li><a href="#sip-credentials">SIP Credentials</a></li>
-<li><a href="#adding-telnyx-sdk-to-your-ios-client-application">Adding Telnyx SDK to your iOS Client Application</a></li>
-<li><a href="#usage">Usage</a>
-
-<ul>
-<li><a href="#telnyx-client-setup">Telnyx Client Setup</a></li>
-<li><a href="#telnyx-client-delegate">Telnyx Client Delegate</a></li>
-<li><a href="#calls">Calls</a></li>
-</ul></li>
-<li><a href="#webrtc-statistics">WebRTC Statistics</a>
-
-<ul>
-<li><a href="#enabling-webrtc-statistics">Enabling WebRTC Statistics</a></li>
-<li><a href="#understanding-webrtc-statistics">Understanding WebRTC Statistics</a></li>
-<li><a href="#real-time-call-quality-monitoring">Real-time Call Quality Monitoring</a></li>
-<li><a href="#important-notes">Important Notes</a></li>
-</ul></li>
-<li><a href="#custom-logging">Custom Logging</a></li>
-<li><a href="#push-notifications-setup">Push Notifications Setup</a></li>
-</ul>
+<p>Enable Telnyx real-time communication services on iOS. </p>
 <h2 id='project-structure' class='heading'>Project Structure</h2>
 
 <ul>
@@ -174,6 +188,16 @@
 <li>Clone the repository</li>
 <li>Run the command <code>pod install</code> to install the dependencies inside the project root folder.</li>
 <li>Open the Workspace : <code>TelnyxRTC.xcworkspace</code></li>
+<li><strong>Configure the Demo App (Optional):</strong>
+
+<ul>
+<li>The <code>Config.xcconfig</code> file is included in the repository with default values</li>
+<li>To use the Pre-call Diagnosis feature, edit <code>Config.xcconfig</code> and set a valid phone number:
+<code>
+PHONE_NUMBER = +15551234567
+</code></li>
+<li>If you don&rsquo;t need Pre-call Diagnosis, you can leave <code>PHONE_NUMBER</code> empty</li>
+</ul></li>
 <li>You will find 3 targets to build: 
 
 <ul>
@@ -184,13 +208,13 @@
 </ol>
 
 <p align="center">
-<img width="247" alt="Screen Shot 2021-05-04 at 18 34 45" src="https://user-images.githubusercontent.com/75636882/117073153-e8f9e680-ad07-11eb-9d1f-685397b071a6.png">
+  <img width="247" alt="Screen Shot 2021-05-04 at 18 34 45" src="https://user-images.githubusercontent.com/75636882/117073153-e8f9e680-ad07-11eb-9d1f-685397b071a6.png"/>
 </p>
 
 <ol>
 <li>Select the target <code>TelnyxRTC (TelnyxRTC Project)</code> to build the SDK
 <p align="center">
-<img width="243" alt="Screen Shot 2021-05-04 at 18 35 18" src="https://user-images.githubusercontent.com/75636882/117073140-e3040580-ad07-11eb-8ac6-dc99531550e3.png"></li>
+<img width="243" alt="Screen Shot 2021-05-04 at 18 35 18" src="https://user-images.githubusercontent.com/75636882/117073140-e3040580-ad07-11eb-8ac6-dc99531550e3.png"/></li>
 </ol>
 
 <p></p></p>
@@ -200,32 +224,12 @@
 </ol>
 
 <p align="center">
-<img width="153" align="center" alt="Screen Shot 2021-03-03 at 10 04 05" src="https://user-images.githubusercontent.com/75636882/109810077-d4b24400-7c07-11eb-91ec-d81e72ae9069.png">
+<img width="153" align="center" alt="Screen Shot 2021-03-03 at 10 04 05" src="https://user-images.githubusercontent.com/75636882/109810077-d4b24400-7c07-11eb-91ec-d81e72ae9069.png"/>
 </p>
 
 <ol>
-<li><p>Select target <code>TelnyxWebRTCDemo</code> to run the demo app. The SDK should be manually built in order to get the app running (Step 5)</p></li>
-<li><p>Enjoy 😎
-</br>
-</br></p>
-
-<table>
-<tr>
-<td>Credentials</td>
- <td>Outbound call</td>
- <td>Incoming call</td>
-</tr>
-<tr>
-<td><img src="https://user-images.githubusercontent.com/75636882/116748486-eaf53a00-a9d5-11eb-9093-968e8f2bde6e.gif" width=270></td>
-<td><img src="https://user-images.githubusercontent.com/75636882/116748473-e597ef80-a9d5-11eb-94a3-2a4a044ea4ff.gif" width=270></td>
-<td><img src="https://user-images.githubusercontent.com/75636882/116748481-e92b7680-a9d5-11eb-9fb5-6fe4cb10b797.gif" width=270></td>
-</tr>
-</table></li>
+<li>Select target <code>TelnyxWebRTCDemo</code> to run the demo app. The SDK should be manually built in order to get the app running (Step 5)</li>
 </ol>
-
-<hr>
-
-<p></br></p>
 <h2 id='sip-credentials' class='heading'>SIP Credentials</h2>
 
 <p>In order to start making and receiving calls using the TelnyxRTC SDK you will need to get SIP Credentials:</p>
@@ -238,8 +242,55 @@
 </ol>
 
 <p>For more information on how to generate SIP credentials check the <a href="https://developers.telnyx.com/docs/v2/webrtc/quickstart">Telnyx WebRTC quickstart guide</a>. </p>
+<h2 id='region-selection' class='heading'>Region Selection</h2>
 
-<p></br></p>
+<p>The TelnyxRTC SDK supports connecting to different geographic regions to optimize call quality and reduce latency. The demo app includes a region selection feature that allows users to choose their preferred region.</p>
+<h3 id='available-regions' class='heading'>Available Regions</h3>
+
+<ul>
+<li><strong>Auto (Default)</strong>: Automatically selects the best region based on network conditions</li>
+<li><strong>US East</strong>: East coast United States servers</li>
+<li><strong>US Central</strong>: Central United States servers<br></li>
+<li><strong>US West</strong>: West coast United States servers</li>
+<li><strong>Canada Central</strong>: Central Canada servers</li>
+<li><strong>Europe</strong>: European servers</li>
+<li><strong>Asia Pacific</strong>: Asia Pacific servers</li>
+</ul>
+<h3 id='using-region-selection' class='heading'>Using Region Selection</h3>
+
+<ol>
+<li><p><strong>In the Demo App</strong>: Use the overflow menu (⋯) to access region selection. The current region is displayed as &ldquo;Region: [current-region]&rdquo;.</p></li>
+<li><p><strong>In Your App</strong>: Configure the region when creating a <code><a href="Structs/TxServerConfiguration.html">TxServerConfiguration</a></code>:</p></li>
+</ol>
+<pre class="highlight swift"><code><span class="c1">// Set specific region</span>
+<span class="k">let</span> <span class="nv">serverConfig</span> <span class="o">=</span> <span class="kt">TxServerConfiguration</span><span class="p">(</span>
+    <span class="nv">environment</span><span class="p">:</span> <span class="o">.</span><span class="n">production</span><span class="p">,</span>
+    <span class="nv">region</span><span class="p">:</span> <span class="o">.</span><span class="n">usEast</span>  <span class="c1">// or .eu, .usCentral, .usWest, .caCentral, .apac</span>
+<span class="p">)</span>
+
+<span class="c1">// Use auto region selection (default)</span>
+<span class="k">let</span> <span class="nv">serverConfig</span> <span class="o">=</span> <span class="kt">TxServerConfiguration</span><span class="p">(</span>
+    <span class="nv">environment</span><span class="p">:</span> <span class="o">.</span><span class="n">production</span><span class="p">,</span>
+    <span class="nv">region</span><span class="p">:</span> <span class="o">.</span><span class="n">auto</span>
+<span class="p">)</span>
+
+<span class="k">try</span> <span class="n">telnyxClient</span><span class="o">.</span><span class="nf">connect</span><span class="p">(</span><span class="nv">txConfig</span><span class="p">:</span> <span class="n">txConfig</span><span class="p">,</span> <span class="nv">serverConfiguration</span><span class="p">:</span> <span class="n">serverConfig</span><span class="p">)</span>
+</code></pre>
+<h3 id='region-selection-behavior' class='heading'>Region Selection Behavior</h3>
+
+<ul>
+<li><strong>During Active Calls</strong>: Region selection is automatically disabled during active calls to prevent connection disruption</li>
+<li><strong>When Connected</strong>: Region selection is disabled when the client is connected to prevent disrupting the established connection</li>
+<li><strong>Fallback Logic</strong>: If a regional server is unavailable, the SDK automatically falls back to the auto region</li>
+<li><strong>Persistence</strong>: The selected region persists across app sessions until manually changed</li>
+</ul>
+<h3 id='best-practices' class='heading'>Best Practices</h3>
+
+<ul>
+<li>Use <strong>Auto</strong> region for the best overall experience unless you have specific latency requirements</li>
+<li>Select a region <strong>geographically close</strong> to your users for optimal call quality</li>
+<li>Test different regions in your target deployment areas to determine the best performance</li>
+</ul>
 <h2 id='adding-telnyx-sdk-to-your-ios-client-application' class='heading'>Adding Telnyx SDK to your iOS Client Application:</h2>
 
 <p>Currently the iOS SDK is supported using cocoapods. </p>
@@ -264,20 +315,19 @@ import TelnyxRTC
 <li><p>Disable BITCODE (The GoogleWebRTC dependency has BITCODE disabled):  Go to the Build Settings tab of your app target, search for “bitcode” and set it to “NO”</p>
 
 <p align="center">
-<img width="743" alt="Screen Shot 2021-05-07 at 17 46 08" src="https://user-images.githubusercontent.com/75636882/117506545-235bc180-af5c-11eb-91eb-00d60f5844fa.png">
+<img width="743" alt="Screen Shot 2021-05-07 at 17 46 08" src="https://user-images.githubusercontent.com/75636882/117506545-235bc180-af5c-11eb-91eb-00d60f5844fa.png" />
 </p></li>
 <li><p>Enable VoIP and Audio background modes: Go to Signing &amp; Capabilities tab, press the +Capability button and add those background modes:</p>
 
 <p align="center">
-<img width="719" alt="Screen Shot 2021-05-07 at 17 46 54" src="https://user-images.githubusercontent.com/75636882/117506607-3ff7f980-af5c-11eb-8df2-2f9170c12baf.png">
+<img width="719" alt="Screen Shot 2021-05-07 at 17 46 54" src="https://user-images.githubusercontent.com/75636882/117506607-3ff7f980-af5c-11eb-8df2-2f9170c12baf.png" />
 </p></li>
 <li><p>Go to your Info.plist file and add the “Privacy - Microphone Usage Description” key with a description that your app requires microphone access in order to make VoIP calls. </p>
 
 <p align="center">
-<img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://user-images.githubusercontent.com/75636882/117506706-6d44a780-af5c-11eb-87e2-d6be092474f2.png">
+<img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://user-images.githubusercontent.com/75636882/117506706-6d44a780-af5c-11eb-87e2-d6be092474f2.png"/>
 </p></li>
-<li><p>You are all set!
-</br></p></li>
+<li><p>You are all set!</p></li>
 </ol>
 <h3 id='swift-package-manager' class='heading'>Swift Package Manager</h3>
 
@@ -290,7 +340,7 @@ import TelnyxRTC
 </ol>
 
 <p align="center">
-<img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://github.com/isaacakakpo1/telnyx-webrtc-ios-smp/assets/134492608/39be0ab7-222f-478c-bba9-cb2813bcb81d">
+<img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://github.com/isaacakakpo1/telnyx-webrtc-ios-smp/assets/134492608/39be0ab7-222f-478c-bba9-cb2813bcb81d"/>
 </p>
 
 <p>NB: if Add Package is stuck downloading try File &gt; Packages &gt; Reset Package Caches or Run the command
@@ -482,8 +532,173 @@ extension ViewController: TxClientDelegate {
 <p>This is a general example: In order to fully support inbound calls you will need to implement PushKit + CallKit. For more information check <code>Setting up VoIP push notifications</code> section.</p>
 
 <hr>
+<h2 id='ai-agent-integration' class='heading'>AI Agent Integration</h2>
 
-<p></br></p>
+<p>The Telnyx iOS WebRTC SDK provides comprehensive support for AI Agent functionality, enabling intelligent voice applications with real-time conversation capabilities.</p>
+<h3 id='key-features' class='heading'>Key Features</h3>
+
+<ul>
+<li><strong>Anonymous Authentication</strong>: Connect to AI assistants without SIP credentials</li>
+<li><strong>Real-time Transcripts</strong>: Live conversation transcripts with role identification</li>
+<li><strong>Mixed Communication</strong>: Send text messages during voice calls</li>
+<li><strong>Widget Settings</strong>: Customizable AI assistant interface</li>
+</ul>
+<h3 id='quick-start' class='heading'>Quick Start</h3>
+<pre class="highlight swift"><code><span class="kd">import</span> <span class="kt">TelnyxRTC</span>
+
+<span class="kd">class</span> <span class="kt">AIAgentViewController</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">client</span> <span class="o">=</span> <span class="kt">TxClient</span><span class="p">()</span>
+    <span class="kd">private</span> <span class="k">var</span> <span class="nv">currentCall</span><span class="p">:</span> <span class="kt">Call</span><span class="p">?</span>
+
+    <span class="k">override</span> <span class="kd">func</span> <span class="nf">viewDidLoad</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">super</span><span class="o">.</span><span class="nf">viewDidLoad</span><span class="p">()</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">delegate</span> <span class="o">=</span> <span class="k">self</span>
+        <span class="nf">setupAIAgent</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="kd">private</span> <span class="kd">func</span> <span class="nf">setupAIAgent</span><span class="p">()</span> <span class="p">{</span>
+        <span class="c1">// Step 1: Anonymous login to AI assistant</span>
+        <span class="n">client</span><span class="o">.</span><span class="nf">anonymousLogin</span><span class="p">(</span>
+            <span class="nv">targetId</span><span class="p">:</span> <span class="s">"your-ai-assistant-id"</span><span class="p">,</span>
+            <span class="nv">targetType</span><span class="p">:</span> <span class="s">"ai_assistant"</span>
+        <span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">private</span> <span class="kd">func</span> <span class="nf">startConversation</span><span class="p">()</span> <span class="p">{</span>
+        <span class="c1">// Step 2: Start conversation (destination ignored after anonymous login)</span>
+        <span class="n">currentCall</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="nf">newInvite</span><span class="p">(</span>
+            <span class="nv">callerName</span><span class="p">:</span> <span class="s">"User"</span><span class="p">,</span>
+            <span class="nv">callerNumber</span><span class="p">:</span> <span class="s">"user"</span><span class="p">,</span>
+            <span class="nv">destinationNumber</span><span class="p">:</span> <span class="s">"ai-assistant"</span><span class="p">,</span> <span class="c1">// Ignored after anonymous login</span>
+            <span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">()</span>
+        <span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">private</span> <span class="kd">func</span> <span class="nf">sendTextMessage</span><span class="p">()</span> <span class="p">{</span>
+        <span class="c1">// Step 3: Send text message during call</span>
+        <span class="k">let</span> <span class="nv">success</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="nf">sendAIAssistantMessage</span><span class="p">(</span><span class="s">"Hello, can you help me?"</span><span class="p">)</span>
+        <span class="nf">print</span><span class="p">(</span><span class="s">"Message sent: </span><span class="se">\(</span><span class="n">success</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">private</span> <span class="kd">func</span> <span class="nf">subscribeToTranscripts</span><span class="p">()</span> <span class="p">{</span>
+        <span class="c1">// Step 4: Listen to real-time transcripts</span>
+        <span class="k">let</span> <span class="nv">cancellable</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">aiAssistantManager</span><span class="o">.</span><span class="n">subscribeToTranscriptUpdates</span> <span class="p">{</span> <span class="n">transcripts</span> <span class="k">in</span>
+            <span class="kt">DispatchQueue</span><span class="o">.</span><span class="n">main</span><span class="o">.</span><span class="k">async</span> <span class="p">{</span>
+                <span class="k">self</span><span class="o">.</span><span class="nf">updateTranscriptUI</span><span class="p">(</span><span class="n">transcripts</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="c1">// Store cancellable to manage subscription lifecycle</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">extension</span> <span class="kt">AIAgentViewController</span><span class="p">:</span> <span class="kt">TxClientDelegate</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">onClientReady</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nf">print</span><span class="p">(</span><span class="s">"Client ready - can start AI conversation"</span><span class="p">)</span>
+        <span class="nf">startConversation</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">onCallStateUpdated</span><span class="p">(</span><span class="nv">callState</span><span class="p">:</span> <span class="kt">CallState</span><span class="p">,</span> <span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">switch</span> <span class="n">callState</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="o">.</span><span class="kt">ACTIVE</span><span class="p">:</span>
+            <span class="nf">print</span><span class="p">(</span><span class="s">"AI conversation active"</span><span class="p">)</span>
+            <span class="nf">subscribeToTranscripts</span><span class="p">()</span>
+        <span class="k">case</span> <span class="o">.</span><span class="kt">DONE</span><span class="p">:</span>
+            <span class="nf">print</span><span class="p">(</span><span class="s">"AI conversation ended"</span><span class="p">)</span>
+        <span class="k">default</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id='implementation-steps' class='heading'>Implementation Steps</h3>
+
+<ol>
+<li><strong><a href="docs-markdown/ai-agent/anonymous-login.md">Anonymous Login</a></strong> - Authenticate with AI assistants without SIP credentials</li>
+<li><strong><a href="docs-markdown/ai-agent/starting-conversations.md">Starting Conversations</a></strong> - Initiate calls with AI agents</li>
+<li><strong><a href="docs-markdown/ai-agent/transcript-updates.md">Transcript Updates</a></strong> - Handle real-time conversation transcripts</li>
+<li><strong><a href="docs-markdown/ai-agent/text-messaging.md">Text Messaging</a></strong> - Send text messages during voice calls</li>
+</ol>
+<h3 id='complete-documentation' class='heading'>Complete Documentation</h3>
+
+<p>For comprehensive AI Agent integration documentation, see:</p>
+
+<ul>
+<li><strong><a href="docs-markdown/ai-agent/introduction.md">AI Agent Introduction</a></strong> - Overview and architecture</li>
+<li><strong><a href="docs-markdown/classes/AIAssistantManager.md">AIAssistantManager API</a></strong> - Complete API reference</li>
+<li><strong><a href="docs-markdown/structs/TranscriptionItem.md">TranscriptionItem Structure</a></strong> - Transcript data format</li>
+<li><strong><a href="docs-markdown/structs/WidgetSettings.md">WidgetSettings Configuration</a></strong> - UI customization options</li>
+</ul>
+
+<hr>
+<h2 id='preferred-audio-codecs' class='heading'>Preferred Audio Codecs</h2>
+
+<p>The SDK allows you to configure preferred audio codecs for your WebRTC calls. This feature enables you to prioritize specific codecs based on your application&rsquo;s requirements for audio quality, bandwidth usage, or network conditions.</p>
+<h3 id='getting-supported-codecs' class='heading'>Getting Supported Codecs</h3>
+
+<p>Query the list of audio codecs supported by the device and WebRTC framework:</p>
+<pre class="highlight swift"><code><span class="c1">// Get all supported audio codecs</span>
+<span class="k">let</span> <span class="nv">supportedCodecs</span> <span class="o">=</span> <span class="n">telnyxClient</span><span class="o">.</span><span class="nf">getSupportedAudioCodecs</span><span class="p">()</span>
+
+<span class="c1">// Print codec information</span>
+<span class="k">for</span> <span class="n">codec</span> <span class="k">in</span> <span class="n">supportedCodecs</span> <span class="p">{</span>
+    <span class="nf">print</span><span class="p">(</span><span class="s">"Codec: </span><span class="se">\(</span><span class="n">codec</span><span class="o">.</span><span class="n">mimeType</span><span class="se">)</span><span class="s">, Clock Rate: </span><span class="se">\(</span><span class="n">codec</span><span class="o">.</span><span class="n">clockRate</span><span class="se">)</span><span class="s"> Hz"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id='setting-preferred-codecs' class='heading'>Setting Preferred Codecs</h3>
+
+<p><strong>For Outbound Calls:</strong></p>
+<pre class="highlight swift"><code><span class="c1">// Define your preferred codecs in order of priority</span>
+<span class="k">let</span> <span class="nv">preferredCodecs</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="kt">TxCodecCapability</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="s">"audio/opus"</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="mi">48000</span><span class="p">,</span> <span class="nv">channels</span><span class="p">:</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="kt">TxCodecCapability</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="s">"audio/PCMU"</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="mi">8000</span><span class="p">,</span> <span class="nv">channels</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span>
+<span class="p">]</span>
+
+<span class="c1">// Create a call with preferred codecs</span>
+<span class="k">let</span> <span class="nv">call</span> <span class="o">=</span> <span class="k">try</span> <span class="n">telnyxClient</span><span class="o">.</span><span class="nf">newCall</span><span class="p">(</span>
+    <span class="nv">callerName</span><span class="p">:</span> <span class="s">"John Doe"</span><span class="p">,</span>
+    <span class="nv">callerNumber</span><span class="p">:</span> <span class="s">"1234567890"</span><span class="p">,</span>
+    <span class="nv">destinationNumber</span><span class="p">:</span> <span class="s">"18004377950"</span><span class="p">,</span>
+    <span class="nv">callId</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">(),</span>
+    <span class="nv">preferredCodecs</span><span class="p">:</span> <span class="n">preferredCodecs</span>  <span class="c1">// Pass preferred codecs</span>
+<span class="p">)</span>
+</code></pre>
+
+<p><strong>For Inbound Calls:</strong></p>
+<pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">onIncomingCall</span><span class="p">(</span><span class="nv">call</span><span class="p">:</span> <span class="kt">Call</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">preferredCodecs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="kt">TxCodecCapability</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="s">"audio/opus"</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="mi">48000</span><span class="p">,</span> <span class="nv">channels</span><span class="p">:</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="kt">TxCodecCapability</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="s">"audio/PCMU"</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="mi">8000</span><span class="p">,</span> <span class="nv">channels</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="c1">// Answer with preferred codecs</span>
+    <span class="n">call</span><span class="o">.</span><span class="nf">answer</span><span class="p">(</span><span class="nv">preferredCodecs</span><span class="p">:</span> <span class="n">preferredCodecs</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id='common-codec-configurations' class='heading'>Common Codec Configurations</h3>
+
+<p><strong>High Quality Audio (VoIP apps):</strong></p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">preferredCodecs</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="kt">TxCodecCapability</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="s">"audio/opus"</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="mi">48000</span><span class="p">,</span> <span class="nv">channels</span><span class="p">:</span> <span class="mi">2</span><span class="p">)</span>
+<span class="p">]</span>
+</code></pre>
+
+<p><strong>Traditional Telephony Compatibility:</strong></p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">preferredCodecs</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="kt">TxCodecCapability</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="s">"audio/PCMU"</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="mi">8000</span><span class="p">,</span> <span class="nv">channels</span><span class="p">:</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="kt">TxCodecCapability</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="s">"audio/PCMA"</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="mi">8000</span><span class="p">,</span> <span class="nv">channels</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span>
+<span class="p">]</span>
+</code></pre>
+
+<p><strong>Low Bandwidth Optimization:</strong></p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">preferredCodecs</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="kt">TxCodecCapability</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="s">"audio/iLBC"</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="mi">8000</span><span class="p">),</span>
+    <span class="kt">TxCodecCapability</span><span class="p">(</span><span class="nv">mimeType</span><span class="p">:</span> <span class="s">"audio/PCMU"</span><span class="p">,</span> <span class="nv">clockRate</span><span class="p">:</span> <span class="mi">8000</span><span class="p">)</span>
+<span class="p">]</span>
+</code></pre>
+
+<p>For detailed documentation on codec selection, configuration options, and best practices, see the <a href="docs-markdown/audio-codecs/preferred-codecs.md">Preferred Audio Codecs Guide</a>.</p>
+
+<hr>
 <h2 id='call-termination-reasons' class='heading'>Call Termination Reasons</h2>
 
 <p>When a call ends, the SDK provides detailed information about why the call was terminated through the <code><a href="Structs/CallTerminationReason.html">CallTerminationReason</a></code> structure. This information is available in the <code>DONE</code> state of the call.</p>
@@ -642,8 +857,6 @@ call.onCallQualityChange = { metrics in
 </tbody></table>
 <h4 id='callquality-enum' class='heading'>CallQuality Enum</h4>
 
-<p>The <code><a href="Enums/CallQuality.html">CallQuality</a></code> enum provides the following values:</p>
-
 <table><thead>
 <tr>
 <th>Value</th>
@@ -658,22 +871,22 @@ call.onCallQualityChange = { metrics in
 </tr>
 <tr>
 <td><code>.good</code></td>
-<td>4.1 &lt;= MOS &lt;= 4.2</td>
+<td>4.1 ≤ MOS ≤ 4.2</td>
 <td>Good call quality</td>
 </tr>
 <tr>
 <td><code>.fair</code></td>
-<td>3.7 &lt;= MOS &lt;= 4.0</td>
+<td>3.7 ≤ MOS ≤ 4.0</td>
 <td>Fair call quality</td>
 </tr>
 <tr>
 <td><code>.poor</code></td>
-<td>3.1 &lt;= MOS &lt;= 3.6</td>
+<td>3.1 ≤ MOS ≤ 3.6</td>
 <td>Poor call quality</td>
 </tr>
 <tr>
 <td><code>.bad</code></td>
-<td>MOS &lt;= 3.0</td>
+<td>MOS ≤ 3.0</td>
 <td>Bad call quality</td>
 </tr>
 <tr>
@@ -736,8 +949,6 @@ call.onCallQualityChange = { metrics in
 </ol>
 
 <hr>
-
-<p></br></p>
 <h2 id='custom-logging' class='heading'>Custom Logging</h2>
 
 <p>The SDK provides a flexible logging system that allows you to implement your own custom logger. This feature enables you to route SDK logs to your preferred logging framework or format.</p>
@@ -801,8 +1012,6 @@ let txConfig = TxConfig(
 </ol>
 
 <hr>
-
-<p></br></p>
 <h2 id='push-notifications-setup' class='heading'>Push Notifications Setup</h2>
 
 <p>In order to receive incoming calls while the app is running in background or closed, you will need to perform a set of configurations over your Mission Control Portal Account and your application. </p>
@@ -810,11 +1019,40 @@ let txConfig = TxConfig(
 <p>For detailed documentation on setting up push notifications, see:</p>
 
 <ul>
-<li><a href="docs-markdown/push-notification/app-setup.md">App Setup</a> - Configure your iOS app to receive VoIP push notifications</li>
-<li><a href="docs-markdown/push-notification/portal-setup.md">Portal Setup</a> - Set up your Telnyx Portal account with VoIP push credentials</li>
+<li><a href="https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/app-setup">App Setup</a> - Configure your iOS app to receive VoIP push notifications</li>
+<li><a href="https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/portal-setup">Portal Setup</a> - Set up your Telnyx Portal account with VoIP push credentials</li>
+<li><a href="https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/troubleshooting">Troubleshooting</a> - Debug common push notification issues</li>
+</ul>
+<h3 id='testing-voip-push-notifications' class='heading'>Testing VoIP Push Notifications</h3>
+
+<p>The repository includes a dedicated testing tool to help validate your VoIP push notification setup. This tool allows you to send test push notifications directly to your device using your own certificates and configuration.</p>
+
+<p><strong>Location</strong>: <code>push-notification-tool/</code> in the repository root</p>
+<h4 id='quick-setup' class='heading'>Quick Setup</h4>
+<pre class="highlight shell"><code><span class="nb">cd </span>push-notification-tool
+npm <span class="nb">install 
+</span>npm run dev
+</code></pre>
+<h4 id='what-the-tool-does' class='heading'>What the Tool Does</h4>
+
+<ul>
+<li><strong>Validates Configuration</strong>: Tests your certificate files, bundle ID, and device token</li>
+<li><strong>Sends Test Pushes</strong>: Generates VoIP notifications with SDK-compatible payload structure<br></li>
+<li><strong>Provides Detailed Errors</strong>: Clear error messages to help identify configuration issues</li>
+<li><strong>Supports Continuous Testing</strong>: Send multiple pushes, switch configurations, test different scenarios</li>
+<li><strong>Smart Configuration Management</strong>: Saves settings between sessions for faster iteration</li>
+</ul>
+<h4 id='perfect-for-testing' class='heading'>Perfect for Testing</h4>
+
+<ul>
+<li>Certificate and environment validation</li>
+<li>Device token verification<br></li>
+<li>Payload structure compatibility</li>
+<li>Multi-device testing</li>
+<li>Troubleshooting push delivery issues</li>
 </ul>
 
-<p></br></p>
+<p>For complete setup instructions and usage examples, see the tool&rsquo;s <a href="https://github.com/team-telnyx/telnyx-webrtc-ios/tree/main/push-notification-tool">README</a> or the <a href="https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/troubleshooting#testing-voip-push-notifications">Troubleshooting Guide</a>.</p>
 <h3 id='voip-push-portal-setup' class='heading'>VoIP Push - Portal setup</h3>
 
 <p>During this process you will learn how to create a VoIP push credential and assign the credential to a SIP Connection. </p>
@@ -828,8 +1066,6 @@ let txConfig = TxConfig(
 </ul>
 
 <p>For complete instructions on how to setup Push Notifications got to this <a href="https://developers.telnyx.com/docs/v2/webrtc/push-notifications">link</a>.</p>
-
-<p></br></p>
 <h3 id='voip-push-app-setup' class='heading'>VoIP Push - App Setup</h3>
 
 <p>The following setup is required in your application to receive Telnyx VoIP push notifications:</p>
@@ -842,12 +1078,12 @@ let txConfig = TxConfig(
 <li><p>Press the  +Capabilities button.</p>
 
 <p align="center">
-  <img width="294" alt="Screen Shot 2021-11-26 at 13 34 12" src="https://user-images.githubusercontent.com/75636882/143610180-04e2a98c-bb08-4f06-b81a-9a3a4231d389.png">
+  <img width="294" alt="Screen Shot 2021-11-26 at 13 34 12" src="https://user-images.githubusercontent.com/75636882/143610180-04e2a98c-bb08-4f06-b81a-9a3a4231d389.png" />
 </p></li>
 <li><p>Enable Push Notifications</p>
 
 <p align="center">
-  <img width="269" alt="Screen Shot 2021-11-26 at 13 35 51" src="https://user-images.githubusercontent.com/75636882/143610372-abab46cc-dd2a-4712-9020-240f9dbaaaf7.png">
+  <img width="269" alt="Screen Shot 2021-11-26 at 13 35 51" src="https://user-images.githubusercontent.com/75636882/143610372-abab46cc-dd2a-4712-9020-240f9dbaaaf7.png" />
 </p></li>
 </ol>
 <h4 id='b-configure-pushkit-into-your-app' class='heading'>b. Configure PushKit into your app:</h4>
@@ -1013,8 +1249,6 @@ if let provider = callKitProvider {
 }
 </code></pre>
 
-<p></br></p>
-
 <p><strong><em>Reporting calls with CallKit</em></strong></p>
 
 <p>To properly report calls to callKit with right statuses, you need to invoke the following callKit methods at the right instances: </p>
@@ -1075,17 +1309,17 @@ func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
 <p>When the <code>answerFromPush(answerAction: action)</code> is called, Callkit sets the call state to <code>connecting</code> to alert the user that the call is being connected. 
 Once the call is active, the timer starts.</p>
 
-<table align="center">
-        <tr>
-           <td>Connecting State</td>
-           <td>Active call</td>
-        </tr>
-        <tr>
-          <td><img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/13e9efd0-07e2-4a7e-9e7a-b2484b96be47" width=270></td>
-          <td><img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/89d506a5-bf97-42f2-bd64-5aa54b202db8" width=270></td>
-        </tr>
-</table>
-   
+<table><thead>
+<tr>
+<th>Connecting State</th>
+<th>Active Call</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/13e9efd0-07e2-4a7e-9e7a-b2484b96be47" width="270"/></td>
+<td><img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/89d506a5-bf97-42f2-bd64-5aa54b202db8" width="270"/></td>
+</tr>
+</tbody></table>
 
 <p>The previous SDK versions requires handling the websocket connection state on the client side. It can be done in the following way:</p>
 <pre class="highlight plaintext"><code>var callAnswerPendingFromPush:Bool = false
@@ -1237,19 +1471,20 @@ user interface until there are no more active sessions.</p>
 <li>Clone the repository</li>
 <li>And check the exported documentation in:  <code>docs/index.html</code></li>
 </ol>
+<h2 id='support' class='heading'>Support</h2>
 
-<hr>
+<p>Find official documentation <a href="https://developers.telnyx.com/docs/voice/webrtc/ios-sdk">here</a></p>
 
 <p>Questions? Comments? Building something rad? <a href="https://joinslack.telnyx.com/">Join our Slack channel</a> and share.</p>
 <h2 id='license' class='heading'>License</h2>
 
-<p><a href="./LICENSE"><code>MIT Licence</code></a> © <a href="https://github.com/team-telnyx">Telnyx</a></p>
+<p><a href="https://github.com/team-telnyx/telnyx-webrtc-ios/blob/main/LICENSE"><code>MIT Licence</code></a> © <a href="https://github.com/team-telnyx">Telnyx</a></p>
 
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-05-21)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-11-17)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.4</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>
     </div>

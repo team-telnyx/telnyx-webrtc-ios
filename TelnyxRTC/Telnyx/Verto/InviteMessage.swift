@@ -15,7 +15,8 @@ class InviteMessage : Message {
          sdp: String,
          callInfo: TxCallInfo,
          callOptions: TxCallOptions,
-         customHeaders:[String:String] = [:]
+         customHeaders:[String:String] = [:],
+         trickle: Bool = false
     ) {
         var params = [String: Any]()
         var dialogParams = [String: Any]()
@@ -36,12 +37,19 @@ class InviteMessage : Message {
         if let clientState = callOptions.clientState {
             dialogParams["clientState"] = clientState
         }
+        
+        if let preferredCodecs = callOptions.preferredCodecs, !preferredCodecs.isEmpty {
+            dialogParams["preferred_codecs"] = preferredCodecs.map { $0.toDictionary() }
+        }
 
         params["User-Agent"] = Message.USER_AGENT
 
         params["sessionId"] = sessionId
         params["sdp"] = sdp
         params["dialogParams"] = dialogParams
+        if trickle {
+            params["trickle"] = true
+        }
 
         super.init(params, method: .INVITE)
     }

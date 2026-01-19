@@ -11,6 +11,11 @@ import AVFoundation
 import WebRTC
 import CallKit
 
+// MARK: - Notification Names
+public extension Notification.Name {
+    static let telnyxWebSocketMessageReceived = Notification.Name("TelnyxWebSocketMessageReceived")
+}
+
 /// The `TelnyxRTC` client connects your application to the Telnyx backend,
 /// enabling you to make outgoing calls and handle incoming calls.
 ///
@@ -135,8 +140,8 @@ public class TxClient {
     private var answerCallAction: CXAnswerCallAction? = nil
     private var endCallAction: CXEndCallAction? = nil
     private var sessionId : String?
-    private var txConfig: TxConfig?
-    private var serverConfiguration: TxServerConfiguration
+    internal var txConfig: TxConfig?
+    internal var serverConfiguration: TxServerConfiguration
     private var voiceSdkId: String? = nil
 
     private var registerRetryCount: Int = MAX_REGISTER_RETRY
@@ -153,6 +158,12 @@ public class TxClient {
     private let reconnectQueue = DispatchQueue(label: "TelnyxClient.ReconnectQueue")
     private var _isSpeakerEnabled: Bool = false
     private var enableQualityMetrics: Bool = false
+    private var isACMResetInProgress: Bool = false
+    private var pendingAnonymousLoginMessage: AnonymousLoginMessage?
+    
+    /// AI Assistant Manager for handling AI-related functionality
+    public let aiAssistantManager = AIAssistantManager()
+
     
     // New properties for improved push flow
     private var storedTxConfig: TxConfig?
@@ -285,10 +296,32 @@ public class TxClient {
                     Logger.log.e(message: "No network connection")
                     self.socket?.isConnected = false
                     self.updateActiveCallsState(callState: CallState.DROPPED(reason: .networkLost))
-                    self.startReconnectTimeout()
+                    // Only start reconnect timeout if there are active calls
+                    if self.isCallsActive {
+                        self.startReconnectTimeout()
+                    }
                 }
             }
         }
+    }
+    
+    /// Deinitializer to ensure proper cleanup of resources
+    deinit {
+        // Cancel reconnect timeout timer if it exists
+        reconnectTimeoutTimer?.cancel()
+        reconnectTimeoutTimer = nil
+        
+        // Stop network monitoring
+        NetworkMonitor.shared.stopMonitoring()
+        
+        // Remove audio route change observer
+        NotificationCenter.default.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
+        
+        // Remove ACM reset observers
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(InternalConfig.NotificationNames.acmResetStarted), object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(InternalConfig.NotificationNames.acmResetCompleted), object: nil)
+        
+        Logger.log.i(message: "TxClient deinitialized")
     }
     
     /// Sets up monitoring for audio route changes (e.g., headphones connected/disconnected, 
@@ -304,6 +337,20 @@ public class TxClient {
             selector: #selector(handleAudioRouteChange),
             name: AVAudioSession.routeChangeNotification,
             object: nil)
+        
+        // Add observer for ACM reset start to ignore audio route changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleACMResetStarted),
+            name: NSNotification.Name(InternalConfig.NotificationNames.acmResetStarted),
+            object: nil)
+
+        // Add observer for ACM reset completion to restore speakerphone state
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleACMResetCompleted),
+            name: NSNotification.Name(InternalConfig.NotificationNames.acmResetCompleted),
+            object: nil)
     }
     
     /// Handles audio route change notifications from the system.
@@ -313,7 +360,7 @@ public class TxClient {
     /// - Notifies observers about audio route changes
     /// - Manages audio routing between available outputs
     ///
-    /// The method posts an "AudioRouteChanged" notification with:
+    /// The method posts an AudioRouteChanged notification with:
     /// - isSpeakerEnabled: Whether the built-in speaker is active
     /// - outputPortType: The type of the current audio output port
     ///
@@ -329,26 +376,32 @@ public class TxClient {
               let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
             return
         }
-        
+
         let session = AVAudioSession.sharedInstance()
         let currentRoute = session.currentRoute
-        
+
         // Ensure we have at least one output port
         guard let output = currentRoute.outputs.first else {
             return
         }
-        
-        Logger.log.i(message: "Audio route changed: \(output.portType), reason: \(reason)")
-        
+
+        Logger.log.i(message: "[ACM_RESET] TxClient:: Audio route changed: \(output.portType), reason: \(reason), isACMResetInProgress: \(isACMResetInProgress)")
+
+        // Ignore audio route changes during ACM reset to prevent state desynchronization
+        if isACMResetInProgress {
+            Logger.log.i(message: "[ACM_RESET] TxClient:: Ignoring audio route change during ACM reset")
+            return
+        }
+
         switch reason {
             case .categoryChange, .override, .routeConfigurationChange:
                 // Update internal speaker state based on current output
                 let isSpeaker = output.portType == .builtInSpeaker
                 _isSpeakerEnabled = isSpeaker
-                
+
                 // Notify observers about the route change
                 NotificationCenter.default.post(
-                    name: NSNotification.Name("AudioRouteChanged"),
+                    name: NSNotification.Name(InternalConfig.NotificationNames.audioRouteChanged),
                     object: nil,
                     userInfo: [
                         "isSpeakerEnabled": isSpeaker,
@@ -358,6 +411,86 @@ public class TxClient {
             default:
                 break
         }
+    }
+    
+    /// Handles ACM reset started notification to prevent audio route change interference.
+    ///
+    /// This method sets a flag to ignore audio route changes during the ACM reset process
+    /// to prevent the internal speaker state from being incorrectly updated.
+    ///
+    /// - Parameter notification: The notification indicating ACM reset has started
+    @objc private func handleACMResetStarted(_ notification: Notification) {
+        Logger.log.i(message: "[ACM_RESET] TxClient:: ACM reset started - will ignore audio route changes")
+        isACMResetInProgress = true
+    }
+
+    /// Handles ACM reset completion notifications and restores speakerphone state if needed.
+    ///
+    /// This method is called when the AudioDeviceModule reset is completed and the speakerphone
+    /// state needs to be restored to prevent the ACM reset from disabling speakerphone mode.
+    ///
+    /// - Parameter notification: The notification containing restoration information
+    @objc private func handleACMResetCompleted(_ notification: Notification) {
+        Logger.log.i(message: "[ACM_RESET] TxClient:: Received ACM reset completion notification")
+
+        guard let userInfo = notification.userInfo,
+              let restoreSpeakerphone = userInfo["restoreSpeakerphone"] as? Bool else {
+            Logger.log.w(message: "[ACM_RESET] TxClient:: Notification missing userInfo or restoreSpeakerphone flag")
+            // Re-enable audio route monitoring even if notification is malformed
+            isACMResetInProgress = false
+            return
+        }
+
+        Logger.log.i(message: "[ACM_RESET] TxClient:: Should restore speaker: \(restoreSpeakerphone)")
+
+        // Re-enable audio route change monitoring first
+        isACMResetInProgress = false
+        Logger.log.i(message: "[ACM_RESET] TxClient:: Audio route change monitoring re-enabled")
+
+        // Restore speaker if it was active before the reset
+        if restoreSpeakerphone {
+            Logger.log.i(message: "[ACM_RESET] TxClient:: Starting speaker restoration with verification")
+            restoreSpeakerWithVerification(maxAttempts: 5)
+        } else {
+            Logger.log.i(message: "[ACM_RESET] TxClient:: Speaker was not active before reset, no restoration needed")
+        }
+    }
+
+    /// Restores speaker with verification and retry logic
+    /// This ensures the speaker is actually active after ACM reset, even if iOS tries to revert it
+    /// - Parameter maxAttempts: Maximum number of attempts to restore speaker (default: 5)
+    /// - Parameter attempt: Current attempt number (used internally for recursion)
+    private func restoreSpeakerWithVerification(maxAttempts: Int = 5, attempt: Int = 1) {
+        Logger.log.i(message: "[ACM_RESET] TxClient:: Speaker restoration attempt \(attempt)/\(maxAttempts)")
+
+        // Call setSpeaker to activate speaker
+        setSpeaker()
+
+        // Wait a bit for iOS to process the change
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            guard let self = self else { return }
+
+            // Verify if speaker is actually active
+            let currentRoute = AVAudioSession.sharedInstance().currentRoute
+            let isSpeakerActive = currentRoute.outputs.contains { $0.portType == .builtInSpeaker }
+
+            if isSpeakerActive {
+                Logger.log.i(message: "[ACM_RESET] TxClient:: Speaker successfully restored and verified on attempt \(attempt)")
+            } else if attempt < maxAttempts {
+                Logger.log.w(message: "[ACM_RESET] TxClient:: Speaker not active after attempt \(attempt), retrying...")
+                // Retry with next attempt
+                self.restoreSpeakerWithVerification(maxAttempts: maxAttempts, attempt: attempt + 1)
+            } else {
+                Logger.log.e(message: "[ACM_RESET] TxClient:: Failed to restore speaker after \(maxAttempts) attempts")
+            }
+        }
+    }
+
+    /// Public method to restore speaker after reconnection with verification and retry
+    /// This is called from Call.swift after attach/reconnect to ensure speaker state is preserved
+    internal func restoreSpeakerAfterReconnect() {
+        Logger.log.i(message: "[ACM_RESET] TxClient:: restoreSpeakerAfterReconnect() - Starting speaker restoration")
+        restoreSpeakerWithVerification(maxAttempts: 5)
     }
 
     // MARK: - Connection handling
@@ -384,12 +517,11 @@ public class TxClient {
                                                                 "voice_sdk_id":self.voiceSdkId!
                                                              ])
         } else {
-            Logger.log.i(message: "without_id")
             self.serverConfiguration = serverConfiguration
         }
-        Logger.log.i(message: "TxClient:: serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
         self.socket = Socket()
         self.socket?.delegate = self
+        self.aiAssistantManager.setSocket(self.socket)
         self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
     }
     
@@ -412,6 +544,7 @@ public class TxClient {
         Logger.log.i(message: "TxClient:: serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
         self.socket = Socket()
         self.socket?.delegate = self
+        self.aiAssistantManager.setSocket(self.socket)
         self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
     }
     
@@ -502,6 +635,10 @@ public class TxClient {
         self.calls.removeAll()
         self.stopReconnectTimeout()
         self.stopInviteTimeout()
+
+        // Clear AI Assistant Manager data
+        self.aiAssistantManager.clearAllData()
+
         // Remove audio route change observer
         NotificationCenter.default.removeObserver(self,
                                                   name: AVAudioSession.routeChangeNotification,
@@ -526,17 +663,43 @@ public class TxClient {
         return isConnected
     }
     
-    /// To answer and control callKit active flow
+    /// Answers an incoming call from CallKit and manages the active call flow.
+    ///
+    /// This method should be called from the CXProviderDelegate's `provider(_:perform:)` method
+    /// when handling a `CXAnswerCallAction`. It properly integrates with CallKit to answer incoming calls.
+    ///
+    /// ### Examples:
+    /// ```swift
+    /// extension CallKitProvider: CXProviderDelegate {
+    ///     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
+    ///         // Basic answer
+    ///         telnyxClient.answerFromCallkit(answerAction: action)
+    ///
+    ///         // Answer with custom headers and debug mode
+    ///         telnyxClient.answerFromCallkit(
+    ///             answerAction: action,
+    ///             customHeaders: ["X-Custom-Header": "Value"],
+    ///             debug: true
+    ///         )
+    ///     }
+    /// }
+    /// ```
+    ///
     /// - Parameters:
-    ///     - answerAction : `CXAnswerCallAction` from callKit
-    ///     - customHeaders: (Optional)
-    ///     - debug:  (Optional) to enable quality metrics for call
+    ///   - answerAction: The `CXAnswerCallAction` provided by CallKit's provider delegate.
+    ///   - customHeaders: (optional) Custom Headers to be passed over webRTC Messages.
+    ///     Headers should be in the format `X-key:Value` where `X-` prefix is required for custom headers.
+    ///     When calling AI Agents, headers with the `X-` prefix will be mapped to dynamic variables
+    ///     (e.g., `X-Account-Number` becomes `{{account_number}}`). Hyphens in header names are
+    ///     converted to underscores in variable names.
+    ///   - debug: (optional) Enable debug mode for call quality metrics and WebRTC statistics.
+    ///     When enabled, real-time call quality metrics will be available through the call's `onCallQualityChange` callback.
     public func answerFromCallkit(answerAction: CXAnswerCallAction,
                                   customHeaders: [String:String] = [:],
                                   debug: Bool = false) {
         Logger.log.i(message: "TxClient:: answerFromCallkit - started for callId: \(String(describing: answerAction.callUUID))")
         self.answerCallAction = answerAction
-        
+
         // Check if the call was initiated by a push notification
         if isCallFromPush {
             Logger.log.i(message: "TxClient:: answerFromCallkit - Call initiated by push notification")
@@ -544,7 +707,7 @@ public class TxClient {
             pendingAnswerHeaders = customHeaders
             /// Set call quality metrics
             self.enableQualityMetrics = debug
-            
+
             // Start the login process by sending a login message with decline_push: false
             // Automatically accept the call once the INVITE is received
             if isConnected() {
@@ -562,7 +725,7 @@ public class TxClient {
             }
             return
         }
-        
+
         // If already connected and there's a pending INVITE, immediately accept the call
         if let currentCall = self.calls[currentCallId] {
             currentCall.answer(customHeaders: customHeaders,
@@ -724,6 +887,133 @@ public class TxClient {
     public func getSessionId() -> String {
         return sessionId ?? ""
     }
+    
+    /// Performs an anonymous login to the Telnyx backend for AI assistant connections.
+    /// This method allows connecting to AI assistants without traditional authentication.
+    /// 
+    /// If the socket is already connected, the anonymous login message is sent immediately.
+    /// If not connected, the socket connection process is started, and the anonymous login 
+    /// message is sent once the connection is established.
+    /// 
+    /// - Parameters:
+    ///   - targetId: The target ID for the AI assistant
+    ///   - targetType: The target type (defaults to "ai_assistant")
+    ///   - targetVersionId: Optional target version ID
+    ///   - userVariables: Optional user variables to include in the login
+    ///   - reconnection: Whether this is a reconnection attempt (defaults to false)
+    ///   - serverConfiguration: Server configuration to use for connection (defaults to TxServerConfiguration())
+    public func anonymousLogin(
+        targetId: String, 
+        targetType: String = "ai_assistant", 
+        targetVersionId: String? = nil,
+        userVariables: [String: Any] = [:],
+        reconnection: Bool = false,
+        serverConfiguration: TxServerConfiguration = TxServerConfiguration()
+    ) {
+        Logger.log.i(message: "TxClient:: anonymousLogin() targetId: \(targetId), targetType: \(targetType)")
+        
+        // Generate session ID if not available
+        if self.sessionId == nil {
+            self.sessionId = UUID().uuidString
+        }
+        
+        guard let sessionId = self.sessionId else {
+            Logger.log.e(message: "TxClient:: anonymousLogin() failed to generate sessionId")
+            self.delegate?.onClientError(error: TxError.callFailed(reason: .sessionIdIsRequired))
+            return
+        }
+        
+        let anonymousLoginMessage = AnonymousLoginMessage(
+            targetType: targetType,
+            targetId: targetId,
+            targetVersionId: targetVersionId,
+            sessionId: sessionId,
+            userVariables: userVariables,
+            reconnection: reconnection
+        )
+        
+        if let socket = self.socket, socket.isConnected {
+            // Socket is already connected, send the message immediately
+            Logger.log.i(message: "TxClient:: anonymousLogin() socket connected, sending message immediately")
+            socket.sendMessage(message: anonymousLoginMessage.encode())
+            
+            // Update AI Assistant Manager state
+            self.aiAssistantManager.updateConnectionState(
+                connected: true,
+                targetId: targetId,
+                targetType: targetType,
+                targetVersionId: targetVersionId
+            )
+        } else {
+            // Socket is not connected, store the message and start connection
+            Logger.log.i(message: "TxClient:: anonymousLogin() socket not connected, starting connection process")
+            self.pendingAnonymousLoginMessage = anonymousLoginMessage
+            
+            // Set up server configuration
+            if self.voiceSdkId != nil {
+                Logger.log.i(message: "TxClient:: anonymousLogin() with voice_sdk_id")
+                self.serverConfiguration = TxServerConfiguration(
+                    signalingServer: serverConfiguration.signalingServer,
+                    webRTCIceServers: serverConfiguration.webRTCIceServers,
+                    environment: serverConfiguration.environment,
+                    pushMetaData: ["voice_sdk_id": self.voiceSdkId!]
+                )
+            } else {
+                Logger.log.i(message: "TxClient:: anonymousLogin() without voice_sdk_id")
+                self.serverConfiguration = serverConfiguration
+            }
+            
+            Logger.log.i(message: "TxClient:: anonymousLogin() serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
+            
+            // Initialize socket and start connection
+            self.socket = Socket()
+            self.socket?.delegate = self
+            self.aiAssistantManager.setSocket(self.socket)
+            self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
+        }
+    }
+    
+    /// Send a ringing acknowledgment message for a specific call
+    /// - Parameter callId: The call ID to acknowledge
+    public func sendRingingAck(callId: String) {
+        guard let socket = self.socket, socket.isConnected else {
+            Logger.log.e(message: "TxClient:: sendRingingAck() socket not connected")
+            return
+        }
+        
+        guard let sessionId = self.sessionId else {
+            Logger.log.e(message: "TxClient:: sendRingingAck() sessionId not available")
+            return
+        }
+        
+        Logger.log.i(message: "TxClient:: sendRingingAck() callId: \(callId)")
+        
+        let ringingAckMessage = RingingAckMessage(callId: callId, sessionId: sessionId)
+        socket.sendMessage(message: ringingAckMessage.encode())
+    }
+    
+    /// Send a text message to AI Assistant during active call (mixed-mode communication)
+    /// - Parameter message: The text message to send to AI assistant
+    /// - Returns: True if message was sent successfully, false otherwise
+    @discardableResult
+    public func sendAIAssistantMessage(_ message: String) -> Bool {
+        Logger.log.i(message: "TxClient:: sendAIAssistantMessage() message: '\(message)'")
+        return aiAssistantManager.sendAIAssistantMessage(message)
+    }
+
+    /// Send a text message with multiple Base64 encoded images to AI Assistant during active call
+    /// - Parameters:
+    ///   - message: The text message to send to AI assistant
+    ///   - base64Images: Optional array of Base64 encoded image data (without data URL prefix)
+    ///   - imageFormat: Image format (jpeg, png, etc.). Defaults to "jpeg"
+    /// - Returns: True if message was sent successfully, false otherwise
+    @discardableResult
+    public func sendAIAssistantMessage(_ message: String, base64Images: [String]?, imageFormat: String = "jpeg") -> Bool {
+        let imageCount = base64Images?.count ?? 0
+        let logMessage = imageCount > 0 ? "text message with \(imageCount) image(s)" : "text message"
+        Logger.log.i(message: "TxClient:: sendAIAssistantMessage() \(logMessage): '\(message)'")
+        return aiAssistantManager.sendAIAssistantMessage(message, base64Images: base64Images, imageFormat: imageFormat)
+    }
 
     /// This function check the gateway status updates to determine if the current user has been successfully
     /// registered and can start receiving and/or making calls.
@@ -733,7 +1023,6 @@ public class TxClient {
 
         if self.gatewayState == .REGED {
             // If the client is already registered, we don't need to do anything else.
-            Logger.log.i(message: "TxClient:: updateGatewayState() already registered")
             return
         }
         // Keep the new state.
@@ -764,15 +1053,12 @@ public class TxClient {
                         startInviteTimeout()
                     }
                 }
-                Logger.log.i(message: "TxClient:: updateGatewayState() clientReady")
                 break
             default:
                 // The gateway state can transition through multiple states before changing to REGED (Registered).
-                Logger.log.i(message: "TxClient:: updateGatewayState() no registered")
                 self.registerTimer.invalidate()
                 DispatchQueue.main.async {
                     self.registerTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(TxClient.DEFAULT_REGISTER_INTERVAL), repeats: false) { [weak self] _ in
-                        Logger.log.i(message: "TxClient:: updateGatewayState() registerTimer elapsed: gatewayState [\(String(describing: self?.gatewayState))] registerRetryCount [\(String(describing: self?.registerRetryCount))]")
 
                         if self?.gatewayState == .REGED {
                             self?.delegate?.onClientReady()
@@ -820,14 +1106,63 @@ extension TxClient {
     }
 
     /// Creates a new Call and starts the call sequence, negotiate the ICE Candidates and sends the invite.
+    ///
+    /// This method initiates an outbound call to the specified destination. The call will go through
+    /// WebRTC negotiation, ICE candidate gathering, and SIP signaling to establish the connection.
+    ///
+    /// ### Examples:
+    /// ```swift
+    /// // Basic call
+    /// let call = try telnyxClient.newCall(
+    ///     callerName: "John Doe",
+    ///     callerNumber: "1234567890",
+    ///     destinationNumber: "18004377950",
+    ///     callId: UUID()
+    /// )
+    ///
+    /// // Call with preferred audio codecs
+    /// let preferredCodecs = [
+    ///     TxCodecCapability(mimeType: "audio/opus", clockRate: 48000, channels: 2),
+    ///     TxCodecCapability(mimeType: "audio/PCMU", clockRate: 8000, channels: 1)
+    /// ]
+    /// let call = try telnyxClient.newCall(
+    ///     callerName: "John Doe",
+    ///     callerNumber: "1234567890",
+    ///     destinationNumber: "18004377950",
+    ///     callId: UUID(),
+    ///     preferredCodecs: preferredCodecs
+    /// )
+    ///
+    /// // Call with codecs and debug mode enabled
+    /// let call = try telnyxClient.newCall(
+    ///     callerName: "John Doe",
+    ///     callerNumber: "1234567890",
+    ///     destinationNumber: "18004377950",
+    ///     callId: UUID(),
+    ///     customHeaders: ["X-Custom-Header": "Value"],
+    ///     preferredCodecs: preferredCodecs,
+    ///     debug: true
+    /// )
+    /// ```
+    ///
     /// - Parameters:
     ///   - callerName: The caller name. This will be displayed as the caller name in the remote's client.
     ///   - callerNumber: The caller Number. The phone number of the current user.
     ///   - destinationNumber: The destination `SIP user address` (sip:YourSipUser@sip.telnyx.com) or `phone number`.
     ///   - callId: The current call UUID.
     ///   - clientState: (optional) Custom state in string format encoded in base64
-    ///   - customHeaders: (optional) Custom Headers to be passed over webRTC Messages, should be in the
-    ///     format `X-key:Value` `X` is required for headers to be passed.
+    ///   - customHeaders: (optional) Custom Headers to be passed over webRTC Messages.
+    ///     Headers should be in the format `X-key:Value` where `X-` prefix is required for custom headers.
+    ///     When calling AI Agents, headers with the `X-` prefix will be mapped to dynamic variables
+    ///     (e.g., `X-Account-Number` becomes `{{account_number}}`). Hyphens in header names are
+    ///     converted to underscores in variable names.
+    ///   - preferredCodecs: (optional) Array of preferred audio codecs in priority order.
+    ///     The SDK will attempt to use these codecs in the specified order during negotiation.
+    ///     If none of the preferred codecs are available, WebRTC will fall back to its default codec selection.
+    ///     Use `getSupportedAudioCodecs()` to retrieve available codecs before setting preferences.
+    ///     See the [Preferred Audio Codecs Guide](https://github.com/team-telnyx/telnyx-webrtc-ios#preferred-audio-codecs) for more information.
+    ///   - debug: (optional) Enable debug mode for call quality metrics and WebRTC statistics.
+    ///     When enabled, real-time call quality metrics will be available through the call's `onCallQualityChange` callback.
     /// - Throws:
     ///   - sessionId is required if user is not logged in
     ///   - socket connection error if socket is not connected
@@ -839,6 +1174,7 @@ extension TxClient {
                         callId: UUID,
                         clientState: String? = nil,
                         customHeaders:[String:String] = [:],
+                        preferredCodecs: [TxCodecCapability]? = nil,
                         debug:Bool = false) throws -> Call {
         //User needs to be logged in to get a sessionId
         guard let sessionId = self.sessionId else {
@@ -856,6 +1192,7 @@ extension TxClient {
         }
 
         let call = Call(callId: callId,
+                        remoteSdp: "",
                         sessionId: sessionId,
                         socket: socket,
                         delegate: self,
@@ -863,12 +1200,47 @@ extension TxClient {
                         ringbackTone: self.txConfig?.ringBackTone,
                         iceServers: self.serverConfiguration.webRTCIceServers,
                         debug: self.txConfig?.debug ?? false,
-                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false)
-        call.newCall(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState, customHeaders: customHeaders,debug: debug)
+                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
+                        sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
+                        useTrickleIce: self.txConfig?.useTrickleIce ?? false)
+        call.newCall(callerName: callerName,
+                     callerNumber: callerNumber,
+                     destinationNumber: destinationNumber,
+                     clientState: clientState,
+                     customHeaders: customHeaders,
+                     preferredCodecs: preferredCodecs,
+                     debug: debug)
 
         currentCallId = callId
         self.calls[callId] = call
         return call
+    }
+    
+    /// Returns the list of supported audio codecs available for use in calls
+    /// - Returns: Array of TxCodecCapability objects representing available audio codecs
+    ///
+    /// This method reuses the shared RTCPeerConnectionFactory instance for efficiency.
+    /// The codec list is queried from WebRTC's native capabilities and remains consistent
+    /// throughout the application lifecycle.
+    ///
+    /// ### Example:
+    /// ```swift
+    /// let supportedCodecs = telnyxClient.getSupportedAudioCodecs()
+    /// for codec in supportedCodecs {
+    ///     print("Codec: \(codec.mimeType), Clock Rate: \(codec.clockRate)")
+    /// }
+    /// ```
+    public func getSupportedAudioCodecs() -> [TxCodecCapability] {
+        // Reuse the shared Peer factory instance instead of creating a new one each time
+        let capabilities = Peer.factory.rtpSenderCapabilities(forKind: kRTCMediaStreamTrackKindAudio)
+        let codecs = capabilities.codecs
+
+        guard !codecs.isEmpty else {
+            Logger.log.w(message: "TxClient:: No audio codecs found")
+            return []
+        }
+
+        return codecs.map { TxCodecCapability(from: $0) }
     }
 
     /// Creates a call object when an invite is received.
@@ -906,7 +1278,9 @@ extension TxClient {
                         iceServers: self.serverConfiguration.webRTCIceServers,
                         isAttach: isAttach,
                         debug: self.txConfig?.debug ?? false,
-                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false)
+                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
+                        sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
+                        useTrickleIce: self.txConfig?.useTrickleIce ?? false)
         call.callInfo?.callerName = callerName
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)
@@ -1000,12 +1374,15 @@ extension TxClient {
                 // Create an initial call_object to handle early bye message
                 if let newCallId = (pushMetaData["call_id"] as? String) {
                     self.calls[UUID(uuidString: newCallId)!] = Call(callId: UUID(uuidString: newCallId)!,
+                                                                    remoteSdp: "",
                                                                     sessionId: newCallId,
                                                                     socket: self.socket!,
                                                                     delegate: self,
                                                                     iceServers: self.storedServerConfiguration!.webRTCIceServers,
-                                                                    debug: txConfig.debug ?? false,
-                                                                    forceRelayCandidate: txConfig.forceRelayCandidate ?? false)
+                                                                    debug: self.txConfig?.debug ?? false,
+                                                                    forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
+                                                                    sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
+                                                                    useTrickleIce: self.txConfig?.useTrickleIce ?? false)
                 }
             } catch let error {
                 Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
@@ -1032,23 +1409,27 @@ extension TxClient {
 
     /// Select the internal earpiece as the audio output
     public func setEarpiece() {
+        Logger.log.i(message: "[ACM_RESET] TxClient:: setEarpiece() called")
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.overrideOutputAudioPort(.none)
             _isSpeakerEnabled = false
+            Logger.log.i(message: "[ACM_RESET] TxClient:: Earpiece set successfully, _isSpeakerEnabled: \(_isSpeakerEnabled)")
         } catch let error {
-            Logger.log.e(message: "Error setting Earpiece \(error)")
+            Logger.log.e(message: "[ACM_RESET] TxClient:: Error setting Earpiece \(error)")
         }
     }
 
     /// Select the speaker as the audio output
     public func setSpeaker() {
+        Logger.log.i(message: "[ACM_RESET] TxClient:: setSpeaker() called")
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.overrideOutputAudioPort(.speaker)
             _isSpeakerEnabled = true
+            Logger.log.i(message: "[ACM_RESET] TxClient:: Speaker set successfully, _isSpeakerEnabled: \(_isSpeakerEnabled)")
         } catch let error {
-            Logger.log.e(message: "Error setting Speaker \(error)")
+            Logger.log.e(message: "[ACM_RESET] TxClient:: Error setting Speaker \(error)")
         }
     }
 }
@@ -1060,6 +1441,7 @@ extension TxClient: CallProtocol {
         Logger.log.i(message: "TxClient:: callStateUpdated()")
 
         guard let callId = call.callInfo?.callId else { return }
+        
         // Forward call state
         self.delegate?.onCallStateUpdated(callState: call.callState, callId: callId)
 
@@ -1068,6 +1450,10 @@ extension TxClient: CallProtocol {
            let callId = call.callInfo?.callId {
             Logger.log.i(message: "TxClient:: Remove call")
             self.calls.removeValue(forKey: callId)
+            
+            // Clear AI Assistant transcriptions when call ends
+            self.aiAssistantManager.clearTranscriptions()
+            
             //Forward call ended state with termination reason if available
             if case let .DONE(reason) = call.callState {
                 self.delegate?.onRemoteCallEnded(callId: callId, reason: reason)
@@ -1077,6 +1463,7 @@ extension TxClient: CallProtocol {
             self._isSpeakerEnabled = false
         }
     }
+
 }
 
 // MARK: - SocketDelegate
@@ -1089,9 +1476,28 @@ extension TxClient : SocketDelegate {
     /// 
     /// This function cancels the timer that would terminate a call if reconnection takes too long.
     /// It should be called when a call has successfully reconnected or when the call is intentionally ended.
+    /// 
+    /// Thread-safe implementation that prevents EXC_BREAKPOINT crashes by properly managing
+    /// the DispatchSourceTimer lifecycle and avoiding double-cancellation.
     func stopReconnectTimeout() {
         Logger.log.i(message: "Reconnect TimeOut stopped")
-        self.reconnectTimeoutTimer?.cancel()
+        
+        // Ensure thread safety by dispatching to the reconnect queue
+        guard reconnectTimeoutTimer != nil else {
+            Logger.log.i(message: "Reconnect timeout timer is already nil")
+            return
+        }
+        
+        reconnectQueue.async { [weak self] in
+            guard let self = self else { return }
+            
+            // Check if timer exists and is not already cancelled
+            if let timer = self.reconnectTimeoutTimer {
+                timer.cancel()
+                self.reconnectTimeoutTimer = nil
+                Logger.log.i(message: "Reconnect timeout timer cancelled successfully")
+            }
+        }
     }
 
     /// Starts the reconnection timeout timer.
@@ -1106,17 +1512,41 @@ extension TxClient : SocketDelegate {
     /// 
     /// This prevents calls from being stuck in a "reconnecting" state indefinitely when
     /// network conditions prevent successful reconnection.
+    /// 
+    /// Thread-safe implementation that properly manages timer lifecycle to prevent crashes.
     func startReconnectTimeout() {
         Logger.log.i(message: "Reconnect TimeOut Started")
-        self.reconnectTimeoutTimer = DispatchSource.makeTimerSource(queue: reconnectQueue)
-        self.reconnectTimeoutTimer?.schedule(deadline: .now() + (txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT))
-        self.reconnectTimeoutTimer?.setEventHandler { [weak self] in
-            Logger.log.i(message: "Reconnect TimeOut : after \(self?.txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT) secs")
-            self?.updateActiveCallsState(callState: CallState.DONE(reason: nil))
-            self?.disconnect()
-            self?.delegate?.onClientError(error: TxError.callFailed(reason: .reconnectFailed))
+        
+        // Ensure thread safety by dispatching to the reconnect queue
+        reconnectQueue.async { [weak self] in
+            guard let self = self else { return }
+            
+            // Cancel any existing timer before creating a new one
+            if let existingTimer = self.reconnectTimeoutTimer {
+                existingTimer.cancel()
+                self.reconnectTimeoutTimer = nil
+            }
+            
+            // Create and configure new timer
+            let timer = DispatchSource.makeTimerSource(queue: self.reconnectQueue)
+            timer.schedule(deadline: .now() + (self.txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT))
+            timer.setEventHandler { [weak self] in
+                guard let self = self else { return }
+                Logger.log.i(message: "Reconnect TimeOut : after \(self.txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT) secs")
+                
+                // Execute timeout actions on main queue for UI updates
+                self.updateActiveCallsState(callState: CallState.DONE(reason: nil))
+                self.disconnect()
+                self.delegate?.onClientError(error: TxError.callFailed(reason: .reconnectFailed))
+                
+                // Clean up timer reference
+                self.reconnectTimeoutTimer = nil
+            }
+            
+            // Store reference and start timer
+            self.reconnectTimeoutTimer = timer
+            timer.resume()
         }
-        self.reconnectTimeoutTimer?.resume()
     }
    
     func reconnectClient() {
@@ -1174,6 +1604,29 @@ extension TxClient : SocketDelegate {
             }
         }
 
+        // Check if there's a pending anonymous login message
+        if let pendingMessage = self.pendingAnonymousLoginMessage {
+            Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() sending pending anonymous login message")
+            self.socket?.sendMessage(message: pendingMessage.encode())
+
+            // Extract target information from the pending message to update AI Assistant Manager
+            if let params = pendingMessage.params {
+                let targetId = params["target_id"] as? String
+                let targetType = params["target_type"] as? String
+                let targetVersionId = params["target_version_id"] as? String
+
+                self.aiAssistantManager.updateConnectionState(
+                    connected: true,
+                    targetId: targetId,
+                    targetType: targetType,
+                    targetVersionId: targetVersionId
+                )
+            }
+
+            self.pendingAnonymousLoginMessage = nil
+            return
+        }
+
         // Get push token and push provider if available
         let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
         let pushProvider = self.txConfig?.pushNotificationConfig?.pushNotificationProvider
@@ -1205,21 +1658,32 @@ extension TxClient : SocketDelegate {
         }
     }
     
-    func onSocketDisconnected(reconnect: Bool) {
-        
-        if(reconnect) {
+    func onSocketDisconnected(reconnect: Bool, region: Region?) {
+        if reconnect {
             Logger.log.i(message: "TxClient:: SocketDelegate  Reconnecting")
             DispatchQueue.main.asyncAfter(deadline: .now() + TxClient.RECONNECT_BUFFER) {
                 do {
-                    try self.connect(txConfig: self.txConfig!,serverConfiguration: self.serverConfiguration)
-                }catch let error {
-                    Logger.log.e(message:"TxClient:: SocketDelegate reconnect error" +  error.localizedDescription)
+                    var updatedServerConfig = self.serverConfiguration
+
+                    // Override region only if region is NOT nil - fallack mechanism for failed refion
+                    if region != nil {
+                        updatedServerConfig = TxServerConfiguration(
+                            signalingServer: nil, // Pass nil to rebuild URL without region prefix
+                            webRTCIceServers: updatedServerConfig.webRTCIceServers,
+                            environment: updatedServerConfig.environment,
+                            pushMetaData: updatedServerConfig.pushMetaData,
+                            region: .auto
+                        )
+                    }
+
+                    try self.connect(txConfig: self.txConfig!, serverConfiguration: updatedServerConfig)
+                } catch let error {
+                    Logger.log.e(message: "TxClient:: SocketDelegate reconnect error" + error.localizedDescription)
                 }
             }
             return
         }
 
-        
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketDisconnected()")
         self.socket = nil
         self.sessionId = nil
@@ -1239,7 +1703,16 @@ extension TxClient : SocketDelegate {
      */
     func onMessageReceived(message: String) {
         Logger.log.i(message: "TxClient:: SocketDelegate onMessageReceived() message: \(message)")
+        
+        // Post notification for websocket message capture
+        NotificationCenter.default.post(name: .telnyxWebSocketMessageReceived, object: nil, userInfo: ["message": message])
+        
         guard let vertoMessage = Message().decode(message: message) else { return }
+        
+        // Process message through AI Assistant Manager
+        if let messageDict = try? JSONSerialization.jsonObject(with: Data(message.utf8), options: []) as? [String: Any] {
+            _ = self.aiAssistantManager.processIncomingMessage(messageDict)
+        }
         
        // FileLogger().log(message)
 
@@ -1288,6 +1761,17 @@ extension TxClient : SocketDelegate {
                         self.delegate?.onPushDisabled(success: true, message: message)
                     }
                 }
+            }
+            
+            //process ICE restart response (updateMedia)
+            if let action = result["action"] as? String,
+               action == "updateMedia",
+               let callID = result["callID"] as? String,
+               let callUUID = UUID(uuidString: callID),
+               let call = calls[callUUID] {
+                call.handleVertoMessage(message: vertoMessage, dataMessage: message, txClient: self)
+                // For ICE restart, we don't need to process sessionId, so we can return here
+                return
             }
 
             guard let sessionId = result["sessid"] as? String else { return }
@@ -1358,9 +1842,8 @@ extension TxClient : SocketDelegate {
                                 dataDecoded.params.dialogParams.custom_headers.forEach { xHeader in
                                     customHeaders[xHeader.name] = xHeader.value
                                 }
-                                print("Data Decode : \(dataDecoded)")
                             } catch {
-                                print("decoding error: \(error)")
+                                Logger.log.e(message: "Custom header decoding error: \(error)")
                             }
                         }
                         self.createIncomingCall(callerName: callerName,
@@ -1411,9 +1894,8 @@ extension TxClient : SocketDelegate {
                             dataDecoded.params.dialogParams.custom_headers.forEach { xHeader in
                                 customHeaders[xHeader.name] = xHeader.value
                             }
-                            print("Data Decode : \(dataDecoded)")
                         } catch {
-                            print("decoding error: \(error)")
+                            Logger.log.e(message: "Custom header decoding error: \(error)")
                         }
                     }
         
@@ -1455,7 +1937,7 @@ extension TxClient {
                 options: [.mixWithOthers]
             )
         } catch {
-            print(error)
+            Logger.log.e(message: "Failed to set audio session category: \(error)")
         }
     }
 
@@ -1465,16 +1947,14 @@ extension TxClient {
         
         let configuration = RTCAudioSessionConfiguration.webRTC()
         configuration.categoryOptions = [
-            .allowBluetoothA2DP,
             .duckOthers,
             .allowBluetooth,
-            .mixWithOthers
         ]
         
         do {
             try rtcAudioSession.setConfiguration(configuration)
         } catch {
-            print(error)
+            Logger.log.e(message: "Failed to set RTC audio session configuration: \(error)")
         }
         
         rtcAudioSession.unlockForConfiguration()
@@ -1488,7 +1968,7 @@ extension TxClient {
             try rtcAudioSession.setActive(active)
             rtcAudioSession.isAudioEnabled = active
         } catch {
-            print(error)
+            Logger.log.e(message: "Failed to set audio session active: \(error)")
         }
         rtcAudioSession.unlockForConfiguration()
     }

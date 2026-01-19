@@ -45,7 +45,8 @@ jobs:
         gh pr list --state merged --base main --json title,number,mergeCommit \
           --jq ".[] | [.title, .number, .mergeCommit.oid] | @tsv" > pr_data.tsv
 
-        touch changelog.txt
+        # Create changelog.txt from scratch (overwrite if exists)
+        > changelog.txt
         while IFS=$'\t' read -r title number commit; do
           if grep -q "$commit" commits.txt; then
             echo "- PR #$number: $title" >> changelog.txt

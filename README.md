@@ -1,24 +1,6 @@
-# telnyx-webrtc-ios
+# Telnyx-webrtc-ios
 
-Enable Telnyx real-time communication services on iOS. :telephone_receiver: :fire:
-
-## Table of Contents
-
-- [Project Structure](#project-structure)
-- [Project Setup](#project-setup)
-- [SIP Credentials](#sip-credentials)
-- [Adding Telnyx SDK to your iOS Client Application](#adding-telnyx-sdk-to-your-ios-client-application)
-- [Usage](#usage)
-  - [Telnyx Client Setup](#telnyx-client-setup)
-  - [Telnyx Client Delegate](#telnyx-client-delegate)
-  - [Calls](#calls)
-- [WebRTC Statistics](#webrtc-statistics)
-  - [Enabling WebRTC Statistics](#enabling-webrtc-statistics)
-  - [Understanding WebRTC Statistics](#understanding-webrtc-statistics)
-  - [Real-time Call Quality Monitoring](#real-time-call-quality-monitoring)
-  - [Important Notes](#important-notes)
-- [Custom Logging](#custom-logging)
-- [Push Notifications Setup](#push-notifications-setup)
+Enable Telnyx real-time communication services on iOS. 
 
 ## Project Structure
 
@@ -32,46 +14,37 @@ Enable Telnyx real-time communication services on iOS. :telephone_receiver: :fir
 1. Clone the repository
 2. Run the command `pod install` to install the dependencies inside the project root folder.
 3. Open the Workspace : `TelnyxRTC.xcworkspace`
-4. You will find 3 targets to build: 
+4. **Configure the Demo App (Optional):**
+   - The `Config.xcconfig` file is included in the repository with default values
+   - To use the Pre-call Diagnosis feature, edit `Config.xcconfig` and set a valid phone number:
+     ```
+     PHONE_NUMBER = +15551234567
+     ```
+   - If you don't need Pre-call Diagnosis, you can leave `PHONE_NUMBER` empty
+5. You will find 3 targets to build: 
       - The SDK
       - The SDK Tests
       - The Demo App
       
 <p align="center">
-<img width="247" alt="Screen Shot 2021-05-04 at 18 34 45" src="https://user-images.githubusercontent.com/75636882/117073153-e8f9e680-ad07-11eb-9d1f-685397b071a6.png">
+  <img width="247" alt="Screen Shot 2021-05-04 at 18 34 45" src="https://user-images.githubusercontent.com/75636882/117073153-e8f9e680-ad07-11eb-9d1f-685397b071a6.png"/>
 </p>
 
 5. Select the target `TelnyxRTC (TelnyxRTC Project)` to build the SDK
 <p align="center">
-<img width="243" alt="Screen Shot 2021-05-04 at 18 35 18" src="https://user-images.githubusercontent.com/75636882/117073140-e3040580-ad07-11eb-8ac6-dc99531550e3.png">
+<img width="243" alt="Screen Shot 2021-05-04 at 18 35 18" src="https://user-images.githubusercontent.com/75636882/117073140-e3040580-ad07-11eb-8ac6-dc99531550e3.png"/>
 
 </p>
 7. Select the target `TelnyxRTCTests` to run the tests. You will need to long press over the Run button and select `Build for testing`
 
 <p align="center">
-<img width="153" align="center" alt="Screen Shot 2021-03-03 at 10 04 05" src="https://user-images.githubusercontent.com/75636882/109810077-d4b24400-7c07-11eb-91ec-d81e72ae9069.png">
+<img width="153" align="center" alt="Screen Shot 2021-03-03 at 10 04 05" src="https://user-images.githubusercontent.com/75636882/109810077-d4b24400-7c07-11eb-91ec-d81e72ae9069.png"/>
 </p>
 
 7.  Select target `TelnyxWebRTCDemo` to run the demo app. The SDK should be manually built in order to get the app running (Step 5)
 
-8. Enjoy 😎
-</br>
-</br>
-<table>
-  <tr>
-    <td>Credentials</td>
-     <td>Outbound call</td>
-     <td>Incoming call</td>
-  </tr>
-  <tr>
-    <td><img src="https://user-images.githubusercontent.com/75636882/116748486-eaf53a00-a9d5-11eb-9093-968e8f2bde6e.gif" width=270></td>
-    <td><img src="https://user-images.githubusercontent.com/75636882/116748473-e597ef80-a9d5-11eb-94a3-2a4a044ea4ff.gif" width=270></td>
-    <td><img src="https://user-images.githubusercontent.com/75636882/116748481-e92b7680-a9d5-11eb-9fb5-6fe4cb10b797.gif" width=270></td>
-  </tr>
- </table>
-  
------
-</br>
+
+
 
 ## SIP Credentials
 In order to start making and receiving calls using the TelnyxRTC SDK you will need to get SIP Credentials:
@@ -83,7 +56,56 @@ In order to start making and receiving calls using the TelnyxRTC SDK you will ne
 
 For more information on how to generate SIP credentials check the [Telnyx WebRTC quickstart guide](https://developers.telnyx.com/docs/v2/webrtc/quickstart). 
 
-</br>
+## Region Selection
+
+The TelnyxRTC SDK supports connecting to different geographic regions to optimize call quality and reduce latency. The demo app includes a region selection feature that allows users to choose their preferred region.
+
+### Available Regions
+
+- **Auto (Default)**: Automatically selects the best region based on network conditions
+- **US East**: East coast United States servers
+- **US Central**: Central United States servers  
+- **US West**: West coast United States servers
+- **Canada Central**: Central Canada servers
+- **Europe**: European servers
+- **Asia Pacific**: Asia Pacific servers
+
+### Using Region Selection
+
+1. **In the Demo App**: Use the overflow menu (⋯) to access region selection. The current region is displayed as "Region: [current-region]".
+
+2. **In Your App**: Configure the region when creating a `TxServerConfiguration`:
+
+```swift
+// Set specific region
+let serverConfig = TxServerConfiguration(
+    environment: .production,
+    region: .usEast  // or .eu, .usCentral, .usWest, .caCentral, .apac
+)
+
+// Use auto region selection (default)
+let serverConfig = TxServerConfiguration(
+    environment: .production,
+    region: .auto
+)
+
+try telnyxClient.connect(txConfig: txConfig, serverConfiguration: serverConfig)
+```
+
+### Region Selection Behavior
+
+- **During Active Calls**: Region selection is automatically disabled during active calls to prevent connection disruption
+- **When Connected**: Region selection is disabled when the client is connected to prevent disrupting the established connection
+- **Fallback Logic**: If a regional server is unavailable, the SDK automatically falls back to the auto region
+- **Persistence**: The selected region persists across app sessions until manually changed
+
+### Best Practices
+
+- Use **Auto** region for the best overall experience unless you have specific latency requirements
+- Select a region **geographically close** to your users for optimal call quality
+- Test different regions in your target deployment areas to determine the best performance 
+
+
 
 ## Adding Telnyx SDK to your iOS Client Application:
 Currently the iOS SDK is supported using cocoapods. 
@@ -107,21 +129,21 @@ import TelnyxRTC
 ```
 5. Disable BITCODE (The GoogleWebRTC dependency has BITCODE disabled):  Go to the Build Settings tab of your app target, search for “bitcode” and set it to “NO”
 <p align="center">
-<img width="743" alt="Screen Shot 2021-05-07 at 17 46 08" src="https://user-images.githubusercontent.com/75636882/117506545-235bc180-af5c-11eb-91eb-00d60f5844fa.png">
+<img width="743" alt="Screen Shot 2021-05-07 at 17 46 08" src="https://user-images.githubusercontent.com/75636882/117506545-235bc180-af5c-11eb-91eb-00d60f5844fa.png" />
 </p>
 
 6. Enable VoIP and Audio background modes: Go to Signing & Capabilities tab, press the +Capability button and add those background modes:
 <p align="center">
-<img width="719" alt="Screen Shot 2021-05-07 at 17 46 54" src="https://user-images.githubusercontent.com/75636882/117506607-3ff7f980-af5c-11eb-8df2-2f9170c12baf.png">
+<img width="719" alt="Screen Shot 2021-05-07 at 17 46 54" src="https://user-images.githubusercontent.com/75636882/117506607-3ff7f980-af5c-11eb-8df2-2f9170c12baf.png" />
 </p>
 
 7. Go to your Info.plist file and add the “Privacy - Microphone Usage Description” key with a description that your app requires microphone access in order to make VoIP calls. 
 <p align="center">
-<img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://user-images.githubusercontent.com/75636882/117506706-6d44a780-af5c-11eb-87e2-d6be092474f2.png">
+<img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://user-images.githubusercontent.com/75636882/117506706-6d44a780-af5c-11eb-87e2-d6be092474f2.png"/>
 </p>
 
 8. You are all set!
-</br>
+
 
 ### Swift Package Manager
 
@@ -132,7 +154,7 @@ Xcode has a built-in support for Swift package manager. To add a package :
 3. Select the **main brach** and click Add Package
 
 <p align="center">
-<img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://github.com/isaacakakpo1/telnyx-webrtc-ios-smp/assets/134492608/39be0ab7-222f-478c-bba9-cb2813bcb81d">
+<img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://github.com/isaacakakpo1/telnyx-webrtc-ios-smp/assets/134492608/39be0ab7-222f-478c-bba9-cb2813bcb81d"/>
 </p>
 
 NB: if Add Package is stuck downloading try File > Packages > Reset Package Caches or Run the command
@@ -341,7 +363,186 @@ extension ViewController: TxClientDelegate {
 This is a general example: In order to fully support inbound calls you will need to implement PushKit + CallKit. For more information check `Setting up VoIP push notifications` section.
 
 ---
-</br>
+
+## AI Agent Integration
+
+The Telnyx iOS WebRTC SDK provides comprehensive support for AI Agent functionality, enabling intelligent voice applications with real-time conversation capabilities.
+
+### Key Features
+
+- **Anonymous Authentication**: Connect to AI assistants without SIP credentials
+- **Real-time Transcripts**: Live conversation transcripts with role identification
+- **Mixed Communication**: Send text messages during voice calls
+- **Widget Settings**: Customizable AI assistant interface
+
+### Quick Start
+
+```swift
+import TelnyxRTC
+
+class AIAgentViewController: UIViewController {
+    private let client = TxClient()
+    private var currentCall: Call?
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        client.delegate = self
+        setupAIAgent()
+    }
+    
+    private func setupAIAgent() {
+        // Step 1: Anonymous login to AI assistant
+        client.anonymousLogin(
+            targetId: "your-ai-assistant-id",
+            targetType: "ai_assistant"
+        )
+    }
+    
+    private func startConversation() {
+        // Step 2: Start conversation (destination ignored after anonymous login)
+        currentCall = client.newInvite(
+            callerName: "User",
+            callerNumber: "user",
+            destinationNumber: "ai-assistant", // Ignored after anonymous login
+            callId: UUID()
+        )
+    }
+    
+    private func sendTextMessage() {
+        // Step 3: Send text message during call
+        let success = client.sendAIAssistantMessage("Hello, can you help me?")
+        print("Message sent: \(success)")
+    }
+    
+    private func subscribeToTranscripts() {
+        // Step 4: Listen to real-time transcripts
+        let cancellable = client.aiAssistantManager.subscribeToTranscriptUpdates { transcripts in
+            DispatchQueue.main.async {
+                self.updateTranscriptUI(transcripts)
+            }
+        }
+        // Store cancellable to manage subscription lifecycle
+    }
+}
+
+extension AIAgentViewController: TxClientDelegate {
+    func onClientReady() {
+        print("Client ready - can start AI conversation")
+        startConversation()
+    }
+    
+    func onCallStateUpdated(callState: CallState, callId: UUID) {
+        switch callState {
+        case .ACTIVE:
+            print("AI conversation active")
+            subscribeToTranscripts()
+        case .DONE:
+            print("AI conversation ended")
+        default:
+            break
+        }
+    }
+}
+```
+
+### Implementation Steps
+
+1. **[Anonymous Login](docs-markdown/ai-agent/anonymous-login.md)** - Authenticate with AI assistants without SIP credentials
+2. **[Starting Conversations](docs-markdown/ai-agent/starting-conversations.md)** - Initiate calls with AI agents
+3. **[Transcript Updates](docs-markdown/ai-agent/transcript-updates.md)** - Handle real-time conversation transcripts
+4. **[Text Messaging](docs-markdown/ai-agent/text-messaging.md)** - Send text messages during voice calls
+
+### Complete Documentation
+
+For comprehensive AI Agent integration documentation, see:
+- **[AI Agent Introduction](docs-markdown/ai-agent/introduction.md)** - Overview and architecture
+- **[AIAssistantManager API](docs-markdown/classes/AIAssistantManager.md)** - Complete API reference
+- **[TranscriptionItem Structure](docs-markdown/structs/TranscriptionItem.md)** - Transcript data format
+- **[WidgetSettings Configuration](docs-markdown/structs/WidgetSettings.md)** - UI customization options
+
+---
+
+## Preferred Audio Codecs
+
+The SDK allows you to configure preferred audio codecs for your WebRTC calls. This feature enables you to prioritize specific codecs based on your application's requirements for audio quality, bandwidth usage, or network conditions.
+
+### Getting Supported Codecs
+
+Query the list of audio codecs supported by the device and WebRTC framework:
+
+```swift
+// Get all supported audio codecs
+let supportedCodecs = telnyxClient.getSupportedAudioCodecs()
+
+// Print codec information
+for codec in supportedCodecs {
+    print("Codec: \(codec.mimeType), Clock Rate: \(codec.clockRate) Hz")
+}
+```
+
+### Setting Preferred Codecs
+
+**For Outbound Calls:**
+
+```swift
+// Define your preferred codecs in order of priority
+let preferredCodecs = [
+    TxCodecCapability(mimeType: "audio/opus", clockRate: 48000, channels: 2),
+    TxCodecCapability(mimeType: "audio/PCMU", clockRate: 8000, channels: 1)
+]
+
+// Create a call with preferred codecs
+let call = try telnyxClient.newCall(
+    callerName: "John Doe",
+    callerNumber: "1234567890",
+    destinationNumber: "18004377950",
+    callId: UUID(),
+    preferredCodecs: preferredCodecs  // Pass preferred codecs
+)
+```
+
+**For Inbound Calls:**
+
+```swift
+func onIncomingCall(call: Call) {
+    let preferredCodecs = [
+        TxCodecCapability(mimeType: "audio/opus", clockRate: 48000, channels: 2),
+        TxCodecCapability(mimeType: "audio/PCMU", clockRate: 8000, channels: 1)
+    ]
+
+    // Answer with preferred codecs
+    call.answer(preferredCodecs: preferredCodecs)
+}
+```
+
+### Common Codec Configurations
+
+**High Quality Audio (VoIP apps):**
+```swift
+let preferredCodecs = [
+    TxCodecCapability(mimeType: "audio/opus", clockRate: 48000, channels: 2)
+]
+```
+
+**Traditional Telephony Compatibility:**
+```swift
+let preferredCodecs = [
+    TxCodecCapability(mimeType: "audio/PCMU", clockRate: 8000, channels: 1),
+    TxCodecCapability(mimeType: "audio/PCMA", clockRate: 8000, channels: 1)
+]
+```
+
+**Low Bandwidth Optimization:**
+```swift
+let preferredCodecs = [
+    TxCodecCapability(mimeType: "audio/iLBC", clockRate: 8000),
+    TxCodecCapability(mimeType: "audio/PCMU", clockRate: 8000)
+]
+```
+
+For detailed documentation on codec selection, configuration options, and best practices, see the [Preferred Audio Codecs Guide](docs-markdown/audio-codecs/preferred-codecs.md).
+
+---
 
 ## Call Termination Reasons
 
@@ -454,34 +655,33 @@ call.onCallQualityChange = { metrics in
     }
 }
 ```
-
 #### CallQualityMetrics Properties
 
 The `CallQualityMetrics` object provides the following properties:
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `jitter` | Double | Jitter in seconds (multiply by 1000 for milliseconds) |
-| `rtt` | Double | Round-trip time in seconds (multiply by 1000 for milliseconds) |
-| `mos` | Double | Mean Opinion Score (1.0-5.0) |
-| `quality` | CallQuality | Call quality rating based on MOS |
-| `inboundAudio` | [String: Any]? | Inbound audio statistics |
-| `outboundAudio` | [String: Any]? | Outbound audio statistics |
-| `remoteInboundAudio` | [String: Any]? | Remote inbound audio statistics |
-| `remoteOutboundAudio` | [String: Any]? | Remote outbound audio statistics |
+| Property             | Type            | Description |
+|----------------------|-----------------|-------------|
+| `jitter`             | Double          | Jitter in seconds (multiply by 1000 for milliseconds) |
+| `rtt`                | Double          | Round-trip time in seconds (multiply by 1000 for milliseconds) |
+| `mos`                | Double          | Mean Opinion Score (1.0-5.0) |
+| `quality`            | CallQuality     | Call quality rating based on MOS |
+| `inboundAudio`       | [String: Any]?  | Inbound audio statistics |
+| `outboundAudio`      | [String: Any]?  | Outbound audio statistics |
+| `remoteInboundAudio` | [String: Any]?  | Remote inbound audio statistics |
+| `remoteOutboundAudio`| [String: Any]?  | Remote outbound audio statistics |
+
+
 
 #### CallQuality Enum
+| Value         | MOS Range       | Description |
+|---------------|-----------------|-------------|
+| `.excellent`  | MOS > 4.2       | Excellent call quality |
+| `.good`       | 4.1 ≤ MOS ≤ 4.2 | Good call quality |
+| `.fair`       | 3.7 ≤ MOS ≤ 4.0 | Fair call quality |
+| `.poor`       | 3.1 ≤ MOS ≤ 3.6 | Poor call quality |
+| `.bad`        | MOS ≤ 3.0       | Bad call quality |
+| `.unknown`    | N/A             | Unable to calculate quality |
 
-The `CallQuality` enum provides the following values:
-
-| Value | MOS Range | Description |
-|-------|-----------|-------------|
-| `.excellent` | MOS > 4.2 | Excellent call quality |
-| `.good` | 4.1 <= MOS <= 4.2 | Good call quality |
-| `.fair` | 3.7 <= MOS <= 4.0 | Fair call quality |
-| `.poor` | 3.1 <= MOS <= 3.6 | Poor call quality |
-| `.bad` | MOS <= 3.0 | Bad call quality |
-| `.unknown` | N/A | Unable to calculate quality |
 
 #### Best Practices for Call Quality Monitoring
 
@@ -518,7 +718,7 @@ The `CallQuality` enum provides the following values:
    - Consider disabling debug mode in production unless actively investigating issues
 
 ---
-</br>
+
 
 ## Custom Logging
 
@@ -580,17 +780,73 @@ If no custom logger is provided, the SDK uses `TxDefaultLogger` which prints log
    - Handle errors gracefully within the logger
 
 ---
-</br>
+
 
 ## Push Notifications Setup
 
 In order to receive incoming calls while the app is running in background or closed, you will need to perform a set of configurations over your Mission Control Portal Account and your application. 
 
 For detailed documentation on setting up push notifications, see:
-- [App Setup](docs-markdown/push-notification/app-setup.md) - Configure your iOS app to receive VoIP push notifications
-- [Portal Setup](docs-markdown/push-notification/portal-setup.md) - Set up your Telnyx Portal account with VoIP push credentials
+- [App Setup](https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/app-setup) - Configure your iOS app to receive VoIP push notifications
+- [Portal Setup](https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/portal-setup) - Set up your Telnyx Portal account with VoIP push credentials
+- [Troubleshooting](https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/troubleshooting) - Debug common push notification issues
 
-</br>
+---
+
+## Trickle ICE
+
+The SDK supports Trickle ICE, which enables faster call setup by sending ICE candidates incrementally as they are discovered, rather than waiting for all candidates before establishing the connection.
+
+### Key Features
+
+- **Faster Call Establishment**: Candidates are sent immediately as discovered, reducing connection time
+- **Automatic Management**: No configuration required - the SDK handles Trickle ICE automatically
+- **Smart Queuing**: Answering side queues candidates until ANSWER is sent to prevent race conditions
+- **Candidate Cleaning**: WebRTC extensions are removed for maximum server compatibility
+
+### How It Works
+
+**Outbound Calls**: Candidates are sent immediately as they are generated
+
+**Inbound Calls**: Candidates are queued until the call is answered, then flushed all at once followed by real-time sending of new candidates
+
+This approach prevents race conditions where candidates might arrive before the answer, ensuring reliable call setup.
+
+For comprehensive documentation on Trickle ICE implementation, troubleshooting, and technical details, see the [Trickle ICE Guide](docs-markdown/trickle-ice/trickle-ice.md).
+
+### Testing VoIP Push Notifications
+
+The repository includes a dedicated testing tool to help validate your VoIP push notification setup. This tool allows you to send test push notifications directly to your device using your own certificates and configuration.
+
+**Location**: `push-notification-tool/` in the repository root
+
+#### Quick Setup
+
+```bash
+cd push-notification-tool
+npm install 
+npm run dev
+```
+
+#### What the Tool Does
+
+- **Validates Configuration**: Tests your certificate files, bundle ID, and device token
+- **Sends Test Pushes**: Generates VoIP notifications with SDK-compatible payload structure  
+- **Provides Detailed Errors**: Clear error messages to help identify configuration issues
+- **Supports Continuous Testing**: Send multiple pushes, switch configurations, test different scenarios
+- **Smart Configuration Management**: Saves settings between sessions for faster iteration
+
+#### Perfect for Testing
+
+- Certificate and environment validation
+- Device token verification  
+- Payload structure compatibility
+- Multi-device testing
+- Troubleshooting push delivery issues
+
+For complete setup instructions and usage examples, see the tool's [README](https://github.com/team-telnyx/telnyx-webrtc-ios/tree/main/push-notification-tool) or the [Troubleshooting Guide](https://developers.telnyx.com/docs/voice/webrtc/ios-sdk/push-notification/troubleshooting#testing-voip-push-notifications).
+
+
 
 ### VoIP Push - Portal setup
 
@@ -603,7 +859,7 @@ This process requires:
 
 For complete instructions on how to setup Push Notifications got to this [link](https://developers.telnyx.com/docs/v2/webrtc/push-notifications).
 
-</br>
+
 
 ### VoIP Push - App Setup
 
@@ -616,12 +872,12 @@ The following setup is required in your application to receive Telnyx VoIP push 
 3. In the top-left corner of the right-hand pane in Xcode, select your app's target.
 4. Press the  +Capabilities button.
 <p align="center">
-      <img width="294" alt="Screen Shot 2021-11-26 at 13 34 12" src="https://user-images.githubusercontent.com/75636882/143610180-04e2a98c-bb08-4f06-b81a-9a3a4231d389.png">
+      <img width="294" alt="Screen Shot 2021-11-26 at 13 34 12" src="https://user-images.githubusercontent.com/75636882/143610180-04e2a98c-bb08-4f06-b81a-9a3a4231d389.png" />
 </p>
 
 6. Enable Push Notifications
 <p align="center">
-      <img width="269" alt="Screen Shot 2021-11-26 at 13 35 51" src="https://user-images.githubusercontent.com/75636882/143610372-abab46cc-dd2a-4712-9020-240f9dbaaaf7.png">
+      <img width="269" alt="Screen Shot 2021-11-26 at 13 35 51" src="https://user-images.githubusercontent.com/75636882/143610372-abab46cc-dd2a-4712-9020-240f9dbaaaf7.png" />
 </p>
 
 #### b. Configure PushKit into your app:
@@ -784,7 +1040,7 @@ extension AppDelegate : CXProviderDelegate {
     }
 }
 ```
-</br>
+
 
 __*Reporting calls with CallKit*__
 
@@ -844,16 +1100,11 @@ func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
 When the `answerFromPush(answerAction: action)` is called, Callkit sets the call state to `connecting` to alert the user that the call is being connected. 
 Once the call is active, the timer starts.
 
-<table align="center">
-        <tr>
-           <td>Connecting State</td>
-           <td>Active call</td>
-        </tr>
-        <tr>
-          <td><img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/13e9efd0-07e2-4a7e-9e7a-b2484b96be47" width=270></td>
-          <td><img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/89d506a5-bf97-42f2-bd64-5aa54b202db8" width=270></td>
-        </tr>
-</table>
+| Connecting State | Active Call |
+|------------------|-------------|
+| <img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/13e9efd0-07e2-4a7e-9e7a-b2484b96be47" width="270"/> | <img src="https://github.com/team-telnyx/telnyx-webrtc-ios/assets/134492608/89d506a5-bf97-42f2-bd64-5aa54b202db8" width="270"/> |
+
+
    
 The previous SDK versions requires handling the websocket connection state on the client side. It can be done in the following way:
 
@@ -1007,12 +1258,12 @@ For more information you can:
 1. Clone the repository
 2. And check the exported documentation in:  `docs/index.html`
 
+## Support
 
+Find official documentation [here](https://developers.telnyx.com/docs/voice/webrtc/ios-sdk)
 
-
------
-Questions? Comments? Building something rad? [Join our Slack channel](https://joinslack.telnyx.com/) and share.
+Questions? Comments? Building something rad? <a href="https://joinslack.telnyx.com/">Join our Slack channel</a> and share.
 
 ## License
 
-[`MIT Licence`](./LICENSE) © [Telnyx](https://github.com/team-telnyx)
+[`MIT Licence`](https://github.com/team-telnyx/telnyx-webrtc-ios/blob/main/LICENSE) © [Telnyx](https://github.com/team-telnyx)

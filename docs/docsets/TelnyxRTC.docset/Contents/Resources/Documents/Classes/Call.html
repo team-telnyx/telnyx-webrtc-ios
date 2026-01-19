@@ -17,7 +17,7 @@
     <a title="Call Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">TelnyxRTC 2.0.0 Docs</a> (80% documented)</p>
+        <p><a href="../index.html">TelnyxRTC 2.4.0 Docs</a> (71% documented)</p>
         <div class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -41,6 +41,9 @@
             <a href="../Classes.html">Classes</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
+                <a href="../Classes/AIAssistantManager.html">AIAssistantManager</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Classes/Call.html">Call</a>
               </li>
               <li class="nav-group-task">
@@ -48,6 +51,12 @@
               </li>
               <li class="nav-group-task">
                 <a href="../Classes/MOSCalculator.html">MOSCalculator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TranscriptCancellable.html">TranscriptCancellable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TranscriptPublisher.html">TranscriptPublisher</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Classes/TxClient.html">TxClient</a>
@@ -76,6 +85,9 @@
                 <a href="../Enums/PushEnvironment.html">PushEnvironment</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Enums/Region.html">Region</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Enums/TxError.html">TxError</a>
               </li>
               <li class="nav-group-task">
@@ -99,6 +111,9 @@
             <a href="../Protocols.html">Protocols</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
+                <a href="../Protocols/AIAssistantManagerDelegate.html">AIAssistantManagerDelegate</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Protocols/TxClientDelegate.html">TxClientDelegate</a>
               </li>
               <li class="nav-group-task">
@@ -110,13 +125,34 @@
             <a href="../Structs.html">Structures</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
+                <a href="../Structs/AiConversationParams.html">AiConversationParams</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/AudioVisualizerConfig.html">AudioVisualizerConfig</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/CallQualityMetrics.html">CallQualityMetrics</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/CallTerminationReason.html">CallTerminationReason</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Structs/ConversationContent.html">ConversationContent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ConversationItem.html">ConversationItem</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ImageURL.html">ImageURL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TranscriptionItem.html">TranscriptionItem</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/TxCallInfo.html">TxCallInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TxCodecCapability.html">TxCodecCapability</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/TxConfig.html">TxConfig</a>
@@ -129,6 +165,9 @@
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/TxServerConfiguration.html">TxServerConfiguration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/WidgetSettings.html">WidgetSettings</a>
               </li>
             </ul>
           </li>
@@ -442,6 +481,35 @@ This is useful for troubleshooting call quality issues.</p>
                 <li class="item">
                   <div>
                     <code>
+                    <a name="/s:9TelnyxRTC4CallC24sendWebRTCStatsViaSocketSbvp"></a>
+                    <a name="//apple_ref/swift/Property/sendWebRTCStatsViaSocket" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC4CallC24sendWebRTCStatsViaSocketSbvp">sendWebRTCStatsViaSocket</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Controls whether the SDK should send WebRTC statistics via socket to Telnyx servers.
+When enabled, collected WebRTC stats will be sent to Telnyx servers for monitoring and debugging.
+This is independent of stats collection - stats can be collected without being sent via socket.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">internal(set)</span> <span class="k">var</span> <span class="nv">sendWebRTCStatsViaSocket</span><span class="p">:</span> <span class="kt">Bool</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
                     <a name="/s:9TelnyxRTC4CallC19forceRelayCandidateSbvp"></a>
                     <a name="//apple_ref/swift/Property/forceRelayCandidate" class="dashAnchor"></a>
                     <a class="token" href="#/s:9TelnyxRTC4CallC19forceRelayCandidateSbvp">forceRelayCandidate</a>
@@ -586,6 +654,138 @@ See <code><a href="../Structs/TxCallInfo.html">TxCallInfo</a></code> for complet
                     </section>
                   </div>
                 </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC4CallC11localStreamSo08RTCMediaE0CSgvp"></a>
+                    <a name="//apple_ref/swift/Property/localStream" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC4CallC11localStreamSo08RTCMediaE0CSgvp">localStream</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The local media stream containing audio and/or video tracks being sent to the remote party.
+This stream represents the media captured from the local device (microphone, camera).
+Can be used for audio visualization, local video preview, or other media processing.</p>
+<h2 id='examples' class='heading'>Examples</h2>
+<pre class="highlight swift"><code><span class="c1">// Access local audio tracks for visualization</span>
+<span class="k">if</span> <span class="k">let</span> <span class="nv">localStream</span> <span class="o">=</span> <span class="n">call</span><span class="o">.</span><span class="n">localStream</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">audioTracks</span> <span class="o">=</span> <span class="n">localStream</span><span class="o">.</span><span class="n">audioTracks</span>
+    <span class="c1">// Use audio tracks for waveform visualization</span>
+<span class="p">}</span>
+</code></pre>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">localStream</span><span class="p">:</span> <span class="kt">RTCMediaStream</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC4CallC12remoteStreamSo08RTCMediaE0CSgvp"></a>
+                    <a name="//apple_ref/swift/Property/remoteStream" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC4CallC12remoteStreamSo08RTCMediaE0CSgvp">remoteStream</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The remote media stream containing audio and/or video tracks received from the remote party.
+This stream represents the media being received from the other participant in the call.
+Can be used for audio visualization, remote video display, or other media processing.</p>
+<h2 id='examples' class='heading'>Examples</h2>
+<pre class="highlight swift"><code><span class="c1">// Access remote audio tracks for visualization</span>
+<span class="k">if</span> <span class="k">let</span> <span class="nv">remoteStream</span> <span class="o">=</span> <span class="n">call</span><span class="o">.</span><span class="n">remoteStream</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">audioTracks</span> <span class="o">=</span> <span class="n">remoteStream</span><span class="o">.</span><span class="n">audioTracks</span>
+    <span class="c1">// Use audio tracks for waveform visualization</span>
+<span class="p">}</span>
+</code></pre>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">remoteStream</span><span class="p">:</span> <span class="kt">RTCMediaStream</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/ICE%20Restart%20handling"></a>
+                <a name="//apple_ref/swift/Section/ICE Restart handling" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/ICE%20Restart%20handling"></a>
+                  <h3 class="section-name"><span>ICE Restart handling</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC4CallC10iceRestart10completionyySb_s5Error_pSgtc_tF"></a>
+                    <a name="//apple_ref/swift/Method/iceRestart(completion:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC4CallC10iceRestart10completionyySb_s5Error_pSgtc_tF">iceRestart(completion:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Performs ICE restart to renegotiate ICE candidates when network conditions change
+This helps resolve audio delay issues by establishing new network paths</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">iceRestart</span><span class="p">(</span><span class="nv">completion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="n">_</span> <span class="nv">success</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">,</span> <span class="n">_</span> <span class="nv">error</span><span class="p">:</span> <span class="kt">Error</span><span class="p">?)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>completion</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Callback indicating success or failure of the ICE restart</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
               </ul>
             </div>
             <div class="task-group">
@@ -643,8 +843,17 @@ See <code><a href="../Structs/TxCallInfo.html">TxCallInfo</a></code> for complet
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Starts the process to answer the incoming call.</p>
-<h3 id='example' class='heading'>Example:</h3>
-<pre class="highlight swift"><code><span class="n">call</span><span class="o">.</span><span class="nf">answer</span><span class="p">()</span>
+
+<p>Use this method to accept an incoming call and establish the WebRTC connection.</p>
+<h3 id='examples' class='heading'>Examples:</h3>
+<pre class="highlight swift"><code><span class="c1">// Basic answer</span>
+<span class="n">call</span><span class="o">.</span><span class="nf">answer</span><span class="p">()</span>
+
+<span class="c1">// Answer with custom headers</span>
+<span class="n">call</span><span class="o">.</span><span class="nf">answer</span><span class="p">(</span><span class="nv">customHeaders</span><span class="p">:</span> <span class="p">[</span><span class="s">"X-Custom-Header"</span><span class="p">:</span> <span class="s">"Value"</span><span class="p">])</span>
+
+<span class="c1">// Answer with debug mode</span>
+<span class="n">call</span><span class="o">.</span><span class="nf">answer</span><span class="p">(</span><span class="nv">debug</span><span class="p">:</span> <span class="kc">true</span><span class="p">)</span>
 </code></pre>
 
                       </div>
@@ -655,6 +864,42 @@ See <code><a href="../Structs/TxCallInfo.html">TxCallInfo</a></code> for complet
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">answer</span><span class="p">(</span><span class="nv">customHeaders</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span> <span class="p">:</span> <span class="kt">String</span><span class="p">]</span> <span class="o">=</span> <span class="p">[:],</span> <span class="nv">debug</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">)</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>customHeaders</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(optional) Custom Headers to be passed over webRTC Messages.
+Headers should be in the format <code>X-key:Value</code> where <code>X-</code> prefix is required for custom headers.
+When calling AI Agents, headers with the <code>X-</code> prefix will be mapped to dynamic variables
+(e.g., <code>X-Account-Number</code> becomes <code>{{account_number}}</code>). Hyphens in header names are
+converted to underscores in variable names.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>debug</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(optional) Enable debug mode for call quality metrics and WebRTC statistics.
+When enabled, real-time call quality metrics will be available through the <code><a href="../Classes/Call.html#/s:9TelnyxRTC4CallC02onC13QualityChangeyAA0cE7MetricsVcSgvp">onCallQualityChange</a></code> callback.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </section>
                   </div>
@@ -812,6 +1057,44 @@ when sending multiple digits.</p>
                     </section>
                   </div>
                 </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC4CallC16resetAudioDeviceyyF"></a>
+                    <a name="//apple_ref/swift/Method/resetAudioDevice()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC4CallC16resetAudioDeviceyyF">resetAudioDevice()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Resets the audio device and clears accumulated buffers to resolve persistent audio delay issues.</p>
+
+<p>This method addresses iOS audio delay problems where:</p>
+
+<ul>
+<li>AudioDeviceModule buffers stretch under poor network conditions</li>
+<li>WebRTC audio pacing causes frame accumulation</li>
+<li>iOS AudioUnit/AVAudioSession remains in large buffer state</li>
+</ul>
+<h3 id='example' class='heading'>Example:</h3>
+<pre class="highlight swift"><code><span class="n">call</span><span class="o">.</span><span class="nf">resetAudioDevice</span><span class="p">()</span>
+</code></pre>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">resetAudioDevice</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
               </ul>
             </div>
             <div class="task-group">
@@ -920,8 +1203,8 @@ when sending multiple digits.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-05-21)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
+          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-11-17)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.4</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>
     </div>

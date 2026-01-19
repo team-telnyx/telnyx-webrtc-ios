@@ -14,7 +14,8 @@ class AnswerMessage : Message {
          sdp: String,
          callInfo: TxCallInfo,
          callOptions: TxCallOptions,
-         customHeaders:[String:String] = [:]) {
+         customHeaders:[String:String] = [:],
+         trickle: Bool = false) {
 
         var params = [String: Any]()
         var dialogParams = [String: Any]()
@@ -31,6 +32,9 @@ class AnswerMessage : Message {
             dialogParams["custom_headers"] = appendCustomHeaders(customHeaders: customHeaders)
         }
         params["dialogParams"] = dialogParams
+        if trickle {
+            params["trickle"] = true
+        }
         super.init(params, method: .ANSWER)
     }
 }

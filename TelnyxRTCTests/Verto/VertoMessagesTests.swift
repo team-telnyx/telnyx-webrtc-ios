@@ -47,6 +47,12 @@ class VertoMessagesTests: XCTestCase {
 
         let decodedMethod = decodeLogin?.method
         XCTAssertEqual(decodedMethod, Method.LOGIN)
+        
+        // Test User-Agent format
+        let userAgent = loginWithToken.params?["User-Agent"] as? String
+        XCTAssertNotNil(userAgent, "User-Agent should not be nil")
+        XCTAssertTrue(userAgent!.hasPrefix("iOS-"), "User-Agent should start with 'iOS-'")
+        XCTAssertEqual(userAgent, Message.USER_AGENT, "User-Agent should match Message.USER_AGENT computed property")
     }
 
     /**
@@ -105,6 +111,12 @@ class VertoMessagesTests: XCTestCase {
 
         let decodedMethod = decodeLogin?.method
         XCTAssertEqual(decodedMethod, Method.LOGIN)
+        
+        // Test User-Agent format
+        let userAgent = loginWithUserAndPassoword.params?["User-Agent"] as? String
+        XCTAssertNotNil(userAgent, "User-Agent should not be nil")
+        XCTAssertTrue(userAgent!.hasPrefix("iOS-"), "User-Agent should start with 'iOS-'")
+        XCTAssertEqual(userAgent, Message.USER_AGENT, "User-Agent should match Message.USER_AGENT computed property")
     }
 
     /**
@@ -322,5 +334,154 @@ class VertoMessagesTests: XCTestCase {
 
         let decodedMethod = decodedMessage?.method
         XCTAssertEqual(decodedMethod, Method.INFO)
+    }
+    
+    /**
+     Test Anonymous Login Message
+     */
+    func testAnonymousLoginMessage() {
+        print("VertoMessagesTest :: testAnonymousLoginMessage()")
+        
+        let targetId = "assistant-9be2960c-df97-4cbb-9f1a-28c87d0ab77e"
+        let targetType = "ai_assistant"
+        let targetVersionId = "version-123"
+        let sessionId = UUID().uuidString
+        let userVariables = ["custom_var": "custom_value"]
+        let reconnection = false
+        
+        let anonymousLoginMessage = AnonymousLoginMessage(
+            targetType: targetType,
+            targetId: targetId,
+            targetVersionId: targetVersionId,
+            sessionId: sessionId,
+            userVariables: userVariables,
+            reconnection: reconnection
+        )
+        
+        // Test encoding and decoding
+        let encodedMessage: String = anonymousLoginMessage.encode() ?? ""
+        let decodedMessage = Message().decode(message: encodedMessage)
+        
+        // Verify parameters
+        XCTAssertEqual(decodedMessage?.params?["target_type"] as! String, targetType)
+        XCTAssertEqual(decodedMessage?.params?["target_id"] as! String, targetId)
+        XCTAssertEqual(decodedMessage?.params?["target_version_id"] as! String, targetVersionId)
+        XCTAssertEqual(decodedMessage?.params?["sessid"] as! String, sessionId)
+        XCTAssertEqual(decodedMessage?.params?["reconnection"] as! Bool, reconnection)
+        
+        // Verify User-Agent structure
+        let userAgent = decodedMessage?.params?["User-Agent"] as! [String: Any]
+        XCTAssertNotNil(userAgent["sdkVersion"])
+        XCTAssertNotNil(userAgent["data"])
+        
+        // Verify user variables
+        let decodedUserVariables = decodedMessage?.params?["userVariables"] as! [String: Any]
+        XCTAssertEqual(decodedUserVariables["custom_var"] as! String, "custom_value")
+        
+        // Verify method
+        let decodedMethod = decodedMessage?.method
+        XCTAssertEqual(decodedMethod, Method.ANONYMOUS_LOGIN)
+    }
+    
+    /**
+     Test Anonymous Login Message with minimal parameters
+     */
+    func testAnonymousLoginMessageMinimal() {
+        print("VertoMessagesTest :: testAnonymousLoginMessageMinimal()")
+        
+        let targetId = "assistant-minimal-test"
+        let sessionId = UUID().uuidString
+        
+        let anonymousLoginMessage = AnonymousLoginMessage(
+            targetId: targetId,
+            sessionId: sessionId
+        )
+        
+        // Test encoding and decoding
+        let encodedMessage: String = anonymousLoginMessage.encode() ?? ""
+        let decodedMessage = Message().decode(message: encodedMessage)
+        
+        // Verify parameters
+        XCTAssertEqual(decodedMessage?.params?["target_type"] as! String, "ai_assistant") // default value
+        XCTAssertEqual(decodedMessage?.params?["target_id"] as! String, targetId)
+        XCTAssertEqual(decodedMessage?.params?["sessid"] as! String, sessionId)
+        XCTAssertEqual(decodedMessage?.params?["reconnection"] as! Bool, false) // default value
+        XCTAssertNil(decodedMessage?.params?["target_version_id"]) // should not be present
+        
+        // Verify User-Agent structure
+        let userAgent = decodedMessage?.params?["User-Agent"] as! [String: Any]
+        XCTAssertNotNil(userAgent["sdkVersion"])
+        XCTAssertNotNil(userAgent["data"])
+        
+        // Verify method
+        let decodedMethod = decodedMessage?.method
+        XCTAssertEqual(decodedMethod, Method.ANONYMOUS_LOGIN)
+    }
+
+    /**
+     Test verto Candidate message (Trickle ICE)
+     */
+    func testCandidateMessage() {
+        print("VertoMessagesTest :: testCandidateMessage()")
+
+        let sessionId = "<sessionId>"
+        let callId = UUID.init().uuidString.lowercased()
+        let candidate = "candidate:1 1 UDP 2130706431 192.168.1.1 54321 typ host"
+        let sdpMid = "0"
+        let sdpMLineIndex: Int32 = 0
+
+        let candidateMessage = CandidateMessage(
+            callId: callId,
+            sessionId: sessionId,
+            candidate: candidate,
+            sdpMid: sdpMid,
+            sdpMLineIndex: sdpMLineIndex
+        )
+
+        // Encode and decode the Candidate message
+        let encodedMessage: String = candidateMessage.encode() ?? ""
+        let decodedMessage = Message().decode(message: encodedMessage)
+
+
+        // Verify candidate parameters
+        XCTAssertEqual(decodedMessage?.params?["candidate"] as! String, candidate)
+        XCTAssertEqual(decodedMessage?.params?["sdpMid"] as! String, sdpMid)
+        XCTAssertEqual(decodedMessage?.params?["sdpMLineIndex"] as! Int32, sdpMLineIndex)
+
+        // Verify dialogParams
+        let dialogParams = decodedMessage?.params?["dialogParams"] as! [String: Any]
+        XCTAssertEqual(dialogParams["callID"] as! String, callId)
+
+        // Verify method
+        let decodedMethod = decodedMessage?.method
+        XCTAssertEqual(decodedMethod, Method.CANDIDATE)
+    }
+
+    /**
+     Test verto End of Candidates message (Trickle ICE)
+     */
+    func testEndOfCandidatesMessage() {
+        print("VertoMessagesTest :: testEndOfCandidatesMessage()")
+
+        let sessionId = "<sessionId>"
+        let callId = UUID.init().uuidString.lowercased()
+
+        let endOfCandidatesMessage = EndOfCandidatesMessage(
+            callId: callId,
+            sessionId: sessionId
+        )
+
+        // Encode and decode the End of Candidates message
+        let encodedMessage: String = endOfCandidatesMessage.encode() ?? ""
+        let decodedMessage = Message().decode(message: encodedMessage)
+
+
+        // Verify dialogParams
+        let dialogParams = decodedMessage?.params?["dialogParams"] as! [String: Any]
+        XCTAssertEqual(dialogParams["callID"] as! String, callId)
+
+        // Verify method
+        let decodedMethod = decodedMessage?.method
+        XCTAssertEqual(decodedMethod, Method.END_OF_CANDIDATES)
     }
 }

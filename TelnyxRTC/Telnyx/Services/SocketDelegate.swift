@@ -10,7 +10,7 @@ import Foundation
 
 protocol SocketDelegate: AnyObject {
     func onSocketConnected()
-    func onSocketDisconnected(reconnect:Bool)
+    func onSocketDisconnected(reconnect:Bool,region:Region?)
     func onSocketError(error: Error)
     func onMessageReceived(message: String)
 }

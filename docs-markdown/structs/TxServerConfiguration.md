@@ -34,10 +34,10 @@ public internal(set) var webRTCIceServers: [RTCIceServer]
 ```
 
 ## Methods
-### `init(signalingServer:webRTCIceServers:environment:pushMetaData:)`
+### `init(signalingServer:webRTCIceServers:environment:pushMetaData:region:)`
 
 ```swift
-public init(signalingServer: URL? = nil, webRTCIceServers: [RTCIceServer]? = nil, environment: WebRTCEnvironment = .production,pushMetaData:[String: Any]? = nil)
+public init(signalingServer: URL? = nil, webRTCIceServers: [RTCIceServer]? = nil, environment: WebRTCEnvironment = .production,pushMetaData:[String: Any]? = nil,region:Region = Region.auto)
 ```
 
 Constructor for the Server configuration parameters.

@@ -2,8 +2,64 @@
   "warnings": [
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/CallQualityMetrics.swift",
-      "line": 51,
-      "symbol": "CallQualityMetrics.init(jitter:rtt:mos:quality:inboundAudio:outboundAudio:remoteInboundAudio:remoteOutboundAudio:)",
+      "line": 60,
+      "symbol": "CallQualityMetrics.init(jitter:rtt:mos:quality:inboundAudioLevel:outboundAudioLevel:inboundAudio:outboundAudio:remoteInboundAudio:remoteOutboundAudio:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/Region.swift",
+      "line": 12,
+      "symbol": "Region.auto",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/Region.swift",
+      "line": 13,
+      "symbol": "Region.eu",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/Region.swift",
+      "line": 14,
+      "symbol": "Region.usCentral",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/Region.swift",
+      "line": 15,
+      "symbol": "Region.usEast",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/Region.swift",
+      "line": 16,
+      "symbol": "Region.usWest",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/Region.swift",
+      "line": 17,
+      "symbol": "Region.caCentral",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/Region.swift",
+      "line": 18,
+      "symbol": "Region.apac",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxCodecCapability.swift",
+      "line": 34,
+      "symbol": "TxCodecCapability.init(mimeType:clockRate:channels:sdpFmtpLine:)",
       "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"
     },
@@ -86,28 +142,28 @@
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxError.swift",
-      "line": 137,
+      "line": 143,
       "symbol": "TxError.SocketFailureReason.localizedDescription",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxError.swift",
-      "line": 148,
+      "line": 154,
       "symbol": "TxError.ClientConfigurationFailureReason.localizedDescription",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxError.swift",
-      "line": 165,
+      "line": 171,
       "symbol": "TxError.CallFailureReason.localizedDescription",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Models/TxError.swift",
-      "line": 178,
+      "line": 188,
       "symbol": "TxError.ServerErrorReason.localizedDescription",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
@@ -204,8 +260,246 @@
       "warning": "undocumented"
     },
     {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 14,
+      "symbol": "TranscriptionItem.id",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 15,
+      "symbol": "TranscriptionItem.role",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 16,
+      "symbol": "TranscriptionItem.content",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 17,
+      "symbol": "TranscriptionItem.isPartial",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 18,
+      "symbol": "TranscriptionItem.timestamp",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 21,
+      "symbol": "TranscriptionItem.itemType",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 22,
+      "symbol": "TranscriptionItem.metadata",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 25,
+      "symbol": "TranscriptionItem.imageUrls",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 28,
+      "symbol": "TranscriptionItem.speaker",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 32,
+      "symbol": "TranscriptionItem.text",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 36,
+      "symbol": "TranscriptionItem.isFinal",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 41,
+      "symbol": "TranscriptionItem.hasImages",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 47,
+      "symbol": "TranscriptionItem.imageCount",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 52,
+      "symbol": "TranscriptionItem.init(id:role:content:isPartial:timestamp:itemType:metadata:imageUrls:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 65,
+      "symbol": "TranscriptionItem.init(id:timestamp:speaker:text:confidence:isFinal:itemType:metadata:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 81,
+      "symbol": "WidgetSettings.theme",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 82,
+      "symbol": "WidgetSettings.language",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 83,
+      "symbol": "WidgetSettings.autoStart",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 84,
+      "symbol": "WidgetSettings.showTranscript",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 85,
+      "symbol": "WidgetSettings.customStyles",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 88,
+      "symbol": "WidgetSettings.agentThinkingText",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 89,
+      "symbol": "WidgetSettings.audioVisualizerConfig",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 90,
+      "symbol": "WidgetSettings.defaultState",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 91,
+      "symbol": "WidgetSettings.giveFeedbackUrl",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 92,
+      "symbol": "WidgetSettings.logoIconUrl",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 93,
+      "symbol": "WidgetSettings.position",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 94,
+      "symbol": "WidgetSettings.reportIssueUrl",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 95,
+      "symbol": "WidgetSettings.speakToInterruptText",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 96,
+      "symbol": "WidgetSettings.startCallText",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 97,
+      "symbol": "WidgetSettings.viewHistoryUrl",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 99,
+      "symbol": "WidgetSettings.init(theme:language:autoStart:showTranscript:customStyles:agentThinkingText:audioVisualizerConfig:defaultState:giveFeedbackUrl:logoIconUrl:position:reportIssueUrl:speakToInterruptText:startCallText:viewHistoryUrl:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 136,
+      "symbol": "AudioVisualizerConfig.color",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 137,
+      "symbol": "AudioVisualizerConfig.preset",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Services/AIAssistantManager.swift",
+      "line": 139,
+      "symbol": "AudioVisualizerConfig.init(color:preset:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/TxClient.swift",
-      "line": 157,
+      "line": 163,
       "symbol": "TxClient.isSpeakerEnabled",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
@@ -239,38 +533,150 @@
       "warning": "undocumented"
     },
     {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/AI/AIConversationMessage.swift",
+      "line": 13,
+      "symbol": "ImageURL.url",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/AI/AIConversationMessage.swift",
+      "line": 15,
+      "symbol": "ImageURL.init(url:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/AI/AIConversationMessage.swift",
+      "line": 19,
+      "symbol": "ImageURL.toDictionary()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/AI/AIConversationMessage.swift",
+      "line": 26,
+      "symbol": "ConversationContent.type",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/AI/AIConversationMessage.swift",
+      "line": 27,
+      "symbol": "ConversationContent.text",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/AI/AIConversationMessage.swift",
+      "line": 28,
+      "symbol": "ConversationContent.imageURL",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/AI/AIConversationMessage.swift",
+      "line": 44,
+      "symbol": "ConversationContent.toDictionary()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/AI/AIConversationMessage.swift",
+      "line": 61,
+      "symbol": "ConversationItem.id",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/AI/AIConversationMessage.swift",
+      "line": 62,
+      "symbol": "ConversationItem.type",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/AI/AIConversationMessage.swift",
+      "line": 63,
+      "symbol": "ConversationItem.role",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/AI/AIConversationMessage.swift",
+      "line": 64,
+      "symbol": "ConversationItem.content",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/AI/AIConversationMessage.swift",
+      "line": 66,
+      "symbol": "ConversationItem.init(id:type:role:content:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/AI/AIConversationMessage.swift",
+      "line": 73,
+      "symbol": "ConversationItem.toDictionary()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/AI/AIConversationMessage.swift",
+      "line": 85,
+      "symbol": "AiConversationParams.type",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/AI/AIConversationMessage.swift",
+      "line": 86,
+      "symbol": "AiConversationParams.item",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/AI/AIConversationMessage.swift",
+      "line": 88,
+      "symbol": "AiConversationParams.init(type:item:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/Verto/AI/AIConversationMessage.swift",
+      "line": 93,
+      "symbol": "AiConversationParams.toDictionary()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Call.swift",
-      "line": 24,
+      "line": 25,
       "symbol": "CallTerminationReason.init(cause:causeCode:sipCode:sipReason:)",
       "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Call.swift",
-      "line": 53,
+      "line": 54,
       "symbol": "CallState.Reason.networkSwitch",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Call.swift",
-      "line": 54,
+      "line": 55,
       "symbol": "CallState.Reason.networkLost",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Call.swift",
-      "line": 55,
+      "line": 56,
       "symbol": "CallState.Reason.serverError",
       "symbol_kind": "source.lang.swift.decl.enumelement",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Stats/WebRTCStatsReporter.swift",
-      "line": 429,
-      "symbol": "WebRTCStatsReporter.dispose()",
-      "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"
     }
   ],

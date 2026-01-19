@@ -8,6 +8,7 @@
 
 import Foundation
 import WebRTC
+import AVFoundation
 
 
 /// Data class to hold detailed reasons for call termination.
@@ -211,6 +212,27 @@ public class Call {
     
     var statsReporter: WebRTCStatsReporter?
     
+    /// Flag to track if we're currently performing ICE restart
+    internal var isIceRestarting: Bool = false
+    
+    /// Flag to track if we need to reset audio after ICE restart
+    internal var shouldResetAudioAfterIceRestart: Bool = false
+    
+    /// Speaker state saved at the time of network change (before iOS can change audio route)
+    private var speakerStateAtNetworkChange: Bool? = nil
+    
+    /// Previous ICE connection state for monitoring transitions
+    private var previousIceConnectionState: RTCIceConnectionState = .new
+
+    /// Flag to track if ICE connection has been successfully established at least once
+    private var hasBeenConnectedBefore: Bool = false
+
+    /// RTT monitoring variables
+    private var isRttMonitoringActive: Bool = false
+    private var lastAudioResetTime: Date = Date.distantPast
+    private var rttResetTimer: Timer?
+    private var currentRttMs: Double = 0.0
+    
     /// Callback for real-time call quality metrics
     /// This is triggered whenever new WebRTC statistics are available
     public var onCallQualityChange: ((CallQualityMetrics) -> Void)?
@@ -245,6 +267,16 @@ public class Call {
     /// Enables CallQuality Metrics for Call
     public internal(set) var enableQualityMetrics: Bool = false
     
+    /// Controls whether the SDK should send WebRTC statistics via socket to Telnyx servers.
+    /// When enabled, collected WebRTC stats will be sent to Telnyx servers for monitoring and debugging.
+    /// This is independent of stats collection - stats can be collected without being sent via socket.
+    public internal(set) var sendWebRTCStatsViaSocket: Bool = false
+    
+    /// Controls whether the SDK should use trickle ICE for WebRTC signaling.
+    /// When enabled, ICE candidates are sent individually as they are discovered,
+    /// rather than waiting for all candidates to be gathered before sending the offer/answer.
+    public internal(set) var useTrickleIce: Bool = false
+    
     /// Controls whether the SDK should force TURN relay for peer connections.
     /// When enabled, the SDK will only use TURN relay candidates for ICE gathering,
     /// which prevents the "local network access" permission popup from appearing.
@@ -278,6 +310,38 @@ public class Call {
     public var isMuted: Bool {
         return !(peer?.isAudioTrackEnabled ?? false)
     }
+    
+    /// The local media stream containing audio and/or video tracks being sent to the remote party.
+    /// This stream represents the media captured from the local device (microphone, camera).
+    /// Can be used for audio visualization, local video preview, or other media processing.
+    ///
+    /// ## Examples
+    /// ```swift
+    /// // Access local audio tracks for visualization
+    /// if let localStream = call.localStream {
+    ///     let audioTracks = localStream.audioTracks
+    ///     // Use audio tracks for waveform visualization
+    /// }
+    /// ```
+    public var localStream: RTCMediaStream? {
+        return peer?.localStream
+    }
+    
+    /// The remote media stream containing audio and/or video tracks received from the remote party.
+    /// This stream represents the media being received from the other participant in the call.
+    /// Can be used for audio visualization, remote video display, or other media processing.
+    ///
+    /// ## Examples
+    /// ```swift
+    /// // Access remote audio tracks for visualization
+    /// if let remoteStream = call.remoteStream {
+    ///     let audioTracks = remoteStream.audioTracks
+    ///     // Use audio tracks for waveform visualization
+    /// }
+    /// ```
+    public var remoteStream: RTCMediaStream? {
+        return peer?.remoteStream
+    }
 
     private var ringTonePlayer: AVAudioPlayer?
     private var ringbackPlayer: AVAudioPlayer?
@@ -299,7 +363,9 @@ public class Call {
          isAttach: Bool = false,
          debug: Bool = false,
          forceRelayCandidate: Bool = false,
-         enableQualityMetrics: Bool = false
+         enableQualityMetrics: Bool = false,
+         sendWebRTCStatsViaSocket: Bool = false,
+         useTrickleIce: Bool = false
     ) {
         if isAttach {
             self.direction = CallDirection.ATTACH
@@ -336,6 +402,8 @@ public class Call {
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
         self.enableQualityMetrics = enableQualityMetrics
+        self.sendWebRTCStatsViaSocket = sendWebRTCStatsViaSocket
+        self.useTrickleIce = useTrickleIce
     }
     
     //Contructor for attachCalls
@@ -348,7 +416,9 @@ public class Call {
          telnyxLegId: UUID? = nil,
          iceServers: [RTCIceServer],
          debug: Bool = false,
-         forceRelayCandidate: Bool = false) {
+         forceRelayCandidate: Bool = false,
+         sendWebRTCStatsViaSocket: Bool = false,
+         useTrickleIce: Bool = false) {
         self.direction = CallDirection.ATTACH
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
@@ -367,6 +437,8 @@ public class Call {
         
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
+        self.sendWebRTCStatsViaSocket = sendWebRTCStatsViaSocket
+        self.useTrickleIce = useTrickleIce
     }
 
     /// Constructor for outgoing calls
@@ -378,7 +450,8 @@ public class Call {
          ringbackTone: String? = nil,
          iceServers: [RTCIceServer],
          debug: Bool = false,
-         forceRelayCandidate: Bool = false) {
+         forceRelayCandidate: Bool = false,
+         useTrickleIce: Bool = false) {
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
         //this is the signaling server socket
@@ -396,37 +469,49 @@ public class Call {
         self.updateCallState(callState: .NEW)
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
+        self.useTrickleIce = useTrickleIce
     }
 
     // MARK: - Private functions
     /**
         Creates an offer to start the calling process
      */
-    private func invite(callerName: String, callerNumber: String, destinationNumber: String, clientState: String? = nil,
-                        customHeaders:[String:String] = [:],debug:Bool = false) {
+    private func invite(callerName: String,
+                        callerNumber: String,
+                        destinationNumber: String,
+                        clientState: String? = nil,
+                        customHeaders: [String:String] = [:],
+                        preferredCodecs: [TxCodecCapability]? = nil,
+                        debug:Bool = false) {
         self.direction = .OUTBOUND
         self.inviteCustomHeaders = customHeaders
         self.callInfo?.callerName = callerName
         self.callInfo?.callerNumber = callerNumber
         self.callOptions = TxCallOptions(destinationNumber: destinationNumber,
-                                         clientState: clientState)
+                                         clientState: clientState,
+                                         preferredCodecs: preferredCodecs)
 
         self.enableQualityMetrics = debug
         // We need to:
         // - Create the reporter to send the startReporting message before creating the peer connection
         // - Start the reporter once the peer connection is created
         self.configureStatsReporter()
-        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate)
+        Logger.log.i(message: "[TRICKLE-ICE] Call:: Creating Peer for outbound call with useTrickleIce = \(self.useTrickleIce)")
+        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate, useTrickleIce: self.useTrickleIce, isAnswering: false)
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
-        self.peer?.offer(completion: { (sdp, error)  in
-            
+        self.peer?.sessionId = self.sessionId
+        // Set callId for trickle ICE messages - must match the callID sent in INVITE
+        self.peer?.callId = self.callInfo?.callId.uuidString.lowercased()
+        Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.callInfo?.callId.uuidString.lowercased() ?? "nil") for trickle ICE")
+        self.peer?.offer(preferredCodecs: preferredCodecs, completion: { (sdp, error)  in
+
             if let error = error {
                 Logger.log.i(message: "Call:: Error creating the offer: \(error)")
                 return
             }
-            
+
             guard let sdp = sdp else {
                 return
             }
@@ -502,6 +587,18 @@ public class Call {
             statsReporter.handleCallStateChange(callState: callState)
         }
         
+        // Setup or remove ICE connection state monitoring based on call state
+        switch callState {
+        case .ACTIVE:
+            setupIceConnectionStateMonitoring()
+            setupRttMonitoring()
+        case .DONE, .DROPPED, .HELD:
+            removeIceConnectionStateMonitoring()
+            removeRttMonitoring()
+        default:
+            break
+        }
+        
         self.delegate?.callStateUpdated(call: self)
     }
 } // End Call class
@@ -515,12 +612,19 @@ extension Call {
                           destinationNumber: String,
                           clientState: String? = nil,
                           customHeaders:[String:String] = [:],
+                          preferredCodecs: [TxCodecCapability]? = nil,
                           debug: Bool = false) {
         if (destinationNumber.isEmpty) {
             Logger.log.e(message: "Call:: Please enter a destination number.")
             return
         }
-        invite(callerName: callerName, callerNumber: callerNumber, destinationNumber: destinationNumber, clientState: clientState, customHeaders: customHeaders,debug: debug)
+        invite(callerName: callerName,
+               callerNumber: callerNumber,
+               destinationNumber: destinationNumber,
+               clientState: clientState,
+               customHeaders: customHeaders,
+               preferredCodecs: preferredCodecs,
+               debug: debug)
     }
 
     /// Hangup or reject an incoming call.
@@ -532,11 +636,22 @@ extension Call {
         
         // Create a termination reason for local hangup
         // Use USER_BUSY
+        let causeCode: CauseCode
+
+        switch callState {
+        case .ACTIVE:
+            causeCode = .NORMAL_CLEARING
+        case .RINGING, .CONNECTING:
+            causeCode = .USER_BUSY
+        default:
+            causeCode = .NORMAL_CLEARING
+        }
+
         let terminationReason = CallTerminationReason(
-            cause: ByeMessage.getCauseFromCode(causeCode: CauseCode.USER_BUSY),
-            causeCode: CauseCode.USER_BUSY.rawValue
+            cause: ByeMessage.getCauseFromCode(causeCode: causeCode),
+            causeCode: causeCode.rawValue
         )
-        
+
         let byeMessage = ByeMessage(sessionId: sessionId, callId: callId.uuidString, causeCode: .USER_BUSY)
         let message = byeMessage.encode() ?? ""
         self.socket?.sendMessage(message: message)
@@ -544,12 +659,30 @@ extension Call {
     }
 
     /// Starts the process to answer the incoming call.
-    /// ### Example:
-    ///     call.answer()
-    ///  - Parameters:
-    ///         - customHeaders: (optional) Custom Headers to be passed over webRTC Messages, should be in the
-    ///     format `X-key:Value` `X` is required for headers to be passed.
-    public func answer(customHeaders:[String:String] = [:],debug:Bool = false) {
+    ///
+    /// Use this method to accept an incoming call and establish the WebRTC connection.
+    ///
+    /// ### Examples:
+    /// ```swift
+    /// // Basic answer
+    /// call.answer()
+    ///
+    /// // Answer with custom headers
+    /// call.answer(customHeaders: ["X-Custom-Header": "Value"])
+    ///
+    /// // Answer with debug mode
+    /// call.answer(debug: true)
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - customHeaders: (optional) Custom Headers to be passed over webRTC Messages.
+    ///     Headers should be in the format `X-key:Value` where `X-` prefix is required for custom headers.
+    ///     When calling AI Agents, headers with the `X-` prefix will be mapped to dynamic variables
+    ///     (e.g., `X-Account-Number` becomes `{{account_number}}`). Hyphens in header names are
+    ///     converted to underscores in variable names.
+    ///   - debug: (optional) Enable debug mode for call quality metrics and WebRTC statistics.
+    ///     When enabled, real-time call quality metrics will be available through the `onCallQualityChange` callback.
+    public func answer(customHeaders:[String:String] = [:], debug:Bool = false) {
         self.stopRingtone()
         self.stopRingbackTone()
         //TODO: Create an error if there's no remote SDP
@@ -558,13 +691,18 @@ extension Call {
         }
         self.answerCustomHeaders = customHeaders
         self.configureStatsReporter()
-        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate)
+        Logger.log.i(message: "[TRICKLE-ICE] Call:: Creating Peer for inbound call answer with useTrickleIce = \(self.useTrickleIce)")
+        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate, useTrickleIce: self.useTrickleIce, isAnswering: true)
         self.enableQualityMetrics = debug
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
+        self.peer?.sessionId = self.sessionId
+        // Set callId for trickle ICE messages - must match the callID from the incoming INVITE
+        self.peer?.callId = self.callInfo?.callId.uuidString.lowercased()
+        Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.callInfo?.callId.uuidString.lowercased() ?? "nil") for trickle ICE")
         self.incomingOffer(sdp: remoteSdp)
-        self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "",completion: { (sdp, error)  in
+        self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", completion: { (sdp, error)  in
 
             if let error = error {
                 Logger.log.e(message: "Call:: Error creating the answering: \(error)")
@@ -597,12 +735,20 @@ extension Call {
         self.statsReporter?.dispose()
         self.answerCustomHeaders = customHeaders
         self.configureStatsReporter(reportID: reportId)
-        self.peer = Peer(iceServers: self.iceServers, isAttach: true, forceRelayCandidate: self.forceRelayCandidate)
+        self.peer = Peer(iceServers: self.iceServers,
+                         isAttach: true,
+                         forceRelayCandidate: self.forceRelayCandidate,
+                         useTrickleIce: false,
+                         isAnswering: false)
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
+        self.peer?.sessionId = self.sessionId
+        // Set callId for trickle ICE messages - must match the callID from ATTACH
+        self.peer?.callId = self.callInfo?.callId.uuidString.lowercased()
+        Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.callInfo?.callId.uuidString.lowercased() ?? "nil") for ATTACH")
         self.incomingOffer(sdp: remoteSdp)
-        self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "",completion: { (sdp, error)  in
+        self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", completion: { (sdp, error)  in
 
             if let error = error {
                 Logger.log.e(message: "Call:: Error creating the answering: \(error)")
@@ -616,7 +762,7 @@ extension Call {
         })
     }
     
-    private func configureStatsReporter(reportID:UUID? = nil) {
+    private func configureStatsReporter(reportID: UUID? = nil) {
         if (debug || enableQualityMetrics),
            let socket = self.socket {
             self.statsReporter?.dispose()
@@ -628,8 +774,13 @@ extension Call {
         if (debug || enableQualityMetrics),
            let callId = self.callInfo?.callId {
             self.statsReporter?.startDebugReport(peerId: callId, call: self)
-            self.statsReporter?.onStatsFrame = { metric in
-                self.onCallQualityChange?(metric)
+            
+            // Only set callback if RTT monitoring is not active
+            // RTT monitoring will handle the callback setup
+            if !isRttMonitoringActive {
+                self.statsReporter?.onStatsFrame = { metric in
+                    self.onCallQualityChange?(metric)
+                }
             }
         }
     }
@@ -667,7 +818,10 @@ extension Call {
               let callInfo = self.callInfo,
               let callOptions = self.callOptions else { return }
 
-        let dtmfMessage = InfoMessage(sessionId: sessionId, dtmf: dtmf, callInfo: callInfo, callOptions: callOptions)
+        let dtmfMessage = InfoMessage(sessionId: sessionId,
+                                      dtmf: dtmf,
+                                      callInfo: callInfo,
+                                      callOptions: callOptions)
         guard let message = dtmfMessage.encode(),
               let socket = self.socket else { return }
         socket.sendMessage(message: message)
@@ -691,6 +845,36 @@ extension Call {
     public func unmuteAudio() {
         Logger.log.i(message: "Call:: unmuteAudio()")
         self.peer?.muteUnmuteAudio(mute: false)
+    }
+    
+    /// Resets the audio device and clears accumulated buffers to resolve persistent audio delay issues.
+    ///
+    /// This method addresses iOS audio delay problems where:
+    /// - AudioDeviceModule buffers stretch under poor network conditions
+    /// - WebRTC audio pacing causes frame accumulation
+    /// - iOS AudioUnit/AVAudioSession remains in large buffer state
+    ///
+    /// ### Example:
+    ///     call.resetAudioDevice()
+    public func resetAudioDevice() {
+        Logger.log.i(message: "[ACM_RESET] Call:: resetAudioDevice() - Manually resetting audio device to clear delay")
+        self.peer?.resetAudioDeviceModule()
+    }
+    
+    /// Resets the audio device module with preserved speaker state from network change
+    /// This method uses the speaker state saved at the time of network change to prevent
+    /// iOS from incorrectly changing the audio route during network switching
+    internal func resetAudioDeviceWithNetworkState() {
+        Logger.log.i(message: "[ACM_RESET] Call:: resetAudioDeviceWithNetworkState() - Using saved speaker state from network change")
+        if let savedSpeakerState = speakerStateAtNetworkChange {
+            Logger.log.i(message: "[ACM_RESET] Call:: Using saved speaker state: \(savedSpeakerState)")
+            self.peer?.resetAudioDeviceModule(preserveSpeakerState: true, forceSpeakerState: savedSpeakerState)
+            // Clear the saved state after use
+            speakerStateAtNetworkChange = nil
+        } else {
+            Logger.log.i(message: "[ACM_RESET] Call:: No saved speaker state, using current detection")
+            self.peer?.resetAudioDeviceModule()
+        }
     }
 }
 
@@ -774,7 +958,8 @@ extension Call : PeerDelegate {
                                               sdp: sdp.sdp,
                                               callInfo: callInfo,
                                               callOptions: callOptions,
-                                              customHeaders: self.inviteCustomHeaders ?? [:])
+                                              customHeaders: self.inviteCustomHeaders ?? [:],
+                                              trickle: self.useTrickleIce)
             
             let message = inviteMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
@@ -797,11 +982,15 @@ extension Call : PeerDelegate {
             //Build the telnyx_rtc.answer message and send it
 
             let answerMessage = AnswerMessage(sessionId: sessionId, sdp: sdp.sdp, callInfo: callInfo, callOptions: callOptions,
-                                              customHeaders: self.answerCustomHeaders ?? [:]
+                                              customHeaders: self.answerCustomHeaders ?? [:],
+                                              trickle: self.useTrickleIce
             )
             let message = answerMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
             Logger.log.s(message:"Send answer >> \(answerMessage)")
+
+            // Flush queued ICE candidates after sending ANSWER (for trickle ICE on answering side)
+            self.peer?.flushQueuedCandidatesAfterAnswer()
         }
     }
 }
@@ -813,6 +1002,16 @@ extension Call : PeerDelegate {
 extension Call {
 
     internal func handleVertoMessage(message: Message,dataMessage: String,txClient:TxClient) {
+
+        // Handle ICE restart response (updateMedia action) - this comes as result, not method
+        if let result = message.result,
+           let action = result["action"] as? String,
+           action == "updateMedia" {
+            self.handleIceRestartResponse(message: message, dataMessage: dataMessage, txClient: txClient)
+            // ICE restart response already handles speaker preservation through ACM reset mechanism
+            // No need for additional speaker restoration logic at the end of this method
+            return
+        }
 
         switch message.method {
         case .BYE:
@@ -906,20 +1105,59 @@ extension Call {
                 if let telnyxLegId = params["telnyx_leg_id"] as? String,
                    let telnyxLegIdUUID = UUID(uuidString: telnyxLegId) {
                     self.telnyxLegId = telnyxLegIdUUID
+
+                    // Update peer's callLegID and flush any pending trickle ICE candidates
+                    self.peer?.callLegID = telnyxLegIdUUID.uuidString
+                    Logger.log.i(message: "[TRICKLE-ICE] Call:: Updated peer.callLegID with telnyxLegId, flushing pending candidates")
+                    self.peer?.flushPendingTrickleCandidates()
                 } else {
                     Logger.log.w(message: "Call:: Telnyx Leg ID unavailable on RINGING message")
                 }
             }
             self.updateCallState(callState: .RINGING)
             break
+            
+        case .MODIFY:
+            // Handle other MODIFY actions (hold/unhold, etc.)
+            // ICE restart is handled at the beginning of the method
+            break
+
+        case .CANDIDATE:
+            // Handle incoming remote ICE candidate for trickle ICE
+            if let params = message.params {
+                guard let candidateString = params["candidate"] as? String else {
+                    Logger.log.w(message: "[TRICKLE-ICE] Call:: CANDIDATE message missing candidate string")
+                    return
+                }
+
+                let sdpMid = params["sdpMid"] as? String
+                let sdpMLineIndex = params["sdpMLineIndex"] as? Int32 ?? 0
+
+                Logger.log.i(message: "[TRICKLE-ICE] Call:: Received remote candidate - forwarding to peer")
+                self.peer?.handleRemoteCandidate(candidateString: candidateString, sdpMid: sdpMid, sdpMLineIndex: sdpMLineIndex)
+            }
+            break
+
+        case .END_OF_CANDIDATES:
+            // Handle end of remote candidates signal for trickle ICE
+            Logger.log.i(message: "[TRICKLE-ICE] Call:: Received END_OF_CANDIDATES - forwarding to peer")
+            self.peer?.handleEndOfRemoteCandidates()
+            break
+
         default:
             Logger.log.w(message: "TxClient:: SocketDelegate Default method")
             break
         }
-        
+
+        // Restore speaker state after audio session is fully configured
+        // Use verification and retry logic to ensure speaker is actually restored
         if txClient.isSpeakerEnabled {
-            Logger.log.w(message: "Speaker Enabled")
-            txClient.setSpeaker()
+            Logger.log.w(message: "Speaker Enabled - will restore after audio session configuration")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak txClient] in
+                guard let txClient = txClient else { return }
+                Logger.log.i(message: "[ACM_RESET] Restoring speaker after attach/reconnect with verification")
+                txClient.restoreSpeakerAfterReconnect()
+            }
         }
     }
 }
@@ -972,3 +1210,234 @@ extension Call {
         return nil
     }
 }
+
+// MARK: - ICE Connection State Monitoring
+extension Call {
+    
+    /// Sets up automatic ICE connection state monitoring for the active call
+    private func setupIceConnectionStateMonitoring() {
+        Logger.log.i(message: "Call:: Setting up ICE connection state monitoring")
+        
+        // Set up callback to monitor ICE connection state changes
+        self.peer?.onIceConnectionStateChange = { [weak self] newState in
+            self?.handleIceConnectionStateTransition(from: self?.previousIceConnectionState ?? .new, to: newState)
+            self?.previousIceConnectionState = newState
+        }
+    }
+    
+    /// Removes automatic ICE connection state monitoring
+    private func removeIceConnectionStateMonitoring() {
+        Logger.log.i(message: "Call:: Removing ICE connection state monitoring")
+        
+        // Clear the callback
+        self.peer?.onIceConnectionStateChange = nil
+    }
+    
+    /// Handles ICE connection state transitions for automatic recovery
+    /// - Parameters:
+    ///   - from: Previous ICE connection state
+    ///   - to: New ICE connection state
+    private func handleIceConnectionStateTransition(from previousState: RTCIceConnectionState, to newState: RTCIceConnectionState) {
+        Logger.log.i(message: "Call:: ICE state transition: \(previousState.telnyx_to_string()) -> \(newState.telnyx_to_string())")
+        
+        // Case 1: disconnected -> failed: Attempt ICE restart/renegotiation
+        if previousState == .disconnected && newState == .failed {
+            Logger.log.w(message: "Call:: ICE connection failed after disconnect - attempting ICE restart")
+            
+            // Save current speaker state immediately before iOS can change audio route due to network change
+            let currentRoute = AVAudioSession.sharedInstance().currentRoute
+            speakerStateAtNetworkChange = currentRoute.outputs.contains { $0.portType == .builtInSpeaker }
+            Logger.log.i(message: "Call:: Saved speaker state at network change: \(speakerStateAtNetworkChange ?? false)")
+            
+            // Trigger ICE restart to recover from failed state
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.performIceRestart { success, error in
+                    if success {
+                        Logger.log.i(message: "Call:: Auto ICE restart completed successfully")
+                    } else {
+                        Logger.log.e(message: "Call:: Auto ICE restart failed: \(error?.localizedDescription ?? "Unknown error")")
+                    }
+                }
+            }
+        }
+        
+        // Track first successful connection
+        if newState == .connected && !hasBeenConnectedBefore {
+            hasBeenConnectedBefore = true
+            Logger.log.i(message: "[ACM_RESET] Call:: First ICE connection established - ACM reset disabled for initial connection")
+        }
+
+        // Case 2: connected -> disconnected: Reset audio buffers (only on reconnection)
+        if previousState == .connected && newState == .disconnected && hasBeenConnectedBefore {
+            Logger.log.w(message: "[ACM_RESET] Call:: ICE connection disconnected during active call - resetting audio buffers")
+            
+            // Save current speaker state immediately before iOS can change audio route due to network change
+            let currentRoute = AVAudioSession.sharedInstance().currentRoute
+            speakerStateAtNetworkChange = currentRoute.outputs.contains { $0.portType == .builtInSpeaker }
+            Logger.log.i(message: "Call:: Saved speaker state at network disconnect: \(speakerStateAtNetworkChange ?? false)")
+
+            // Reset audio device module to clear accumulated buffers
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+                Logger.log.i(message: "[ACM_RESET] Call:: Triggering resetAudioDeviceModule from ICE disconnect")
+                self?.resetAudioDeviceWithNetworkState()
+            }
+        }
+
+        // Case 3: disconnected -> connected: Reset audio buffers (only on reconnection)
+        if previousState == .disconnected && newState == .connected && hasBeenConnectedBefore {
+            Logger.log.i(message: "[ACM_RESET] Call:: ICE connection restored after disconnect - resetting audio buffers")
+
+            // Reset audio device module to clear accumulated buffers
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+                Logger.log.i(message: "[ACM_RESET] Call:: Triggering resetAudioDeviceModule from ICE reconnection")
+                self?.resetAudioDeviceWithNetworkState()
+            }
+        }
+    }
+    
+    /// Performs ICE restart using the existing Call+IceRestart implementation
+    /// - Parameter completion: Callback with success status and error
+    private func performIceRestart(completion: @escaping (Bool, Error?) -> Void) {
+        guard let _ = self.peer else {
+            Logger.log.e(message: "Call:: performIceRestart - No peer connection available")
+            completion(false, NSError(domain: "Call", code: -1, userInfo: [NSLocalizedDescriptionKey: "No peer connection available"]))
+            return
+        }
+        
+        Logger.log.i(message: "Call:: Starting ICE restart")
+        
+        // Set ICE restart flags
+        self.isIceRestarting = true
+        self.shouldResetAudioAfterIceRestart = true
+        
+        // Use the existing iceRestart method from Call+IceRestart
+        self.iceRestart { [weak self] success, error in
+            guard let self = self else { return }
+            
+            if success {
+                Logger.log.i(message: "Call:: ICE restart completed successfully")
+                completion(true, nil)
+            } else {
+                Logger.log.e(message: "Call:: ICE restart failed: \(error?.localizedDescription ?? "Unknown error")")
+                self.isIceRestarting = false
+                self.shouldResetAudioAfterIceRestart = false
+                completion(false, error)
+            }
+        }
+    }
+}
+
+// MARK: - RTT Monitoring
+extension Call {
+    
+    /// Sets up RTT monitoring for automatic audio reset when RTT is high
+    private func setupRttMonitoring() {
+        Logger.log.i(message: "[RTT] Call:: Setting up RTT monitoring - Call state: \(callState)")
+
+        isRttMonitoringActive = true
+        lastAudioResetTime = Date.distantPast
+        currentRttMs = 0.0
+        
+        // Set up callback to monitor RTT metrics from WebRTCStatsReporter
+        self.statsReporter?.onStatsFrame = { [weak self] metrics in
+            // Forward to user callback if set
+            self?.onCallQualityChange?(metrics)
+            // Handle RTT monitoring
+            self?.handleRttMetrics(metrics: metrics)
+        }
+    }
+    
+    /// Removes RTT monitoring
+    private func removeRttMonitoring() {
+        Logger.log.i(message: "[RTT] Call:: Removing RTT monitoring")
+        
+        isRttMonitoringActive = false
+        stopRttResetTimer()
+        currentRttMs = 0.0
+        
+        // Restore original callback behavior (only forward to user callback)
+        self.statsReporter?.onStatsFrame = { [weak self] metrics in
+            self?.onCallQualityChange?(metrics)
+        }
+    }
+    
+    /// Handles RTT metrics and triggers audio reset when needed
+    /// - Parameter metrics: Call quality metrics containing RTT information
+    private func handleRttMetrics(metrics: CallQualityMetrics) {
+        guard isRttMonitoringActive else { return }
+
+        // Validate RTT value - ignore if invalid (inf, nan, or negative)
+        guard metrics.rtt.isFinite && metrics.rtt >= 0 else {
+            Logger.log.i(message: "[RTT] Call:: Ignoring invalid RTT value: \(metrics.rtt)")
+            return
+        }
+
+        currentRttMs = metrics.rtt * 1000 // Convert to milliseconds and store
+
+        Logger.log.i(message: "[RTT] Call:: Current RTT: \(String(format: "%.1f", currentRttMs))ms")
+
+        // Case 1: RTT >= 500ms - Start timer if not already running
+        if currentRttMs >= 500 {
+            if rttResetTimer == nil {
+                Logger.log.w(message: "[RTT] Call:: HIGH RTT detected: \(String(format: "%.1f", currentRttMs))ms - Starting timer")
+                startRttResetTimer()
+            }
+        }
+        // Case 2: RTT < 500ms - Stop timer
+        else {
+            if rttResetTimer != nil {
+                Logger.log.i(message: "[RTT] Call:: RTT normalized: \(String(format: "%.1f", currentRttMs))ms - Stopping timer")
+                stopRttResetTimer()
+            }
+        }
+    }
+    
+    /// Starts a timer to reset audio in 5 seconds if RTT is still high
+    private func startRttResetTimer() {
+        Logger.log.i(message: "[RTT] Call:: Starting 5-second reset timer")
+
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+
+            self.rttResetTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { [weak self] _ in
+                guard let self = self, self.isRttMonitoringActive else {
+                    return
+                }
+
+                Logger.log.i(message: "[RTT] Timer fired - Current RTT: \(String(format: "%.1f", self.currentRttMs))ms")
+
+                // Clear timer first
+                self.rttResetTimer = nil
+
+                // Only reset if RTT is still >= 1000ms
+                if self.currentRttMs >= 1000 {
+                    Logger.log.w(message: "[RTT] AUDIO RESET triggered - RTT: \(String(format: "%.1f", self.currentRttMs))ms")
+                    self.resetAudioForHighRtt()
+
+                    // Start new timer for next reset (will be handled by next RTT metric)
+                    Logger.log.i(message: "[RTT] Timer completed, next timer will start on next high RTT metric")
+                } else {
+                    Logger.log.i(message: "[RTT] RTT normalized, timer stopped")
+                }
+            }
+        }
+    }
+
+    /// Stops the RTT reset timer
+    private func stopRttResetTimer() {
+        rttResetTimer?.invalidate()
+        rttResetTimer = nil
+    }
+    
+    /// Resets audio device module due to high RTT
+    private func resetAudioForHighRtt() {
+        Logger.log.w(message: "[RTT] EXECUTING AUDIO RESET")
+
+        // Reset audio device module
+        self.peer?.resetAudioDeviceModule()
+
+        // Update last reset time for tracking purposes
+        lastAudioResetTime = Date()
+    }
+}
+

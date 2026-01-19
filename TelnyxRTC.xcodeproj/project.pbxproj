@@ -7,8 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		08C80C8CC74C9BC033B62062 /* Pods_TelnyxWebRTCDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D6E477492CA6207B0CA04BB3 /* Pods_TelnyxWebRTCDemo.framework */; };
+		14B87E69A3388057D732D5EF /* Pods_TelnyxRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 80349220CA4C22F67427BF9A /* Pods_TelnyxRTC.framework */; };
+		329920ADEE062848FEB12464 /* Pods_TelnyxWebRTCDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 86027677A7D2417967A1DD1A /* Pods_TelnyxWebRTCDemo.framework */; };
 		3B0F56CB2C7F15830011A48A /* StatsMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B0F56CA2C7F15830011A48A /* StatsMessage.swift */; };
+		3B1B4D132E2532B800A5DD2D /* RegionIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1B4D102E2532B800A5DD2D /* RegionIntegrationTests.swift */; };
+		3B1B4D142E2532B800A5DD2D /* RegionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1B4D112E2532B800A5DD2D /* RegionTests.swift */; };
+		3B1B4D3F2E2E563C00A5DD2D /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 3B1B4D3E2E2E563C00A5DD2D /* Config.xcconfig */; };
+		3B1B4D402E2E563C00A5DD2D /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 3B1B4D3E2E2E563C00A5DD2D /* Config.xcconfig */; };
 		3B1BE6F72AA9A467000B7962 /* TxPushIPConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */; };
 		3B1F43EF2AE0B01E00A610BA /* Params.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1F43EE2AE0B01E00A610BA /* Params.swift */; };
 		3B21257C2DC8126B00E68EA6 /* CallQualityMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B21257B2DC8126B00E68EA6 /* CallQualityMetrics.swift */; };
@@ -19,17 +24,45 @@
 		3B72695D2A9396BF00D2A602 /* DisablePushMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B72695C2A9396BF00D2A602 /* DisablePushMessage.swift */; };
 		3B758F1A2BF44D7800D50069 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3B758F192BF44D7800D50069 /* PrivacyInfo.xcprivacy */; };
 		3B758F1E2BF97E8C00D50069 /* FileLoger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B758F1D2BF97E8C00D50069 /* FileLoger.swift */; };
+		3B7D29952DF1C2980094EB90 /* AppModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 3B7D29932DF1C2980094EB90 /* AppModel.xcdatamodeld */; };
+		3B7D299F2DF1C6F70094EB90 /* CallHistoryDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B7D299E2DF1C6F70094EB90 /* CallHistoryDatabase.swift */; };
+		3B7D29A52DF1CEA00094EB90 /* CallDirection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B7D29A42DF1CEA00094EB90 /* CallDirection.swift */; };
+		3B7D29A72DF1D5100094EB90 /* CallHistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B7D29A62DF1D5100094EB90 /* CallHistoryManager.swift */; };
+		3B7D29A92DF1E2080094EB90 /* CallHistoryBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B7D29A82DF1E2080094EB90 /* CallHistoryBottomSheet.swift */; };
 		3B91C0F52BE3A44600A03067 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3B91C0F42BE3A44600A03067 /* PrivacyInfo.xcprivacy */; };
+		3BA535E52DFB94A6005AF0F4 /* PreCallDiagnosis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA535E42DFB94A6005AF0F4 /* PreCallDiagnosis.swift */; };
+		3BA535E72DFB9BE3005AF0F4 /* PreCallDiagnosisBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA535E62DFB9BE3005AF0F4 /* PreCallDiagnosisBottomSheet.swift */; };
+		3BA535E92DFBA37C005AF0F4 /* PreCallDiagnosticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA535E82DFBA37C005AF0F4 /* PreCallDiagnosticManager.swift */; };
 		3BABEA392D5F595A00B7C79C /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BABEA382D5F595A00B7C79C /* NetworkMonitor.swift */; };
 		3BC03B4E2CC25F5F00FD2B29 /* Reachability.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B0F56CC2C7F1CCA0011A48A /* Reachability.framework */; };
+		3BE7C75C2E0189AB00FF74A1 /* Config.xcconfig.example in Resources */ = {isa = PBXBuildFile; fileRef = 3BE7C75B2E0189AB00FF74A1 /* Config.xcconfig.example */; };
+		3BE7C75D2E0189AB00FF74A1 /* Config.xcconfig.example in Resources */ = {isa = PBXBuildFile; fileRef = 3BE7C75B2E0189AB00FF74A1 /* Config.xcconfig.example */; };
+		3BE7C75F2E0334AB00FF74A1 /* Region.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE7C75E2E0334AB00FF74A1 /* Region.swift */; };
+		3BE7C7612E0421EB00FF74A1 /* OverflowMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE7C7602E0421EB00FF74A1 /* OverflowMenuView.swift */; };
+		3BE7C7632E04292300FF74A1 /* RegionMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE7C7622E04292300FF74A1 /* RegionMenuView.swift */; };
 		3BE84BA82D9C944A00CA1B70 /* DestinationToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE84BA72D9C944A00CA1B70 /* DestinationToggle.swift */; };
 		3BF1D5842BEB7B8F0097453F /* TelnyxRTC.podspec in Resources */ = {isa = PBXBuildFile; fileRef = 3BF1D5832BEB7B8F0097453F /* TelnyxRTC.podspec */; };
-		5FCBE6F1F1CC93D7D34C1470 /* Pods_TelnyxRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A52AE951FE8A913D7516008 /* Pods_TelnyxRTC.framework */; };
+		44D1F514E45F03506FE8F857 /* Pods_TelnyxRTC_TelnyxRTCTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279B09E41685F86C3C8A83F3 /* Pods_TelnyxRTC_TelnyxRTCTests.framework */; };
+		8097534D667E46A79D43A02A8F6C3093 /* Call+IceRestart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3D8EC626B740CCBFC6D5A6178C87FE /* Call+IceRestart.swift */; };
+		853C8C4A7CC44D38A4D2AA0145A5C91B /* ICERestartMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD61A0D3085C477AB1B14626A82449EA /* ICERestartMessage.swift */; };
+		9905E4772EA81D41000AC89D /* CandidateMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9905E4762EA81D41000AC89D /* CandidateMessage.swift */; };
+		9905E4792EA81D50000AC89D /* EndOfCandidatesMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9905E4782EA81D50000AC89D /* EndOfCandidatesMessage.swift */; };
+		9906F63B2E391F5C00A02FE7 /* TxClientReconnectTimeoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F63A2E391F5C00A02FE7 /* TxClientReconnectTimeoutTests.swift */; };
+		9906F8C52E3C159900A02FE7 /* RingingAckMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8C42E3C159900A02FE7 /* RingingAckMessage.swift */; };
+		9906F8C72E3C15CA00A02FE7 /* AIAssistantManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8C62E3C15CA00A02FE7 /* AIAssistantManager.swift */; };
+		9906F8C92E3CEA4600A02FE7 /* AIAssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8C82E3CEA4600A02FE7 /* AIAssistantView.swift */; };
+		9906F8CB2E3CEA6000A02FE7 /* AIAssistantViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8CA2E3CEA6000A02FE7 /* AIAssistantViewModel.swift */; };
+		990BBB602ED609C900CF6DF0 /* WebSocketMessagesBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990BBB5F2ED609C900CF6DF0 /* WebSocketMessagesBottomSheet.swift */; };
+		990BBB622ED60A8A00CF6DF0 /* WebSocketMessageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990BBB612ED60A8A00CF6DF0 /* WebSocketMessageManager.swift */; };
+		990FC0482E9841BC009344DC /* TxCodecCapability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990FC0472E9841BC009344DC /* TxCodecCapability.swift */; };
+		990FC04A2E99387C009344DC /* CodecSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990FC0492E99387C009344DC /* CodecSelectionView.swift */; };
+		990FC04C2E996225009344DC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990FC04B2E996225009344DC /* SceneDelegate.swift */; };
 		9911247E2CF50092000C23BA /* Dictionary+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9911247D2CF50088000C23BA /* Dictionary+Extensions.swift */; };
 		991A6D442D3A96C100B29785 /* SplashScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991A6D432D3A96C100B29785 /* SplashScreen.swift */; };
 		991A6D492D3AB36E00B29785 /* SipCredentialsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991A6D482D3AB36E00B29785 /* SipCredentialsView.swift */; };
 		991A6D4A2D3AB36E00B29785 /* SipCredentialHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991A6D462D3AB36E00B29785 /* SipCredentialHeader.swift */; };
 		991A6D4B2D3AB36E00B29785 /* SipCredentialRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991A6D472D3AB36E00B29785 /* SipCredentialRow.swift */; };
+		9925169E2EB00952007B0085 /* SdpUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9925169D2EB00952007B0085 /* SdpUtils.swift */; };
 		994651932D76202C00049EF4 /* TelnyxWebRTCDemoUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D498D12D565D1F00A7B38F /* TelnyxWebRTCDemoUITests.swift */; };
 		994651942D76203100049EF4 /* TestConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D498D42D567A2C00A7B38F /* TestConstants.swift */; };
 		994651952D76204800049EF4 /* AccessibilityIdentifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9982C03E2D53977B00FA91B4 /* AccessibilityIdentifiers.swift */; };
@@ -60,6 +93,7 @@
 		9986703E2D3EC7A3001E1D01 /* View+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9986703D2D3EC7A0001E1D01 /* View+Extensions.swift */; };
 		998670402D40849C001E1D01 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9986703F2D408493001E1D01 /* HomeViewController.swift */; };
 		998670422D4096AA001E1D01 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998670412D4096A7001E1D01 /* HomeView.swift */; };
+		99A5A1032EAA5A0B006F3ED6 /* CustomServerConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A5A1022EAA5A0B006F3ED6 /* CustomServerConfigView.swift */; };
 		99ADA94E2D47C9B6000C956A /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA94C2D47C9B6000C956A /* HomeViewModel.swift */; };
 		99ADA9A82D4878FA000C956A /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9A72D4878ED000C956A /* ProfileView.swift */; };
 		99ADA9AA2D487ACC000C956A /* CallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9A92D487AC4000C956A /* CallView.swift */; };
@@ -72,10 +106,13 @@
 		99B6DFFD2CF546310010CA96 /* DebugReportStartMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFFC2CF546220010CA96 /* DebugReportStartMessage.swift */; };
 		99B6DFFF2CF547470010CA96 /* DebugReportStopMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6DFFE2CF547470010CA96 /* DebugReportStopMessage.swift */; };
 		99B6E0012CF547680010CA96 /* DebugReportDataMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B6E0002CF547680010CA96 /* DebugReportDataMessage.swift */; };
+		99C569BD2E834A0200304547 /* AIConversationMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C569BC2E834A0200304547 /* AIConversationMessage.swift */; };
 		99CC5BAC2CF804A500EF43DC /* WebRTCStatsReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99CC5BAB2CF804A200EF43DC /* WebRTCStatsReporter.swift */; };
 		99CC5BAE2CF80D3A00EF43DC /* WebRTCEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99CC5BAD2CF80D3400EF43DC /* WebRTCEventHandler.swift */; };
 		99D717742D6E195100471D44 /* TxLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D717732D6E195100471D44 /* TxLogger.swift */; };
 		99D717762D6E229800471D44 /* TelnyxRTCLoggerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D717752D6E229000471D44 /* TelnyxRTCLoggerTests.swift */; };
+		99D7C09C2E1E32DA00D47CE6 /* AudioWaveformView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D7C09B2E1E32DA00D47CE6 /* AudioWaveformView.swift */; };
+		99FDD7392E3CF80100FF7F6E /* TranscriptDialogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FDD7382E3CF80100FF7F6E /* TranscriptDialogView.swift */; };
 		99FF7B102D4BC4F700DB1408 /* DTMFKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FF7B0F2D4BC4F700DB1408 /* DTMFKeyboardView.swift */; };
 		99FF7B122D4BC71800DB1408 /* DTMFKeyboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FF7B112D4BC71800DB1408 /* DTMFKeyboardViewModel.swift */; };
 		B309D13D25EF119E00A2AADF /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B309D11125EF107F00A2AADF /* Starscream.framework */; };
@@ -125,7 +162,8 @@
 		B3E1033225F7F94900227DCE /* incoming_call.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B3E1033025F7F94900227DCE /* incoming_call.mp3 */; };
 		B3E1033325F7F94900227DCE /* ringback_tone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B3E1033125F7F94900227DCE /* ringback_tone.mp3 */; };
 		B84E50517AD67FE44AC37952 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
-		FC2835C766C287188726D1C1 /* Pods_TelnyxRTC_TelnyxRTCTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2F433F3B81462AC009A0B69 /* Pods_TelnyxRTC_TelnyxRTCTests.framework */; };
+		E7D4728DC54740F9B74EDCF5 /* AnonymousLoginMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DFC6708A0B342C3BF91953C /* AnonymousLoginMessage.swift */; };
+		EAA0358E635D404F9594CDA38CD57A76 /* Peer+IceRestart.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DA9FEE6464493BA99C53B5930AA3CB /* Peer+IceRestart.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -177,29 +215,62 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		005E859F7E0040F33D8C24D6 /* Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig"; sourceTree = "<group>"; };
-		143AE1FD541DDAE74F2F3D38 /* Pods-TelnyxRTC.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC/Pods-TelnyxRTC.debug.xcconfig"; sourceTree = "<group>"; };
+		04DF7DC293381F134DD2B457 /* Pods-TelnyxWebRTCDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxWebRTCDemo.release.xcconfig"; path = "Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo.release.xcconfig"; sourceTree = "<group>"; };
+		095B627B36C455D921694757 /* Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig"; sourceTree = "<group>"; };
+		1DFC6708A0B342C3BF91953C /* AnonymousLoginMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnonymousLoginMessage.swift; sourceTree = "<group>"; };
+		279B09E41685F86C3C8A83F3 /* Pods_TelnyxRTC_TelnyxRTCTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxRTC_TelnyxRTCTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B0F56CA2C7F15830011A48A /* StatsMessage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatsMessage.swift; sourceTree = "<group>"; };
 		3B0F56CC2C7F1CCA0011A48A /* Reachability.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Reachability.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B1B4D102E2532B800A5DD2D /* RegionIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionIntegrationTests.swift; sourceTree = "<group>"; };
+		3B1B4D112E2532B800A5DD2D /* RegionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionTests.swift; sourceTree = "<group>"; };
+		3B1B4D3E2E2E563C00A5DD2D /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxPushIPConfig.swift; sourceTree = "<group>"; };
 		3B1F43EE2AE0B01E00A610BA /* Params.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Params.swift; sourceTree = "<group>"; };
 		3B21257B2DC8126B00E68EA6 /* CallQualityMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallQualityMetrics.swift; sourceTree = "<group>"; };
 		3B21257D2DC8129700E68EA6 /* MOSCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MOSCalculator.swift; sourceTree = "<group>"; };
+		3B45B3982E0ADD6200383668 /* CallHistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallHistoryManager.swift; sourceTree = "<group>"; };
 		3B49B7142AA9B0A20026D36D /* AttachCallMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachCallMessage.swift; sourceTree = "<group>"; };
 		3B72695C2A9396BF00D2A602 /* DisablePushMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisablePushMessage.swift; sourceTree = "<group>"; };
 		3B758F192BF44D7800D50069 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		3B758F1D2BF97E8C00D50069 /* FileLoger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileLoger.swift; sourceTree = "<group>"; };
+		3B7D29942DF1C2980094EB90 /* AppModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = AppModel.xcdatamodel; sourceTree = "<group>"; };
+		3B7D299E2DF1C6F70094EB90 /* CallHistoryDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallHistoryDatabase.swift; sourceTree = "<group>"; };
+		3B7D29A42DF1CEA00094EB90 /* CallDirection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallDirection.swift; sourceTree = "<group>"; };
+		3B7D29A62DF1D5100094EB90 /* CallHistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallHistoryManager.swift; sourceTree = "<group>"; };
+		3B7D29A82DF1E2080094EB90 /* CallHistoryBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallHistoryBottomSheet.swift; sourceTree = "<group>"; };
 		3B91C0F42BE3A44600A03067 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		3BA535E42DFB94A6005AF0F4 /* PreCallDiagnosis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreCallDiagnosis.swift; sourceTree = "<group>"; };
+		3BA535E62DFB9BE3005AF0F4 /* PreCallDiagnosisBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreCallDiagnosisBottomSheet.swift; sourceTree = "<group>"; };
+		3BA535E82DFBA37C005AF0F4 /* PreCallDiagnosticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreCallDiagnosticManager.swift; sourceTree = "<group>"; };
 		3BABEA382D5F595A00B7C79C /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
+		3BE7C75B2E0189AB00FF74A1 /* Config.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = Config.xcconfig.example; sourceTree = "<group>"; };
+		3BE7C75E2E0334AB00FF74A1 /* Region.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Region.swift; sourceTree = "<group>"; };
+		3BE7C7602E0421EB00FF74A1 /* OverflowMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverflowMenuView.swift; sourceTree = "<group>"; };
+		3BE7C7622E04292300FF74A1 /* RegionMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionMenuView.swift; sourceTree = "<group>"; };
 		3BE84BA72D9C944A00CA1B70 /* DestinationToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DestinationToggle.swift; sourceTree = "<group>"; };
 		3BF1D5832BEB7B8F0097453F /* TelnyxRTC.podspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TelnyxRTC.podspec; sourceTree = "<group>"; };
-		6ABC09607EB36CA9C6751337 /* Pods-TelnyxRTC.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC.release.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC/Pods-TelnyxRTC.release.xcconfig"; sourceTree = "<group>"; };
-		72EFA01F477DE11D105894B5 /* Pods-TelnyxWebRTCDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxWebRTCDemo.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo.debug.xcconfig"; sourceTree = "<group>"; };
+		4C3D8EC626B740CCBFC6D5A6178C87FE /* Call+IceRestart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Call+IceRestart.swift"; sourceTree = "<group>"; };
+		5957191CD6394C558F46DD60 /* Pods-TelnyxRTC.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC/Pods-TelnyxRTC.debug.xcconfig"; sourceTree = "<group>"; };
+		80349220CA4C22F67427BF9A /* Pods_TelnyxRTC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxRTC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		86027677A7D2417967A1DD1A /* Pods_TelnyxWebRTCDemo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxWebRTCDemo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		9905E4762EA81D41000AC89D /* CandidateMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandidateMessage.swift; sourceTree = "<group>"; };
+		9905E4782EA81D50000AC89D /* EndOfCandidatesMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndOfCandidatesMessage.swift; sourceTree = "<group>"; };
+		9906F63A2E391F5C00A02FE7 /* TxClientReconnectTimeoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxClientReconnectTimeoutTests.swift; sourceTree = "<group>"; };
+		9906F8C42E3C159900A02FE7 /* RingingAckMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RingingAckMessage.swift; sourceTree = "<group>"; };
+		9906F8C62E3C15CA00A02FE7 /* AIAssistantManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistantManager.swift; sourceTree = "<group>"; };
+		9906F8C82E3CEA4600A02FE7 /* AIAssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistantView.swift; sourceTree = "<group>"; };
+		9906F8CA2E3CEA6000A02FE7 /* AIAssistantViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistantViewModel.swift; sourceTree = "<group>"; };
+		990BBB5F2ED609C900CF6DF0 /* WebSocketMessagesBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketMessagesBottomSheet.swift; sourceTree = "<group>"; };
+		990BBB612ED60A8A00CF6DF0 /* WebSocketMessageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketMessageManager.swift; sourceTree = "<group>"; };
+		990FC0472E9841BC009344DC /* TxCodecCapability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxCodecCapability.swift; sourceTree = "<group>"; };
+		990FC0492E99387C009344DC /* CodecSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodecSelectionView.swift; sourceTree = "<group>"; };
+		990FC04B2E996225009344DC /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		9911247D2CF50088000C23BA /* Dictionary+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Dictionary+Extensions.swift"; sourceTree = "<group>"; };
 		991A6D432D3A96C100B29785 /* SplashScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreen.swift; sourceTree = "<group>"; };
 		991A6D462D3AB36E00B29785 /* SipCredentialHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialHeader.swift; sourceTree = "<group>"; };
 		991A6D472D3AB36E00B29785 /* SipCredentialRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialRow.swift; sourceTree = "<group>"; };
 		991A6D482D3AB36E00B29785 /* SipCredentialsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SipCredentialsView.swift; sourceTree = "<group>"; };
+		9925169D2EB00952007B0085 /* SdpUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SdpUtils.swift; sourceTree = "<group>"; };
 		9946517F2D761F7800049EF4 /* TelnyxWebRTCDemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TelnyxWebRTCDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		994651982D76339500049EF4 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		995BF7122CE7E8EB00454076 /* WebRTCEnvironmentExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCEnvironmentExtension.swift; sourceTree = "<group>"; };
@@ -228,6 +299,7 @@
 		9986703D2D3EC7A0001E1D01 /* View+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extensions.swift"; sourceTree = "<group>"; };
 		9986703F2D408493001E1D01 /* HomeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
 		998670412D4096A7001E1D01 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		99A5A1022EAA5A0B006F3ED6 /* CustomServerConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomServerConfigView.swift; sourceTree = "<group>"; };
 		99ADA94C2D47C9B6000C956A /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
 		99ADA9A72D4878ED000C956A /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		99ADA9A92D487AC4000C956A /* CallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallView.swift; sourceTree = "<group>"; };
@@ -240,17 +312,18 @@
 		99B6DFFC2CF546220010CA96 /* DebugReportStartMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugReportStartMessage.swift; sourceTree = "<group>"; };
 		99B6DFFE2CF547470010CA96 /* DebugReportStopMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugReportStopMessage.swift; sourceTree = "<group>"; };
 		99B6E0002CF547680010CA96 /* DebugReportDataMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugReportDataMessage.swift; sourceTree = "<group>"; };
+		99C569BC2E834A0200304547 /* AIConversationMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIConversationMessage.swift; sourceTree = "<group>"; };
 		99CC5BAB2CF804A200EF43DC /* WebRTCStatsReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCStatsReporter.swift; sourceTree = "<group>"; };
 		99CC5BAD2CF80D3400EF43DC /* WebRTCEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCEventHandler.swift; sourceTree = "<group>"; };
 		99D498D12D565D1F00A7B38F /* TelnyxWebRTCDemoUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnyxWebRTCDemoUITests.swift; sourceTree = "<group>"; };
 		99D498D42D567A2C00A7B38F /* TestConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConstants.swift; sourceTree = "<group>"; };
 		99D717732D6E195100471D44 /* TxLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxLogger.swift; sourceTree = "<group>"; };
 		99D717752D6E229000471D44 /* TelnyxRTCLoggerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnyxRTCLoggerTests.swift; sourceTree = "<group>"; };
+		99D7C09B2E1E32DA00D47CE6 /* AudioWaveformView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioWaveformView.swift; sourceTree = "<group>"; };
+		99FDD7382E3CF80100FF7F6E /* TranscriptDialogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptDialogView.swift; sourceTree = "<group>"; };
 		99FF7B0F2D4BC4F700DB1408 /* DTMFKeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTMFKeyboardView.swift; sourceTree = "<group>"; };
 		99FF7B112D4BC71800DB1408 /* DTMFKeyboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTMFKeyboardViewModel.swift; sourceTree = "<group>"; };
-		9A52AE951FE8A913D7516008 /* Pods_TelnyxRTC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxRTC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		ABDDBB3BFF7B3DF99A132A9B /* Pods-TelnyxWebRTCDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxWebRTCDemo.release.xcconfig"; path = "Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo.release.xcconfig"; sourceTree = "<group>"; };
-		B2F433F3B81462AC009A0B69 /* Pods_TelnyxRTC_TelnyxRTCTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxRTC_TelnyxRTCTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		B187B019200FB14E90B2870B /* Pods-TelnyxWebRTCDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxWebRTCDemo.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo.debug.xcconfig"; sourceTree = "<group>"; };
 		B309D11125EF107F00A2AADF /* Starscream.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Starscream.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B309D1D525F020B300A2AADF /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
 		B309D1DA25F020D400A2AADF /* Method.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Method.swift; sourceTree = "<group>"; };
@@ -303,8 +376,10 @@
 		B3E1029925F2C16500227DCE /* ModifyMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifyMessage.swift; sourceTree = "<group>"; };
 		B3E1033025F7F94900227DCE /* incoming_call.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = incoming_call.mp3; sourceTree = "<group>"; };
 		B3E1033125F7F94900227DCE /* ringback_tone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = ringback_tone.mp3; sourceTree = "<group>"; };
-		C1D73C5BFA136BD2584C27AF /* Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig"; sourceTree = "<group>"; };
-		D6E477492CA6207B0CA04BB3 /* Pods_TelnyxWebRTCDemo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxWebRTCDemo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		B436BB0AF7183B1DCE56BBFE /* Pods-TelnyxRTC.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC.release.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC/Pods-TelnyxRTC.release.xcconfig"; sourceTree = "<group>"; };
+		B7DA9FEE6464493BA99C53B5930AA3CB /* Peer+IceRestart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Peer+IceRestart.swift"; sourceTree = "<group>"; };
+		C90FC92EC97313A541ABEF2D /* Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig"; sourceTree = "<group>"; };
+		FD61A0D3085C477AB1B14626A82449EA /* ICERestartMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ICERestartMessage.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -320,7 +395,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B309D13D25EF119E00A2AADF /* Starscream.framework in Frameworks */,
-				5FCBE6F1F1CC93D7D34C1470 /* Pods_TelnyxRTC.framework in Frameworks */,
+				14B87E69A3388057D732D5EF /* Pods_TelnyxRTC.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -330,7 +405,7 @@
 			files = (
 				B368BED625EDDBC90032AE52 /* TelnyxRTC.framework in Frameworks */,
 				B84E50517AD67FE44AC37952 /* (null) in Frameworks */,
-				FC2835C766C287188726D1C1 /* Pods_TelnyxRTC_TelnyxRTCTests.framework in Frameworks */,
+				44D1F514E45F03506FE8F857 /* Pods_TelnyxRTC_TelnyxRTCTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -340,7 +415,7 @@
 			files = (
 				3B5CD8D92D833677006D3734 /* TelnyxRTC.framework in Frameworks */,
 				3BC03B4E2CC25F5F00FD2B29 /* Reachability.framework in Frameworks */,
-				08C80C8CC74C9BC033B62062 /* Pods_TelnyxWebRTCDemo.framework in Frameworks */,
+				329920ADEE062848FEB12464 /* Pods_TelnyxWebRTCDemo.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -350,12 +425,12 @@
 		8AB3A6A2ADA6A9FAC6C77491 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				143AE1FD541DDAE74F2F3D38 /* Pods-TelnyxRTC.debug.xcconfig */,
-				6ABC09607EB36CA9C6751337 /* Pods-TelnyxRTC.release.xcconfig */,
-				C1D73C5BFA136BD2584C27AF /* Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig */,
-				005E859F7E0040F33D8C24D6 /* Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig */,
-				72EFA01F477DE11D105894B5 /* Pods-TelnyxWebRTCDemo.debug.xcconfig */,
-				ABDDBB3BFF7B3DF99A132A9B /* Pods-TelnyxWebRTCDemo.release.xcconfig */,
+				5957191CD6394C558F46DD60 /* Pods-TelnyxRTC.debug.xcconfig */,
+				B436BB0AF7183B1DCE56BBFE /* Pods-TelnyxRTC.release.xcconfig */,
+				C90FC92EC97313A541ABEF2D /* Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig */,
+				095B627B36C455D921694757 /* Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig */,
+				B187B019200FB14E90B2870B /* Pods-TelnyxWebRTCDemo.debug.xcconfig */,
+				04DF7DC293381F134DD2B457 /* Pods-TelnyxWebRTCDemo.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -382,7 +457,12 @@
 		995BF7142CE7EB0B00454076 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				3BA535E42DFB94A6005AF0F4 /* PreCallDiagnosis.swift */,
+				3B7D29A62DF1D5100094EB90 /* CallHistoryManager.swift */,
+				3B7D29A42DF1CEA00094EB90 /* CallDirection.swift */,
 				995BF7152CE7EB2200454076 /* SipUserCredential.swift */,
+				3B7D29932DF1C2980094EB90 /* AppModel.xcdatamodeld */,
+				3B7D299E2DF1C6F70094EB90 /* CallHistoryDatabase.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -390,7 +470,10 @@
 		995BF71D2CE7EC5000454076 /* Managers */ = {
 			isa = PBXGroup;
 			children = (
+				3B45B3982E0ADD6200383668 /* CallHistoryManager.swift */,
+				3BA535E82DFBA37C005AF0F4 /* PreCallDiagnosticManager.swift */,
 				995BF71A2CE7EBF800454076 /* SipCredentialsManager.swift */,
+				990BBB612ED60A8A00CF6DF0 /* WebSocketMessageManager.swift */,
 			);
 			path = Managers;
 			sourceTree = "<group>";
@@ -438,6 +521,7 @@
 		99ADA94D2D47C9B6000C956A /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				9906F8CA2E3CEA6000A02FE7 /* AIAssistantViewModel.swift */,
 				99FF7B112D4BC71800DB1408 /* DTMFKeyboardViewModel.swift */,
 				99ADA9AF2D4886E3000C956A /* CallViewModel.swift */,
 				99ADA9AD2D487DE1000C956A /* ProfileViewModel.swift */,
@@ -457,6 +541,14 @@
 			path = Stats;
 			sourceTree = "<group>";
 		};
+		99C569BE2E834A0B00304547 /* AI */ = {
+			isa = PBXGroup;
+			children = (
+				99C569BC2E834A0200304547 /* AIConversationMessage.swift */,
+			);
+			path = AI;
+			sourceTree = "<group>";
+		};
 		99D498D22D565D1F00A7B38F /* TelnyxWebRTCDemoUITests */ = {
 			isa = PBXGroup;
 			children = (
@@ -469,10 +561,13 @@
 		B309D1D425F020A300A2AADF /* Verto */ = {
 			isa = PBXGroup;
 			children = (
+				99C569BE2E834A0B00304547 /* AI */,
 				99B6DFFB2CF542E20010CA96 /* Stats */,
 				B309D1DA25F020D400A2AADF /* Method.swift */,
 				B309D1D525F020B300A2AADF /* Message.swift */,
 				B309D1EB25F024B900A2AADF /* LoginMessage.swift */,
+				1DFC6708A0B342C3BF91953C /* AnonymousLoginMessage.swift */,
+				FD61A0D3085C477AB1B14626A82449EA /* ICERestartMessage.swift */,
 				B309D23F25F06EA600A2AADF /* InviteMessage.swift */,
 				B309D28125F1838700A2AADF /* ByeMessage.swift */,
 				B309D28525F184A100A2AADF /* AnswerMessage.swift */,
@@ -481,6 +576,9 @@
 				B3BB8F9F26BC076000DDCB84 /* GatewayMessage.swift */,
 				3B72695C2A9396BF00D2A602 /* DisablePushMessage.swift */,
 				3B49B7142AA9B0A20026D36D /* AttachCallMessage.swift */,
+				9906F8C42E3C159900A02FE7 /* RingingAckMessage.swift */,
+				9905E4762EA81D41000AC89D /* CandidateMessage.swift */,
+				9905E4782EA81D50000AC89D /* EndOfCandidatesMessage.swift */,
 			);
 			path = Verto;
 			sourceTree = "<group>";
@@ -488,6 +586,8 @@
 		B309D1E225F023F400A2AADF /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				990FC0472E9841BC009344DC /* TxCodecCapability.swift */,
+				3BE7C75E2E0334AB00FF74A1 /* Region.swift */,
 				3B21257B2DC8126B00E68EA6 /* CallQualityMetrics.swift */,
 				3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */,
 				B309D1E325F0240200A2AADF /* TxConfig.swift */,
@@ -504,6 +604,13 @@
 		B309D1FB25F028F100A2AADF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				99A5A1022EAA5A0B006F3ED6 /* CustomServerConfigView.swift */,
+				990FC0492E99387C009344DC /* CodecSelectionView.swift */,
+				99D7C09B2E1E32DA00D47CE6 /* AudioWaveformView.swift */,
+				3BE7C7622E04292300FF74A1 /* RegionMenuView.swift */,
+				3BE7C7602E0421EB00FF74A1 /* OverflowMenuView.swift */,
+				3BA535E62DFB9BE3005AF0F4 /* PreCallDiagnosisBottomSheet.swift */,
+				3B7D29A82DF1E2080094EB90 /* CallHistoryBottomSheet.swift */,
 				3BE84BA72D9C944A00CA1B70 /* DestinationToggle.swift */,
 				99FF7B0F2D4BC4F700DB1408 /* DTMFKeyboardView.swift */,
 				99ADA9A92D487AC4000C956A /* CallView.swift */,
@@ -516,6 +623,9 @@
 				991A6D472D3AB36E00B29785 /* SipCredentialRow.swift */,
 				991A6D482D3AB36E00B29785 /* SipCredentialsView.swift */,
 				991A6D432D3A96C100B29785 /* SplashScreen.swift */,
+				9906F8C82E3CEA4600A02FE7 /* AIAssistantView.swift */,
+				99FDD7382E3CF80100FF7F6E /* TranscriptDialogView.swift */,
+				990BBB5F2ED609C900CF6DF0 /* WebSocketMessagesBottomSheet.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -526,7 +636,9 @@
 				996C67D52CFEA7430056E508 /* Extensions */,
 				991124752CF4FE95000C23BA /* Stats */,
 				B309D22825F06C6900A2AADF /* Call.swift */,
+				4C3D8EC626B740CCBFC6D5A6178C87FE /* Call+IceRestart.swift */,
 				B309D23025F06CA800A2AADF /* Peer.swift */,
+				B7DA9FEE6464493BA99C53B5930AA3CB /* Peer+IceRestart.swift */,
 			);
 			path = WebRTC;
 			sourceTree = "<group>";
@@ -543,6 +655,8 @@
 		B368BEB625EDDB610032AE52 = {
 			isa = PBXGroup;
 			children = (
+				3B1B4D3E2E2E563C00A5DD2D /* Config.xcconfig */,
+				3BE7C75B2E0189AB00FF74A1 /* Config.xcconfig.example */,
 				3BF1D5832BEB7B8F0097453F /* TelnyxRTC.podspec */,
 				B3A728BB2643537E003F3844 /* README.md */,
 				B368BEC225EDDB610032AE52 /* TelnyxRTC */,
@@ -580,6 +694,8 @@
 		B368BED225EDDBC90032AE52 /* TelnyxRTCTests */ = {
 			isa = PBXGroup;
 			children = (
+				3B1B4D102E2532B800A5DD2D /* RegionIntegrationTests.swift */,
+				3B1B4D112E2532B800A5DD2D /* RegionTests.swift */,
 				B366D3F926150D0300156FE1 /* Helpers */,
 				B391221C260501C00051E076 /* WebRTC */,
 				B39121F32603AE670051E076 /* Verto */,
@@ -587,6 +703,7 @@
 				B368BED325EDDBC90032AE52 /* TelnyxRTCTests.swift */,
 				99D717752D6E229000471D44 /* TelnyxRTCLoggerTests.swift */,
 				B3912263260F6A050051E076 /* TelnyxRTCMulticallTests.swift */,
+				9906F63A2E391F5C00A02FE7 /* TxClientReconnectTimeoutTests.swift */,
 				B39122112604FBC00051E076 /* TestConstants.swift */,
 				B368BED525EDDBC90032AE52 /* Info.plist */,
 			);
@@ -606,6 +723,7 @@
 				995BF71E2CE8174B00454076 /* ViewControllers */,
 				B3AF24A825EE84410062EDA9 /* Extensions */,
 				B368BEEA25EDDD060032AE52 /* AppDelegate.swift */,
+				990FC04B2E996225009344DC /* SceneDelegate.swift */,
 				994651982D76339500049EF4 /* GoogleService-Info.plist */,
 				B368BEF025EDDD060032AE52 /* Main.storyboard */,
 				B368BEF325EDDD070032AE52 /* Assets.xcassets */,
@@ -640,6 +758,7 @@
 				3B758F1D2BF97E8C00D50069 /* FileLoger.swift */,
 				B36FC8BF2612794A00A30BC4 /* Logger.swift */,
 				99D717732D6E195100471D44 /* TxLogger.swift */,
+				9925169D2EB00952007B0085 /* SdpUtils.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -672,6 +791,7 @@
 		B3AF248925EE7C0D0062EDA9 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				9906F8C62E3C15CA00A02FE7 /* AIAssistantManager.swift */,
 				B3AF248A25EE7C350062EDA9 /* Socket.swift */,
 				B3AF249725EE7DC70062EDA9 /* SocketDelegate.swift */,
 			);
@@ -706,9 +826,9 @@
 			children = (
 				3B0F56CC2C7F1CCA0011A48A /* Reachability.framework */,
 				B309D11125EF107F00A2AADF /* Starscream.framework */,
-				9A52AE951FE8A913D7516008 /* Pods_TelnyxRTC.framework */,
-				B2F433F3B81462AC009A0B69 /* Pods_TelnyxRTC_TelnyxRTCTests.framework */,
-				D6E477492CA6207B0CA04BB3 /* Pods_TelnyxWebRTCDemo.framework */,
+				80349220CA4C22F67427BF9A /* Pods_TelnyxRTC.framework */,
+				279B09E41685F86C3C8A83F3 /* Pods_TelnyxRTC_TelnyxRTCTests.framework */,
+				86027677A7D2417967A1DD1A /* Pods_TelnyxWebRTCDemo.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -749,7 +869,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = B368BEC825EDDB610032AE52 /* Build configuration list for PBXNativeTarget "TelnyxRTC" */;
 			buildPhases = (
-				F50FB6AA580D6624E9B73705 /* [CP] Check Pods Manifest.lock */,
+				C01FBEFC2E6798119B550E1A /* [CP] Check Pods Manifest.lock */,
 				B368BEBB25EDDB610032AE52 /* Headers */,
 				B368BEBC25EDDB610032AE52 /* Sources */,
 				B368BEBD25EDDB610032AE52 /* Frameworks */,
@@ -769,11 +889,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = B368BEDB25EDDBC90032AE52 /* Build configuration list for PBXNativeTarget "TelnyxRTCTests" */;
 			buildPhases = (
-				C1CD2A8DEC34929FCC341135 /* [CP] Check Pods Manifest.lock */,
+				8874D5D8A96F3FF925863697 /* [CP] Check Pods Manifest.lock */,
 				B368BECD25EDDBC90032AE52 /* Sources */,
 				B368BECE25EDDBC90032AE52 /* Frameworks */,
 				B368BECF25EDDBC90032AE52 /* Resources */,
-				105B8300D22F993FD61F48EA /* [CP] Embed Pods Frameworks */,
+				091FC9F8C79219C049EBD484 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -789,12 +909,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = B368BEF925EDDD070032AE52 /* Build configuration list for PBXNativeTarget "TelnyxWebRTCDemo" */;
 			buildPhases = (
-				359B7BA161D8B4FAC4FA2223 /* [CP] Check Pods Manifest.lock */,
+				E65DB335B8C2EF5BDDBB8DB1 /* [CP] Check Pods Manifest.lock */,
 				B368BEE425EDDD060032AE52 /* Sources */,
 				B368BEE525EDDD060032AE52 /* Frameworks */,
 				B368BEE625EDDD060032AE52 /* Resources */,
 				3B5CD8DB2D833677006D3734 /* Embed Frameworks */,
-				2F98C0193BD502C670E7F6F6 /* [CP] Embed Pods Frameworks */,
+				70CFE144422CCC7DE9136D47 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -866,6 +986,8 @@
 			files = (
 				3BF1D5842BEB7B8F0097453F /* TelnyxRTC.podspec in Resources */,
 				3B91C0F52BE3A44600A03067 /* PrivacyInfo.xcprivacy in Resources */,
+				3B1B4D3F2E2E563C00A5DD2D /* Config.xcconfig in Resources */,
+				3BE7C75C2E0189AB00FF74A1 /* Config.xcconfig.example in Resources */,
 				B3A728BC2643537E003F3844 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -887,6 +1009,8 @@
 				B3E1033225F7F94900227DCE /* incoming_call.mp3 in Resources */,
 				B368BEF425EDDD070032AE52 /* Assets.xcassets in Resources */,
 				B3E1033325F7F94900227DCE /* ringback_tone.mp3 in Resources */,
+				3B1B4D402E2E563C00A5DD2D /* Config.xcconfig in Resources */,
+				3BE7C75D2E0189AB00FF74A1 /* Config.xcconfig.example in Resources */,
 				B368BEF225EDDD060032AE52 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -894,7 +1018,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		105B8300D22F993FD61F48EA /* [CP] Embed Pods Frameworks */ = {
+		091FC9F8C79219C049EBD484 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -915,7 +1039,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TelnyxRTC-TelnyxRTCTests/Pods-TelnyxRTC-TelnyxRTCTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		2F98C0193BD502C670E7F6F6 /* [CP] Embed Pods Frameworks */ = {
+		70CFE144422CCC7DE9136D47 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -936,29 +1060,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		359B7BA161D8B4FAC4FA2223 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-TelnyxWebRTCDemo-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		C1CD2A8DEC34929FCC341135 /* [CP] Check Pods Manifest.lock */ = {
+		8874D5D8A96F3FF925863697 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -980,7 +1082,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		F50FB6AA580D6624E9B73705 /* [CP] Check Pods Manifest.lock */ = {
+		C01FBEFC2E6798119B550E1A /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -996,6 +1098,28 @@
 			);
 			outputPaths = (
 				"$(DERIVED_FILE_DIR)/Pods-TelnyxRTC-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E65DB335B8C2EF5BDDBB8DB1 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-TelnyxWebRTCDemo-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1020,6 +1144,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3B0F56CB2C7F15830011A48A /* StatsMessage.swift in Sources */,
+				9906F8C72E3C15CA00A02FE7 /* AIAssistantManager.swift in Sources */,
 				99D717742D6E195100471D44 /* TxLogger.swift in Sources */,
 				99B6DFFF2CF547470010CA96 /* DebugReportStopMessage.swift in Sources */,
 				3B49B7152AA9B0A20026D36D /* AttachCallMessage.swift in Sources */,
@@ -1030,6 +1155,7 @@
 				996C67D42CFEA72C0056E508 /* RTCMediaStreamTrack+Extension.swift in Sources */,
 				996C67CE2CFEA6AF0056E508 /* RTCIceConnectionState+Extension.swift in Sources */,
 				B3BB8FA026BC076000DDCB84 /* GatewayMessage.swift in Sources */,
+				3BE7C75F2E0334AB00FF74A1 /* Region.swift in Sources */,
 				3BABEA392D5F595A00B7C79C /* NetworkMonitor.swift in Sources */,
 				3B21257C2DC8126B00E68EA6 /* CallQualityMetrics.swift in Sources */,
 				B309D1DB25F020D400A2AADF /* Method.swift in Sources */,
@@ -1038,15 +1164,21 @@
 				99B6DFF82CF522140010CA96 /* WebRTCStatsEvent.swift in Sources */,
 				B32AE8B326CD4F9200C7C6F4 /* TxServerConfiguration.swift in Sources */,
 				B368BEE125EDDC7D0032AE52 /* TxClient.swift in Sources */,
+				9925169E2EB00952007B0085 /* SdpUtils.swift in Sources */,
 				B309D28625F184A100A2AADF /* AnswerMessage.swift in Sources */,
 				3B1BE6F72AA9A467000B7962 /* TxPushIPConfig.swift in Sources */,
 				996C67C22CFEA5870056E508 /* RTCSdpSemantics+Extension.swift in Sources */,
 				B309D23125F06CA800A2AADF /* Peer.swift in Sources */,
+				EAA0358E635D404F9594CDA38CD57A76 /* Peer+IceRestart.swift in Sources */,
 				996C67CA2CFEA6740056E508 /* RTCIceTransportPolicy+Extension.swift in Sources */,
+				9905E4772EA81D41000AC89D /* CandidateMessage.swift in Sources */,
 				996C67D22CFEA70F0056E508 /* RTCMediaStream+Extension.swift in Sources */,
 				996C67D72CFEA96B0056E508 /* RTCIceCandidate+Extension.swift in Sources */,
 				996C67C02CFEA5600056E508 /* RTCBundlePolicy+Extension.swift in Sources */,
+				990FC0482E9841BC009344DC /* TxCodecCapability.swift in Sources */,
+				9906F8C52E3C159900A02FE7 /* RingingAckMessage.swift in Sources */,
 				996C67BE2CFEA4D70056E508 /* RTClsCertPolicy+Extension.swift in Sources */,
+				9905E4792EA81D50000AC89D /* EndOfCandidatesMessage.swift in Sources */,
 				B309D1E425F0240200A2AADF /* TxConfig.swift in Sources */,
 				B3AF248025EE7B1F0062EDA9 /* TxClientDelegate.swift in Sources */,
 				996C67CC2CFEA6910056E508 /* RTCSignalingState+Extension.swift in Sources */,
@@ -1064,8 +1196,12 @@
 				B309D24025F06EA600A2AADF /* InviteMessage.swift in Sources */,
 				3B72695D2A9396BF00D2A602 /* DisablePushMessage.swift in Sources */,
 				B309D22925F06C6900A2AADF /* Call.swift in Sources */,
+				8097534D667E46A79D43A02A8F6C3093 /* Call+IceRestart.swift in Sources */,
 				996C67C42CFEA5AC0056E508 /* RTCContinualGatheringPolicy+Extension.swift in Sources */,
 				B309D1EC25F024B900A2AADF /* LoginMessage.swift in Sources */,
+				E7D4728DC54740F9B74EDCF5 /* AnonymousLoginMessage.swift in Sources */,
+				99C569BD2E834A0200304547 /* AIConversationMessage.swift in Sources */,
+				853C8C4A7CC44D38A4D2AA0145A5C91B /* ICERestartMessage.swift in Sources */,
 				99B6DFFA2CF5226F0010CA96 /* WebRTCStatsTag.swift in Sources */,
 				99CC5BAE2CF80D3A00EF43DC /* WebRTCEventHandler.swift in Sources */,
 				996C67D02CFEA6F30056E508 /* RTCIceGatheringState+Extension.swift in Sources */,
@@ -1081,10 +1217,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3B1B4D132E2532B800A5DD2D /* RegionIntegrationTests.swift in Sources */,
+				3B1B4D142E2532B800A5DD2D /* RegionTests.swift in Sources */,
 				B39121E72600F7B10051E076 /* VertoMessagesTests.swift in Sources */,
 				99D717762D6E229800471D44 /* TelnyxRTCLoggerTests.swift in Sources */,
 				B39121ED2602F22F0051E076 /* SocketTests.swift in Sources */,
 				B39122122604FBC00051E076 /* TestConstants.swift in Sources */,
+				9906F63B2E391F5C00A02FE7 /* TxClientReconnectTimeoutTests.swift in Sources */,
 				B368BED425EDDBC90032AE52 /* TelnyxRTCTests.swift in Sources */,
 				B366D3FB26150D1100156FE1 /* StringExtension.swift in Sources */,
 				B391220C2604D9C50051E076 /* PeerConnectionTests.swift in Sources */,
@@ -1100,35 +1239,54 @@
 			files = (
 				995BF7132CE7E8F100454076 /* WebRTCEnvironmentExtension.swift in Sources */,
 				B3B1D9A426545807008D28C9 /* UserDefaultExtension.swift in Sources */,
+				990BBB602ED609C900CF6DF0 /* WebSocketMessagesBottomSheet.swift in Sources */,
 				99ADA9AE2D487DE5000C956A /* ProfileViewModel.swift in Sources */,
 				B32AE8BB26D6952500C7C6F4 /* AppDelegateCallKitExtension.swift in Sources */,
 				998670422D4096AA001E1D01 /* HomeView.swift in Sources */,
 				B3AF24AA25EE84570062EDA9 /* UIViewControllerExtension.swift in Sources */,
+				99D7C09C2E1E32DA00D47CE6 /* AudioWaveformView.swift in Sources */,
+				3BA535E72DFB9BE3005AF0F4 /* PreCallDiagnosisBottomSheet.swift in Sources */,
 				995BF7202CE8175B00454076 /* SipCredentialsViewController.swift in Sources */,
+				3B7D29A72DF1D5100094EB90 /* CallHistoryManager.swift in Sources */,
 				B3B8F53726E7D4EF0007B583 /* AppDelegateTelnyxVoIPExtension.swift in Sources */,
 				9986703E2D3EC7A3001E1D01 /* View+Extensions.swift in Sources */,
 				9986703A2D3E9DCE001E1D01 /* SipInputCredentialsView.swift in Sources */,
+				3BE7C7632E04292300FF74A1 /* RegionMenuView.swift in Sources */,
+				3B7D29A92DF1E2080094EB90 /* CallHistoryBottomSheet.swift in Sources */,
 				99FF7B102D4BC4F700DB1408 /* DTMFKeyboardView.swift in Sources */,
 				991A6D442D3A96C100B29785 /* SplashScreen.swift in Sources */,
 				99ADA9A82D4878FA000C956A /* ProfileView.swift in Sources */,
 				998670402D40849C001E1D01 /* HomeViewController.swift in Sources */,
+				3B7D299F2DF1C6F70094EB90 /* CallHistoryDatabase.swift in Sources */,
+				990BBB622ED60A8A00CF6DF0 /* WebSocketMessageManager.swift in Sources */,
 				3BE84BA82D9C944A00CA1B70 /* DestinationToggle.swift in Sources */,
+				3BA535E92DFBA37C005AF0F4 /* PreCallDiagnosticManager.swift in Sources */,
 				995BF7162CE7EB2600454076 /* SipUserCredential.swift in Sources */,
 				99ADA9AA2D487ACC000C956A /* CallView.swift in Sources */,
 				99ADA9B02D4886E7000C956A /* CallViewModel.swift in Sources */,
 				9982C0412D53977B00FA91B4 /* TestConfiguration.swift in Sources */,
+				99A5A1032EAA5A0B006F3ED6 /* CustomServerConfigView.swift in Sources */,
 				9982C0422D53977B00FA91B4 /* AccessibilityIdentifiers.swift in Sources */,
+				9906F8C92E3CEA4600A02FE7 /* AIAssistantView.swift in Sources */,
+				3B7D29A52DF1CEA00094EB90 /* CallDirection.swift in Sources */,
 				991A6D492D3AB36E00B29785 /* SipCredentialsView.swift in Sources */,
+				3BA535E52DFB94A6005AF0F4 /* PreCallDiagnosis.swift in Sources */,
 				991A6D4A2D3AB36E00B29785 /* SipCredentialHeader.swift in Sources */,
 				991A6D4B2D3AB36E00B29785 /* SipCredentialRow.swift in Sources */,
+				3BE7C7612E0421EB00FF74A1 /* OverflowMenuView.swift in Sources */,
 				995BF71C2CE7EC0600454076 /* SipCredentialsManager.swift in Sources */,
 				99B127D62DCE54500048CE0A /* CallQualityMetricsView.swift in Sources */,
 				998670382D3E9506001E1D01 /* Color+Extensions.swift in Sources */,
+				9906F8CB2E3CEA6000A02FE7 /* AIAssistantViewModel.swift in Sources */,
 				B368BEEB25EDDD060032AE52 /* AppDelegate.swift in Sources */,
+				990FC04C2E996225009344DC /* SceneDelegate.swift in Sources */,
 				99ADA9B22D488D98000C956A /* HomeViewController+VoIPExtension.swift in Sources */,
+				99FDD7392E3CF80100FF7F6E /* TranscriptDialogView.swift in Sources */,
 				99FF7B122D4BC71800DB1408 /* DTMFKeyboardViewModel.swift in Sources */,
 				99ADA94E2D47C9B6000C956A /* HomeViewModel.swift in Sources */,
 				9986703C2D3EAF64001E1D01 /* ErrorView.swift in Sources */,
+				990FC04A2E99387C009344DC /* CodecSelectionView.swift in Sources */,
+				3B7D29952DF1C2980094EB90 /* AppModel.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1185,7 +1343,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 2.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp.TelnyxWebRTCDemoUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
@@ -1209,7 +1367,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 2.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp.TelnyxWebRTCDemoUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -1345,7 +1503,7 @@
 		};
 		B368BEC925EDDB610032AE52 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 143AE1FD541DDAE74F2F3D38 /* Pods-TelnyxRTC.debug.xcconfig */;
+			baseConfigurationReference = 5957191CD6394C558F46DD60 /* Pods-TelnyxRTC.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -1370,7 +1528,7 @@
 					"@loader_path/Frameworks",
 					"$(BUILT_PRODUCTS_DIR)/Starscream",
 				);
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 2.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.WebRTCSDK;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1385,7 +1543,7 @@
 		};
 		B368BECA25EDDB610032AE52 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 6ABC09607EB36CA9C6751337 /* Pods-TelnyxRTC.release.xcconfig */;
+			baseConfigurationReference = B436BB0AF7183B1DCE56BBFE /* Pods-TelnyxRTC.release.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -1406,7 +1564,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 2.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.WebRTCSDK;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -1419,7 +1577,7 @@
 		};
 		B368BED925EDDBC90032AE52 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C1D73C5BFA136BD2584C27AF /* Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig */;
+			baseConfigurationReference = C90FC92EC97313A541ABEF2D /* Pods-TelnyxRTC-TelnyxRTCTests.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
@@ -1440,7 +1598,7 @@
 		};
 		B368BEDA25EDDBC90032AE52 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 005E859F7E0040F33D8C24D6 /* Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig */;
+			baseConfigurationReference = 095B627B36C455D921694757 /* Pods-TelnyxRTC-TelnyxRTCTests.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
@@ -1461,7 +1619,7 @@
 		};
 		B368BEFA25EDDD070032AE52 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 72EFA01F477DE11D105894B5 /* Pods-TelnyxWebRTCDemo.debug.xcconfig */;
+			baseConfigurationReference = B187B019200FB14E90B2870B /* Pods-TelnyxWebRTCDemo.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -1477,7 +1635,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 2.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp;
 				PRODUCT_NAME = "Telnyx WebRTC";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1488,7 +1646,7 @@
 		};
 		B368BEFB25EDDD070032AE52 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = ABDDBB3BFF7B3DF99A132A9B /* Pods-TelnyxWebRTCDemo.release.xcconfig */;
+			baseConfigurationReference = 04DF7DC293381F134DD2B457 /* Pods-TelnyxWebRTCDemo.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -1504,7 +1662,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 2.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp;
 				PRODUCT_NAME = "Telnyx WebRTC";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1562,6 +1720,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		3B7D29932DF1C2980094EB90 /* AppModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				3B7D29942DF1C2980094EB90 /* AppModel.xcdatamodel */,
+			);
+			currentVersion = 3B7D29942DF1C2980094EB90 /* AppModel.xcdatamodel */;
+			path = AppModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = B368BEB725EDDB610032AE52 /* Project object */;
 }
