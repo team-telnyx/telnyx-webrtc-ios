@@ -886,11 +886,69 @@ extension Peer : RTCPeerConnectionDelegate {
         onIceConnectionChange?(newState)
         onIceConnectionStateChange?(newState)
         Logger.log.i(message: "Peer:: connection didChange ICE connection state: [\(newState.telnyx_to_string().uppercased())]")
+        
+        // Track ICE connection state changes for benchmarking
+        if CallTimingBenchmark.isRunning() {
+            switch newState {
+            case .checking:
+                CallTimingBenchmark.mark(CallBenchmarkMilestone.iceStateChecking)
+            case .connected:
+                CallTimingBenchmark.mark(CallBenchmarkMilestone.iceStateConnected)
+            case .completed:
+                CallTimingBenchmark.mark(CallBenchmarkMilestone.iceStateCompleted)
+            case .failed:
+                CallTimingBenchmark.mark(CallBenchmarkMilestone.iceStateFailed)
+            case .disconnected:
+                CallTimingBenchmark.mark(CallBenchmarkMilestone.iceStateDisconnected)
+            case .closed:
+                CallTimingBenchmark.mark(CallBenchmarkMilestone.iceStateClosed)
+            default:
+                break
+            }
+        }
+    }
+    
+    func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCPeerConnectionState) {
+        Logger.log.i(message: "Peer:: connection didChange peer connection state: [\(newState.telnyx_to_string().uppercased())]")
+        
+        // Track peer connection state changes for benchmarking
+        if CallTimingBenchmark.isRunning() {
+            switch newState {
+            case .connecting:
+                CallTimingBenchmark.mark(CallBenchmarkMilestone.peerStateConnecting)
+            case .connected:
+                CallTimingBenchmark.mark(CallBenchmarkMilestone.peerStateConnected)
+                // End benchmarking when peer connection is established
+                CallTimingBenchmark.end()
+            case .disconnected:
+                CallTimingBenchmark.mark(CallBenchmarkMilestone.peerStateDisconnected)
+            case .failed:
+                CallTimingBenchmark.mark(CallBenchmarkMilestone.peerStateFailed)
+            case .closed:
+                CallTimingBenchmark.mark(CallBenchmarkMilestone.peerStateClosed)
+            default:
+                break
+            }
+        }
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {
         onIceGatheringChange?(newState)
         Logger.log.s(message: "[TRICKLE-ICE] Peer:: ICE gathering state changed to: [\(newState.telnyx_to_string().uppercased())] (useTrickleIce: \(useTrickleIce), callId: \(callId ?? "nil"))")
+        
+        // Track ICE gathering state changes for benchmarking
+        if CallTimingBenchmark.isRunning() {
+            switch newState {
+            case .new:
+                CallTimingBenchmark.mark(CallBenchmarkMilestone.iceGatheringNew)
+            case .gathering:
+                CallTimingBenchmark.mark(CallBenchmarkMilestone.iceGatheringGathering)
+            case .complete:
+                CallTimingBenchmark.mark(CallBenchmarkMilestone.iceGatheringComplete)
+            @unknown default:
+                break
+            }
+        }
 
         // Send end of candidates signal when ICE gathering is complete for trickle ICE
         if newState == .complete && useTrickleIce {
@@ -911,6 +969,9 @@ extension Peer : RTCPeerConnectionDelegate {
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
         Logger.log.i(message: "[TRICKLE-ICE] Peer:: ICE candidate generated - sdpMid: \(candidate.sdpMid ?? "nil"), sdpMLineIndex: \(candidate.sdpMLineIndex)")
+        
+        // Mark first ICE candidate for benchmarking
+        CallTimingBenchmark.markFirstCandidate()
 
         // For Trickle ICE, we always send candidates - don't skip based on negotiationEnded
         if !useTrickleIce {
