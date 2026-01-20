@@ -20,7 +20,7 @@ jobs:
     - name: Select Xcode Version
       uses: maxim-lobanov/setup-xcode@v1
       with:
-        xcode-version: '15.4.0'
+        xcode-version: '16.4.0'
     
     - name: Setup ruby
       uses: ruby/setup-ruby@v1
@@ -38,6 +38,13 @@ jobs:
             "connection_id": "${{ env.TELNYX_SIP_CONNECTION_ID }}"
         }' \
         https://api.telnyx.com/v2/telephony_credentials)"
+      
+    - name: Set up environment variables
+      run: |
+        echo "Creating Config.xcconfig with secret"
+        cp Config.xcconfig.example Config.xcconfig
+        echo "PHONE_NUMBER_ENV=$PHONE_NUMBER_SECRET" >> Config.xcconfig
+
 
     - name: Generate Token
       id: generate_token

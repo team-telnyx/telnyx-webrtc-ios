@@ -50,6 +50,14 @@ public struct TxConfig {
     /// Controls whether the SDK should deliver call quality metrics
     public internal(set) var enableQualityMetrics: Bool = false
     
+    /// Controls whether the SDK should send WebRTC statistics via socket
+    /// - Note: This flag is independent of `debug` and `enableQualityMetrics`:
+    ///   - `debug`: Enables WebRTC stats collection and real-time metrics
+    ///   - `enableQualityMetrics`: Enables call quality metrics calculation
+    ///   - `sendWebRTCStatsViaSocket`: Enables sending collected stats via socket to Telnyx servers
+    /// - Important: This flag is disabled by default to minimize network traffic
+    public internal(set) var sendWebRTCStatsViaSocket: Bool = false
+    
     
     /// Maximum time (in seconds) the SDK will attempt to reconnect a call after network disruption.
     /// - If a call is successfully reconnected within this time, the call continues normally.
@@ -61,6 +69,13 @@ public struct TxConfig {
     /// Custom logger implementation for handling SDK logs
     /// If not provided, the default logger will be used
     public internal(set) var customLogger: TxLogger?
+    
+    /// Controls whether the SDK should use trickle ICE for WebRTC signaling.
+    /// When enabled, ICE candidates are sent individually as they are discovered,
+    /// rather than waiting for all candidates to be gathered before sending the offer/answer.
+    /// - Note: This improves call setup time by allowing ICE connectivity checks to start earlier.
+    /// - Important: This setting is disabled by default to maintain compatibility with existing implementations.
+    public internal(set) var useTrickleIce: Bool = false
 
     // MARK: - Initializers
 
@@ -71,9 +86,16 @@ public struct TxConfig {
     ///   - pushDeviceToken: (Optional) The device's push notification token, required for receiving inbound call notifications
     ///   - ringtone: (Optional) The audio file name to play for incoming calls (e.g., "my-ringtone.mp3")
     ///   - ringBackTone: (Optional) The audio file name to play while making outbound calls (e.g., "my-ringbacktone.mp3")
+    ///   - pushEnvironment: (Optional) The push notification environment (production or debug)
     ///   - logLevel: (Optional) The verbosity level for SDK logs (defaults to `.none`)
     ///   - customLogger: (Optional) Custom logger implementation for handling SDK logs. If not provided, the default logger will be used
+    ///   - reconnectClient: (Optional) Whether the client should attempt to reconnect automatically. Default is true.
+    ///   - debug: (Optional) Enables WebRTC communication statistics reporting to Telnyx servers. Default is false.
+    ///   - forceRelayCandidate: (Optional) Controls whether the SDK should force TURN relay for peer connections. Default is false.
+    ///   - enableQualityMetrics: (Optional) Controls whether the SDK should deliver call quality metrics. Default is false.
+    ///   - sendWebRTCStatsViaSocket: (Optional) Whether to send WebRTC statistics via socket to Telnyx servers. Default is false.
     ///   - reconnectTimeOut: (Optional) Maximum time in seconds the SDK will attempt to reconnect a call after network disruption. Default is 60 seconds.
+    ///   - useTrickleIce: (Optional) Controls whether the SDK should use trickle ICE for WebRTC signaling. Default is false.
     public init(sipUser: String, password: String,
                 pushDeviceToken: String? = nil,
                 ringtone: String? = nil,
@@ -85,7 +107,9 @@ public struct TxConfig {
                 debug: Bool = false,
                 forceRelayCandidate: Bool = false,
                 enableQualityMetrics: Bool = false,
-                reconnectTimeOut: Double = DEFAULT_TIMEOUT
+                sendWebRTCStatsViaSocket: Bool = false,
+                reconnectTimeOut: Double = DEFAULT_TIMEOUT,
+                useTrickleIce: Bool = false
     ) {
         self.sipUser = sipUser
         self.password = password
@@ -102,6 +126,9 @@ public struct TxConfig {
         self.customLogger = customLogger
         self.reconnectClient = reconnectClient
         self.enableQualityMetrics = enableQualityMetrics
+        self.sendWebRTCStatsViaSocket = sendWebRTCStatsViaSocket
+        self.reconnectTimeout = reconnectTimeOut
+        self.useTrickleIce = useTrickleIce
         Logger.log.verboseLevel = logLevel
         Logger.log.customLogger = customLogger ?? TxDefaultLogger()
     }
@@ -112,10 +139,16 @@ public struct TxConfig {
     ///   - pushDeviceToken: (Optional) The device's push notification token, required for receiving inbound call notifications
     ///   - ringtone: (Optional) The audio file name to play for incoming calls (e.g., "my-ringtone.mp3")
     ///   - ringBackTone: (Optional) The audio file name to play while making outbound calls (e.g., "my-ringbacktone.mp3")
+    ///   - pushEnvironment: (Optional) The push notification environment (production or debug)
     ///   - logLevel: (Optional) The verbosity level for SDK logs (defaults to `.none`)
     ///   - customLogger: (Optional) Custom logger implementation for handling SDK logs. If not provided, the default logger will be used
-    ///   - serverConfiguration: (Optional) Custom configuration for signaling server and TURN/STUN servers (defaults to Telnyx Production servers)
+    ///   - reconnectClient: (Optional) Whether the client should attempt to reconnect automatically. Default is true.
+    ///   - debug: (Optional) Enables WebRTC communication statistics reporting to Telnyx servers. Default is false.
+    ///   - forceRelayCandidate: (Optional) Controls whether the SDK should force TURN relay for peer connections. Default is false.
+    ///   - enableQualityMetrics: (Optional) Controls whether the SDK should deliver call quality metrics. Default is false.
+    ///   - sendWebRTCStatsViaSocket: (Optional) Whether to send WebRTC statistics via socket to Telnyx servers. Default is false.
     ///   - reconnectTimeOut: (Optional) Maximum time in seconds the SDK will attempt to reconnect a call after network disruption. Default is 60 seconds.
+    ///   - useTrickleIce: (Optional) Controls whether the SDK should use trickle ICE for WebRTC signaling. Default is false.
     public init(token: String,
                 pushDeviceToken: String? = nil,
                 ringtone: String? = nil,
@@ -127,7 +160,9 @@ public struct TxConfig {
                 debug: Bool = false,
                 forceRelayCandidate: Bool = false,
                 enableQualityMetrics: Bool = false,
-                reconnectTimeOut: Double = DEFAULT_TIMEOUT
+                sendWebRTCStatsViaSocket: Bool = false,
+                reconnectTimeOut: Double = DEFAULT_TIMEOUT,
+                useTrickleIce: Bool = false
     ) {
         self.token = token
         if let pushToken = pushDeviceToken {
@@ -140,8 +175,11 @@ public struct TxConfig {
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
         self.enableQualityMetrics = enableQualityMetrics
+        self.sendWebRTCStatsViaSocket = sendWebRTCStatsViaSocket
         self.customLogger = customLogger
         self.reconnectClient = reconnectClient
+        self.reconnectTimeout = reconnectTimeOut
+        self.useTrickleIce = useTrickleIce
         Logger.log.verboseLevel = logLevel
         Logger.log.customLogger = customLogger ?? TxDefaultLogger()
     }

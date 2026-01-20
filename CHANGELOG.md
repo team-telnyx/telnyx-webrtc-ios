@@ -1,5 +1,63 @@
 # CHANGELOG
 
+## [2.4.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.4.0) (2025-11-17)
+
+### Features
+- **AI Agent Image Support**: Added ability to send Base64 encoded images to AI assistants during conversations through `sendAIAssistantMessage()` method with multi-image support
+
+## [2.3.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.3.1) (2025-10-27)
+
+### Bug Fixes
+- Fixed speaker state preservation during network reconnection and manual ACM (AudioDeviceModule) reset to prevent speakerphone from deactivating when switching networks
+
+## [2.3.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.3.0) (2025-10-21)
+
+### Features
+- **Preferred Audio Codecs**: Added support for preferred audio codec selection
+  - `TxClient.getSupportedAudioCodecs()`: Query supported audio codecs available for calls
+  - `Call.setPreferredCodecs()`: Set preferred audio codecs for individual calls
+
+## [2.2.2](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.2.2) (2025-10-08)
+
+### Features
+- **Anonymous Login for AI-Agent**: Added support for anonymous authentication specifically designed for AI-Agent integration, allowing connections without traditional credentials
+
+### Bug Fixes
+- Fixed speaker restoration after ACM (AudioDeviceModule) buffer reset to maintain the previously selected audio route
+- Fixed User-Agent header formatting and content
+
+## [2.2.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.2.1) (2025-09-23)
+
+### Bug Fixes
+- Improve audio connection performance by removing unnecessary audio device resets during mute/unmute operations
+- Maintain audio route change subscriptions throughout the client lifecycle instead of unsubscribing on disconnect
+
+## [2.2.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.2.0) (2025-09-19)
+
+### Features
+- **ICE Renegotiation**: Enhanced ICE candidate renegotiation process to improve call quality during network fluctuations
+- **ACM Buffer Reset**: Implemented automatic AudioDeviceModule (ACM) buffer reset mechanism based on RTT monitoring to reduce audio delay. The ACM buffer is automatically reset when RTT exceeds 1000ms. Requires `debug: true` and `enableQualityMetrics: true` flags in `TxConfig` to enable RTT monitoring and automatic buffer reset functionality
+- **WebRTC Stats Control**: Added new `sendWebRTCStatsViaSocket` flag in `TxConfig` to control whether WebRTC statistics are sent via socket to Telnyx servers
+
+## [2.1.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.1.0) (2025-07-31)
+
+### Features
+- SDK Region Selection
+
+### Enhancements
+- Improved reconnection logic for thread safety
+
+## [2.0.2](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.0.2) (2025-05-26)
+
+### Bug Fixes
+- Improved call quality metrics for real-time monitoring of call quality metrics
+- Fix cause codes for reject and normal clearing
+
+## [2.0.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.0.1) (2025-05-26)
+
+### Bug Fixes
+- Fixed initialization of `reconnectTimeOut` parameter in `TxConfig` that was not being properly assigned during configuration
+
 ## [2.0.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.0.0) (2025-05-21)
 
 ### Features

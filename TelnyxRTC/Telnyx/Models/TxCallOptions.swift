@@ -27,6 +27,33 @@ struct TxCallOptions {
     var useStereo: Bool = false
     var screenShare: Bool = false
     var userVariables: [String: Any]?
+    
+    /// Preferred audio codecs in order of preference
+    var preferredCodecs: [TxCodecCapability]?
+    
+    init(destinationNumber: String? = nil, 
+         remoteCallerName: String = "Outbound Call",
+         remoteCallerNumber: String? = nil,
+         clientState: String? = nil,
+         audio: Bool = true,
+         video: Bool = false,
+         attach: Bool = false,
+         useStereo: Bool = false,
+         screenShare: Bool = false,
+         userVariables: [String: Any]? = nil,
+         preferredCodecs: [TxCodecCapability]? = nil) {
+        self.destinationNumber = destinationNumber
+        self.remoteCallerName = remoteCallerName
+        self.remoteCallerNumber = remoteCallerNumber
+        self.clientState = clientState
+        self.audio = audio
+        self.video = video
+        self.attach = attach
+        self.useStereo = useStereo
+        self.screenShare = screenShare
+        self.userVariables = userVariables
+        self.preferredCodecs = preferredCodecs
+    }
 
     func encode() -> [String : Any] {
         var dictionary = [String: Any]()

@@ -144,6 +144,16 @@ public internal(set) var enableQualityMetrics: Bool = false
 
 Enables CallQuality Metrics for Call
 
+### `sendWebRTCStatsViaSocket`
+
+```swift
+public internal(set) var sendWebRTCStatsViaSocket: Bool = false
+```
+
+Controls whether the SDK should send WebRTC statistics via socket to Telnyx servers.
+When enabled, collected WebRTC stats will be sent to Telnyx servers for monitoring and debugging.
+This is independent of stats collection - stats can be collected without being sent via socket.
+
 ### `forceRelayCandidate`
 
 ```swift
@@ -193,3 +203,41 @@ Indicates whether the local audio is currently muted.
 - Returns: `false` if the call is not muted (audio track enabled)
 
 Use `muteAudio()` and `unmuteAudio()` to change the mute state.
+
+### `localStream`
+
+```swift
+public var localStream: RTCMediaStream?
+```
+
+The local media stream containing audio and/or video tracks being sent to the remote party.
+This stream represents the media captured from the local device (microphone, camera).
+Can be used for audio visualization, local video preview, or other media processing.
+
+## Examples
+```swift
+// Access local audio tracks for visualization
+if let localStream = call.localStream {
+    let audioTracks = localStream.audioTracks
+    // Use audio tracks for waveform visualization
+}
+```
+
+### `remoteStream`
+
+```swift
+public var remoteStream: RTCMediaStream?
+```
+
+The remote media stream containing audio and/or video tracks received from the remote party.
+This stream represents the media being received from the other participant in the call.
+Can be used for audio visualization, remote video display, or other media processing.
+
+## Examples
+```swift
+// Access remote audio tracks for visualization
+if let remoteStream = call.remoteStream {
+    let audioTracks = remoteStream.audioTracks
+    // Use audio tracks for waveform visualization
+}
+```

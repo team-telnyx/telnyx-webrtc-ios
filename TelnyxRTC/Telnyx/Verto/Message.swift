@@ -13,10 +13,11 @@ private let PROTOCOL_VERSION: String = "2.0"
 
 class Message {
     internal static let CLIENT_TYPE = "iOS"
+    internal static let SDK_VERSION = "2.4.0"
     internal static var USER_AGENT: String {
         get {
-            let version = Bundle(for: Message.self).infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
             let type = Message.CLIENT_TYPE
+            let version = Message.SDK_VERSION
             return type + "-" + version
         }
     }

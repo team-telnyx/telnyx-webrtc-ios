@@ -20,13 +20,11 @@ public class FileLogger {
     public func log(_ message: String) {
         let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .medium, timeStyle: .medium)
         let logMessage = "\(timestamp): \(message)\n\n\n\n"
-        print(logMessage)
         appendTextToFile(text: logMessage, fileURL: logFileURL)
     }
     
     private func appendTextToFile(text: String, fileURL: URL) {
         if(!FileLogger.isCallFromPush){
-            print("Not from Push")
             return
         }
         do {
@@ -53,13 +51,13 @@ public class FileLogger {
             if FileManager.default.fileExists(atPath: logFileURL.path) {
                 // Try to delete the file
                 try FileManager.default.removeItem(at: logFileURL)
-                print("Log file successfully deleted.")
+                Logger.log.i(message: "Log file successfully deleted.")
             } else {
-                print("Log file does not exist.")
+                Logger.log.i(message: "Log file does not exist.")
             }
         } catch {
             // Handle any errors that may occur during file deletion
-            print("Failed to delete log file: \(error.localizedDescription)")
+            Logger.log.e(message: "Failed to delete log file: \(error.localizedDescription)")
         }
     }
     
@@ -96,18 +94,8 @@ public class FileLogger {
 
         let logFileURL = FileLogger.shared.logFileURL
         guard let logData = try? Data(contentsOf: logFileURL) else {
-            print("Failed to read log file")
+            Logger.log.e(message: "Failed to read log file")
             return
-        }
-        
-        
-        let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .medium, timeStyle: .medium)
-        
-        if let logString = String(data: logData, encoding: .utf8) {
-                // Print the contents of the file
-                print("LogFile OutPut" + logString)
-            } else {
-                print("Failed to convert log data to string")
         }
 
         /*
@@ -134,8 +122,7 @@ public class FileLogger {
                 Logger.log.i(message:"FileLogger:: Log file successfully uploaded \(String(describing: response))")
 
             } else {
-                Logger.log.i(message:"FileLogger:: Error From Server \(String(describing: response))")
-                print("FileLogger :: Error From Server \(String(describing: response))")
+                Logger.log.e(message:"FileLogger:: Error From Server \(String(describing: response))")
             }
         }.resume()
          */

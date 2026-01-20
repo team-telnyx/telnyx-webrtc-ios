@@ -64,6 +64,16 @@ extension AppDelegate : CXProviderDelegate {
     ///   - uuid: uuid of the incoming call
     func newIncomingCall(from: String, uuid: UUID) {
         print("AppDelegate:: report NEW incoming call from [\(from)] uuid [\(uuid)]")
+
+        if let call = self.telnyxClient?.calls[uuid] {
+            // Track incoming call in call history
+            CallHistoryManager.shared.handleIncomingCall(
+                callId: uuid,
+                phoneNumber: call.callInfo?.callerNumber ?? "",
+                callerName: call.callInfo?.callerName ?? ""
+            )
+        }
+
         #if targetEnvironment(simulator)
         //Do not execute this function when debugging on the simulator.
         //By reporting a call through CallKit from the simulator, it automatically cancels the call.
@@ -83,6 +93,8 @@ extension AppDelegate : CXProviderDelegate {
         provider.reportNewIncomingCall(with: uuid, update: callUpdate) { error in
             if let error = error {
                 print("AppDelegate:: Failed to report incoming call: \(error.localizedDescription).")
+                // Track failed incoming call
+                CallHistoryManager.shared.handleCallFailed(callId: uuid)
             } else {
                 print("AppDelegate:: Incoming call successfully reported.")
             }
@@ -157,13 +169,16 @@ extension AppDelegate : CXProviderDelegate {
     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
         print("AppDelegate:: START call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
         self.callKitUUID = action.callUUID
-        self.voipDelegate?.executeCall(callUUID: action.callUUID) { call in
-            self.currentCall = call
-            if call != nil {
-                print("AppDelegate:: performVoiceCall() successful")
-                self.isCallOutGoing = true
-            } else {
-                print("AppDelegate:: performVoiceCall() failed")
+        // Don't execute if pre-call diagnosis is running
+        if(!PreCallDiagnosticManager.shared.isRunning){
+            self.voipDelegate?.executeCall(callUUID: action.callUUID) { call in
+                self.currentCall = call
+                if call != nil {
+                    print("AppDelegate:: performVoiceCall() successful")
+                    self.isCallOutGoing = true
+                } else {
+                    print("AppDelegate:: performVoiceCall() failed")
+                }
             }
         }
         action.fulfill()
@@ -171,12 +186,41 @@ extension AppDelegate : CXProviderDelegate {
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         print("AppDelegate:: ANSWER call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
-        self.telnyxClient?.answerFromCallkit(answerAction: action, customHeaders:  ["X-test-answer":"ios-test"],debug: true)
+
+        // Track incoming call answer in call history
+        if let call = self.telnyxClient?.calls[action.callUUID] {
+            let phoneNumber = call.callInfo?.callerNumber ?? "Unknown"
+            let callerName = call.callInfo?.callerName
+            CallHistoryManager.shared.handleAnswerCallAction(
+                action: action,
+                phoneNumber: phoneNumber,
+                callerName: callerName
+            )
+        }
+
+        self.telnyxClient?.answerFromCallkit(answerAction: action, customHeaders:  ["X-test-answer":"ios-test"], debug: true)
     }
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         print("AppDelegate:: END call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
         
+        // Track call end in call history
+        if let call = self.telnyxClient?.calls[action.callUUID] {
+            // Determine if this was a rejection or normal end
+            let status: CallStatus
+            switch call.callState {
+            case .RINGING:
+                status = .rejected
+            case .CONNECTING, .NEW:
+                status = .cancelled
+            default:
+                status = .answered
+            }
+            CallHistoryManager.shared.trackCallEnd(callId: action.callUUID, status: status)
+        }
+
+
+
         if previousCall?.callState == .HELD {
             print("AppDelegate:: call held.. unholding call")
             previousCall?.unhold()
@@ -256,6 +300,12 @@ extension AppDelegate : CXProviderDelegate {
         if selectedCredentials?.isToken ?? false {
             let token = selectedCredentials?.username ?? ""
             let deviceToken = userDefaults.getPushToken()
+            // Get settings from UserDefaults
+            let forceRelayCandidate = userDefaults.getForceRelayCandidate()
+            let webrtcStats = userDefaults.getWebRTCStats()
+            let sendWebRTCStatsViaSocket = userDefaults.getSendWebRTCStatsViaSocket()
+            let useTrickleIce = userDefaults.getUseTrickleIce()
+            print("[TRICKLE-ICE] AppDelegate:: Processing VoIP notification with useTrickleIce = \(useTrickleIce)")
             //Sets the login credentials and the ringtone/ringback configurations if required.
             //Ringtone / ringback tone files are not mandatory.
             let txConfig = TxConfig(token: token,
@@ -266,11 +316,15 @@ extension AppDelegate : CXProviderDelegate {
                                     logLevel: .all,
                                     reconnectClient: true,
                                     // Enable WebRTC stats debug
-                                    debug: true,
+                                    debug: webrtcStats,
                                     // Force relay candidate
-                                    forceRelayCandidate: false,
+                                    forceRelayCandidate: forceRelayCandidate,
                                     // Enable Call Quality Metrics
-                                    enableQualityMetrics: true)
+                                    enableQualityMetrics: true,
+                                    // Send WebRTC Stats Via Socket
+                                    sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket,
+                                    // Use Trickle ICE
+                                    useTrickleIce: useTrickleIce)
             
             do {
                 try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)
@@ -281,6 +335,12 @@ extension AppDelegate : CXProviderDelegate {
             let sipUser = selectedCredentials?.username ?? ""
             let password = selectedCredentials?.password ?? ""
             let deviceToken = userDefaults.getPushToken()
+            // Get settings from UserDefaults
+            let forceRelayCandidate = userDefaults.getForceRelayCandidate()
+            let webrtcStats = userDefaults.getWebRTCStats()
+            let sendWebRTCStatsViaSocket = userDefaults.getSendWebRTCStatsViaSocket()
+            let useTrickleIce = userDefaults.getUseTrickleIce()
+            print("[TRICKLE-ICE] AppDelegate:: Processing VoIP notification (SIP) with useTrickleIce = \(useTrickleIce)")
             //Sets the login credentials and the ringtone/ringback configurations if required.
             //Ringtone / ringback tone files are not mandatory.
             let txConfig = TxConfig(sipUser: sipUser,
@@ -292,11 +352,15 @@ extension AppDelegate : CXProviderDelegate {
                                     logLevel: .all,
                                     reconnectClient: true,
                                     // Enable WebRTC stats debug
-                                    debug: true,
+                                    debug: webrtcStats,
                                     // Force relay candidate
-                                    forceRelayCandidate: false,
+                                    forceRelayCandidate: forceRelayCandidate,
                                     // Enable Call Quality Metrics
-                                    enableQualityMetrics: true)
+                                    enableQualityMetrics: true,
+                                    // Send WebRTC Stats Via Socket
+                                    sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket,
+                                    // Use Trickle ICE
+                                    useTrickleIce: useTrickleIce)
             
             do {
                 try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)

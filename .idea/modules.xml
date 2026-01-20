@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/TelnyxRTC.iml" filepath="$PROJECT_DIR$/.idea/TelnyxRTC.iml" />
-      <module fileurl="file://$USER_HOME$/Library/Caches/JetBrains/Fleet/backend/telnyx-webrtc-ios.2ck86eh5c1tgp267r8m6/projects/telnyx-webrtc-ios.40fb799e/external_build_system/modules/telnyx-webrtc-ios-fleet.iml" filepath="$USER_HOME$/Library/Caches/JetBrains/Fleet/backend/telnyx-webrtc-ios.2ck86eh5c1tgp267r8m6/projects/telnyx-webrtc-ios.40fb799e/external_build_system/modules/telnyx-webrtc-ios-fleet.iml" />
-    </modules>
-  </component>
-</project>

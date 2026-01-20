@@ -18,7 +18,6 @@ end
 desc "Run unit tests."
 lane :tests do
    run_tests(workspace: "TelnyxRTC.xcworkspace",
-            devices: ["iPhone 8"],
             scheme: "TelnyxRTCTests")
 end
 
@@ -40,13 +39,9 @@ end
 
 desc "Generate documentation using Jazzy - HTML docs"
 lane :generate_docs do
+  # Use configuration file to avoid command-line escaping issues
   sh <<-SHELL
-    cd .. && jazzy \
-      --clean \
-      --author "Telnyx LLC" \
-      --author_url "https://www.telnyx.com/" \
-      --xcodebuild-arguments -workspace,TelnyxRTC.xcworkspace,-scheme,TelnyxRTC,-sdk,iphonesimulator,-destination,platform=iOS Simulator,OS=17.0.1,name=iPhone 15 Pro \
-      --output ./docs
+    cd .. && jazzy --config .jazzy.yaml
   SHELL
   UI.message("📚 Documentation generated in ./docs")
 end
@@ -58,7 +53,7 @@ lane :generate_docs_markdown do
                               -- \
                               -workspace TelnyxRTC.xcworkspace \
                               -scheme TelnyxRTC \
-                              -destination 'platform=iOS Simulator,OS=17.5,name=iPhone 15'
+                              -destination 'platform=iOS Simulator,OS=18.5,name=iPhone 16 Pro Max'
 
 
   SHELL

@@ -11,12 +11,12 @@ The following setup is required in your application to receive Telnyx VoIP push 
 3. In the top-left corner of the right-hand pane in Xcode, select your app's target.
 4. Press the  +Capabilities button.
 <p align="center">
-      <img width="294" alt="Screen Shot 2021-11-26 at 13 34 12" src="https://user-images.githubusercontent.com/75636882/143610180-04e2a98c-bb08-4f06-b81a-9a3a4231d389.png">
+      <img width="294" alt="Screen Shot 2021-11-26 at 13 34 12" src="https://user-images.githubusercontent.com/75636882/143610180-04e2a98c-bb08-4f06-b81a-9a3a4231d389.png" />
 </p>
 
 6. Enable Push Notifications
 <p align="center">
-      <img width="269" alt="Screen Shot 2021-11-26 at 13 35 51" src="https://user-images.githubusercontent.com/75636882/143610372-abab46cc-dd2a-4712-9020-240f9dbaaaf7.png">
+      <img width="269" alt="Screen Shot 2021-11-26 at 13 35 51" src="https://user-images.githubusercontent.com/75636882/143610372-abab46cc-dd2a-4712-9020-240f9dbaaaf7.png" />
 </p>
 
 #### b. Configure PushKit into your app:
@@ -134,6 +134,13 @@ __*Important*__:
 - You will need to login at least once to send your device token to Telnyx before start getting Push notifications.
 - You will need to provide `pushMetaData` to `processVoIPNotification()` to get Push calls to work.
 - You will need to implement 'CallKit' to report an incoming call when there’s a VoIP push notification. On iOS 13.0 and later, if you fail to report a call to CallKit, the system will terminate your app. More information on [Apple docs](https://developer.apple.com/documentation/pushkit/pkpushregistrydelegate/2875784-pushregistry) 
+
+
+## Multidevice Push Notifications
+
+Telnyx WebRTC supports multidevice push notifications. A single user can have up to 5 device tokens (either iOS - APNS or Android - FCM). When a user logs into the socket and provides a push token, our services will register this token to that user - allowing it to receive push notifications for incoming calls. If a 6th registration is made, the least recently used token will be removed.
+
+This effectively means that you can have up to 5 devices that can receive push notifications for the same incoming call.
 
 ## Disable Push Notification
 

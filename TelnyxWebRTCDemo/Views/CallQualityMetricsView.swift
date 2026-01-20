@@ -16,6 +16,7 @@ struct CallQualityMetricsView: View {
                 metricRow(title: "Jitter:", value: "\(String(format: "%.3f", metrics.jitter)) s")
                 metricRow(title: "MOS:", value: "\(String(format: "%.1f", metrics.mos))")
                 metricRow(title: "Quality:", value: metrics.quality.rawValue.capitalized)
+                metricRow(title: "RTT:", value: "\(String(format: "%.3f", metrics.rtt)) s")
             }
             
             // Inbound Audio Stats
@@ -110,80 +111,3 @@ struct CallQualityMetricsView: View {
     }
 }
 
-struct CallQualityMetricsView_Previews: PreviewProvider {
-    static var previews: some View {
-        let inboundAudioStats: [String: Any] = [
-            "audioLevel": 3.051850947599719e-05,
-            "transportId": "T01",
-            "trackIdentifier": "d5b70c94-0db7-42ee-bfcf-704604f306f0",
-            "totalAudioEnergy": 3.073552088100552e-10,
-            "packetsDiscarded": 0,
-            "mid": 0,
-            "jitterBufferDelay": 643.2,
-            "type": "inbound-rtp",
-            "id": "IT01A3376722818",
-            "packetsLost": 0,
-            "delayedPacketOutageSamples": 3360,
-            "codecId": "CIT01_102_minptime=10;useinbandfec=1",
-            "timestamp": 1746801919015.509,
-            "jitterBufferTargetDelay": 1228.8,
-            "removedSamplesForAcceleration": 0,
-            "interruptionCount": 0,
-            "relativePacketArrivalDelay": 0.22,
-            "jitter": 0.01,
-            "fecPacketsReceived": 0,
-            "fecPacketsDiscarded": 0,
-            "packetsReceived": 21,
-            "jitterBufferEmittedCount": 15360,
-            "totalSamplesReceived": 57600,
-            "headerBytesReceived": 252,
-            "lastPacketReceivedTimestamp": 1746801919005.599,
-            "jitterBufferMinimumDelay": 1075.2,
-            "insertedSamplesForDeceleration": 480,
-            "totalSamplesDuration": 1.200000000000001,
-            "silentConcealedSamples": 38760,
-            "concealmentEvents": 2,
-            "kind": "audio",
-            "concealedSamples": 41760,
-            "ssrc": 3376722818,
-            "totalInterruptionDuration": 0,
-            "jitterBufferFlushes": 1,
-            "bytesReceived": 168
-        ]
-
-        let outboundAudioStats: [String: Any] = [
-            "ssrc": 3785125107,
-            "active": 1,
-            "id": "OT01A3785125107",
-            "headerBytesSent": 264,
-            "codecId": "COT01_102_maxaveragebitrate=30000;maxplaybackrate=48000;minptime=10;stereo=0;useinbandfec=1",
-            "mid": 0,
-            "targetBitrate": 30000,
-            "nackCount": 0,
-            "retransmittedPacketsSent": 0,
-            "packetsSent": 22,
-            "kind": "audio",
-            "timestamp": 1746801919015.509,
-            "totalPacketSendDelay": 0,
-            "bytesSent": 1386,
-            "type": "outbound-rtp",
-            "retransmittedBytesSent": 0,
-            "transportId": "T01",
-            "mediaSourceId": "SA1"
-        ]
-
-        let callQualityMetrics = CallQualityMetrics(
-            jitter: 0.01,
-            rtt: 0.0,
-            mos: 4.404592027648,
-            quality: .excellent,
-            inboundAudio: inboundAudioStats,
-            outboundAudio: outboundAudioStats,
-            remoteInboundAudio: nil,
-            remoteOutboundAudio: nil
-        )
-        
-        return CallQualityMetricsView(metrics: callQualityMetrics, onClose: {})
-            .previewLayout(.sizeThatFits)
-    }
-}
