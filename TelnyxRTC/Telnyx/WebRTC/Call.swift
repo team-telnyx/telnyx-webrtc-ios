@@ -635,7 +635,6 @@ extension Call {
         guard let sessionId = self.sessionId, let callId = self.callInfo?.callId else { return }
         
         // Create a termination reason for local hangup
-        // Use USER_BUSY
         let causeCode: CauseCode
 
         switch callState {
@@ -652,7 +651,7 @@ extension Call {
             causeCode: causeCode.rawValue
         )
 
-        let byeMessage = ByeMessage(sessionId: sessionId, callId: callId.uuidString, causeCode: .USER_BUSY)
+        let byeMessage = ByeMessage(sessionId: sessionId, callId: callId.uuidString, causeCode: causeCode)
         let message = byeMessage.encode() ?? ""
         self.socket?.sendMessage(message: message)
         self.endCall(terminationReason: terminationReason)
