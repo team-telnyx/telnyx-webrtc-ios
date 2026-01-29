@@ -43,6 +43,8 @@
 		3BE84BA82D9C944A00CA1B70 /* DestinationToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE84BA72D9C944A00CA1B70 /* DestinationToggle.swift */; };
 		3BF1D5842BEB7B8F0097453F /* TelnyxRTC.podspec in Resources */ = {isa = PBXBuildFile; fileRef = 3BF1D5832BEB7B8F0097453F /* TelnyxRTC.podspec */; };
 		44D1F514E45F03506FE8F857 /* Pods_TelnyxRTC_TelnyxRTCTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279B09E41685F86C3C8A83F3 /* Pods_TelnyxRTC_TelnyxRTCTests.framework */; };
+		6AD2D5992F20391F00BF87F5 /* CallTimingBenchmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AD2D5982F20391F00BF87F5 /* CallTimingBenchmark.swift */; };
+		6AD2D59B2F203A0700BF87F5 /* RTCPeerConnectionState+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AD2D59A2F203A0700BF87F5 /* RTCPeerConnectionState+Extension.swift */; };
 		8097534D667E46A79D43A02A8F6C3093 /* Call+IceRestart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3D8EC626B740CCBFC6D5A6178C87FE /* Call+IceRestart.swift */; };
 		853C8C4A7CC44D38A4D2AA0145A5C91B /* ICERestartMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD61A0D3085C477AB1B14626A82449EA /* ICERestartMessage.swift */; };
 		9905E4772EA81D41000AC89D /* CandidateMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9905E4762EA81D41000AC89D /* CandidateMessage.swift */; };
@@ -251,6 +253,8 @@
 		3BF1D5832BEB7B8F0097453F /* TelnyxRTC.podspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TelnyxRTC.podspec; sourceTree = "<group>"; };
 		4C3D8EC626B740CCBFC6D5A6178C87FE /* Call+IceRestart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Call+IceRestart.swift"; sourceTree = "<group>"; };
 		5957191CD6394C558F46DD60 /* Pods-TelnyxRTC.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxRTC.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxRTC/Pods-TelnyxRTC.debug.xcconfig"; sourceTree = "<group>"; };
+		6AD2D5982F20391F00BF87F5 /* CallTimingBenchmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallTimingBenchmark.swift; sourceTree = "<group>"; };
+		6AD2D59A2F203A0700BF87F5 /* RTCPeerConnectionState+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RTCPeerConnectionState+Extension.swift"; sourceTree = "<group>"; };
 		80349220CA4C22F67427BF9A /* Pods_TelnyxRTC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxRTC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		86027677A7D2417967A1DD1A /* Pods_TelnyxWebRTCDemo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TelnyxWebRTCDemo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9905E4762EA81D41000AC89D /* CandidateMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandidateMessage.swift; sourceTree = "<group>"; };
@@ -491,6 +495,7 @@
 		996C67D52CFEA7430056E508 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				6AD2D59A2F203A0700BF87F5 /* RTCPeerConnectionState+Extension.swift */,
 				996C67D82CFEB7D30056E508 /* RTCConfiguration+Extension.swift */,
 				996C67D62CFEA9670056E508 /* RTCIceCandidate+Extension.swift */,
 				996C67D32CFEA7270056E508 /* RTCMediaStreamTrack+Extension.swift */,
@@ -753,6 +758,7 @@
 		B36FC8BE2612791E00A30BC4 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				6AD2D5982F20391F00BF87F5 /* CallTimingBenchmark.swift */,
 				3B21257D2DC8129700E68EA6 /* MOSCalculator.swift */,
 				3BABEA382D5F595A00B7C79C /* NetworkMonitor.swift */,
 				3B758F1D2BF97E8C00D50069 /* FileLoger.swift */,
@@ -1194,6 +1200,8 @@
 				B3E0B0662656ED73005E7431 /* InfoMessage.swift in Sources */,
 				B3E1029A25F2C16500227DCE /* ModifyMessage.swift in Sources */,
 				B309D24025F06EA600A2AADF /* InviteMessage.swift in Sources */,
+				6AD2D5992F20391F00BF87F5 /* CallTimingBenchmark.swift in Sources */,
+				6AD2D59B2F203A0700BF87F5 /* RTCPeerConnectionState+Extension.swift in Sources */,
 				3B72695D2A9396BF00D2A602 /* DisablePushMessage.swift in Sources */,
 				B309D22925F06C6900A2AADF /* Call.swift in Sources */,
 				8097534D667E46A79D43A02A8F6C3093 /* Call+IceRestart.swift in Sources */,

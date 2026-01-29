@@ -525,12 +525,19 @@ public class Call {
         sdp: Is the remote SDP to configure in the current RTCPeerConnection
      */
     private func answered(sdp: String, custumHeaders:[String:String] = [:]) {
+        // Start benchmarking for outbound calls when answer is received
+        CallTimingBenchmark.start(isOutbound: true)
+        CallTimingBenchmark.mark(CallBenchmarkMilestone.answerSdpReceived)
+        
         let remoteDescription = RTCSessionDescription(type: .answer, sdp: sdp)
         self.peer?.connection?.setRemoteDescription(remoteDescription, completionHandler: { (error) in
             if let error = error  {
                 Logger.log.e(message: "Call:: Error setting remote description: \(error)")
                 return
             }
+            
+            CallTimingBenchmark.mark(CallBenchmarkMilestone.remoteDescriptionSet)
+            
             self.answerCustomHeaders = custumHeaders
             self.updateCallState(callState: .ACTIVE)
             Logger.log.e(message: "Call:: connected")
@@ -566,6 +573,9 @@ public class Call {
     }
 
     private func endCall(terminationReason: CallTerminationReason? = nil) {
+        // Reset benchmarking when call ends
+        CallTimingBenchmark.reset()
+        
         self.stopRingtone()
         self.stopRingbackTone()
         self.statsReporter?.dispose()
@@ -683,6 +693,10 @@ extension Call {
     ///   - debug: (optional) Enable debug mode for call quality metrics and WebRTC statistics.
     ///     When enabled, real-time call quality metrics will be available through the `onCallQualityChange` callback.
     public func answer(customHeaders:[String:String] = [:], debug:Bool = false) {
+        // Start benchmarking for inbound calls when answer is called
+        CallTimingBenchmark.start(isOutbound: false)
+        CallTimingBenchmark.mark(CallBenchmarkMilestone.acceptCallStarted)
+        
         self.stopRingtone()
         self.stopRingbackTone()
         //TODO: Create an error if there's no remote SDP
@@ -703,6 +717,8 @@ extension Call {
         Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.callInfo?.callId.uuidString.lowercased() ?? "nil") for trickle ICE")
         self.incomingOffer(sdp: remoteSdp)
         self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", completion: { (sdp, error)  in
+            
+            CallTimingBenchmark.mark(CallBenchmarkMilestone.answerSdpSent)
 
             if let error = error {
                 Logger.log.e(message: "Call:: Error creating the answering: \(error)")
