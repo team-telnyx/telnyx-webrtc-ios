@@ -34,6 +34,8 @@
 	<array>
 		<string>audio</string>
 		<string>voip</string>
+		<string>processing</string>
+		<string>fetch</string>
 	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>

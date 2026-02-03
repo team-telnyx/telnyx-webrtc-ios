@@ -137,22 +137,22 @@ public class TxClient {
     public weak var delegate: TxClientDelegate?
     private var socket : Socket?
 
-    private var answerCallAction:CXAnswerCallAction? = nil
-    private var endCallAction:CXEndCallAction? = nil
+    private var answerCallAction: CXAnswerCallAction? = nil
+    private var endCallAction: CXEndCallAction? = nil
     private var sessionId : String?
     internal var txConfig: TxConfig?
     internal var serverConfiguration: TxServerConfiguration
-    private var voiceSdkId:String? = nil
+    private var voiceSdkId: String? = nil
 
     private var registerRetryCount: Int = MAX_REGISTER_RETRY
     private var registerTimer: Timer = Timer()
     private var gatewayState: GatewayStates = .NOREG
     private var isCallFromPush: Bool = false
-    private var currentCallId:UUID = UUID()
+    private var currentCallId: UUID = UUID()
     private var pendingAnswerHeaders = [String:String]()
-    internal var sendFileLogs:Bool = false
-    private var attachCallId:String?
-    private var pushMetaData:[String:Any]?
+    internal var sendFileLogs: Bool = false
+    private var attachCallId: String?
+    private var pushMetaData: [String:Any]?
     private let AUTH_ERROR_CODE = "-32001"
     private var reconnectTimeoutTimer: DispatchSourceTimer?
     private let reconnectQueue = DispatchQueue(label: "TelnyxClient.ReconnectQueue")
@@ -164,6 +164,16 @@ public class TxClient {
     /// AI Assistant Manager for handling AI-related functionality
     public let aiAssistantManager = AIAssistantManager()
 
+    
+    // New properties for improved push flow
+    private var storedTxConfig: TxConfig?
+    private var storedServerConfiguration: TxServerConfiguration?
+    private var pendingCallDecline: Bool = false
+    
+    // Timeout mechanism for VoIP push calls
+    private var inviteTimeoutTimer: Timer?
+    private var isWaitingForInviteAfterPush: Bool = false
+    private static let INVITE_TIMEOUT_SECONDS: TimeInterval = 10.0
     
     public private(set) var isSpeakerEnabled: Bool {
         get {
@@ -489,7 +499,8 @@ public class TxClient {
     ///   - txConfig: The desired login credentials. See TxConfig docummentation for more information.
     ///   - serverConfiguration: (Optional) To define a custom `signaling server` and `TURN/ STUN servers`. As default we use the internal Telnyx Production servers.
     /// - Throws: TxConfig parameters errors
-    public func connect(txConfig: TxConfig, serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
+    public func connect(txConfig: TxConfig,
+                        serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
         Logger.log.i(message: "TxClient:: connect()")
         //Check connetion parameters
         try txConfig.validateParams()
@@ -498,7 +509,13 @@ public class TxClient {
         self.txConfig = txConfig
 
         if(self.voiceSdkId != nil){
-            self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,webRTCIceServers: serverConfiguration.webRTCIceServers,environment: serverConfiguration.environment,pushMetaData: ["voice_sdk_id":self.voiceSdkId!])
+            Logger.log.i(message: "with_id")
+            self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,
+                                                             webRTCIceServers: serverConfiguration.webRTCIceServers,
+                                                             environment: serverConfiguration.environment,
+                                                             pushMetaData: [
+                                                                "voice_sdk_id":self.voiceSdkId!
+                                                             ])
         } else {
             self.serverConfiguration = serverConfiguration
         }
@@ -509,7 +526,8 @@ public class TxClient {
     }
     
     
-    private func connectFromPush(txConfig: TxConfig, serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
+    private func connectFromPush(txConfig: TxConfig,
+                                 serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
         Logger.log.i(message: "TxClient:: connect from_push")
         //Check connetion parameters
         try txConfig.validateParams()
@@ -518,11 +536,90 @@ public class TxClient {
         self.txConfig = txConfig
 
 
-        self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,webRTCIceServers: serverConfiguration.webRTCIceServers,environment: serverConfiguration.environment,pushMetaData: self.pushMetaData)
+        self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,
+                                                         webRTCIceServers: serverConfiguration.webRTCIceServers,
+                                                         environment: serverConfiguration.environment,
+                                                         pushMetaData: self.pushMetaData)
+
+        Logger.log.i(message: "TxClient:: serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
         self.socket = Socket()
         self.socket?.delegate = self
         self.aiAssistantManager.setSocket(self.socket)
         self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
+    }
+    
+    /// Connects only the socket without performing login - used for improved push flow
+    private func connectSocketOnly(serverConfiguration: TxServerConfiguration) throws {
+        Logger.log.i(message: "TxClient:: connectSocketOnly - connecting socket without login")
+        self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
+        self.gatewayState = .NOREG
+        self.serverConfiguration = serverConfiguration
+
+        Logger.log.i(message: "TxClient:: serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
+        self.socket = Socket()
+        self.socket?.delegate = self
+        self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
+    }
+    
+    /// Performs login with stored configuration and optional decline_push parameter
+    private func performLogin(declinePush: Bool = false) {
+        guard let storedConfig = storedTxConfig else {
+            Logger.log.e(message: "TxClient:: performLogin - No stored config available")
+            return
+        }
+        
+        // Set the stored config as current config
+        self.txConfig = storedConfig
+        
+        // Get push token and push provider if available
+        let pushToken = storedConfig.pushNotificationConfig?.pushDeviceToken
+        let pushProvider = storedConfig.pushNotificationConfig?.pushNotificationProvider
+
+        //Login into the signaling server
+        if let token = storedConfig.token {
+            Logger.log.i(message: "TxClient:: performLogin with Token, declinePush: \(declinePush)")
+            let vertoLogin = LoginMessage(token: token, 
+                                        pushDeviceToken: pushToken, 
+                                        pushNotificationProvider: pushProvider,
+                                        startFromPush: self.isCallFromPush,
+                                        pushEnvironment: storedConfig.pushEnvironment,
+                                        sessionId: self.sessionId!,
+                                        declinePush: declinePush)
+            self.socket?.sendMessage(message: vertoLogin.encode())
+        } else {
+            Logger.log.i(message: "TxClient:: performLogin with SIP User and Password, declinePush: \(declinePush)")
+            guard let sipUser = storedConfig.sipUser else { return }
+            guard let password = storedConfig.password else { return }
+            let vertoLogin = LoginMessage(user: sipUser, 
+                                        password: password, 
+                                        pushDeviceToken: pushToken, 
+                                        pushNotificationProvider: pushProvider,
+                                        startFromPush: self.isCallFromPush,
+                                        pushEnvironment: storedConfig.pushEnvironment,
+                                        sessionId: self.sessionId!,
+                                        declinePush: declinePush)
+            self.socket?.sendMessage(message: vertoLogin.encode())
+        }
+        
+        if declinePush {
+            // Create a termination reason for local hangup
+            // Use USER_BUSY
+            let terminationReason = CallTerminationReason(
+                cause: ByeMessage.getCauseFromCode(causeCode: CauseCode.USER_BUSY),
+                causeCode: CauseCode.USER_BUSY.rawValue
+            )
+            
+            self.delegate?.onCallStateUpdated(callState: CallState.DONE(reason: terminationReason),
+                                              callId: self.currentCallId)
+            
+            // Disconnect the socket after a 1-second delay as required
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                Logger.log.i(message: "TxClient:: performLogin - Disconnecting socket after decline_push login")
+                // Reset push variables after decline_push login is complete
+                self.resetPushVariables()
+                self.disconnect()
+            }
+        }
     }
 
     /// Disconnects the TxClient from the Telnyx signaling server.
@@ -537,10 +634,11 @@ public class TxClient {
         }
         self.calls.removeAll()
         self.stopReconnectTimeout()
-        
+        self.stopInviteTimeout()
+
         // Clear AI Assistant Manager data
         self.aiAssistantManager.clearAllData()
-        
+
         // Remove audio route change observer
         NotificationCenter.default.removeObserver(self,
                                                   name: AVAudioSession.routeChangeNotification,
@@ -596,17 +694,47 @@ public class TxClient {
     ///     converted to underscores in variable names.
     ///   - debug: (optional) Enable debug mode for call quality metrics and WebRTC statistics.
     ///     When enabled, real-time call quality metrics will be available through the call's `onCallQualityChange` callback.
-    public func answerFromCallkit(answerAction:CXAnswerCallAction,customHeaders:[String:String] = [:], debug:Bool = false) {
+    public func answerFromCallkit(answerAction: CXAnswerCallAction,
+                                  customHeaders: [String:String] = [:],
+                                  debug: Bool = false) {
+        Logger.log.i(message: "TxClient:: answerFromCallkit - started for callId: \(String(describing: answerAction.callUUID))")
         self.answerCallAction = answerAction
-        ///answer call if currentPushCall is not nil
-        ///This means the client has connected and we can safelyanswer
-        if(self.calls[currentCallId] != nil){
-            self.calls[currentCallId]?.answer(customHeaders: customHeaders, debug: debug)
+
+        // Check if the call was initiated by a push notification
+        if isCallFromPush {
+            Logger.log.i(message: "TxClient:: answerFromCallkit - Call initiated by push notification")
+            /// Let's Keep track of the `customHeaders` passed
+            pendingAnswerHeaders = customHeaders
+            /// Set call quality metrics
+            self.enableQualityMetrics = debug
+
+            // Start the login process by sending a login message with decline_push: false
+            // Automatically accept the call once the INVITE is received
+            if isConnected() {
+                Logger.log.i(message: "TxClient:: answerFromCallkit - Socket connected, performing login with decline_push: false")
+                performLogin(declinePush: false)
+            } else {
+                Logger.log.i(message: "TxClient:: answerFromCallkit - Socket not connected, connecting first")
+                do {
+                    try connectSocketOnly(serverConfiguration: storedServerConfiguration!)
+                    // Login will happen in onSocketConnected
+                } catch let error {
+                    Logger.log.e(message: "TxClient:: answerFromCallkit connect error \(error.localizedDescription)")
+                    answerCallAction?.fail()
+                }
+            }
+            return
+        }
+
+        // If already connected and there's a pending INVITE, immediately accept the call
+        if let currentCall = self.calls[currentCallId] {
+            currentCall.answer(customHeaders: customHeaders,
+                               debug: debug)
             answerCallAction?.fulfill()
             resetPushVariables()
             Logger.log.i(message: "answered from callkit")
-        }else{
-            /// Let's Keep track od the `customHeaders` passed
+        } else {
+            /// Let's Keep track of the `customHeaders` passed
             pendingAnswerHeaders = customHeaders
             /// Set call quality metrics
             self.enableQualityMetrics = debug
@@ -616,21 +744,116 @@ public class TxClient {
     private func resetPushVariables() {
         answerCallAction = nil
         endCallAction = nil
+        storedTxConfig = nil
+        storedServerConfiguration = nil
+        pendingCallDecline = false
+        isCallFromPush = false
+        stopInviteTimeout()
+        isWaitingForInviteAfterPush = false
+    }
+    
+    /// Starts the INVITE timeout timer for VoIP push calls
+    private func startInviteTimeout() {
+        stopInviteTimeout() // Ensure any existing timer is stopped
+        
+        Logger.log.i(message: "TxClient:: Starting INVITE timeout timer (10 seconds)")
+        isWaitingForInviteAfterPush = true
+        
+        inviteTimeoutTimer = Timer.scheduledTimer(withTimeInterval: TxClient.INVITE_TIMEOUT_SECONDS, repeats: false) { [weak self] _ in
+            self?.handleInviteTimeout()
+        }
+    }
+    
+    /// Stops the INVITE timeout timer
+    private func stopInviteTimeout() {
+        inviteTimeoutTimer?.invalidate()
+        inviteTimeoutTimer = nil
+        isWaitingForInviteAfterPush = false
+    }
+    
+    /// Handles the timeout when no INVITE is received after accepting a VoIP push call
+    private func handleInviteTimeout() {
+        Logger.log.w(message: "TxClient:: INVITE timeout - No INVITE received within 10 seconds after accepting VoIP push call")
+        
+        // Create the termination reason as specified in the ticket
+        let terminationReason = CallTerminationReason(
+            cause: "ORIGINATOR_CANCEL",
+            causeCode: 487,
+            sipCode: 487,
+            sipReason: "Request Terminated"
+        )
+        
+        // Emit both delegate events to ensure proper CallKit termination
+        delegate?.onRemoteCallEnded(callId: currentCallId, reason: terminationReason)
+        delegate?.onCallStateUpdated(callState: CallState.DONE(reason: terminationReason),
+                                     callId: currentCallId)
+        
+        // Clean up and reset push variables
+        resetPushVariables()
+        
+        // Fulfill the answer action if it exists
+        answerCallAction?.fulfill()
+        
+        Logger.log.i(message: "TxClient:: INVITE timeout handled - Call terminated with ORIGINATOR_CANCEL, CallKit events emitted")
     }
     
     /// To end and control callKit active and conn
-    public func endCallFromCallkit(endAction:CXEndCallAction,callId:UUID? = nil) {
+    public func endCallFromCallkit(endAction: CXEndCallAction,
+                                   callId: UUID? = nil) {
+        Logger.log.i(message: "TxClient:: endCallFromCallkit - started for callID \(String(describing: endAction.callUUID))")
+
         self.endCallAction = endAction
-        // Place the code you want to delay here
+        
+        // Check if the call was initiated by a push notification
+        if isCallFromPush {
+            Logger.log.i(message: "TxClient:: endCallFromCallkit - Call initiated by push notification, sending decline_push")
+            self.pendingCallDecline = true
+            self.currentCallId = callId ?? UUID()
+
+            // Send a login message with decline_push: true to silently reject the call
+            if isConnected() {
+                Logger.log.i(message: "TxClient:: endCallFromCallkit - Socket connected, performing login with decline_push: true")
+                performLogin(declinePush: true)
+            } else {
+                Logger.log.i(message: "TxClient:: endCallFromCallkit - Socket not connected, connecting first")
+                do {
+                    try connectSocketOnly(serverConfiguration: storedServerConfiguration!)
+                    // Login with decline_push will happen in onSocketConnected
+                    // Note: resetPushVariables() will be called after decline_push login is sent
+                } catch let error {
+                    Logger.log.e(message: "TxClient:: endCallFromCallkit connect error \(error.localizedDescription)")
+                    endAction.fail()
+                    return
+                }
+            }
+            
+            // Remove pending call from internal list
+            if let callUUID = endAction.callUUID as UUID?,
+               let _ = self.calls[callUUID] {
+                self.calls.removeValue(forKey: callUUID)
+            }
+            
+            // Only reset push variables if socket is already connected
+            // If not connected, reset will happen after decline_push login is sent
+            if isConnected() {
+                self.resetPushVariables()
+            }
+            self.stopReconnectTimeout()
+            endAction.fulfill()
+            return
+        }
+        
+        // If the call was not initiated by push and there's an active call (currentCall exists)
+        // Perform a standard call rejection
         if let call = self.calls[endAction.callUUID] {
             Logger.log.i(message: "EndClient:: Ended Call with Id \(endAction.callUUID)")
             call.hangup()
             self.resetPushVariables()
             self.stopReconnectTimeout()
             endAction.fulfill()
-        } else if(self.calls[self.currentCallId] != nil) {
+        } else if let call = self.calls[self.currentCallId] {
             Logger.log.i(message: "EndClient:: Ended Call")
-            self.calls[self.currentCallId]?.hangup()
+            call.hangup()
             self.resetPushVariables()
             self.stopReconnectTimeout()
             endAction.fulfill()
@@ -810,10 +1033,25 @@ public class TxClient {
                 // - Stop the timer
                 // - Propagate the client state to the app.
                 self.registerTimer.invalidate()
+                
+                // Handle decline_push case - disconnect immediately after successful login
+                if pendingCallDecline {
+                    Logger.log.i(message: "TxClient:: updateGatewayState() decline_push completed, disconnecting")
+                    pendingCallDecline = false
+                    self.disconnect()
+                    return
+                }
+                
                 self.delegate?.onClientReady()
                 //Check if isCallFromPush and sendAttachCall Message
                 if (self.isCallFromPush == true){
                     self.sendAttachCall()
+                    
+                    // Start INVITE timeout for VoIP push calls that are being answered (not declined)
+                    if answerCallAction != nil && !pendingCallDecline {
+                        Logger.log.i(message: "TxClient:: updateGatewayState() Starting INVITE timeout for VoIP push call")
+                        startInviteTimeout()
+                    }
                 }
                 break
             default:
@@ -1109,13 +1347,15 @@ extension TxClient {
         }
         
         self.pushMetaData = pushMetaData
-                
-        let pnServerConfig = TxServerConfiguration(
+        
+        // Store config objects for later use (don't login immediately)
+        self.storedTxConfig = txConfig
+        self.storedServerConfiguration = TxServerConfiguration(
             signalingServer:nil,
             webRTCIceServers: serverConfiguration.webRTCIceServers,
             environment: serverConfiguration.environment,
             pushMetaData: pushMetaData)
-        
+                
         let noActiveCalls = self.calls.filter { 
             $0.value.callState.isConsideredActive
         }.isEmpty
@@ -1127,8 +1367,9 @@ extension TxClient {
         
         if noActiveCalls {
             do {
-                Logger.log.i(message: "TxClient:: No Active Calls Connecting Again")
-                try self.connectFromPush(txConfig: txConfig, serverConfiguration: pnServerConfig)
+                Logger.log.i(message: "TxClient:: No Active Calls - Only connecting socket, not logging in")
+                // Only initiate socket connection, don't login yet
+                try self.connectSocketOnly(serverConfiguration: self.storedServerConfiguration!)
                 
                 // Create an initial call_object to handle early bye message
                 if let newCallId = (pushMetaData["call_id"] as? String) {
@@ -1137,7 +1378,7 @@ extension TxClient {
                                                                     sessionId: newCallId,
                                                                     socket: self.socket!,
                                                                     delegate: self,
-                                                                    iceServers: self.serverConfiguration.webRTCIceServers,
+                                                                    iceServers: self.storedServerConfiguration!.webRTCIceServers,
                                                                     debug: self.txConfig?.debug ?? false,
                                                                     forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
                                                                     sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
@@ -1346,17 +1587,34 @@ extension TxClient : SocketDelegate {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected()")
         self.delegate?.onSocketConnected()
 
+        // Handle push notification flows
+        if isCallFromPush {
+            Logger.log.i(message: "TxClient:: Socket connected isCallFromPush == true")
+            if pendingCallDecline {
+                Logger.log.i(message: "TxClient:: Socket connected for decline_push flow")
+                performLogin(declinePush: true)
+                return
+            } else if answerCallAction != nil {
+                Logger.log.i(message: "TxClient:: Socket connected for answer flow")
+                performLogin(declinePush: false)
+                return
+            } else {
+                Logger.log.i(message: "TxClient:: Socket connected from push - waiting for user action before login")
+                return
+            }
+        }
+
         // Check if there's a pending anonymous login message
         if let pendingMessage = self.pendingAnonymousLoginMessage {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() sending pending anonymous login message")
             self.socket?.sendMessage(message: pendingMessage.encode())
-            
+
             // Extract target information from the pending message to update AI Assistant Manager
             if let params = pendingMessage.params {
                 let targetId = params["target_id"] as? String
                 let targetType = params["target_type"] as? String
                 let targetVersionId = params["target_version_id"] as? String
-                
+
                 self.aiAssistantManager.updateConnectionState(
                     connected: true,
                     targetId: targetId,
@@ -1364,7 +1622,7 @@ extension TxClient : SocketDelegate {
                     targetVersionId: targetVersionId
                 )
             }
-            
+
             self.pendingAnonymousLoginMessage = nil
             return
         }
@@ -1376,14 +1634,26 @@ extension TxClient : SocketDelegate {
         //Login into the signaling server after the connection is produced.
         if let token = self.txConfig?.token  {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with Token")
-            let vertoLogin = LoginMessage(token: token, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush,pushEnvironment: self.txConfig?.pushEnvironment,sessionId: self.sessionId!)
+            let vertoLogin = LoginMessage(token: token, pushDeviceToken: pushToken,
+                                          pushNotificationProvider: pushProvider,
+                                          startFromPush: self.isCallFromPush,
+                                          pushEnvironment: self.txConfig?.pushEnvironment,
+                                          sessionId: self.sessionId!,
+                                          declinePush: false)
             self.socket?.sendMessage(message: vertoLogin.encode())
         } else {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with SIP User and Password")
             guard let sipUser = self.txConfig?.sipUser else { return }
             guard let password = self.txConfig?.password else { return }
             let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
-            let vertoLogin = LoginMessage(user: sipUser, password: password, pushDeviceToken: pushToken, pushNotificationProvider: pushProvider,startFromPush: self.isCallFromPush,pushEnvironment: self.txConfig?.pushEnvironment,sessionId: self.sessionId!)
+            let vertoLogin = LoginMessage(user: sipUser,
+                                          password: password,
+                                          pushDeviceToken: pushToken,
+                                          pushNotificationProvider: pushProvider,
+                                          startFromPush: self.isCallFromPush,
+                                          pushEnvironment: self.txConfig?.pushEnvironment,
+                                          sessionId: self.sessionId!,
+                                          declinePush: false)
             self.socket?.sendMessage(message: vertoLogin.encode())
         }
     }
@@ -1538,6 +1808,12 @@ extension TxClient : SocketDelegate {
 
                 case .INVITE:
                     //invite received
+                    // Stop the INVITE timeout timer if it's running for VoIP push calls
+                    if isWaitingForInviteAfterPush {
+                        Logger.log.i(message: "TxClient:: INVITE received - stopping timeout timer for VoIP push call")
+                        stopInviteTimeout()
+                    }
+                    
                     if let params = vertoMessage.params {
                         guard let sdp = params["sdp"] as? String,
                               let callId = params["callID"] as? String,
