@@ -134,8 +134,20 @@ public internal(set) var customLogger: TxLogger?
 Custom logger implementation for handling SDK logs
 If not provided, the default logger will be used
 
+### `useTrickleIce`
+
+```swift
+public internal(set) var useTrickleIce: Bool = false
+```
+
+Controls whether the SDK should use trickle ICE for WebRTC signaling.
+When enabled, ICE candidates are sent individually as they are discovered,
+rather than waiting for all candidates to be gathered before sending the offer/answer.
+- Note: This improves call setup time by allowing ICE connectivity checks to start earlier.
+- Important: This setting is disabled by default to maintain compatibility with existing implementations.
+
 ## Methods
-### `init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:)`
+### `init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:useTrickleIce:)`
 
 ```swift
 public init(sipUser: String, password: String,
@@ -150,7 +162,8 @@ public init(sipUser: String, password: String,
             forceRelayCandidate: Bool = false,
             enableQualityMetrics: Bool = false,
             sendWebRTCStatsViaSocket: Bool = false,
-            reconnectTimeOut: Double = DEFAULT_TIMEOUT
+            reconnectTimeOut: Double = DEFAULT_TIMEOUT,
+            useTrickleIce: Bool = false
 )
 ```
 
@@ -170,6 +183,7 @@ Constructor for the Telnyx SDK configuration using SIP credentials.
   - enableQualityMetrics: (Optional) Controls whether the SDK should deliver call quality metrics. Default is false.
   - sendWebRTCStatsViaSocket: (Optional) Whether to send WebRTC statistics via socket to Telnyx servers. Default is false.
   - reconnectTimeOut: (Optional) Maximum time in seconds the SDK will attempt to reconnect a call after network disruption. Default is 60 seconds.
+  - useTrickleIce: (Optional) Controls whether the SDK should use trickle ICE for WebRTC signaling. Default is false.
 
 #### Parameters
 
@@ -189,8 +203,9 @@ Constructor for the Telnyx SDK configuration using SIP credentials.
 | enableQualityMetrics | (Optional) Controls whether the SDK should deliver call quality metrics. Default is false. |
 | sendWebRTCStatsViaSocket | (Optional) Whether to send WebRTC statistics via socket to Telnyx servers. Default is false. |
 | reconnectTimeOut | (Optional) Maximum time in seconds the SDK will attempt to reconnect a call after network disruption. Default is 60 seconds. |
+| useTrickleIce | (Optional) Controls whether the SDK should use trickle ICE for WebRTC signaling. Default is false. |
 
-### `init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:)`
+### `init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:useTrickleIce:)`
 
 ```swift
 public init(token: String,
@@ -205,7 +220,8 @@ public init(token: String,
             forceRelayCandidate: Bool = false,
             enableQualityMetrics: Bool = false,
             sendWebRTCStatsViaSocket: Bool = false,
-            reconnectTimeOut: Double = DEFAULT_TIMEOUT
+            reconnectTimeOut: Double = DEFAULT_TIMEOUT,
+            useTrickleIce: Bool = false
 )
 ```
 
@@ -224,6 +240,7 @@ Constructor for the Telnyx SDK configuration using JWT token authentication.
   - enableQualityMetrics: (Optional) Controls whether the SDK should deliver call quality metrics. Default is false.
   - sendWebRTCStatsViaSocket: (Optional) Whether to send WebRTC statistics via socket to Telnyx servers. Default is false.
   - reconnectTimeOut: (Optional) Maximum time in seconds the SDK will attempt to reconnect a call after network disruption. Default is 60 seconds.
+  - useTrickleIce: (Optional) Controls whether the SDK should use trickle ICE for WebRTC signaling. Default is false.
 
 #### Parameters
 
@@ -242,6 +259,7 @@ Constructor for the Telnyx SDK configuration using JWT token authentication.
 | enableQualityMetrics | (Optional) Controls whether the SDK should deliver call quality metrics. Default is false. |
 | sendWebRTCStatsViaSocket | (Optional) Whether to send WebRTC statistics via socket to Telnyx servers. Default is false. |
 | reconnectTimeOut | (Optional) Maximum time in seconds the SDK will attempt to reconnect a call after network disruption. Default is 60 seconds. |
+| useTrickleIce | (Optional) Controls whether the SDK should use trickle ICE for WebRTC signaling. Default is false. |
 
 ### `validateParams()`
 

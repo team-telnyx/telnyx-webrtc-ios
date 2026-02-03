@@ -154,6 +154,16 @@ Controls whether the SDK should send WebRTC statistics via socket to Telnyx serv
 When enabled, collected WebRTC stats will be sent to Telnyx servers for monitoring and debugging.
 This is independent of stats collection - stats can be collected without being sent via socket.
 
+### `useTrickleIce`
+
+```swift
+public internal(set) var useTrickleIce: Bool = false
+```
+
+Controls whether the SDK should use trickle ICE for WebRTC signaling.
+When enabled, ICE candidates are sent individually as they are discovered,
+rather than waiting for all candidates to be gathered before sending the offer/answer.
+
 ### `forceRelayCandidate`
 
 ```swift
