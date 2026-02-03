@@ -17,7 +17,7 @@
     <a title="TxConfig Structure Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">TelnyxRTC 2.4.0 Docs</a> (71% documented)</p>
+        <p><a href="../index.html">TelnyxRTC 3.0.0 Docs</a> (68% documented)</p>
         <div class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -47,6 +47,9 @@
                 <a href="../Classes/Call.html">Call</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Classes/CallTimingBenchmark.html">CallTimingBenchmark</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Classes/FileLogger.html">FileLogger</a>
               </li>
               <li class="nav-group-task">
@@ -69,6 +72,9 @@
           <li class="nav-group-name">
             <a href="../Enums.html">Enumerations</a>
             <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Enums/CallBenchmarkMilestone.html">CallBenchmarkMilestone</a>
+              </li>
               <li class="nav-group-task">
                 <a href="../Enums/CallQuality.html">CallQuality</a>
               </li>
@@ -104,6 +110,17 @@
               </li>
               <li class="nav-group-task">
                 <a href="../Enums/WebRTCEnvironment.html">WebRTCEnvironment</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Extensions.html">Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Extensions/Notification.html">Notification</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Notification/Name.html">– Name</a>
               </li>
             </ul>
           </li>
@@ -659,6 +676,44 @@ If not provided, the default logger will be used</p>
                     </section>
                   </div>
                 </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC8TxConfigV13useTrickleIceSbvp"></a>
+                    <a name="//apple_ref/swift/Property/useTrickleIce" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV13useTrickleIceSbvp">useTrickleIce</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Controls whether the SDK should use trickle ICE for WebRTC signaling.
+When enabled, ICE candidates are sent individually as they are discovered,
+rather than waiting for all candidates to be gathered before sending the offer/answer.</p>
+<div class="aside aside-note">
+    <p class="aside-title">Note</p>
+    This improves call setup time by allowing ICE connectivity checks to start earlier.
+
+</div><div class="aside aside-important">
+    <p class="aside-title">Important</p>
+    This setting is disabled by default to maintain compatibility with existing implementations.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">internal(set)</span> <span class="k">var</span> <span class="nv">useTrickleIce</span><span class="p">:</span> <span class="kt">Bool</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
               </ul>
             </div>
             <div class="task-group">
@@ -675,9 +730,9 @@ If not provided, the default logger will be used</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone0H11Environment8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate20enableQualityMetrics24sendWebRTCStatsViaSocket0T7TimeOutACSS_S2SSgA2rA04PushO0OSgAA03LogQ0OAA0cS0_pSgS5bSdtcfc"></a>
-                    <a name="//apple_ref/swift/Method/init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone0H11Environment8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate20enableQualityMetrics24sendWebRTCStatsViaSocket0T7TimeOutACSS_S2SSgA2rA04PushO0OSgAA03LogQ0OAA0cS0_pSgS5bSdtcfc">init(sipUser:<wbr>password:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>pushEnvironment:<wbr>logLevel:<wbr>customLogger:<wbr>reconnectClient:<wbr>debug:<wbr>forceRelayCandidate:<wbr>enableQualityMetrics:<wbr>sendWebRTCStatsViaSocket:<wbr>reconnectTimeOut:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone0H11Environment8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate20enableQualityMetrics24sendWebRTCStatsViaSocket0T7TimeOut13useTrickleIceACSS_S2SSgA2sA04PushO0OSgAA03LogQ0OAA0cS0_pSgS5bSdSbtcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:useTrickleIce:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone0H11Environment8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate20enableQualityMetrics24sendWebRTCStatsViaSocket0T7TimeOut13useTrickleIceACSS_S2SSgA2sA04PushO0OSgAA03LogQ0OAA0cS0_pSgS5bSdSbtcfc">init(sipUser:<wbr>password:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>pushEnvironment:<wbr>logLevel:<wbr>customLogger:<wbr>reconnectClient:<wbr>debug:<wbr>forceRelayCandidate:<wbr>enableQualityMetrics:<wbr>sendWebRTCStatsViaSocket:<wbr>reconnectTimeOut:<wbr>useTrickleIce:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -704,7 +759,8 @@ If not provided, the default logger will be used</p>
             <span class="nv">forceRelayCandidate</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span>
             <span class="nv">enableQualityMetrics</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span>
             <span class="nv">sendWebRTCStatsViaSocket</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span>
-            <span class="nv">reconnectTimeOut</span><span class="p">:</span> <span class="kt">Double</span> <span class="o">=</span> <span class="kt"><a href="../Structs/TxConfig.html#/s:9TelnyxRTC8TxConfigV15DEFAULT_TIMEOUTSdvpZ">DEFAULT_TIMEOUT</a></span>
+            <span class="nv">reconnectTimeOut</span><span class="p">:</span> <span class="kt">Double</span> <span class="o">=</span> <span class="kt"><a href="../Structs/TxConfig.html#/s:9TelnyxRTC8TxConfigV15DEFAULT_TIMEOUTSdvpZ">DEFAULT_TIMEOUT</a></span><span class="p">,</span>
+            <span class="nv">useTrickleIce</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span>
 <span class="p">)</span></code></pre>
 
                         </div>
@@ -881,6 +937,18 @@ If not provided, the default logger will be used</p>
                                 </div>
                               </td>
                             </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>useTrickleIce</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) Controls whether the SDK should use trickle ICE for WebRTC signaling. Default is false.</p>
+                                </div>
+                              </td>
+                            </tr>
                           </tbody>
                         </table>
                       </div>
@@ -890,9 +958,9 @@ If not provided, the default logger will be used</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone0F11Environment8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate20enableQualityMetrics24sendWebRTCStatsViaSocket0R7TimeOutACSS_SSSgA2qA04PushM0OSgAA03LogO0OAA0cQ0_pSgS5bSdtcfc"></a>
-                    <a name="//apple_ref/swift/Method/init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone0F11Environment8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate20enableQualityMetrics24sendWebRTCStatsViaSocket0R7TimeOutACSS_SSSgA2qA04PushM0OSgAA03LogO0OAA0cQ0_pSgS5bSdtcfc">init(token:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>pushEnvironment:<wbr>logLevel:<wbr>customLogger:<wbr>reconnectClient:<wbr>debug:<wbr>forceRelayCandidate:<wbr>enableQualityMetrics:<wbr>sendWebRTCStatsViaSocket:<wbr>reconnectTimeOut:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone0F11Environment8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate20enableQualityMetrics24sendWebRTCStatsViaSocket0R7TimeOut13useTrickleIceACSS_SSSgA2rA04PushM0OSgAA03LogO0OAA0cQ0_pSgS5bSdSbtcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:useTrickleIce:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone0F11Environment8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate20enableQualityMetrics24sendWebRTCStatsViaSocket0R7TimeOut13useTrickleIceACSS_SSSgA2rA04PushM0OSgAA03LogO0OAA0cQ0_pSgS5bSdSbtcfc">init(token:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>pushEnvironment:<wbr>logLevel:<wbr>customLogger:<wbr>reconnectClient:<wbr>debug:<wbr>forceRelayCandidate:<wbr>enableQualityMetrics:<wbr>sendWebRTCStatsViaSocket:<wbr>reconnectTimeOut:<wbr>useTrickleIce:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -919,7 +987,8 @@ If not provided, the default logger will be used</p>
             <span class="nv">forceRelayCandidate</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span>
             <span class="nv">enableQualityMetrics</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span>
             <span class="nv">sendWebRTCStatsViaSocket</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span>
-            <span class="nv">reconnectTimeOut</span><span class="p">:</span> <span class="kt">Double</span> <span class="o">=</span> <span class="kt"><a href="../Structs/TxConfig.html#/s:9TelnyxRTC8TxConfigV15DEFAULT_TIMEOUTSdvpZ">DEFAULT_TIMEOUT</a></span>
+            <span class="nv">reconnectTimeOut</span><span class="p">:</span> <span class="kt">Double</span> <span class="o">=</span> <span class="kt"><a href="../Structs/TxConfig.html#/s:9TelnyxRTC8TxConfigV15DEFAULT_TIMEOUTSdvpZ">DEFAULT_TIMEOUT</a></span><span class="p">,</span>
+            <span class="nv">useTrickleIce</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span>
 <span class="p">)</span></code></pre>
 
                         </div>
@@ -1084,6 +1153,18 @@ If not provided, the default logger will be used</p>
                                 </div>
                               </td>
                             </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>useTrickleIce</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) Controls whether the SDK should use trickle ICE for WebRTC signaling. Default is false.</p>
+                                </div>
+                              </td>
+                            </tr>
                           </tbody>
                         </table>
                       </div>
@@ -1140,7 +1221,7 @@ If not provided, the default logger will be used</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2025 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2025-11-17)</p>
+          <p>&copy; 2026 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2026-02-03)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.4</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>

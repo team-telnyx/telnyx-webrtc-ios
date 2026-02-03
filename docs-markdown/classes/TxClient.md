@@ -254,7 +254,8 @@ Deinitializer to ensure proper cleanup of resources
 ### `connect(txConfig:serverConfiguration:)`
 
 ```swift
-public func connect(txConfig: TxConfig, serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws
+public func connect(txConfig: TxConfig,
+                    serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws
 ```
 
 Connects to the iOS cloglient to the Telnyx signaling server using the desired login credentials.
@@ -290,7 +291,9 @@ To check if TxClient is connected to Telnyx server.
 ### `answerFromCallkit(answerAction:customHeaders:debug:)`
 
 ```swift
-public func answerFromCallkit(answerAction:CXAnswerCallAction,customHeaders:[String:String] = [:], debug:Bool = false)
+public func answerFromCallkit(answerAction: CXAnswerCallAction,
+                              customHeaders: [String:String] = [:],
+                              debug: Bool = false)
 ```
 
 Answers an incoming call from CallKit and manages the active call flow.
@@ -336,7 +339,8 @@ extension CallKitProvider: CXProviderDelegate {
 ### `endCallFromCallkit(endAction:callId:)`
 
 ```swift
-public func endCallFromCallkit(endAction:CXEndCallAction,callId:UUID? = nil)
+public func endCallFromCallkit(endAction: CXEndCallAction,
+                               callId: UUID? = nil)
 ```
 
 To end and control callKit active and conn
