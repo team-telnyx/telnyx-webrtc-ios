@@ -7,9 +7,6 @@
 - **Push Notification Call Decline**: Implemented proper call decline flow via push notifications. Calls can now be immediately rejected without waiting for full SDK connection, eliminating race conditions when CallKit notifications appear before SDK is ready. **Backward compatible** - no changes required in app implementation ([#236](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/236))
 - **Missed Call Handling**: Added proper handling of missed call VoIP push notifications. CallKit UI is now automatically dismissed when calls are rejected remotely, preventing users from accepting stale notifications ([#254](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/254))
 
-### Bug Fixes
-- Fixed environment-specific TURN/STUN server selection. Development environment now correctly uses `turndev.telnyx.com` and `stundev.telnyx.com` instead of production servers ([#308](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/308))
-
 ## [2.4.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.4.0) (2025-11-17)
 
 ### Features
