@@ -12,7 +12,9 @@ Version 3.0.0 introduces significant improvements to push notification handling 
 
 ## Breaking Changes
 
-**None** - v3.0.0 is fully backward compatible with v2.x implementations. All changes are opt-in or automatic improvements that don't require code changes.
+**None** - v3.0.0 is fully backward compatible with v2.x implementations. Your app will continue to function without code changes.
+
+However, to take advantage of new features like **missed call notification handling**, implementation is required (see details below).
 
 ## New Features & Improvements
 
@@ -20,13 +22,19 @@ Version 3.0.0 introduces significant improvements to push notification handling 
 
 #### What Changed
 
-In v2.x, when a call was rejected remotely (e.g., the caller hung up before you answered), the CallKit UI would remain visible, potentially allowing users to accept stale notifications.
+In v2.x, when a call was rejected remotely (e.g., the caller hung up before you answered), the CallKit UI would remain visible, potentially allowing users to accept stale notifications. **Missed call notifications were not sent to v2.x clients.**
 
-In v3.0.0, you can now detect and handle missed call push notifications properly, automatically dismissing the CallKit UI to prevent users from attempting to answer missed calls.
+In v3.0.0, **Telnyx servers now send missed call push notifications** to iOS SDK v3.0.0+ clients. Your app can detect and handle these notifications to automatically dismiss the CallKit UI, preventing users from attempting to answer missed calls.
+
+**Important:** Missed call push notifications are **only sent to iOS SDK v3.0.0 and higher**. Apps using v2.x will not receive these notifications.
 
 #### Migration Steps
 
-To implement missed call handling in your app, update your VoIP push notification handler to detect and handle missed call notifications:
+**Action Required** - To take advantage of missed call notifications in v3.0.0, you must implement the detection and handling logic in your app.
+
+> **Note:** If you don't implement this handler, missed call push notifications will still be delivered to your app, but the CallKit UI will not be automatically dismissed. Implementing this handler is **strongly recommended** to provide the best user experience.
+
+Update your VoIP push notification handler to detect and handle missed call notifications:
 
 ```swift
 func handleVoIPPushNotification(payload: PKPushPayload) {
@@ -73,6 +81,12 @@ func handleMissedCallNotification(callUUID: UUID, pushMetaData: [String: Any]) {
 
 #### How It Works
 
+**Server-Side Behavior (v3.0.0+):**
+- Telnyx servers detect when a call is missed or rejected remotely
+- Servers send a special "Missed call!" push notification to **v3.0.0+ iOS clients only**
+- v2.x clients do not receive these notifications
+
+**Client-Side Implementation:**
 When a VoIP push notification is received for a call that has already been rejected or missed:
 
 1. Your app detects the "Missed call!" alert in the push payload
