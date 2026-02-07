@@ -22,6 +22,13 @@ jobs:
       with:
         xcode-version: '16.4.0'
     
+    - name: Install SwiftLint
+      run: brew install swiftlint
+    
+    - name: Run SwiftLint
+      run: swiftlint lint --reporter github-actions-logging
+      continue-on-error: true  # Non-blocking: won't fail the PR
+    
     - name: Setup ruby
       uses: ruby/setup-ruby@v1
       with:
