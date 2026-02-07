@@ -33,7 +33,6 @@ opt_in_rules:
 # Disabled rules (too restrictive or not applicable)
 disabled_rules:
   - trailing_whitespace  # Can be handled by editor auto-format
-  - line_length  # Will use warning threshold instead
   - function_parameter_count  # SDK methods may need many parameters
   - type_body_length  # Some SDK classes are legitimately large
   - file_length  # Some files are large by necessity
@@ -68,9 +67,8 @@ identifier_name:
     - tx
     - rx
 
-# Force cast/unwrap - warning only (SDK may need these occasionally)
+# Force cast - warning only (SDK may need these occasionally)
 force_cast: warning
-force_unwrap: warning
 
 # Trailing comma
 trailing_comma:
