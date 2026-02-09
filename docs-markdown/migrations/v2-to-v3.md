@@ -16,6 +16,85 @@ Version 3.0.0 introduces significant improvements to push notification handling 
 
 However, to take advantage of new features like **missed call notification handling**, implementation is required (see details below).
 
+## Important: Push Notification Flow Changes
+
+### What Changed Internally (No Action Required)
+
+v3.0.0 introduces a **significant internal improvement** to how push notification calls are handled. This change is **fully backward compatible** and requires **no code changes** in your app, but understanding the new flow is important for debugging and optimization.
+
+#### v2.x Behavior (Old Flow)
+
+When a VoIP push notification was received in v2.x:
+
+1. App calls `processVoIPNotification(txConfig:serverConfiguration:pushMetaData:)`
+2. SDK internally calls `connectFromPush()` which:
+   - Stores the `TxConfig`
+   - Connects the WebSocket
+3. When socket connects (`onSocketConnected()`):
+   - SDK **immediately sends login message** to B2BUA
+   - Client becomes authenticated and ready to receive INVITE
+4. User can now accept or decline the call via CallKit
+5. SDK processes the accept/decline action
+
+**Issue with v2.x:** The SDK was already logged in before the user made a decision, which could cause race conditions and unnecessary server connections if the user quickly declined.
+
+#### v3.0.0 Behavior (New Flow - Improved)
+
+When a VoIP push notification is received in v3.0.0:
+
+1. App calls `processVoIPNotification(txConfig:serverConfiguration:pushMetaData:)` (same method signature)
+2. SDK internally calls `connectSocketOnly()` which:
+   - Stores the `TxConfig` for later use
+   - Connects the WebSocket **without logging in**
+3. When socket connects (`onSocketConnected()`):
+   - SDK detects `isCallFromPush == true`
+   - SDK **waits for user action** (no login message sent yet)
+4. User accepts or declines via CallKit:
+   - **If user accepts**: SDK calls `performLogin(declinePush: false)` and sends login message
+   - **If user declines**: SDK calls `performLogin(declinePush: true)` and sends login message with `decline_push` parameter
+5. SDK processes the accept/decline action based on the login response
+
+**Benefits of v3.0.0:**
+- ✅ Faster call decline (no need to wait for full authentication)
+- ✅ Eliminates race conditions between login and CallKit UI
+- ✅ Reduces unnecessary server load if user quickly declines
+- ✅ More predictable behavior for both accept and decline flows
+
+### Migration Steps
+
+**No action required** - Your existing app code continues to work without changes. The new flow is handled entirely within the SDK.
+
+Your app still:
+- Calls `processVoIPNotification()` with the same parameters
+- Uses CallKit actions (`CXAnswerCallAction`, `CXEndCallAction`) as before
+- Receives the same delegate callbacks
+
+The improvement is **transparent** to your application code.
+
+### Verification
+
+To verify the new flow is working correctly, check your logs:
+
+**v2.x logs (old):**
+```
+TxClient:: processVoIPNotification - No Active Calls disconnect
+TxClient:: No Active Calls Connecting Again
+TxClient:: SocketDelegate onSocketConnected()
+TxClient:: SocketDelegate onSocketConnected() login with Token
+```
+
+**v3.0.0 logs (new):**
+```
+TxClient:: processVoIPNotification - No Active Calls disconnect
+TxClient:: No Active Calls - Only connecting socket, not logging in
+TxClient:: SocketDelegate onSocketConnected()
+TxClient:: Socket connected from push - waiting for user action before login
+[User accepts/declines]
+TxClient:: answerFromCallkit - Socket connected, performing login with decline_push: false
+```
+
+Notice that in v3.0.0, the login happens **after** the user makes a decision.
+
 ## New Features & Improvements
 
 ### 1. Missed Call Handling
