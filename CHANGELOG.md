@@ -2,10 +2,13 @@
 
 ## [3.0.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/3.0.0) (2026-02-03)
 
+### Migration Notes
+**Fully backward compatible** - Your existing v2.x implementation will continue to work without code changes. However, to take advantage of new features like missed call notifications, implementation is required. See the migration guide in `docs-markdown/migrations/v2-to-v3.md` for detailed upgrade instructions and best practices.
+
 ### Features
 - **Trickle ICE Support**: Added support for Trickle ICE to improve connection establishment time and reliability. Enable by setting `useTrickleIce: true` in `TxConfig`. Candidates are sent immediately as discovered, reducing call setup latency ([#291](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/291))
 - **Push Notification Call Decline**: Implemented proper call decline flow via push notifications. Calls can now be immediately rejected without waiting for full SDK connection, eliminating race conditions when CallKit notifications appear before SDK is ready. **Backward compatible** - no changes required in app implementation ([#236](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/236))
-- **Missed Call Handling**: Added proper handling of missed call VoIP push notifications. CallKit UI is now automatically dismissed when calls are rejected remotely, preventing users from accepting stale notifications ([#254](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/254))
+- **Missed Call Handling**: Added server-side support for missed call VoIP push notifications sent to iOS SDK v3.0.0+ clients. When a call is rejected remotely, Telnyx servers send a "Missed call!" push notification allowing your app to automatically dismiss the CallKit UI, preventing users from accepting stale notifications. **Implementation required** - See migration guide for handler implementation ([#254](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/254))
 
 ## [2.4.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/2.4.0) (2025-11-17)
 
