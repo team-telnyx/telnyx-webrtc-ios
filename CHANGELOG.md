@@ -4,40 +4,11 @@
 
 ### ⚠️ Breaking Changes
 
-**Missed Call Notification Handling - Implementation Required**
+**Missed Call Notification Handling Required**
 
-Starting in v3.0.0, Telnyx servers send **"Missed call!"** VoIP push notifications to iOS clients when calls are rejected remotely or missed. **You MUST implement a handler for these notifications** in your VoIP push notification flow.
+Starting in v3.0.0, you **must** handle missed call VoIP push notifications in your app. Failure to properly handle these notifications can lead to Apple disabling VoIP push notification delivery to your app, breaking incoming call functionality.
 
-**Critical: Apple PushKit Requirement**
-
-Per [Apple's PushKit documentation](https://developer.apple.com/documentation/pushkit), apps receiving VoIP push notifications **must report all incoming calls to CallKit**. Failure to properly handle VoIP push notifications (including missed call notifications) will result in:
-
-- ⚠️ **Apple stopping VoIP push notification delivery to your app**
-- ⚠️ **Users will no longer receive incoming call notifications**
-- ⚠️ **Your app's VoIP functionality will be broken**
-
-**Required Implementation:**
-
-You must detect and handle "Missed call!" push notifications to dismiss the CallKit UI:
-
-```swift
-func handleVoIPPushNotification(payload: PKPushPayload) {
-    // Check for missed call notification
-    if let aps = payload.dictionaryPayload["aps"] as? [String: Any],
-       let alert = aps["alert"] as? String,
-       alert == "Missed call!" {
-        // REQUIRED: Dismiss CallKit UI for missed call
-        provider.reportCall(with: callUUID, endedAt: Date(), reason: .answeredElsewhere)
-        return
-    }
-    // Handle regular incoming call...
-}
-```
-
-**Action Required:** Implement the missed call handler **before upgrading to v3.0.0** or your app will violate Apple's PushKit policy. See the migration guide in `docs-markdown/migrations/v2-to-v3.md` for complete implementation details.
-
-### Migration Notes
-**SDK compatibility** - Your existing v2.x SDK integration will continue to work without code changes for regular calls. However, the missed call notification handler is **mandatory** to comply with Apple's PushKit requirements. See the migration guide in `docs-markdown/migrations/v2-to-v3.md` for detailed upgrade instructions and best practices.
+**Action Required:** Implement the missed call notification handler as described in the migration guide (`docs-markdown/migrations/v2-to-v3.md`) before upgrading to v3.0.0.
 
 ### Features
 - **Trickle ICE Support**: Added support for Trickle ICE to improve connection establishment time and reliability. Enable by setting `useTrickleIce: true` in `TxConfig`. Candidates are sent immediately as discovered, reducing call setup latency ([#291](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/291))
