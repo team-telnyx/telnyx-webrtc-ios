@@ -211,6 +211,7 @@ public class Call {
     var callOptions: TxCallOptions?
     
     var statsReporter: WebRTCStatsReporter?
+    var callReportCollector: TelnyxCallReportCollector?
     
     /// Flag to track if we're currently performing ICE restart
     internal var isIceRestarting: Bool = false
@@ -281,6 +282,21 @@ public class Call {
     /// When enabled, the SDK will only use TURN relay candidates for ICE gathering,
     /// which prevents the "local network access" permission popup from appearing.
     public internal(set) var forceRelayCandidate: Bool = false
+    
+    /// Enable automatic call quality reporting to voice-sdk-proxy.
+    /// When enabled, WebRTC stats are collected periodically during calls
+    /// and posted to the voice-sdk-proxy /call_report endpoint when the call ends.
+    public internal(set) var enableCallReports: Bool = true
+    
+    /// Interval in seconds for collecting call statistics.
+    /// Stats are aggregated over each interval and stored locally until call end.
+    public internal(set) var callReportInterval: TimeInterval = 5.0
+    
+    /// Minimum log level to capture for call reports ("debug", "info", "warn", "error").
+    public internal(set) var callReportLogLevel: String = "debug"
+    
+    /// Maximum number of log entries to buffer per call.
+    public internal(set) var callReportMaxLogEntries: Int = 1000
 
 
     // MARK: - Properties
@@ -365,7 +381,11 @@ public class Call {
          forceRelayCandidate: Bool = false,
          enableQualityMetrics: Bool = false,
          sendWebRTCStatsViaSocket: Bool = false,
-         useTrickleIce: Bool = false
+         useTrickleIce: Bool = false,
+         enableCallReports: Bool = true,
+         callReportInterval: TimeInterval = 5.0,
+         callReportLogLevel: String = "debug",
+         callReportMaxLogEntries: Int = 1000
     ) {
         if isAttach {
             self.direction = CallDirection.ATTACH
@@ -404,6 +424,13 @@ public class Call {
         self.enableQualityMetrics = enableQualityMetrics
         self.sendWebRTCStatsViaSocket = sendWebRTCStatsViaSocket
         self.useTrickleIce = useTrickleIce
+        self.enableCallReports = enableCallReports
+        self.callReportInterval = callReportInterval
+        self.callReportLogLevel = callReportLogLevel
+        self.callReportMaxLogEntries = callReportMaxLogEntries
+        
+        // Initialize call report collector
+        self.configureCallReportCollector()
     }
     
     //Contructor for attachCalls
@@ -418,7 +445,11 @@ public class Call {
          debug: Bool = false,
          forceRelayCandidate: Bool = false,
          sendWebRTCStatsViaSocket: Bool = false,
-         useTrickleIce: Bool = false) {
+         useTrickleIce: Bool = false,
+         enableCallReports: Bool = true,
+         callReportInterval: TimeInterval = 5.0,
+         callReportLogLevel: String = "debug",
+         callReportMaxLogEntries: Int = 1000) {
         self.direction = CallDirection.ATTACH
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
@@ -439,6 +470,13 @@ public class Call {
         self.forceRelayCandidate = forceRelayCandidate
         self.sendWebRTCStatsViaSocket = sendWebRTCStatsViaSocket
         self.useTrickleIce = useTrickleIce
+        self.enableCallReports = enableCallReports
+        self.callReportInterval = callReportInterval
+        self.callReportLogLevel = callReportLogLevel
+        self.callReportMaxLogEntries = callReportMaxLogEntries
+        
+        // Initialize call report collector
+        self.configureCallReportCollector()
     }
 
     /// Constructor for outgoing calls
@@ -451,7 +489,11 @@ public class Call {
          iceServers: [RTCIceServer],
          debug: Bool = false,
          forceRelayCandidate: Bool = false,
-         useTrickleIce: Bool = false) {
+         useTrickleIce: Bool = false,
+         enableCallReports: Bool = true,
+         callReportInterval: TimeInterval = 5.0,
+         callReportLogLevel: String = "debug",
+         callReportMaxLogEntries: Int = 1000) {
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
         //this is the signaling server socket
@@ -470,6 +512,13 @@ public class Call {
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
         self.useTrickleIce = useTrickleIce
+        self.enableCallReports = enableCallReports
+        self.callReportInterval = callReportInterval
+        self.callReportLogLevel = callReportLogLevel
+        self.callReportMaxLogEntries = callReportMaxLogEntries
+        
+        // Initialize call report collector
+        self.configureCallReportCollector()
     }
 
     // MARK: - Private functions
@@ -602,11 +651,18 @@ public class Call {
         case .ACTIVE:
             setupIceConnectionStateMonitoring()
             setupRttMonitoring()
+            // Start call report collector when call becomes active
+            startCallReportCollector()
         case .DONE, .DROPPED, .HELD:
             removeIceConnectionStateMonitoring()
             removeRttMonitoring()
         default:
             break
+        }
+        
+        // Stop and post call report when call ends
+        if case .DONE = callState {
+            stopAndPostCallReport()
         }
         
         self.delegate?.callStateUpdated(call: self)
@@ -799,6 +855,72 @@ extension Call {
                 }
             }
         }
+    }
+    
+    private func configureCallReportCollector() {
+        guard enableCallReports else { return }
+        
+        let config = CallReportConfig(enabled: true, interval: callReportInterval)
+        let logConfig = LogCollectorConfig(
+            enabled: true,
+            level: callReportLogLevel,
+            maxEntries: callReportMaxLogEntries
+        )
+        
+        self.callReportCollector = TelnyxCallReportCollector(config: config, logCollectorConfig: logConfig)
+    }
+    
+    private func startCallReportCollector() {
+        guard enableCallReports,
+              let collector = self.callReportCollector,
+              let peerConnection = self.peer?.connection else {
+            return
+        }
+        
+        collector.start(peerConnection: peerConnection)
+        Logger.log.i(message: "Call:: Started call report collector")
+    }
+    
+    private func stopAndPostCallReport() {
+        guard enableCallReports,
+              let collector = self.callReportCollector,
+              let socket = self.socket,
+              let callId = self.callInfo?.callId else {
+            return
+        }
+        
+        // Stop collection
+        collector.stop()
+        
+        // Build call summary
+        let summary = CallReportSummary(
+            callId: callId.uuidString,
+            destinationNumber: self.callInfo?.destinationNumber,
+            callerNumber: self.callInfo?.callerNumber,
+            direction: self.direction.rawValue,
+            state: self.callState.value,
+            telnyxSessionId: self.telnyxSessionId?.uuidString,
+            telnyxLegId: self.telnyxLegId?.uuidString,
+            voiceSdkSessionId: self.sessionId,
+            sdkVersion: Message.SDK_VERSION
+        )
+        
+        // Get call_report_id and host
+        guard let callReportId = socket.callReportId,
+              let host = socket.signalingServer?.absoluteString else {
+            Logger.log.w(message: "Call:: Cannot post call report: missing call_report_id or host")
+            return
+        }
+        
+        // Post report (async, doesn't block)
+        collector.postReport(
+            summary: summary,
+            callReportId: callReportId,
+            host: host,
+            voiceSdkId: self.sessionId
+        )
+        
+        Logger.log.i(message: "Call:: Posted call report")
     }
 }
 

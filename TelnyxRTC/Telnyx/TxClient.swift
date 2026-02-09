@@ -1202,7 +1202,11 @@ extension TxClient {
                         debug: self.txConfig?.debug ?? false,
                         forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
                         sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
-                        useTrickleIce: self.txConfig?.useTrickleIce ?? false)
+                        useTrickleIce: self.txConfig?.useTrickleIce ?? false,
+                        enableCallReports: self.txConfig?.enableCallReports ?? true,
+                        callReportInterval: self.txConfig?.callReportInterval ?? 5.0,
+                        callReportLogLevel: self.txConfig?.callReportLogLevel ?? "debug",
+                        callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000)
         call.newCall(callerName: callerName,
                      callerNumber: callerNumber,
                      destinationNumber: destinationNumber,
@@ -1280,7 +1284,11 @@ extension TxClient {
                         debug: self.txConfig?.debug ?? false,
                         forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
                         sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
-                        useTrickleIce: self.txConfig?.useTrickleIce ?? false)
+                        useTrickleIce: self.txConfig?.useTrickleIce ?? false,
+                        enableCallReports: self.txConfig?.enableCallReports ?? true,
+                        callReportInterval: self.txConfig?.callReportInterval ?? 5.0,
+                        callReportLogLevel: self.txConfig?.callReportLogLevel ?? "debug",
+                        callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000)
         call.callInfo?.callerName = callerName
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)
@@ -1382,7 +1390,11 @@ extension TxClient {
                                                                     debug: self.txConfig?.debug ?? false,
                                                                     forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
                                                                     sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
-                                                                    useTrickleIce: self.txConfig?.useTrickleIce ?? false)
+                                                                    useTrickleIce: self.txConfig?.useTrickleIce ?? false,
+                                                                    enableCallReports: self.txConfig?.enableCallReports ?? true,
+                                                                    callReportInterval: self.txConfig?.callReportInterval ?? 5.0,
+                                                                    callReportLogLevel: self.txConfig?.callReportLogLevel ?? "debug",
+                                                                    callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000)
                 }
             } catch let error {
                 Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
@@ -1749,6 +1761,13 @@ extension TxClient : SocketDelegate {
                 Logger.log.i(message: "GATEWAY_STATE RESULT HERE: \(state)")
                 self.voiceSdkId = vertoMessage.voiceSdkId
                 Logger.log.i(message: "VDK \(String(describing: vertoMessage.voiceSdkId))")
+                
+                // Capture call_report_id for SDK call reporting
+                if let callReportId = params["call_report_id"] as? String {
+                    self.socket?.callReportId = callReportId
+                    Logger.log.i(message: "TxClient:: Captured call_report_id from REGED: \(callReportId)")
+                }
+                
                 self.updateGatewayState(newState: gatewayState)
               
             }
