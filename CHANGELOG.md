@@ -2,8 +2,13 @@
 
 ## [3.0.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/3.0.0) (2026-02-03)
 
-### Migration Notes
-**Fully backward compatible** - Your existing v2.x implementation will continue to work without code changes. However, to take advantage of new features like missed call notifications, implementation is required. See the migration guide in `docs-markdown/migrations/v2-to-v3.md` for detailed upgrade instructions and best practices.
+### ⚠️ Breaking Changes
+
+**Missed Call Notification Handling Required**
+
+Starting in v3.0.0, you **must** handle missed call VoIP push notifications in your app. Failure to properly handle these notifications can lead to Apple disabling VoIP push notification delivery to your app, breaking incoming call functionality.
+
+**Action Required:** Implement the missed call notification handler as described in the migration guide (`docs-markdown/migrations/v2-to-v3.md`) before upgrading to v3.0.0.
 
 ### Features
 - **Trickle ICE Support**: Added support for Trickle ICE to improve connection establishment time and reliability. Enable by setting `useTrickleIce: true` in `TxConfig`. Candidates are sent immediately as discovered, reducing call setup latency ([#291](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/291))

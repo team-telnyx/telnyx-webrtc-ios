@@ -10,11 +10,26 @@ Version 3.0.0 introduces significant improvements to push notification handling 
 - Enhanced push notification call decline flow
 - Optional Trickle ICE support for faster connection establishment
 
-## Breaking Changes
+## ⚠️ Breaking Changes
 
-**None** - v3.0.0 is fully backward compatible with v2.x implementations. Your app will continue to function without code changes.
+### Missed Call Notification Handling (Required)
 
-However, to take advantage of new features like **missed call notification handling**, implementation is required (see details below).
+**Action Required:** v3.0.0 requires you to implement a handler for missed call VoIP push notifications.
+
+**Why This is Critical:**
+
+Per Apple's PushKit policy, apps receiving VoIP push notifications **must report all incoming calls to CallKit**. Starting in v3.0.0, Telnyx servers send "Missed call!" push notifications when calls are rejected remotely or missed.
+
+**Failure to handle these notifications can result in:**
+- ⚠️ Apple disabling VoIP push notification delivery to your app
+- ⚠️ Users no longer receiving incoming call notifications
+- ⚠️ Complete loss of VoIP functionality in your app
+
+**This is not optional** - it's a mandatory requirement to maintain VoIP push notification functionality on iOS.
+
+**SDK Compatibility Note:**
+
+Your existing v2.x SDK integration will continue to work for regular calls without code changes. However, you **must** implement the missed call notification handler to comply with Apple's requirements and maintain VoIP functionality.
 
 ## Important: Push Notification Flow Changes
 
