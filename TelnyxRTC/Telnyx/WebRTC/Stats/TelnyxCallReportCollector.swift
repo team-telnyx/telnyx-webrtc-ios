@@ -471,11 +471,11 @@ public class TelnyxCallReportCollector {
         return trackStats.values["audioLevel"] as? Double
     }
     
-    /// Calculate average of an array of numbers
+    /// Calculate average of an array of numbers, rounded to 4 decimal places
     private func average(_ values: [Double]) -> Double? {
         guard !values.isEmpty else { return nil }
-        let sum = values.reduce(0, +)
-        return Double(String(format: "%.4f", sum / Double(values.count)))
+        let avg = values.reduce(0, +) / Double(values.count)
+        return (avg * 10000).rounded() / 10000
     }
     
     /// Reset interval accumulators for next collection period
