@@ -920,7 +920,7 @@ extension Call {
             summary: summary,
             callReportId: callReportId,
             host: host,
-            voiceSdkId: self.sessionId
+            voiceSdkId: socket.voiceSdkId
         )
         
         Logger.log.i(message: "Call:: Posted call report")

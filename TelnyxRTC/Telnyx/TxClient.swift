@@ -1762,11 +1762,12 @@ extension TxClient : SocketDelegate {
                 self.voiceSdkId = vertoMessage.voiceSdkId
                 Logger.log.i(message: "VDK \(String(describing: vertoMessage.voiceSdkId))")
                 
-                // Capture call_report_id for SDK call reporting
+                // Capture call_report_id and voice_sdk_id for SDK call reporting
                 if let callReportId = params["call_report_id"] as? String {
                     self.socket?.callReportId = callReportId
                     Logger.log.i(message: "TxClient:: Captured call_report_id from REGED: \(callReportId)")
                 }
+                self.socket?.voiceSdkId = vertoMessage.voiceSdkId
                 
                 self.updateGatewayState(newState: gatewayState)
               
