@@ -53,7 +53,7 @@ public class TelnyxCallReportCollector {
     private var intervalBitrates: (outbound: [Double], inbound: [Double]) = ([], [])
     
     // Previous values for rate calculations
-    private var previousStats: (timestamp: Double?, outboundBytes: Int?, inboundBytes: Int?) = (nil, nil, nil)
+    private var previousStats = PreviousStats()
     
     // Maximum buffer size to prevent memory issues on long calls
     private let maxBufferSize = 360 // 30 minutes at 5-second intervals
@@ -209,118 +209,131 @@ public class TelnyxCallReportCollector {
         logCollector?.clear()
     }
     
+    // MARK: - Private Types
+
+    private struct ParsedStats {
+        let outbound: RTCOutboundRTPStreamStats?
+        let inbound: RTCInboundRTPStreamStats?
+        let candidate: RTCIceCandidatePairStats?
+    }
+
+    private struct PreviousStats {
+        var timestamp: Double?
+        var outboundBytes: Int?
+        var inboundBytes: Int?
+    }
+
     // MARK: - Private Methods
-    
+
     /// Collect stats from the peer connection and aggregate them
     private func collectStats() {
         guard let peerConnection = peerConnection, let intervalStartTime = intervalStartTime else {
             return
         }
-        
+
         peerConnection.statistics { [weak self] report in
             guard let self = self else { return }
-            
+
             let now = Date()
-            
-            // Process stats reports
-            var outboundAudio: RTCOutboundRTPStreamStats?
-            var inboundAudio: RTCInboundRTPStreamStats?
-            var candidatePair: RTCIceCandidatePairStats?
-            
-            for stats in report.statistics.values {
-                switch stats.type {
-                case "outbound-rtp":
-                    if let kind = stats.values["kind"] as? String, kind == "audio" {
-                        outboundAudio = RTCOutboundRTPStreamStats(stats)
-                    }
-                case "inbound-rtp":
-                    if let kind = stats.values["kind"] as? String, kind == "audio" {
-                        inboundAudio = RTCInboundRTPStreamStats(stats)
-                    }
-                case "candidate-pair":
-                    let nominated = stats.values["nominated"] as? Bool ?? false
-                    let state = stats.values["state"] as? String ?? ""
-                    if nominated || state == "succeeded" {
-                        candidatePair = RTCIceCandidatePairStats(stats)
-                    }
-                default:
-                    break
-                }
-            }
-            
-            // Collect sample values for averaging
-            if let outbound = outboundAudio {
-                if let audioLevel = self.getAudioLevel(from: report.statistics, trackId: outbound.trackId) {
-                    self.intervalAudioLevels.outbound.append(audioLevel)
-                }
-                
-                // Calculate bitrate
-                if let prevBytes = self.previousStats.outboundBytes, let prevTimestamp = self.previousStats.timestamp {
-                    let bytesDelta = outbound.bytesSent - prevBytes
-                    let timeDelta = outbound.timestamp - prevTimestamp
-                    if timeDelta > 0 {
-                        let bitrate = Double(bytesDelta * 8 * 1000) / timeDelta
-                        self.intervalBitrates.outbound.append(bitrate)
-                    }
-                }
-                self.previousStats.outboundBytes = outbound.bytesSent
-            }
-            
-            if let inbound = inboundAudio {
-                if let audioLevel = self.getAudioLevel(from: report.statistics, trackId: inbound.trackId) {
-                    self.intervalAudioLevels.inbound.append(audioLevel)
-                }
-                
-                // Jitter (convert to ms)
-                if inbound.jitter > 0 {
-                    self.intervalJitters.append(inbound.jitter * 1000)
-                }
-                
-                // Calculate bitrate
-                if let prevBytes = self.previousStats.inboundBytes, let prevTimestamp = self.previousStats.timestamp {
-                    let bytesDelta = inbound.bytesReceived - prevBytes
-                    let timeDelta = inbound.timestamp - prevTimestamp
-                    if timeDelta > 0 {
-                        let bitrate = Double(bytesDelta * 8 * 1000) / timeDelta
-                        self.intervalBitrates.inbound.append(bitrate)
-                    }
-                }
-                self.previousStats.inboundBytes = inbound.bytesReceived
-            }
-            
-            if let candidate = candidatePair {
-                // RTT (already in seconds)
-                if candidate.currentRoundTripTime > 0 {
-                    self.intervalRTTs.append(candidate.currentRoundTripTime)
-                }
-            }
-            
-            self.previousStats.timestamp = outboundAudio?.timestamp ?? inboundAudio?.timestamp ?? now.timeIntervalSince1970 * 1000
-            
+            let parsed = self.parseStatsReport(report)
+            self.accumulateSamples(parsed: parsed, statistics: report.statistics, now: now)
+
             // Check if interval is complete (end of collection period)
             let intervalDuration = now.timeIntervalSince(intervalStartTime)
             if intervalDuration >= self.config.interval {
-                // Create stats entry for this interval
-                let statsEntry = self.createStatsEntry(
-                    start: intervalStartTime,
-                    end: now,
-                    outboundAudio: outboundAudio,
-                    inboundAudio: inboundAudio,
-                    candidatePair: candidatePair
-                )
-                
-                // Add to buffer with size limit
-                self.statsBuffer.append(statsEntry)
-                if self.statsBuffer.count > self.maxBufferSize {
-                    self.statsBuffer.removeFirst()
-                    Logger.log.w(message: "TelnyxCallReportCollector: Buffer size limit reached, removing oldest entry")
-                }
-                
-                // Reset interval
-                self.intervalStartTime = now
-                self.resetIntervalAccumulators()
+                self.finalizeInterval(start: intervalStartTime, end: now, parsed: parsed)
             }
         }
+    }
+
+    private func parseStatsReport(_ report: RTCStatisticsReport) -> ParsedStats {
+        var outboundAudio: RTCOutboundRTPStreamStats?
+        var inboundAudio: RTCInboundRTPStreamStats?
+        var candidatePair: RTCIceCandidatePairStats?
+
+        for stats in report.statistics.values {
+            switch stats.type {
+            case "outbound-rtp":
+                if let kind = stats.values["kind"] as? String, kind == "audio" {
+                    outboundAudio = RTCOutboundRTPStreamStats(stats)
+                }
+            case "inbound-rtp":
+                if let kind = stats.values["kind"] as? String, kind == "audio" {
+                    inboundAudio = RTCInboundRTPStreamStats(stats)
+                }
+            case "candidate-pair":
+                let nominated = stats.values["nominated"] as? Bool ?? false
+                let state = stats.values["state"] as? String ?? ""
+                if nominated || state == "succeeded" {
+                    candidatePair = RTCIceCandidatePairStats(stats)
+                }
+            default:
+                break
+            }
+        }
+        return ParsedStats(outbound: outboundAudio, inbound: inboundAudio, candidate: candidatePair)
+    }
+
+    private func accumulateSamples(
+        parsed: ParsedStats,
+        statistics: [String: RTCStatistics],
+        now: Date
+    ) {
+        if let outbound = parsed.outbound {
+            if let audioLevel = getAudioLevel(from: statistics, trackId: outbound.trackId) {
+                intervalAudioLevels.outbound.append(audioLevel)
+            }
+            if let prevBytes = previousStats.outboundBytes, let prevTimestamp = previousStats.timestamp {
+                let bytesDelta = outbound.bytesSent - prevBytes
+                let timeDelta = outbound.timestamp - prevTimestamp
+                if timeDelta > 0 {
+                    intervalBitrates.outbound.append(Double(bytesDelta * 8 * 1000) / timeDelta)
+                }
+            }
+            previousStats.outboundBytes = outbound.bytesSent
+        }
+
+        if let inbound = parsed.inbound {
+            if let audioLevel = getAudioLevel(from: statistics, trackId: inbound.trackId) {
+                intervalAudioLevels.inbound.append(audioLevel)
+            }
+            if inbound.jitter > 0 {
+                intervalJitters.append(inbound.jitter * 1000)
+            }
+            if let prevBytes = previousStats.inboundBytes, let prevTimestamp = previousStats.timestamp {
+                let bytesDelta = inbound.bytesReceived - prevBytes
+                let timeDelta = inbound.timestamp - prevTimestamp
+                if timeDelta > 0 {
+                    intervalBitrates.inbound.append(Double(bytesDelta * 8 * 1000) / timeDelta)
+                }
+            }
+            previousStats.inboundBytes = inbound.bytesReceived
+        }
+
+        if let candidate = parsed.candidate, candidate.currentRoundTripTime > 0 {
+            intervalRTTs.append(candidate.currentRoundTripTime)
+        }
+
+        previousStats.timestamp = parsed.outbound?.timestamp ?? parsed.inbound?.timestamp ?? now.timeIntervalSince1970 * 1000
+    }
+
+    private func finalizeInterval(start: Date, end: Date, parsed: ParsedStats) {
+        let statsEntry = createStatsEntry(
+            start: start,
+            end: end,
+            outboundAudio: parsed.outbound,
+            inboundAudio: parsed.inbound,
+            candidatePair: parsed.candidate
+        )
+
+        statsBuffer.append(statsEntry)
+        if statsBuffer.count > maxBufferSize {
+            statsBuffer.removeFirst()
+            Logger.log.w(message: "TelnyxCallReportCollector: Buffer size limit reached, removing oldest entry")
+        }
+
+        intervalStartTime = end
+        resetIntervalAccumulators()
     }
     
     /// Create a stats entry from accumulated values
