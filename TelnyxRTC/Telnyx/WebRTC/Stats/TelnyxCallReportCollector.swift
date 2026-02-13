@@ -57,6 +57,10 @@ public class TelnyxCallReportCollector {
     
     // Maximum buffer size to prevent memory issues on long calls
     private let maxBufferSize = 360 // 30 minutes at 5-second intervals
+
+    // Retry configuration for HTTP POST (aligned with Android)
+    private let maxRetryAttempts = 3
+    private let retryBaseDelay: TimeInterval = 1.0
     
     // MARK: - Initialization
     
@@ -85,17 +89,30 @@ public class TelnyxCallReportCollector {
         self.intervalStartTime = Date()
         
         Logger.log.i(message: "TelnyxCallReportCollector: Starting stats collection (interval: \(config.interval)s, logCollectorActive: \(logCollector?.isActive() ?? false))")
-        
-        // Schedule stats collection
-        timer = Timer.scheduledTimer(withTimeInterval: config.interval, repeats: true) { [weak self] _ in
-            self?.collectStats()
+
+        logCollector?.addEntry(
+            level: "info",
+            message: "CallReportCollector: Starting stats and log collection",
+            context: ["interval": AnyCodable(config.interval), "logLevel": AnyCodable(logCollectorConfig.level)]
+        )
+
+        // Schedule on main RunLoop — start() may be called from a WebRTC background thread
+        // where RunLoop.current is not running, which would prevent the timer from firing.
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.timer = Timer.scheduledTimer(withTimeInterval: self.config.interval, repeats: true) { [weak self] _ in
+                self?.collectStats()
+            }
         }
     }
     
     /// Stop collecting stats and prepare for final report
     public func stop() {
-        timer?.invalidate()
-        timer = nil
+        // Timer was scheduled on main RunLoop, must invalidate there
+        DispatchQueue.main.async { [weak self] in
+            self?.timer?.invalidate()
+            self?.timer = nil
+        }
         
         callEndTime = Date()
         
@@ -160,36 +177,73 @@ public class TelnyxCallReportCollector {
         }
         
         // Encode payload
+        let jsonData: Data
         do {
             let encoder = JSONEncoder()
             encoder.outputFormatting = .prettyPrinted
-            request.httpBody = try encoder.encode(payload)
+            jsonData = try encoder.encode(payload)
+            request.httpBody = jsonData
         } catch {
             Logger.log.e(message: "TelnyxCallReportCollector: Failed to encode payload: \(error)")
             return
         }
-        
-        // Post asynchronously (don't block call cleanup)
+
+        // Log the payload for debugging
+        if let jsonString = String(data: jsonData, encoding: .utf8) {
+            Logger.log.i(message: "TelnyxCallReportCollector: Payload:\n\(jsonString)")
+        }
+
+        // Post with retry logic (aligned with Android: 3 attempts, exponential backoff, 5xx only)
+        executeUpload(request: request, attempt: 1)
+    }
+
+    private func executeUpload(request: URLRequest, attempt: Int) {
         let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            guard let self = self else { return }
+
             if let error = error {
-                Logger.log.e(message: "TelnyxCallReportCollector: Error posting report: \(error)")
+                Logger.log.e(message: "TelnyxCallReportCollector: Error posting report (attempt \(attempt)): \(error)")
+                self.retryIfNeeded(request: request, attempt: attempt, statusCode: nil)
                 return
             }
-            
-            if let httpResponse = response as? HTTPURLResponse {
-                if httpResponse.statusCode >= 200 && httpResponse.statusCode < 300 {
-                    Logger.log.i(message: "TelnyxCallReportCollector: Successfully posted report (status: \(httpResponse.statusCode))")
-                } else {
-                    let errorText = data.flatMap { String(data: $0, encoding: .utf8) } ?? "No response body"
-                    Logger.log.e(message: "TelnyxCallReportCollector: Failed to post report (status: \(httpResponse.statusCode), error: \(errorText))")
-                }
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                self.cleanup()
+                return
             }
-            
-            // Clean up log collector resources
-            self?.cleanup()
+
+            if httpResponse.statusCode >= 200 && httpResponse.statusCode < 300 {
+                Logger.log.i(message: "TelnyxCallReportCollector: Successfully posted report (status: \(httpResponse.statusCode))")
+                self.cleanup()
+            } else {
+                let errorText = data.flatMap { String(data: $0, encoding: .utf8) } ?? "No response body"
+                Logger.log.e(message: "TelnyxCallReportCollector: Failed to post report (attempt \(attempt), status: \(httpResponse.statusCode), error: \(errorText))")
+                self.retryIfNeeded(request: request, attempt: attempt, statusCode: httpResponse.statusCode)
+            }
         }
-        
         task.resume()
+    }
+
+    private func retryIfNeeded(request: URLRequest, attempt: Int, statusCode: Int?) {
+        // Only retry on 5xx or network errors, not on 4xx
+        if let code = statusCode, code >= 400 && code < 500 {
+            Logger.log.e(message: "TelnyxCallReportCollector: Not retrying (client error \(code))")
+            cleanup()
+            return
+        }
+
+        guard attempt < maxRetryAttempts else {
+            Logger.log.e(message: "TelnyxCallReportCollector: All \(maxRetryAttempts) upload attempts failed")
+            cleanup()
+            return
+        }
+
+        let delay = retryBaseDelay * pow(2.0, Double(attempt - 1))
+        Logger.log.w(message: "TelnyxCallReportCollector: Retrying in \(delay)s (attempt \(attempt + 1)/\(maxRetryAttempts))")
+
+        DispatchQueue.global().asyncAfter(deadline: .now() + delay) { [weak self] in
+            self?.executeUpload(request: request, attempt: attempt + 1)
+        }
     }
     
     /// Get the current stats buffer (for debugging)
@@ -331,6 +385,15 @@ public class TelnyxCallReportCollector {
             statsBuffer.removeFirst()
             Logger.log.w(message: "TelnyxCallReportCollector: Buffer size limit reached, removing oldest entry")
         }
+
+        // Log per-interval summary (like Android's "Audio sample recorded" Timber log)
+        let jitterStr = statsEntry.audio?.inbound?.jitterAvg.map { String(format: "%.2f", $0) } ?? "n/a"
+        let rttStr = statsEntry.connection?.roundTripTimeAvg.map { String(format: "%.4f", $0) } ?? "n/a"
+        let outPkts = statsEntry.audio?.outbound?.packetsSent.map { "\($0)" } ?? "n/a"
+        let inPkts = statsEntry.audio?.inbound?.packetsReceived.map { "\($0)" } ?? "n/a"
+        let lost = statsEntry.audio?.inbound?.packetsLost.map { "\($0)" } ?? "n/a"
+        Logger.log.i(message: "TelnyxCallReportCollector: Interval #\(statsBuffer.count) collected "
+            + "(jitter: \(jitterStr)ms, rtt: \(rttStr)s, outPkts: \(outPkts), inPkts: \(inPkts), lost: \(lost))")
 
         intervalStartTime = end
         resetIntervalAccumulators()
