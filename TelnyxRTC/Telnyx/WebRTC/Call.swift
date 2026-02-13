@@ -660,9 +660,12 @@ public class Call {
             break
         }
         
-        // Stop and post call report when call ends
-        if case .DONE = callState {
+        // Stop and post call report when call ends (any terminal state)
+        switch callState {
+        case .DONE, .DROPPED:
             stopAndPostCallReport()
+        default:
+            break
         }
         
         self.delegate?.callStateUpdated(call: self)
