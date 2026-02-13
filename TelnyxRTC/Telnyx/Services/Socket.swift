@@ -22,6 +22,14 @@ class Socket {
     
     /// Connection timeout interval in seconds
     private var connectionTimeout: TimeInterval = 5.0
+    
+    /// Call report ID captured from REGED message for stateless authentication
+    /// Used to authenticate call quality reports posted to voice-sdk-proxy
+    var callReportId: String?
+
+    /// Voice SDK ID captured from REGED message
+    /// Used as x-voice-sdk-id header when posting call reports
+    var voiceSdkId: String?
 
     func connect(signalingServer: URL) {
         Logger.log.i(message: "Socket:: connect()")
