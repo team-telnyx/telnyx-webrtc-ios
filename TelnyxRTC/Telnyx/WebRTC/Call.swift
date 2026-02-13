@@ -895,7 +895,7 @@ extension Call {
         // Build call summary
         let summary = CallReportSummary(
             callId: callId.uuidString,
-            destinationNumber: self.callInfo?.destinationNumber,
+            destinationNumber: self.callOptions?.destinationNumber,
             callerNumber: self.callInfo?.callerNumber,
             direction: self.direction.rawValue,
             state: self.callState.value,
