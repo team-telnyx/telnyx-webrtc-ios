@@ -879,7 +879,11 @@ extension Call {
               let peerConnection = self.peer?.connection else {
             return
         }
-        
+
+        collector.onFlushNeeded = { [weak self] in
+            self?.flushIntermediateReport()
+        }
+
         collector.start(peerConnection: peerConnection)
         Logger.log.i(message: "Call:: Started call report collector")
     }
@@ -924,6 +928,42 @@ extension Call {
         )
         
         Logger.log.i(message: "Call:: Posted call report")
+    }
+
+    private func flushIntermediateReport() {
+        guard enableCallReports,
+              let collector = self.callReportCollector,
+              let socket = self.socket,
+              let callId = self.callInfo?.callId,
+              let callReportId = socket.callReportId,
+              let host = socket.signalingServer?.absoluteString else {
+            return
+        }
+
+        // Build an in-progress summary (no endTimestamp since call is active)
+        let summary = CallReportSummary(
+            callId: callId.uuidString,
+            destinationNumber: self.callOptions?.destinationNumber,
+            callerNumber: self.callInfo?.callerNumber,
+            direction: self.direction.rawValue,
+            state: self.callState.value,
+            telnyxSessionId: self.telnyxSessionId?.uuidString,
+            telnyxLegId: self.telnyxLegId?.uuidString,
+            voiceSdkSessionId: self.sessionId,
+            sdkVersion: Message.SDK_VERSION
+        )
+
+        guard let payload = collector.flush(summary: summary) else { return }
+
+        // Fire-and-forget POST
+        collector.sendPayload(
+            payload,
+            callReportId: callReportId,
+            host: host,
+            voiceSdkId: socket.voiceSdkId
+        )
+
+        Logger.log.i(message: "Call:: Flushed intermediate call report segment \(payload.segment ?? -1)")
     }
 }
 

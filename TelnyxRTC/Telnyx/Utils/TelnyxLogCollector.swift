@@ -107,13 +107,24 @@ public class TelnyxLogCollector {
         }
     }
     
-    /// Get all collected logs
+    /// Get all collected logs (non-destructive)
     /// - Returns: Array of log entries
     public func getLogs() -> [LogEntry] {
         lock.lock()
         defer { lock.unlock() }
-        
+
         return buffer
+    }
+
+    /// Atomically returns all logs and clears the buffer.
+    /// Used by intermediate flushes so logs are not re-sent.
+    /// - Returns: Array of log entries that were in the buffer
+    public func drain() -> [LogEntry] {
+        lock.lock()
+        defer { lock.unlock() }
+        let entries = buffer
+        buffer.removeAll()
+        return entries
     }
     
     /// Get the number of collected logs

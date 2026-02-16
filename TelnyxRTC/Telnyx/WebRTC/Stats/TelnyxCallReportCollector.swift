@@ -58,6 +58,18 @@ public class TelnyxCallReportCollector {
     // Maximum buffer size to prevent memory issues on long calls
     private let maxBufferSize = 360 // 30 minutes at 5-second intervals
 
+    // Flush thresholds for intermediate segment reporting (matches JS SDK)
+    let statsFlushThreshold = 300  // ~25 min at 5s intervals
+    let logsFlushThreshold = 800
+
+    // Segment tracking for intermediate flushes
+    private var segmentIndex: Int = 0
+    private var isFlushing: Bool = false
+
+    /// Callback invoked when stats or log buffers approach their flush thresholds.
+    /// Set by `Call` to trigger an intermediate report POST.
+    var onFlushNeeded: (() -> Void)?
+
     // Retry configuration for HTTP POST (aligned with Android)
     private let maxRetryAttempts = 3
     private let retryBaseDelay: TimeInterval = 1.0
@@ -128,7 +140,7 @@ public class TelnyxCallReportCollector {
         Logger.log.i(message: "TelnyxCallReportCollector: Stopped stats collection (totalIntervals: \(statsBuffer.count), totalLogs: \(logCount), duration: \(callEndTime?.timeIntervalSince(callStartTime) ?? 0)s)")
     }
     
-    /// Post the collected stats to voice-sdk-proxy
+    /// Post the final collected stats to voice-sdk-proxy
     /// - Parameters:
     ///   - summary: Call summary information
     ///   - callReportId: Call report ID from REGED message
@@ -139,43 +151,89 @@ public class TelnyxCallReportCollector {
             Logger.log.i(message: "TelnyxCallReportCollector: Skipping report post (enabled: \(config.enabled), stats: \(statsBuffer.count))")
             return
         }
-        
-        // Get collected logs
+
+        // Get collected logs (non-destructive for final report)
         let logs = logCollector?.getLogs()
-        
+
+        // Only include segment in final report if intermediate flushes happened
+        let segment: Int? = segmentIndex > 0 ? segmentIndex : nil
+
         // Build the report payload
         let payload = CallReportPayload(
             summary: summary,
             stats: statsBuffer,
-            logs: logs
+            logs: logs,
+            segment: segment
         )
-        
+
+        Logger.log.i(message: "TelnyxCallReportCollector: Posting final report (intervals: \(statsBuffer.count), logEntries: \(logs?.count ?? 0), segment: \(segment.map { "\($0)" } ?? "nil"), callId: \(summary.callId))")
+
+        sendPayload(payload, callReportId: callReportId, host: host, voiceSdkId: voiceSdkId)
+    }
+
+    /// Build an intermediate segment payload by snapshotting and clearing the current buffers.
+    /// - Parameter summary: Call summary (typically without `endTimestamp` since the call is still active)
+    /// - Returns: A `CallReportPayload` with a `segment` index, or `nil` if already flushing or buffer is empty
+    func flush(summary: CallReportSummary) -> CallReportPayload? {
+        guard !isFlushing && !statsBuffer.isEmpty else { return nil }
+
+        isFlushing = true
+        defer { isFlushing = false }
+
+        let currentSegment = segmentIndex
+        segmentIndex += 1
+
+        // Snapshot and clear stats buffer
+        let stats = statsBuffer
+        statsBuffer.removeAll()
+
+        // Drain logs (destructive — prevents re-sending)
+        let logs = logCollector?.drain()
+
+        Logger.log.i(message: "TelnyxCallReportCollector: Flushing segment \(currentSegment) (stats: \(stats.count), logs: \(logs?.count ?? 0))")
+
+        return CallReportPayload(
+            summary: summary,
+            stats: stats,
+            logs: logs,
+            segment: currentSegment
+        )
+    }
+
+    /// Encode and send a `CallReportPayload` to the voice-sdk-proxy endpoint.
+    /// Reusable for both intermediate segment flushes and the final report.
+    /// - Parameters:
+    ///   - payload: The report payload to send
+    ///   - callReportId: Call report ID from REGED message
+    ///   - host: WebSocket host URL (will be converted to HTTP)
+    ///   - voiceSdkId: Optional voice SDK ID
+    func sendPayload(_ payload: CallReportPayload, callReportId: String, host: String, voiceSdkId: String? = nil) {
         // Derive HTTP endpoint from WebSocket URL
         guard let wsUrl = URL(string: host) else {
             Logger.log.e(message: "TelnyxCallReportCollector: Invalid host URL: \(host)")
             return
         }
-        
+
         let scheme = wsUrl.scheme?.replacingOccurrences(of: "ws", with: "http") ?? "https"
         let endpoint = "\(scheme)://\(wsUrl.host ?? "rtc.telnyx.com")\(wsUrl.port.map { ":\($0)" } ?? "")/call_report"
-        
+
         guard let endpointUrl = URL(string: endpoint) else {
             Logger.log.e(message: "TelnyxCallReportCollector: Failed to construct endpoint URL from: \(endpoint)")
             return
         }
-        
-        Logger.log.i(message: "TelnyxCallReportCollector: Posting report (endpoint: \(endpoint), intervals: \(statsBuffer.count), logEntries: \(logs?.count ?? 0), callId: \(summary.callId))")
-        
+
+        Logger.log.i(message: "TelnyxCallReportCollector: Sending payload (endpoint: \(endpoint), intervals: \(payload.stats.count), logEntries: \(payload.logs?.count ?? 0), segment: \(payload.segment.map { "\($0)" } ?? "nil"), callId: \(payload.summary.callId))")
+
         // Build request
         var request = URLRequest(url: endpointUrl)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(callReportId, forHTTPHeaderField: "x-call-report-id")
-        request.setValue(summary.callId, forHTTPHeaderField: "x-call-id")
+        request.setValue(payload.summary.callId, forHTTPHeaderField: "x-call-id")
         if let voiceSdkId = voiceSdkId {
             request.setValue(voiceSdkId, forHTTPHeaderField: "x-voice-sdk-id")
         }
-        
+
         // Encode payload
         let jsonData: Data
         do {
@@ -397,6 +455,7 @@ public class TelnyxCallReportCollector {
 
         intervalStartTime = end
         resetIntervalAccumulators()
+        checkFlushThresholds()
     }
     
     /// Create a stats entry from accumulated values
@@ -478,6 +537,16 @@ public class TelnyxCallReportCollector {
         return (avg * 10000).rounded() / 10000
     }
     
+    /// Check whether stats or log buffers have reached their flush thresholds
+    /// and notify the caller via `onFlushNeeded` if so.
+    private func checkFlushThresholds() {
+        let logCount = logCollector?.getLogCount() ?? 0
+        if statsBuffer.count >= statsFlushThreshold || logCount >= logsFlushThreshold {
+            Logger.log.i(message: "TelnyxCallReportCollector: Flush threshold reached (stats: \(statsBuffer.count)/\(statsFlushThreshold), logs: \(logCount)/\(logsFlushThreshold))")
+            onFlushNeeded?()
+        }
+    }
+
     /// Reset interval accumulators for next collection period
     private func resetIntervalAccumulators() {
         intervalAudioLevels = ([], [])

@@ -182,11 +182,13 @@ public struct CallReportPayload: Codable {
     public let summary: CallReportSummary
     public let stats: [CallReportInterval]
     public let logs: [LogEntry]?
-    
-    public init(summary: CallReportSummary, stats: [CallReportInterval], logs: [LogEntry]? = nil) {
+    public let segment: Int?
+
+    public init(summary: CallReportSummary, stats: [CallReportInterval], logs: [LogEntry]? = nil, segment: Int? = nil) {
         self.summary = summary
         self.stats = stats
         self.logs = logs
+        self.segment = segment
     }
 }
 
