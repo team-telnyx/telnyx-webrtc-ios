@@ -645,13 +645,14 @@ extension Call {
         guard let sessionId = self.sessionId, let callId = self.callInfo?.callId else { return }
         
         // Create a termination reason for local hangup
-        // Use USER_BUSY
+        // Use USER_BUSY for incoming calls (NEW state) and outbound calls not yet connected (RINGING, CONNECTING)
+        // Use NORMAL_CLEARING for active calls
         let causeCode: CauseCode
 
         switch callState {
-        case .ACTIVE:
+        case .ACTIVE, .HELD:
             causeCode = .NORMAL_CLEARING
-        case .RINGING, .CONNECTING:
+        case .NEW, .RINGING, .CONNECTING:
             causeCode = .USER_BUSY
         default:
             causeCode = .NORMAL_CLEARING
@@ -662,7 +663,7 @@ extension Call {
             causeCode: causeCode.rawValue
         )
 
-        let byeMessage = ByeMessage(sessionId: sessionId, callId: callId.uuidString, causeCode: .USER_BUSY)
+        let byeMessage = ByeMessage(sessionId: sessionId, callId: callId.uuidString, causeCode: causeCode)
         let message = byeMessage.encode() ?? ""
         self.socket?.sendMessage(message: message)
         self.endCall(terminationReason: terminationReason)
