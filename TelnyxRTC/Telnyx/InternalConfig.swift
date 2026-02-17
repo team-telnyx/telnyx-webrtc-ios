@@ -10,44 +10,63 @@ import Foundation
 import WebRTC
 
 // MARK: - Production Servers
-fileprivate let PROD_HOST = "wss://rtc.telnyx.com"
-fileprivate let PROD_TURN_SERVER = "turn:turn.telnyx.com:3478?transport=tcp"
-fileprivate let PROD_STUN_SERVER = "stun:stun.telnyx.com:3478"
-fileprivate let PROD_TURN = RTCIceServer(urlStrings: [PROD_TURN_SERVER],
-                                         username: "testuser",
-                                         credential: "testpassword")
-fileprivate let PROD_STUN = RTCIceServer(urlStrings: [PROD_STUN_SERVER])
-fileprivate let prodIceServers = [PROD_TURN, PROD_STUN]
-
-// MARK: - Development Servers
-fileprivate let DEVELOPMENT_HOST = "wss://rtcdev.telnyx.com"
-fileprivate let DEV_TURN_SERVER = "turn:turndev.telnyx.com:3478?transport=tcp"
-fileprivate let DEV_STUN_SERVER = "stun:stundev.telnyx.com:3478"
-fileprivate let DEV_TURN = RTCIceServer(urlStrings: [DEV_TURN_SERVER],
+private let prodHost = "wss://rtc.telnyx.com"
+// UDP preferred for lower latency, TCP as fallback for restrictive firewalls
+private let prodTurnServerUdp = "turn:turn.telnyx.com:3478?transport=udp"
+private let prodTurnTcpUrl = "turn:turn.telnyx.com:3478?transport=tcp"
+private let prodStunUrl = "stun:stun.telnyx.com:3478"
+// UDP TURN server (primary - lower latency)
+private let prodTurnUdp = RTCIceServer(urlStrings: [prodTurnServerUdp],
                                         username: "testuser",
                                         credential: "testpassword")
-fileprivate let DEV_STUN = RTCIceServer(urlStrings: [DEV_STUN_SERVER])
-fileprivate let devIceServers = [DEV_TURN, DEV_STUN]
+// TCP TURN server (fallback - for restrictive firewalls)
+private let prodTurnTcp = RTCIceServer(urlStrings: [prodTurnTcpUrl],
+                                        username: "testuser",
+                                        credential: "testpassword")
+private let prodStun = RTCIceServer(urlStrings: [prodStunUrl])
+// Google STUN server for additional STUN redundancy (aligned with JS WebRTC SDK)
+private let googleStun = RTCIceServer(urlStrings: ["stun:stun.l.google.com:19302"])
+private let prodIceServers = [prodStun, googleStun, prodTurnUdp, prodTurnTcp]
+
+// MARK: - Development Servers
+private let developmentHost = "wss://rtcdev.telnyx.com"
+// UDP preferred for lower latency, TCP as fallback for restrictive firewalls
+private let devTurnServerUdp = "turn:turndev.telnyx.com:3478?transport=udp"
+private let devTurnTcpUrl = "turn:turndev.telnyx.com:3478?transport=tcp"
+private let devStunUrl = "stun:stundev.telnyx.com:3478"
+// UDP TURN server (primary - lower latency)
+private let devTurnUdp = RTCIceServer(urlStrings: [devTurnServerUdp],
+                                       username: "testuser",
+                                       credential: "testpassword")
+// TCP TURN server (fallback - for restrictive firewalls)
+private let devTurnTcp = RTCIceServer(urlStrings: [devTurnTcpUrl],
+                                       username: "testuser",
+                                       credential: "testpassword")
+private let devStun = RTCIceServer(urlStrings: [devStunUrl])
+private let devIceServers = [devStun, googleStun, devTurnUdp, devTurnTcp]
 
 // Set this to the machine's address which runs the signaling server
-fileprivate let defaultSignalingServerUrl = URL(string: PROD_HOST)!
+private let defaultSignalingServerUrl = URL(string: prodHost)!
 
 struct InternalConfig {
     let prodSignalingServer: URL
     let developmentSignalingServer: URL
     let prodWebRTCIceServers: [RTCIceServer]
     let devWebRTCIceServers: [RTCIceServer]
-    
-    static let prodTurnServer = PROD_TURN_SERVER
-    static let prodStunServer = PROD_STUN_SERVER
-    static let devTurnServer = DEV_TURN_SERVER
-    static let devStunServer = DEV_STUN_SERVER
 
-    static let `default` = InternalConfig(prodSignalingServer: URL(string: PROD_HOST)!,
-                                          developmentSignalingServer: URL(string: DEVELOPMENT_HOST)!,
+    // Primary TURN servers (UDP - lower latency)
+    static let prodTurnServer = prodTurnServerUdp
+    static let prodTurnServerTcp = prodTurnTcpUrl
+    static let prodStunServer = prodStunUrl
+    static let devTurnServer = devTurnServerUdp
+    static let devTurnServerTcp = devTurnTcpUrl
+    static let devStunServer = devStunUrl
+
+    static let `default` = InternalConfig(prodSignalingServer: URL(string: prodHost)!,
+                                          developmentSignalingServer: URL(string: developmentHost)!,
                                           prodWebRTCIceServers: prodIceServers,
                                           devWebRTCIceServers: devIceServers)
-    
+
     // MARK: - Notification Names
     struct NotificationNames {
         static let acmResetStarted = "ACMResetStarted"
