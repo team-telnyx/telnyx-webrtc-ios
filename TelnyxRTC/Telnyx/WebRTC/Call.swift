@@ -953,18 +953,26 @@ extension Call {
         
         // Stop collection
         collector.stop()
-        
+
+        let iso8601 = ISO8601DateFormatter()
+        let startTimestamp = iso8601.string(from: collector.callStartTime)
+        let endTimestamp = collector.callEndTime.map { iso8601.string(from: $0) }
+        let durationSeconds = collector.callEndTime.map { $0.timeIntervalSince(collector.callStartTime) }
+
         // Build call summary
         let summary = CallReportSummary(
             callId: callId.uuidString,
             destinationNumber: self.callOptions?.destinationNumber,
             callerNumber: self.callInfo?.callerNumber,
             direction: self.direction.rawValue,
-            state: self.callState.value,
+            state: self.callState.value.lowercased(),
+            durationSeconds: durationSeconds,
             telnyxSessionId: self.telnyxSessionId?.uuidString,
             telnyxLegId: self.telnyxLegId?.uuidString,
             voiceSdkSessionId: self.sessionId,
-            sdkVersion: Message.SDK_VERSION
+            sdkVersion: Message.SDK_VERSION,
+            startTimestamp: startTimestamp,
+            endTimestamp: endTimestamp
         )
         
         // Get call_report_id and host
@@ -996,16 +1004,18 @@ extension Call {
         }
 
         // Build an in-progress summary (no endTimestamp since call is active)
+        let startTimestamp = ISO8601DateFormatter().string(from: collector.callStartTime)
         let summary = CallReportSummary(
             callId: callId.uuidString,
             destinationNumber: self.callOptions?.destinationNumber,
             callerNumber: self.callInfo?.callerNumber,
             direction: self.direction.rawValue,
-            state: self.callState.value,
+            state: self.callState.value.lowercased(),
             telnyxSessionId: self.telnyxSessionId?.uuidString,
             telnyxLegId: self.telnyxLegId?.uuidString,
             voiceSdkSessionId: self.sessionId,
-            sdkVersion: Message.SDK_VERSION
+            sdkVersion: Message.SDK_VERSION,
+            startTimestamp: startTimestamp
         )
 
         guard let payload = collector.flush(summary: summary) else { return }

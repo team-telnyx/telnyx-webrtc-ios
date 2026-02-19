@@ -42,8 +42,8 @@ public class TelnyxCallReportCollector {
     private var timer: Timer?
     private var statsBuffer: [CallReportInterval] = []
     private var intervalStartTime: Date?
-    private let callStartTime: Date
-    private var callEndTime: Date?
+    private(set) var callStartTime: Date
+    private(set) var callEndTime: Date?
     private let logCollector: TelnyxLogCollector?
     
     // Accumulated values for averaging within an interval
