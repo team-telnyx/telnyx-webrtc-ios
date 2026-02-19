@@ -105,7 +105,7 @@ public class TelnyxCallReportCollector {
         logCollector?.addEntry(
             level: "info",
             message: "CallReportCollector: Starting stats and log collection",
-            context: ["interval": AnyCodable(config.interval), "logLevel": AnyCodable(logCollectorConfig.level)]
+            context: ["interval": config.interval, "logLevel": logCollectorConfig.level]
         )
 
         // Schedule on main RunLoop — start() may be called from a WebRTC background thread

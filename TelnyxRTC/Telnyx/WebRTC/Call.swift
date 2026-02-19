@@ -630,10 +630,10 @@ public class Call {
             level: "info",
             message: "Call ended",
             context: [
-                "cause": AnyCodable(terminationReason?.cause ?? ""),
-                "causeCode": AnyCodable(terminationReason?.causeCode ?? 0),
-                "sipCode": AnyCodable(terminationReason?.sipCode ?? 0),
-                "sipReason": AnyCodable(terminationReason?.sipReason ?? "")
+                "cause": terminationReason?.cause ?? "",
+                "causeCode": terminationReason?.causeCode ?? 0,
+                "sipCode": terminationReason?.sipCode ?? 0,
+                "sipReason": terminationReason?.sipReason ?? ""
             ]
         )
 
@@ -657,8 +657,8 @@ public class Call {
             level: "info",
             message: "Call state changed",
             context: [
-                "state": AnyCodable(callState.value),
-                "reason": AnyCodable(callState.getReason() ?? "")
+                "state": callState.value,
+                "reason": callState.getReason() ?? ""
             ]
         )
         
@@ -899,8 +899,8 @@ extension Call {
             level: "info",
             message: "Call started",
             context: [
-                "callId": AnyCodable(callInfo?.callId.uuidString ?? ""),
-                "direction": AnyCodable(direction.rawValue)
+                "callId": callInfo?.callId.uuidString ?? "",
+                "direction": direction.rawValue
             ]
         )
     }
@@ -914,7 +914,7 @@ extension Call {
             self?.callReportCollector?.addLogEntry(
                 level: "info",
                 message: "Signaling state changed",
-                context: ["state": AnyCodable(state.telnyx_to_string())]
+                context: ["state": state.telnyx_to_string()]
             )
         }
 
@@ -922,7 +922,7 @@ extension Call {
             self?.callReportCollector?.addLogEntry(
                 level: "info",
                 message: "ICE gathering state changed",
-                context: ["state": AnyCodable(state.telnyx_to_string())]
+                context: ["state": state.telnyx_to_string()]
             )
         }
     }
@@ -1460,8 +1460,8 @@ extension Call {
                 level: "info",
                 message: "ICE connection state changed",
                 context: [
-                    "state": AnyCodable(newState.telnyx_to_string()),
-                    "previousState": AnyCodable(self?.previousIceConnectionState.telnyx_to_string() ?? "unknown")
+                    "state": newState.telnyx_to_string(),
+                    "previousState": self?.previousIceConnectionState.telnyx_to_string() ?? "unknown"
                 ]
             )
             self?.handleIceConnectionStateTransition(from: self?.previousIceConnectionState ?? .new, to: newState)
