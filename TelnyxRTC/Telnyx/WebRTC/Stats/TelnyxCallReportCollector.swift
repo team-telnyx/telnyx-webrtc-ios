@@ -255,8 +255,25 @@ public class TelnyxCallReportCollector {
         executeUpload(request: request, attempt: 1)
     }
 
+    /// URLSession delegate that accepts self-signed certificates (matches WebSocket behavior)
+    private class AllowSelfSignedDelegate: NSObject, URLSessionDelegate {
+        func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge,
+                        completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+            if let serverTrust = challenge.protectionSpace.serverTrust {
+                completionHandler(.useCredential, URLCredential(trust: serverTrust))
+            } else {
+                completionHandler(.performDefaultHandling, nil)
+            }
+        }
+    }
+
+    private lazy var urlSession: URLSession = {
+        let delegate = AllowSelfSignedDelegate()
+        return URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+    }()
+
     private func executeUpload(request: URLRequest, attempt: Int) {
-        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+        let task = urlSession.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self else { return }
 
             if let error = error {
@@ -304,6 +321,15 @@ public class TelnyxCallReportCollector {
         }
     }
     
+    /// Add a structured log entry to the call report.
+    /// - Parameters:
+    ///   - level: Log level (e.g. "info", "warn", "error")
+    ///   - message: Human-readable event description
+    ///   - context: Optional dictionary with structured event data
+    public func addLogEntry(level: String, message: String, context: [String: Any]? = nil) {
+        logCollector?.addEntry(level: level, message: message, context: context)
+    }
+
     /// Get the current stats buffer (for debugging)
     /// - Returns: Array of collected intervals
     public func getStatsBuffer() -> [CallReportInterval] {

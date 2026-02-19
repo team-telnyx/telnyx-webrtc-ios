@@ -554,6 +554,7 @@ public class Call {
         // Set callId for trickle ICE messages - must match the callID sent in INVITE
         self.peer?.callId = self.callInfo?.callId.uuidString.lowercased()
         Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.callInfo?.callId.uuidString.lowercased() ?? "nil") for trickle ICE")
+        self.setupPeerEventLogging()
         self.peer?.offer(preferredCodecs: preferredCodecs, completion: { (sdp, error)  in
 
             if let error = error {
@@ -624,7 +625,18 @@ public class Call {
     private func endCall(terminationReason: CallTerminationReason? = nil) {
         // Reset benchmarking when call ends
         CallTimingBenchmark.reset()
-        
+
+        callReportCollector?.addLogEntry(
+            level: "info",
+            message: "Call ended",
+            context: [
+                "cause": AnyCodable(terminationReason?.cause ?? ""),
+                "causeCode": AnyCodable(terminationReason?.causeCode ?? 0),
+                "sipCode": AnyCodable(terminationReason?.sipCode ?? 0),
+                "sipReason": AnyCodable(terminationReason?.sipReason ?? "")
+            ]
+        )
+
         self.stopRingtone()
         self.stopRingbackTone()
         self.statsReporter?.dispose()
@@ -640,6 +652,15 @@ public class Call {
     internal func updateCallState(callState: CallState) {
         Logger.log.i(message: "Call state updated: \(callState)")
         self.callState = callState
+
+        callReportCollector?.addLogEntry(
+            level: "info",
+            message: "Call state changed",
+            context: [
+                "state": AnyCodable(callState.value),
+                "reason": AnyCodable(callState.getReason() ?? "")
+            ]
+        )
         
         // Notify the stats reporter about the call state change
         if let statsReporter = self.statsReporter, (debug || enableQualityMetrics) {
@@ -774,6 +795,7 @@ extension Call {
         // Set callId for trickle ICE messages - must match the callID from the incoming INVITE
         self.peer?.callId = self.callInfo?.callId.uuidString.lowercased()
         Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.callInfo?.callId.uuidString.lowercased() ?? "nil") for trickle ICE")
+        self.setupPeerEventLogging()
         self.incomingOffer(sdp: remoteSdp)
         self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", completion: { (sdp, error)  in
             
@@ -822,6 +844,7 @@ extension Call {
         // Set callId for trickle ICE messages - must match the callID from ATTACH
         self.peer?.callId = self.callInfo?.callId.uuidString.lowercased()
         Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.callInfo?.callId.uuidString.lowercased() ?? "nil") for ATTACH")
+        self.setupPeerEventLogging()
         self.incomingOffer(sdp: remoteSdp)
         self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", completion: { (sdp, error)  in
 
@@ -871,8 +894,39 @@ extension Call {
         )
         
         self.callReportCollector = TelnyxCallReportCollector(config: config, logCollectorConfig: logConfig)
+
+        callReportCollector?.addLogEntry(
+            level: "info",
+            message: "Call started",
+            context: [
+                "callId": AnyCodable(callInfo?.callId.uuidString ?? ""),
+                "direction": AnyCodable(direction.rawValue)
+            ]
+        )
     }
     
+    /// Sets up Peer callbacks that log signaling, ICE gathering, and ICE connection
+    /// state changes into the call report collector. Called after peer creation.
+    private func setupPeerEventLogging() {
+        guard let peer = self.peer else { return }
+
+        peer.onSignalingStateChangeForLog = { [weak self] state in
+            self?.callReportCollector?.addLogEntry(
+                level: "info",
+                message: "Signaling state changed",
+                context: ["state": AnyCodable(state.telnyx_to_string())]
+            )
+        }
+
+        peer.onIceGatheringStateChangeForLog = { [weak self] state in
+            self?.callReportCollector?.addLogEntry(
+                level: "info",
+                message: "ICE gathering state changed",
+                context: ["state": AnyCodable(state.telnyx_to_string())]
+            )
+        }
+    }
+
     private func startCallReportCollector() {
         guard enableCallReports,
               let collector = self.callReportCollector,
@@ -1402,6 +1456,14 @@ extension Call {
         
         // Set up callback to monitor ICE connection state changes
         self.peer?.onIceConnectionStateChange = { [weak self] newState in
+            self?.callReportCollector?.addLogEntry(
+                level: "info",
+                message: "ICE connection state changed",
+                context: [
+                    "state": AnyCodable(newState.telnyx_to_string()),
+                    "previousState": AnyCodable(self?.previousIceConnectionState.telnyx_to_string() ?? "unknown")
+                ]
+            )
             self?.handleIceConnectionStateTransition(from: self?.previousIceConnectionState ?? .new, to: newState)
             self?.previousIceConnectionState = newState
         }
