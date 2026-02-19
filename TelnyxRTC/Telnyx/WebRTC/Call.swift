@@ -955,6 +955,7 @@ extension Call {
         collector.stop()
 
         let iso8601 = ISO8601DateFormatter()
+        iso8601.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         let startTimestamp = iso8601.string(from: collector.callStartTime)
         let endTimestamp = collector.callEndTime.map { iso8601.string(from: $0) }
         let durationSeconds = collector.callEndTime.map { $0.timeIntervalSince(collector.callStartTime) }
@@ -1004,7 +1005,9 @@ extension Call {
         }
 
         // Build an in-progress summary (no endTimestamp since call is active)
-        let startTimestamp = ISO8601DateFormatter().string(from: collector.callStartTime)
+        let flushIso8601 = ISO8601DateFormatter()
+        flushIso8601.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let startTimestamp = flushIso8601.string(from: collector.callStartTime)
         let summary = CallReportSummary(
             callId: callId.uuidString,
             destinationNumber: self.callOptions?.destinationNumber,

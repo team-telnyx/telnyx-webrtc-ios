@@ -42,6 +42,12 @@ public class TelnyxLogCollector {
         "warn": 2,
         "error": 3,
     ]
+
+    private static let iso8601: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f
+    }()
     
     // MARK: - Initialization
     
@@ -93,7 +99,7 @@ public class TelnyxLogCollector {
         let anyCodableContext = context?.mapValues { AnyCodable($0) }
         
         let entry = LogEntry(
-            timestamp: ISO8601DateFormatter().string(from: Date()),
+            timestamp: TelnyxLogCollector.iso8601.string(from: Date()),
             level: level.lowercased(),
             message: message,
             context: anyCodableContext

@@ -493,6 +493,7 @@ public class TelnyxCallReportCollector {
         candidatePair: RTCIceCandidatePairStats?
     ) -> CallReportInterval {
         let iso8601 = ISO8601DateFormatter()
+        iso8601.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         
         var audioStats: AudioStats?
         var outboundStats: OutboundAudioStats?
