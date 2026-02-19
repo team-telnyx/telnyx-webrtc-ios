@@ -222,7 +222,7 @@ public class TelnyxCallReportCollector {
             return
         }
 
-        Logger.log.i(message: "TelnyxCallReportCollector: Sending payload (endpoint: \(endpoint), intervals: \(payload.stats.count), logEntries: \(payload.logs?.count ?? 0), segment: \(payload.segment.map { "\($0)" } ?? "nil"), callId: \(payload.summary.callId))")
+        Logger.log.i(message: "TelnyxCallReportCollector: Sending payload (host: \(host), endpoint: \(endpoint), callReportId: \(callReportId), voiceSdkId: \(voiceSdkId ?? "nil"), intervals: \(payload.stats.count), logEntries: \(payload.logs?.count ?? 0), segment: \(payload.segment.map { "\($0)" } ?? "nil"), callId: \(payload.summary.callId))")
 
         // Build request
         var request = URLRequest(url: endpointUrl)

@@ -1765,7 +1765,9 @@ extension TxClient : SocketDelegate {
                 // Capture call_report_id and voice_sdk_id for SDK call reporting
                 if let callReportId = params["call_report_id"] as? String {
                     self.socket?.callReportId = callReportId
-                    Logger.log.i(message: "TxClient:: Captured call_report_id from REGED: \(callReportId)")
+                    Logger.log.i(message: "TelnyxCallReportCollector: Captured call_report_id from REGED: \(callReportId)")
+                } else {
+                    Logger.log.w(message: "TelnyxCallReportCollector: No call_report_id found in REGED params: \(params.keys.joined(separator: ", "))")
                 }
                 self.socket?.voiceSdkId = vertoMessage.voiceSdkId
                 

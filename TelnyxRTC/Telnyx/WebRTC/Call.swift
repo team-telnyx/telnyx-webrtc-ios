@@ -893,6 +893,7 @@ extension Call {
               let collector = self.callReportCollector,
               let socket = self.socket,
               let callId = self.callInfo?.callId else {
+            Logger.log.w(message: "TelnyxCallReportCollector: stopAndPostCallReport guard failed (enableCallReports: \(enableCallReports), collector: \(callReportCollector != nil), socket: \(self.socket != nil), callId: \(self.callInfo?.callId.uuidString ?? "nil"))")
             return
         }
         
