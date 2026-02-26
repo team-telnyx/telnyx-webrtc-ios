@@ -894,15 +894,6 @@ extension Call {
         )
         
         self.callReportCollector = TelnyxCallReportCollector(config: config, logCollectorConfig: logConfig)
-
-        callReportCollector?.addLogEntry(
-            level: "info",
-            message: "Call started",
-            context: [
-                "callId": callInfo?.callId.uuidString ?? "",
-                "direction": direction.rawValue
-            ]
-        )
     }
     
     /// Sets up Peer callbacks that log signaling, ICE gathering, and ICE connection
