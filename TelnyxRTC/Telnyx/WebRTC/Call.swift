@@ -211,6 +211,7 @@ public class Call {
     var callOptions: TxCallOptions?
     
     var statsReporter: WebRTCStatsReporter?
+    var callReportCollector: TelnyxCallReportCollector?
     
     /// Flag to track if we're currently performing ICE restart
     internal var isIceRestarting: Bool = false
@@ -281,6 +282,21 @@ public class Call {
     /// When enabled, the SDK will only use TURN relay candidates for ICE gathering,
     /// which prevents the "local network access" permission popup from appearing.
     public internal(set) var forceRelayCandidate: Bool = false
+    
+    /// Enable automatic call quality reporting to voice-sdk-proxy.
+    /// When enabled, WebRTC stats are collected periodically during calls
+    /// and posted to the voice-sdk-proxy /call_report endpoint when the call ends.
+    public internal(set) var enableCallReports: Bool = true
+    
+    /// Interval in seconds for collecting call statistics.
+    /// Stats are aggregated over each interval and stored locally until call end.
+    public internal(set) var callReportInterval: TimeInterval = 5.0
+    
+    /// Minimum log level to capture for call reports ("debug", "info", "warn", "error").
+    public internal(set) var callReportLogLevel: String = "debug"
+    
+    /// Maximum number of log entries to buffer per call.
+    public internal(set) var callReportMaxLogEntries: Int = 1000
 
 
     // MARK: - Properties
@@ -365,7 +381,11 @@ public class Call {
          forceRelayCandidate: Bool = false,
          enableQualityMetrics: Bool = false,
          sendWebRTCStatsViaSocket: Bool = false,
-         useTrickleIce: Bool = false
+         useTrickleIce: Bool = false,
+         enableCallReports: Bool = true,
+         callReportInterval: TimeInterval = 5.0,
+         callReportLogLevel: String = "debug",
+         callReportMaxLogEntries: Int = 1000
     ) {
         if isAttach {
             self.direction = CallDirection.ATTACH
@@ -404,6 +424,13 @@ public class Call {
         self.enableQualityMetrics = enableQualityMetrics
         self.sendWebRTCStatsViaSocket = sendWebRTCStatsViaSocket
         self.useTrickleIce = useTrickleIce
+        self.enableCallReports = enableCallReports
+        self.callReportInterval = callReportInterval
+        self.callReportLogLevel = callReportLogLevel
+        self.callReportMaxLogEntries = callReportMaxLogEntries
+        
+        // Initialize call report collector
+        self.configureCallReportCollector()
     }
     
     //Contructor for attachCalls
@@ -418,7 +445,11 @@ public class Call {
          debug: Bool = false,
          forceRelayCandidate: Bool = false,
          sendWebRTCStatsViaSocket: Bool = false,
-         useTrickleIce: Bool = false) {
+         useTrickleIce: Bool = false,
+         enableCallReports: Bool = true,
+         callReportInterval: TimeInterval = 5.0,
+         callReportLogLevel: String = "debug",
+         callReportMaxLogEntries: Int = 1000) {
         self.direction = CallDirection.ATTACH
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
@@ -439,6 +470,13 @@ public class Call {
         self.forceRelayCandidate = forceRelayCandidate
         self.sendWebRTCStatsViaSocket = sendWebRTCStatsViaSocket
         self.useTrickleIce = useTrickleIce
+        self.enableCallReports = enableCallReports
+        self.callReportInterval = callReportInterval
+        self.callReportLogLevel = callReportLogLevel
+        self.callReportMaxLogEntries = callReportMaxLogEntries
+        
+        // Initialize call report collector
+        self.configureCallReportCollector()
     }
 
     /// Constructor for outgoing calls
@@ -451,7 +489,11 @@ public class Call {
          iceServers: [RTCIceServer],
          debug: Bool = false,
          forceRelayCandidate: Bool = false,
-         useTrickleIce: Bool = false) {
+         useTrickleIce: Bool = false,
+         enableCallReports: Bool = true,
+         callReportInterval: TimeInterval = 5.0,
+         callReportLogLevel: String = "debug",
+         callReportMaxLogEntries: Int = 1000) {
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
         //this is the signaling server socket
@@ -470,6 +512,13 @@ public class Call {
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
         self.useTrickleIce = useTrickleIce
+        self.enableCallReports = enableCallReports
+        self.callReportInterval = callReportInterval
+        self.callReportLogLevel = callReportLogLevel
+        self.callReportMaxLogEntries = callReportMaxLogEntries
+        
+        // Initialize call report collector
+        self.configureCallReportCollector()
     }
 
     // MARK: - Private functions
@@ -505,6 +554,7 @@ public class Call {
         // Set callId for trickle ICE messages - must match the callID sent in INVITE
         self.peer?.callId = self.callInfo?.callId.uuidString.lowercased()
         Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.callInfo?.callId.uuidString.lowercased() ?? "nil") for trickle ICE")
+        self.setupPeerEventLogging()
         self.peer?.offer(preferredCodecs: preferredCodecs, completion: { (sdp, error)  in
 
             if let error = error {
@@ -575,7 +625,18 @@ public class Call {
     private func endCall(terminationReason: CallTerminationReason? = nil) {
         // Reset benchmarking when call ends
         CallTimingBenchmark.reset()
-        
+
+        callReportCollector?.addLogEntry(
+            level: "info",
+            message: "Call ended",
+            context: [
+                "cause": terminationReason?.cause ?? "",
+                "causeCode": terminationReason?.causeCode ?? 0,
+                "sipCode": terminationReason?.sipCode ?? 0,
+                "sipReason": terminationReason?.sipReason ?? ""
+            ]
+        )
+
         self.stopRingtone()
         self.stopRingbackTone()
         self.statsReporter?.dispose()
@@ -591,6 +652,15 @@ public class Call {
     internal func updateCallState(callState: CallState) {
         Logger.log.i(message: "Call state updated: \(callState)")
         self.callState = callState
+
+        callReportCollector?.addLogEntry(
+            level: "info",
+            message: "Call state changed",
+            context: [
+                "state": callState.value,
+                "reason": callState.getReason() ?? ""
+            ]
+        )
         
         // Notify the stats reporter about the call state change
         if let statsReporter = self.statsReporter, (debug || enableQualityMetrics) {
@@ -602,9 +672,19 @@ public class Call {
         case .ACTIVE:
             setupIceConnectionStateMonitoring()
             setupRttMonitoring()
+            // Start call report collector when call becomes active
+            startCallReportCollector()
         case .DONE, .DROPPED, .HELD:
             removeIceConnectionStateMonitoring()
             removeRttMonitoring()
+        default:
+            break
+        }
+        
+        // Stop and post call report when call ends (any terminal state)
+        switch callState {
+        case .DONE, .DROPPED:
+            stopAndPostCallReport()
         default:
             break
         }
@@ -716,6 +796,7 @@ extension Call {
         // Set callId for trickle ICE messages - must match the callID from the incoming INVITE
         self.peer?.callId = self.callInfo?.callId.uuidString.lowercased()
         Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.callInfo?.callId.uuidString.lowercased() ?? "nil") for trickle ICE")
+        self.setupPeerEventLogging()
         self.incomingOffer(sdp: remoteSdp)
         self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", completion: { (sdp, error)  in
             
@@ -764,6 +845,7 @@ extension Call {
         // Set callId for trickle ICE messages - must match the callID from ATTACH
         self.peer?.callId = self.callInfo?.callId.uuidString.lowercased()
         Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.callInfo?.callId.uuidString.lowercased() ?? "nil") for ATTACH")
+        self.setupPeerEventLogging()
         self.incomingOffer(sdp: remoteSdp)
         self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", completion: { (sdp, error)  in
 
@@ -800,6 +882,148 @@ extension Call {
                 }
             }
         }
+    }
+    
+    private func configureCallReportCollector() {
+        guard enableCallReports else { return }
+        
+        let config = CallReportConfig(enabled: true, interval: callReportInterval)
+        let logConfig = LogCollectorConfig(
+            enabled: true,
+            level: callReportLogLevel,
+            maxEntries: callReportMaxLogEntries
+        )
+        
+        self.callReportCollector = TelnyxCallReportCollector(config: config, logCollectorConfig: logConfig)
+    }
+    
+    /// Sets up Peer callbacks that log signaling, ICE gathering, and ICE connection
+    /// state changes into the call report collector. Called after peer creation.
+    private func setupPeerEventLogging() {
+        guard let peer = self.peer else { return }
+
+        peer.onSignalingStateChangeForLog = { [weak self] state in
+            self?.callReportCollector?.addLogEntry(
+                level: "info",
+                message: "Signaling state changed",
+                context: ["state": state.telnyx_to_string()]
+            )
+        }
+
+        peer.onIceGatheringStateChangeForLog = { [weak self] state in
+            self?.callReportCollector?.addLogEntry(
+                level: "info",
+                message: "ICE gathering state changed",
+                context: ["state": state.telnyx_to_string()]
+            )
+        }
+    }
+
+    private func startCallReportCollector() {
+        guard enableCallReports,
+              let collector = self.callReportCollector,
+              let peerConnection = self.peer?.connection else {
+            return
+        }
+
+        collector.onFlushNeeded = { [weak self] in
+            self?.flushIntermediateReport()
+        }
+
+        collector.start(peerConnection: peerConnection)
+        Logger.log.i(message: "Call:: Started call report collector")
+    }
+    
+    private func stopAndPostCallReport() {
+        guard enableCallReports,
+              let collector = self.callReportCollector,
+              let socket = self.socket,
+              let callId = self.callInfo?.callId else {
+            Logger.log.w(message: "TelnyxCallReportCollector: stopAndPostCallReport guard failed (enableCallReports: \(enableCallReports), collector: \(callReportCollector != nil), socket: \(self.socket != nil), callId: \(self.callInfo?.callId.uuidString ?? "nil"))")
+            return
+        }
+        
+        // Stop collection
+        collector.stop()
+
+        let iso8601 = ISO8601DateFormatter()
+        iso8601.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let startTimestamp = iso8601.string(from: collector.callStartTime)
+        let endTimestamp = collector.callEndTime.map { iso8601.string(from: $0) }
+        let durationSeconds = collector.callEndTime.map { $0.timeIntervalSince(collector.callStartTime) }
+
+        // Build call summary
+        let summary = CallReportSummary(
+            callId: callId.uuidString,
+            destinationNumber: self.callOptions?.destinationNumber,
+            callerNumber: self.callInfo?.callerNumber,
+            direction: self.direction.rawValue,
+            state: self.callState.value.lowercased(),
+            durationSeconds: durationSeconds,
+            telnyxSessionId: self.telnyxSessionId?.uuidString,
+            telnyxLegId: self.telnyxLegId?.uuidString,
+            voiceSdkSessionId: self.sessionId,
+            sdkVersion: Message.SDK_VERSION,
+            startTimestamp: startTimestamp,
+            endTimestamp: endTimestamp
+        )
+        
+        // Get call_report_id and host
+        guard let callReportId = socket.callReportId,
+              let host = socket.signalingServer?.absoluteString else {
+            Logger.log.w(message: "Call:: Cannot post call report: missing call_report_id or host")
+            return
+        }
+        
+        // Post report (async, doesn't block)
+        collector.postReport(
+            summary: summary,
+            callReportId: callReportId,
+            host: host,
+            voiceSdkId: socket.voiceSdkId
+        )
+        
+        Logger.log.i(message: "Call:: Posted call report")
+    }
+
+    private func flushIntermediateReport() {
+        guard enableCallReports,
+              let collector = self.callReportCollector,
+              let socket = self.socket,
+              let callId = self.callInfo?.callId,
+              let callReportId = socket.callReportId,
+              let host = socket.signalingServer?.absoluteString else {
+            return
+        }
+
+        // Build an in-progress summary (no endTimestamp since call is active)
+        let flushIso8601 = ISO8601DateFormatter()
+        flushIso8601.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let startTimestamp = flushIso8601.string(from: collector.callStartTime)
+        let summary = CallReportSummary(
+            callId: callId.uuidString,
+            destinationNumber: self.callOptions?.destinationNumber,
+            callerNumber: self.callInfo?.callerNumber,
+            direction: self.direction.rawValue,
+            state: self.callState.value.lowercased(),
+            telnyxSessionId: self.telnyxSessionId?.uuidString,
+            telnyxLegId: self.telnyxLegId?.uuidString,
+            voiceSdkSessionId: self.sessionId,
+            sdkVersion: Message.SDK_VERSION,
+            startTimestamp: startTimestamp
+        )
+
+        guard let payload = collector.flush(summary: summary) else { return }
+
+        // Fire-and-forget POST
+        collector.sendPayload(
+            payload,
+            callReportId: callReportId,
+            host: host,
+            voiceSdkId: socket.voiceSdkId
+        )
+
+        Logger.log.i(message: "Call:: Flushed intermediate call report segment \(payload.segment ?? -1)")
     }
 }
 
@@ -1237,6 +1461,14 @@ extension Call {
         
         // Set up callback to monitor ICE connection state changes
         self.peer?.onIceConnectionStateChange = { [weak self] newState in
+            self?.callReportCollector?.addLogEntry(
+                level: "info",
+                message: "ICE connection state changed",
+                context: [
+                    "state": newState.telnyx_to_string(),
+                    "previousState": self?.previousIceConnectionState.telnyx_to_string() ?? "unknown"
+                ]
+            )
             self?.handleIceConnectionStateTransition(from: self?.previousIceConnectionState ?? .new, to: newState)
             self?.previousIceConnectionState = newState
         }

@@ -111,6 +111,9 @@
 		99C569BD2E834A0200304547 /* AIConversationMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C569BC2E834A0200304547 /* AIConversationMessage.swift */; };
 		99CC5BAC2CF804A500EF43DC /* WebRTCStatsReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99CC5BAB2CF804A200EF43DC /* WebRTCStatsReporter.swift */; };
 		99CC5BAE2CF80D3A00EF43DC /* WebRTCEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99CC5BAD2CF80D3400EF43DC /* WebRTCEventHandler.swift */; };
+		AA0001022F3E000100000001 /* TelnyxCallReportCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001012F3E000100000001 /* TelnyxCallReportCollector.swift */; };
+		AA0001042F3E000100000001 /* CallReportModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001032F3E000100000001 /* CallReportModels.swift */; };
+		AA0001062F3E000100000001 /* TelnyxLogCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001052F3E000100000001 /* TelnyxLogCollector.swift */; };
 		99D717742D6E195100471D44 /* TxLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D717732D6E195100471D44 /* TxLogger.swift */; };
 		99D717762D6E229800471D44 /* TelnyxRTCLoggerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D717752D6E229000471D44 /* TelnyxRTCLoggerTests.swift */; };
 		99D7C09C2E1E32DA00D47CE6 /* AudioWaveformView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D7C09B2E1E32DA00D47CE6 /* AudioWaveformView.swift */; };
@@ -318,6 +321,9 @@
 		99B6E0002CF547680010CA96 /* DebugReportDataMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugReportDataMessage.swift; sourceTree = "<group>"; };
 		99C569BC2E834A0200304547 /* AIConversationMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIConversationMessage.swift; sourceTree = "<group>"; };
 		99CC5BAB2CF804A200EF43DC /* WebRTCStatsReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCStatsReporter.swift; sourceTree = "<group>"; };
+		AA0001012F3E000100000001 /* TelnyxCallReportCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnyxCallReportCollector.swift; sourceTree = "<group>"; };
+		AA0001032F3E000100000001 /* CallReportModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallReportModels.swift; sourceTree = "<group>"; };
+		AA0001052F3E000100000001 /* TelnyxLogCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnyxLogCollector.swift; sourceTree = "<group>"; };
 		99CC5BAD2CF80D3400EF43DC /* WebRTCEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCEventHandler.swift; sourceTree = "<group>"; };
 		99D498D12D565D1F00A7B38F /* TelnyxWebRTCDemoUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnyxWebRTCDemoUITests.swift; sourceTree = "<group>"; };
 		99D498D42D567A2C00A7B38F /* TestConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConstants.swift; sourceTree = "<group>"; };
@@ -446,6 +452,7 @@
 				99B6DFF92CF522610010CA96 /* WebRTCStatsTag.swift */,
 				99B6DFF72CF522070010CA96 /* WebRTCStatsEvent.swift */,
 				99CC5BAD2CF80D3400EF43DC /* WebRTCEventHandler.swift */,
+				AA0001012F3E000100000001 /* TelnyxCallReportCollector.swift */,
 			);
 			path = Stats;
 			sourceTree = "<group>";
@@ -602,6 +609,7 @@
 				B3B1D9A026542860008D28C9 /* TxPushConfig.swift */,
 				B32AE8B226CD4F9200C7C6F4 /* TxServerConfiguration.swift */,
 				3B1F43EE2AE0B01E00A610BA /* Params.swift */,
+				AA0001032F3E000100000001 /* CallReportModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -765,6 +773,7 @@
 				B36FC8BF2612794A00A30BC4 /* Logger.swift */,
 				99D717732D6E195100471D44 /* TxLogger.swift */,
 				9925169D2EB00952007B0085 /* SdpUtils.swift */,
+				AA0001052F3E000100000001 /* TelnyxLogCollector.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -1149,6 +1158,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA0001022F3E000100000001 /* TelnyxCallReportCollector.swift in Sources */,
+				AA0001042F3E000100000001 /* CallReportModels.swift in Sources */,
+				AA0001062F3E000100000001 /* TelnyxLogCollector.swift in Sources */,
 				3B0F56CB2C7F15830011A48A /* StatsMessage.swift in Sources */,
 				9906F8C72E3C15CA00A02FE7 /* AIAssistantManager.swift in Sources */,
 				99D717742D6E195100471D44 /* TxLogger.swift in Sources */,

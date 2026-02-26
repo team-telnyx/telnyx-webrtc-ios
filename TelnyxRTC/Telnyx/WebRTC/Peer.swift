@@ -141,6 +141,10 @@ class Peer : NSObject, WebRTCEventHandler {
     /// Callback for ICE connection state monitoring (independent of WebRTC stats)
     /// This is used for automatic recovery and audio buffer management
     var onIceConnectionStateChange: ((RTCIceConnectionState) -> Void)?
+
+    // Call-report logging closures (separate from WebRTCStatsReporter callbacks)
+    var onSignalingStateChangeForLog: ((RTCSignalingState) -> Void)?
+    var onIceGatheringStateChangeForLog: ((RTCIceGatheringState) -> Void)?
     var onIceCandidate: ((RTCIceCandidate) -> Void)?
     var onRemoveIceCandidates: (([RTCIceCandidate]) -> Void)?
     var onDataChannel: ((RTCDataChannel) -> Void)?
@@ -577,6 +581,8 @@ class Peer : NSObject, WebRTCEventHandler {
         self.onIceConnectionChange = nil
         self.onIceGatheringChange = nil
         self.onIceConnectionStateChange = nil
+        self.onSignalingStateChangeForLog = nil
+        self.onIceGatheringStateChangeForLog = nil
         self.onIceCandidate = nil
         self.onRemoveIceCandidates = nil
         self.onDataChannel = nil
@@ -852,6 +858,7 @@ extension Peer : RTCPeerConnectionDelegate {
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange stateChanged: RTCSignalingState) {
         let state = stateChanged.telnyx_to_string()
         onSignalingStateChange?(stateChanged, peerConnection)
+        onSignalingStateChangeForLog?(stateChanged)
         Logger.log.i(message: "Peer:: connection didChange state: [\(state)]")
     }
 
@@ -934,6 +941,7 @@ extension Peer : RTCPeerConnectionDelegate {
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {
         onIceGatheringChange?(newState)
+        onIceGatheringStateChangeForLog?(newState)
         Logger.log.s(message: "[TRICKLE-ICE] Peer:: ICE gathering state changed to: [\(newState.telnyx_to_string().uppercased())] (useTrickleIce: \(useTrickleIce), callId: \(callId ?? "nil"))")
         
         // Track ICE gathering state changes for benchmarking
