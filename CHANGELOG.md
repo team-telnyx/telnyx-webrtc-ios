@@ -8,10 +8,6 @@
 ### Features
 - **TURN Server Configuration**: Ported TURN server improvements from JS SDK for cross-platform consistency. Added UDP TURN servers as primary transport for lower latency, with TCP TURN servers as fallback for restrictive firewalls. Added Google STUN server (stun.l.google.com:19302) for redundancy. ICE server connection order: STUN → TURN UDP → TURN TCP ([#326](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/326))
 
-### Enhancements  
-- **SwiftLint Integration**: Added SwiftLint configuration and CI workflow integration for improved code quality and consistency ([#322](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/322), [#323](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/323))
-
-
 ## [3.0.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/3.0.0) (2026-02-03)
 
 ### ⚠️ Breaking Changes
