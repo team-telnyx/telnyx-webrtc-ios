@@ -21,7 +21,7 @@ class CallTests: XCTestCase {
         self.socket?.delegate = self
         self.socket?.connect(signalingServer: InternalConfig.default.prodSignalingServer)
         guard let socket = self.socket else { return }
-        self.call = Call(callId: UUID.init(), sessionId: "<sessionId>", socket: socket, delegate: self, iceServers: InternalConfig.default.prodWebRTCIceServers)
+        self.call = Call(callId: UUID.init(), sessionId: "<sessionId>", socket: socket, delegate: self, iceServers: InternalConfig.default.prodWebRTCIceServers, enableCallReports: false)
     }
 
     override func tearDownWithError() throws {
