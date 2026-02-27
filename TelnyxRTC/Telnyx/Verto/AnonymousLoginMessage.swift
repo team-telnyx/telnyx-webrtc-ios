@@ -13,6 +13,7 @@ class AnonymousLoginMessage : Message {
     init(targetType: String = "ai_assistant",
          targetId: String,
          targetVersionId: String? = nil,
+         conversationId: String? = nil,
          sessionId: String,
          userVariables: [String: Any] = [:],
          reconnection: Bool = false
@@ -33,6 +34,13 @@ class AnonymousLoginMessage : Message {
         // Add target_version_id if provided
         if let versionId = targetVersionId {
             params["target_version_id"] = versionId
+        }
+        
+        // Add target_params with conversation_id if provided
+        if let convId = conversationId, !convId.isEmpty {
+            var targetParams = [String: Any]()
+            targetParams["conversation_id"] = convId
+            params["target_params"] = targetParams
         }
         
         // Add user variables if provided
