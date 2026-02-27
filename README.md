@@ -398,6 +398,15 @@ class AIAgentViewController: UIViewController {
         )
     }
     
+    private func joinExistingConversation() {
+        // Alternative: Join an existing conversation using conversation_id
+        client.anonymousLogin(
+            targetId: "your-ai-assistant-id",
+            targetType: "ai_assistant",
+            conversationId: "existing-conversation-id"
+        )
+    }
+    
     private func startConversation() {
         // Step 2: Start conversation (destination ignored after anonymous login)
         currentCall = client.newInvite(
