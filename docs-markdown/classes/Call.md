@@ -126,6 +126,17 @@ public internal(set) var telnyxLegId: UUID?
 The unique Telnyx leg identifier for this call.
 A call can have multiple legs (e.g., in call transfers). This ID identifies this specific leg.
 
+### `telnyxCallControlId`
+
+```swift
+public internal(set) var telnyxCallControlId: String?
+```
+
+The unique Telnyx Call Control identifier for this call.
+This ID is used for outbound call flows (parked & bridged scenarios) and can be used
+to interact with the Telnyx Call Control API. The format is typically `"v3:<unique_id>"`.
+This field may be `nil` for older backend versions or certain call flows.
+
 ### `debug`
 
 ```swift
