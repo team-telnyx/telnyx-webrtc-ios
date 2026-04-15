@@ -75,7 +75,7 @@ class TxClientPingAuthTests: XCTestCase {
 
 // MARK: - Test Helpers
 
-private class PingTestDelegate: TxClientDelegate {
+class PingTestDelegate: TxClientDelegate {
     var onClientErrorCalled = false
 
     func onSocketConnected() {}
