@@ -1746,7 +1746,7 @@ extension TxClient : SocketDelegate {
             let message: String = error["message"] as? String ?? "Unknown"
             let codeInt: Int = error["code"] as? Int ?? 0
             let code: String = String(codeInt)
-            
+
             // Use the existing ServerErrorReason.signalingServerError approach
             let err = TxError.serverError(reason: .signalingServerError(message: message, code: code))
             self.delegate?.onClientError(error: err)
@@ -1938,7 +1938,16 @@ extension TxClient : SocketDelegate {
                  break;
                 //Mark: to send meassage to pong
             case .PING:
-                self.socket?.sendMessage(message: message)
+                // Only reply to ping if we are authenticated (registered).
+                // During push flow the socket is unauthenticated until the user
+                // answers and performLogin completes. Sending pong on an
+                // unauthenticated socket triggers a 401 error from the server
+                // which corrupts SDK state and prevents future calls.
+                if self.gatewayState == .REGED {
+                    self.socket?.sendMessage(message: message)
+                } else {
+                    Logger.log.i(message: "TxClient:: Ignoring PING - not yet authenticated (gateway: \(self.gatewayState))")
+                }
                 break;
                 default:
                     Logger.log.i(message: "TxClient:: SocketDelegate Default method")
