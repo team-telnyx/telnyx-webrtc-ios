@@ -1700,6 +1700,15 @@ extension TxClient : SocketDelegate {
         self.socket = nil
         self.sessionId = nil
         self.sessionId = UUID().uuidString.lowercased()
+
+        // If we were in a push flow with an unauthenticated socket,
+        // reset push state so future connect() calls are not hijacked
+        // by the stale isCallFromPush flag.
+        if isCallFromPush {
+            Logger.log.i(message: "TxClient:: Socket disconnected during push flow - resetting push state")
+            resetPushVariables()
+        }
+
         self.delegate?.onSocketDisconnected()
     }
 
@@ -1759,10 +1768,22 @@ extension TxClient : SocketDelegate {
             let message: String = error["message"] as? String ?? "Unknown"
             let codeInt: Int = error["code"] as? Int ?? 0
             let code: String = String(codeInt)
-            
+
             // Use the existing ServerErrorReason.signalingServerError approach
             let err = TxError.serverError(reason: .signalingServerError(message: message, code: code))
             self.delegate?.onClientError(error: err)
+
+            // If we are in a push flow on an unauthenticated socket (not yet registered),
+            // a server error (e.g. 401 from pong) means this session is unrecoverable.
+            // Clean up push state so future connect() calls work correctly.
+            if isCallFromPush && gatewayState == .NOREG {
+                Logger.log.i(message: "TxClient:: Server error on unauthenticated push socket - resetting push state and disconnecting")
+                resetPushVariables()
+                self.socket?.disconnect(reconnect: false)
+                self.socket = nil
+                self.sessionId = UUID().uuidString.lowercased()
+                self.delegate?.onSocketDisconnected()
+            }
         }
 
         //Check if we are getting the new sessionId in response to the "login" message.
