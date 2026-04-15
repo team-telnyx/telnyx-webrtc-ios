@@ -1705,8 +1705,21 @@ extension TxClient : SocketDelegate {
 
     func onSocketError(error: Error) {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketError()")
+        Logger.log.e(message: "TxClient:: Socket Error: \(error.localizedDescription)")
+
+        // Clean up the socket to prevent stale references (matching onSocketDisconnected behavior)
+        self.socket = nil
+        self.sessionId = UUID().uuidString.lowercased()
+
+        // If we were in a push flow with an unauthenticated socket,
+        // reset push state so future connect() calls are not hijacked
+        // by the stale isCallFromPush flag.
+        if isCallFromPush {
+            Logger.log.i(message: "TxClient:: Socket error during push flow - resetting push state")
+            resetPushVariables()
+        }
+
         self.delegate?.onSocketDisconnected()
-        Logger.log.e(message:"TxClient:: Socket Error" +  error.localizedDescription)
     }
 
     /**
