@@ -13,7 +13,7 @@ private let PROTOCOL_VERSION: String = "2.0"
 
 class Message {
     internal static let CLIENT_TYPE = "iOS"
-    internal static let SDK_VERSION = "3.2.0"
+    internal static let SDK_VERSION = "3.2.1"
     internal static var USER_AGENT: String {
         get {
             let type = Message.CLIENT_TYPE

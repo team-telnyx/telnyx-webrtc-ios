@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [3.2.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/3.2.1) (2026-04-15)
+
+### Bug Fixes
+- **Push Notification Socket Stability**: Fixed 401 error corruption when receiving VoIP push notifications. The SDK no longer replies to `telnyx_rtc.ping` on unauthenticated push sockets, preventing server 401 responses that corrupt SDK state and block all future calls ([#337](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/337))
+
 ## [3.2.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/3.2.0) (2026-03-06)
 
 ### Features
