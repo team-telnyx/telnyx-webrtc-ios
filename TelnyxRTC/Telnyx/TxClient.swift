@@ -1380,21 +1380,26 @@ extension TxClient {
                 try self.connectSocketOnly(serverConfiguration: self.storedServerConfiguration!)
                 
                 // Create an initial call_object to handle early bye message
-                if let newCallId = (pushMetaData["call_id"] as? String) {
-                    self.calls[UUID(uuidString: newCallId)!] = Call(callId: UUID(uuidString: newCallId)!,
-                                                                    remoteSdp: "",
-                                                                    sessionId: newCallId,
-                                                                    socket: self.socket!,
-                                                                    delegate: self,
-                                                                    iceServers: self.storedServerConfiguration!.webRTCIceServers,
-                                                                    debug: self.txConfig?.debug ?? false,
-                                                                    forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
-                                                                    sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
-                                                                    useTrickleIce: self.txConfig?.useTrickleIce ?? false,
-                                                                    enableCallReports: self.txConfig?.enableCallReports ?? true,
-                                                                    callReportInterval: self.txConfig?.callReportInterval ?? 5.0,
-                                                                    callReportLogLevel: self.txConfig?.callReportLogLevel ?? "debug",
-                                                                    callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000)
+                if let newCallId = pushMetaData["call_id"] as? String,
+                   let callUUID = UUID(uuidString: newCallId),
+                   let socket = self.socket,
+                   let iceServers = self.storedServerConfiguration?.webRTCIceServers {
+                    self.calls[callUUID] = Call(callId: callUUID,
+                                               remoteSdp: "",
+                                               sessionId: newCallId,
+                                               socket: socket,
+                                               delegate: self,
+                                               iceServers: iceServers,
+                                               debug: self.txConfig?.debug ?? false,
+                                               forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
+                                               sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
+                                               useTrickleIce: self.txConfig?.useTrickleIce ?? false,
+                                               enableCallReports: self.txConfig?.enableCallReports ?? true,
+                                               callReportInterval: self.txConfig?.callReportInterval ?? 5.0,
+                                               callReportLogLevel: self.txConfig?.callReportLogLevel ?? "debug",
+                                               callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000)
+                } else {
+                    Logger.log.e(message: "TxClient:: processVoIPNotification - Invalid call_id, socket, or ICE servers. Cannot create call object.")
                 }
             } catch let error {
                 Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
