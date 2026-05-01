@@ -501,6 +501,7 @@ public class Call {
          debug: Bool = false,
          forceRelayCandidate: Bool = false,
          useTrickleIce: Bool = false,
+         enableMissedCallNotifications: Bool = false,
          enableCallReports: Bool = true,
          callReportInterval: TimeInterval = 5.0,
          callReportLogLevel: String = "debug",
