@@ -507,7 +507,6 @@ public class TxClient {
         self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
         self.gatewayState = .NOREG
         self.txConfig = txConfig
-        Message.enableMissedCallNotifications = txConfig.enableMissedCallNotifications
 
         if(self.voiceSdkId != nil){
             Logger.log.i(message: "with_id")
@@ -535,7 +534,6 @@ public class TxClient {
         self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
         self.gatewayState = .NOREG
         self.txConfig = txConfig
-        Message.enableMissedCallNotifications = txConfig.enableMissedCallNotifications
 
 
         self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,
@@ -586,7 +584,8 @@ public class TxClient {
                                         startFromPush: self.isCallFromPush,
                                         pushEnvironment: storedConfig.pushEnvironment,
                                         sessionId: self.sessionId!,
-                                        declinePush: declinePush)
+                                        declinePush: declinePush,
+                                        enableMissedCallNotifications: storedConfig.enableMissedCallNotifications)
             self.socket?.sendMessage(message: vertoLogin.encode())
         } else {
             Logger.log.i(message: "TxClient:: performLogin with SIP User and Password, declinePush: \(declinePush)")
@@ -599,7 +598,8 @@ public class TxClient {
                                         startFromPush: self.isCallFromPush,
                                         pushEnvironment: storedConfig.pushEnvironment,
                                         sessionId: self.sessionId!,
-                                        declinePush: declinePush)
+                                        declinePush: declinePush,
+                                        enableMissedCallNotifications: storedConfig.enableMissedCallNotifications)
             self.socket?.sendMessage(message: vertoLogin.encode())
         }
         
@@ -1205,6 +1205,7 @@ extension TxClient {
                         forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
                         sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
                         useTrickleIce: self.txConfig?.useTrickleIce ?? false,
+                        enableMissedCallNotifications: self.txConfig?.enableMissedCallNotifications ?? false,
                         enableCallReports: self.txConfig?.enableCallReports ?? true,
                         callReportInterval: self.txConfig?.callReportInterval ?? 5.0,
                         callReportLogLevel: self.txConfig?.callReportLogLevel ?? "debug",
@@ -1287,6 +1288,7 @@ extension TxClient {
                         forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
                         sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
                         useTrickleIce: self.txConfig?.useTrickleIce ?? false,
+                        enableMissedCallNotifications: self.txConfig?.enableMissedCallNotifications ?? false,
                         enableCallReports: self.txConfig?.enableCallReports ?? true,
                         callReportInterval: self.txConfig?.callReportInterval ?? 5.0,
                         callReportLogLevel: self.txConfig?.callReportLogLevel ?? "debug",
@@ -1360,7 +1362,6 @@ extension TxClient {
         
         // Store config objects for later use (don't login immediately)
         self.storedTxConfig = txConfig
-        Message.enableMissedCallNotifications = txConfig.enableMissedCallNotifications
         self.storedServerConfiguration = TxServerConfiguration(
             signalingServer:nil,
             webRTCIceServers: serverConfiguration.webRTCIceServers,
@@ -1397,6 +1398,7 @@ extension TxClient {
                                                forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
                                                sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
                                                useTrickleIce: self.txConfig?.useTrickleIce ?? false,
+                                               enableMissedCallNotifications: self.txConfig?.enableMissedCallNotifications ?? false,
                                                enableCallReports: self.txConfig?.enableCallReports ?? true,
                                                callReportInterval: self.txConfig?.callReportInterval ?? 5.0,
                                                callReportLogLevel: self.txConfig?.callReportLogLevel ?? "debug",

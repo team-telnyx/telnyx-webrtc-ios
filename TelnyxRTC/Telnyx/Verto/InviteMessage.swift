@@ -16,7 +16,8 @@ class InviteMessage : Message {
          callInfo: TxCallInfo,
          callOptions: TxCallOptions,
          customHeaders:[String:String] = [:],
-         trickle: Bool = false
+         trickle: Bool = false,
+         enableMissedCallNotifications: Bool = false
     ) {
         var params = [String: Any]()
         var dialogParams = [String: Any]()
@@ -42,7 +43,7 @@ class InviteMessage : Message {
             dialogParams["preferred_codecs"] = preferredCodecs.map { $0.toDictionary() }
         }
 
-        params["User-Agent"] = Message.USER_AGENT
+        params["User-Agent"] = Message.userAgent(enableMissedCallNotifications: enableMissedCallNotifications)
 
         params["sessionId"] = sessionId
         params["sdp"] = sdp

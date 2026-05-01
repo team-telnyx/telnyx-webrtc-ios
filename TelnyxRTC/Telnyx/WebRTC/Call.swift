@@ -303,6 +303,7 @@ public class Call {
     
     /// Maximum number of log entries to buffer per call.
     public internal(set) var callReportMaxLogEntries: Int = 1000
+    public internal(set) var enableMissedCallNotifications: Bool = false
 
 
     // MARK: - Properties
@@ -430,6 +431,7 @@ public class Call {
         self.enableQualityMetrics = enableQualityMetrics
         self.sendWebRTCStatsViaSocket = sendWebRTCStatsViaSocket
         self.useTrickleIce = useTrickleIce
+        self.enableMissedCallNotifications = enableMissedCallNotifications
         self.enableCallReports = enableCallReports
         self.callReportInterval = callReportInterval
         self.callReportLogLevel = callReportLogLevel
@@ -476,6 +478,7 @@ public class Call {
         self.forceRelayCandidate = forceRelayCandidate
         self.sendWebRTCStatsViaSocket = sendWebRTCStatsViaSocket
         self.useTrickleIce = useTrickleIce
+        self.enableMissedCallNotifications = enableMissedCallNotifications
         self.enableCallReports = enableCallReports
         self.callReportInterval = callReportInterval
         self.callReportLogLevel = callReportLogLevel
@@ -518,6 +521,7 @@ public class Call {
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
         self.useTrickleIce = useTrickleIce
+        self.enableMissedCallNotifications = enableMissedCallNotifications
         self.enableCallReports = enableCallReports
         self.callReportInterval = callReportInterval
         self.callReportLogLevel = callReportLogLevel
@@ -1216,7 +1220,8 @@ extension Call : PeerDelegate {
                                               callInfo: callInfo,
                                               callOptions: callOptions,
                                               customHeaders: self.inviteCustomHeaders ?? [:],
-                                              trickle: self.useTrickleIce)
+                                              trickle: self.useTrickleIce,
+                                              enableMissedCallNotifications: self.enableMissedCallNotifications)
             
             let message = inviteMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
