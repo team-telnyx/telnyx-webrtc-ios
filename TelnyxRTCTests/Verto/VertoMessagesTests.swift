@@ -494,4 +494,29 @@ class VertoMessagesTests: XCTestCase {
         let ua = Message.userAgent(enableMissedCallNotifications: false)
         XCTAssertEqual(ua, "iOS-\(Message.SDK_VERSION)")
     }
+
+    func testLoginMessageTokenUsesMpnUserAgentWhenEnabled() {
+        let login = LoginMessage(token: "test_token",
+                                 sessionId: UUID().uuidString,
+                                 enableMissedCallNotifications: true)
+        let userAgent = login.params?["User-Agent"] as? String
+        XCTAssertEqual(userAgent, "iOS-mpn-\(Message.SDK_VERSION)")
+    }
+
+    func testLoginMessageUserPasswordUsesMpnUserAgentWhenEnabled() {
+        let login = LoginMessage(user: "test_user",
+                                 password: "test_pass",
+                                 sessionId: UUID().uuidString,
+                                 enableMissedCallNotifications: true)
+        let userAgent = login.params?["User-Agent"] as? String
+        XCTAssertEqual(userAgent, "iOS-mpn-\(Message.SDK_VERSION)")
+    }
+
+    func testLoginMessageTokenUsesStandardUserAgentWhenDisabled() {
+        let login = LoginMessage(token: "test_token",
+                                 sessionId: UUID().uuidString,
+                                 enableMissedCallNotifications: false)
+        let userAgent = login.params?["User-Agent"] as? String
+        XCTAssertEqual(userAgent, "iOS-\(Message.SDK_VERSION)")
+    }
 }

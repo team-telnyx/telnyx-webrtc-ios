@@ -1661,7 +1661,8 @@ extension TxClient : SocketDelegate {
                                           startFromPush: self.isCallFromPush,
                                           pushEnvironment: self.txConfig?.pushEnvironment,
                                           sessionId: self.sessionId!,
-                                          declinePush: false)
+                                          declinePush: false,
+                                          enableMissedCallNotifications: self.txConfig?.enableMissedCallNotifications ?? false)
             self.socket?.sendMessage(message: vertoLogin.encode())
         } else {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with SIP User and Password")
@@ -1675,7 +1676,8 @@ extension TxClient : SocketDelegate {
                                           startFromPush: self.isCallFromPush,
                                           pushEnvironment: self.txConfig?.pushEnvironment,
                                           sessionId: self.sessionId!,
-                                          declinePush: false)
+                                          declinePush: false,
+                                          enableMissedCallNotifications: self.txConfig?.enableMissedCallNotifications ?? false)
             self.socket?.sendMessage(message: vertoLogin.encode())
         }
     }
