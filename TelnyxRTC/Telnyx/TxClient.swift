@@ -507,6 +507,7 @@ public class TxClient {
         self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
         self.gatewayState = .NOREG
         self.txConfig = txConfig
+        Message.enableMissedCallNotifications = txConfig.enableMissedCallNotifications
 
         if(self.voiceSdkId != nil){
             Logger.log.i(message: "with_id")
@@ -534,6 +535,7 @@ public class TxClient {
         self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
         self.gatewayState = .NOREG
         self.txConfig = txConfig
+        Message.enableMissedCallNotifications = txConfig.enableMissedCallNotifications
 
 
         self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,
@@ -1358,6 +1360,7 @@ extension TxClient {
         
         // Store config objects for later use (don't login immediately)
         self.storedTxConfig = txConfig
+        Message.enableMissedCallNotifications = txConfig.enableMissedCallNotifications
         self.storedServerConfiguration = TxServerConfiguration(
             signalingServer:nil,
             webRTCIceServers: serverConfiguration.webRTCIceServers,

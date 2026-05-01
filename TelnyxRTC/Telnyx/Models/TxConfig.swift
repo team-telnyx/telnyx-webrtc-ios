@@ -30,6 +30,8 @@ public struct TxConfig {
     public internal(set) var ringtone: String?
     public internal(set) var reconnectClient: Bool = true
     public internal(set) var pushEnvironment: PushEnvironment?
+    /// Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`.
+    public internal(set) var enableMissedCallNotifications: Bool = false
     
     /// Enables WebRTC communication statistics reporting to Telnyx servers.
     /// - Note: This flag is different from `logLevel`:
@@ -124,6 +126,7 @@ public struct TxConfig {
                 ringtone: String? = nil,
                 ringBackTone: String? = nil,
                 pushEnvironment: PushEnvironment? = nil,
+                enableMissedCallNotifications: Bool = false,
                 logLevel: LogLevel = .none,
                 customLogger: TxLogger? = nil,
                 reconnectClient: Bool = true,
@@ -148,6 +151,7 @@ public struct TxConfig {
         self.ringtone = ringtone
         self.reconnectClient = reconnectClient
         self.pushEnvironment = pushEnvironment
+        self.enableMissedCallNotifications = enableMissedCallNotifications
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
         self.customLogger = customLogger
@@ -189,6 +193,7 @@ public struct TxConfig {
                 ringtone: String? = nil,
                 ringBackTone: String? = nil,
                 pushEnvironment: PushEnvironment? = nil,
+                enableMissedCallNotifications: Bool = false,
                 logLevel: LogLevel = .none,
                 customLogger: TxLogger? = nil,
                 reconnectClient: Bool = true,
@@ -211,6 +216,7 @@ public struct TxConfig {
         self.ringBackTone = ringBackTone
         self.ringtone = ringtone
         self.pushEnvironment = pushEnvironment
+        self.enableMissedCallNotifications = enableMissedCallNotifications
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
         self.enableQualityMetrics = enableQualityMetrics
