@@ -486,13 +486,12 @@ class VertoMessagesTests: XCTestCase {
     }
 
     func testUserAgentIncludesMissedCallNotificationTagWhenEnabled() {
-        Message.enableMissedCallNotifications = true
-        XCTAssertEqual(Message.USER_AGENT, "iOS-mpn-\(Message.SDK_VERSION)")
-        Message.enableMissedCallNotifications = false
+        let ua = Message.userAgent(enableMissedCallNotifications: true)
+        XCTAssertEqual(ua, "iOS-mpn-\(Message.SDK_VERSION)")
     }
 
     func testUserAgentDefaultsToStandardFormatWhenMissedCallNotificationsDisabled() {
-        Message.enableMissedCallNotifications = false
-        XCTAssertEqual(Message.USER_AGENT, "iOS-\(Message.SDK_VERSION)")
+        let ua = Message.userAgent(enableMissedCallNotifications: false)
+        XCTAssertEqual(ua, "iOS-\(Message.SDK_VERSION)")
     }
 }
