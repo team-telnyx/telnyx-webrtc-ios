@@ -1,5 +1,21 @@
 ## Push Notification App Setup
 
+### Native iOS missed call notification opt-in
+
+Native iOS missed call notifications are disabled by default. To explicitly opt in for testing or controlled rollouts, set `enableMissedCallNotifications` on `TxConfig`.
+
+```Swift
+let txConfig = TxConfig(
+    sipUser: sipUser,
+    password: password,
+    pushDeviceToken: pushToken,
+    pushNotificationConfig: pushConfig,
+    enableMissedCallNotifications: true
+)
+```
+
+When enabled, the SDK sends the native iOS user agent as `iOS-mpn-<sdk-version>`. When disabled, it continues using the default `iOS-<sdk-version>` format.
+
 ### VoIP Push - App Setup
 
 The following setup is required in your application to receive Telnyx VoIP push notifications:

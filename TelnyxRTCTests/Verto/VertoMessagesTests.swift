@@ -484,4 +484,15 @@ class VertoMessagesTests: XCTestCase {
         let decodedMethod = decodedMessage?.method
         XCTAssertEqual(decodedMethod, Method.END_OF_CANDIDATES)
     }
+
+    func testUserAgentIncludesMissedCallNotificationTagWhenEnabled() {
+        Message.enableMissedCallNotifications = true
+        XCTAssertEqual(Message.USER_AGENT, "iOS-mpn-\(Message.SDK_VERSION)")
+        Message.enableMissedCallNotifications = false
+    }
+
+    func testUserAgentDefaultsToStandardFormatWhenMissedCallNotificationsDisabled() {
+        Message.enableMissedCallNotifications = false
+        XCTAssertEqual(Message.USER_AGENT, "iOS-\(Message.SDK_VERSION)")
+    }
 }
