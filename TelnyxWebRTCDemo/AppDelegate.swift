@@ -241,8 +241,7 @@ extension AppDelegate: PKPushRegistryDelegate {
         // immediately end both (temp + original) inside the completion handler.
         let tempUUID = UUID()
         let update = CXCallUpdate()
-        update.remoteHandle = CXHandle(type: .generic, value:
-            (pushMetaData["caller_name"] as? String) ?? "Unknown")
+        update.remoteHandle = CXHandle(type: .generic, value: " ")
 
         provider.reportNewIncomingCall(with: tempUUID, update: update) { _ in
             // End the original incoming call that is ringing in CallKit
