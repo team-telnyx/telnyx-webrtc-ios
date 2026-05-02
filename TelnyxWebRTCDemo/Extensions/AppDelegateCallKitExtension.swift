@@ -312,6 +312,8 @@ extension AppDelegate : CXProviderDelegate {
                                     pushDeviceToken: deviceToken,
                                     ringtone: "incoming_call.mp3",
                                     ringBackTone: "ringback_tone.mp3",
+                                    // Enable Missed Call Notifications
+                                    enableMissedCallNotifications: userDefaults.getMissedCallNotifications(),
                                     //You can choose the appropriate verbosity level of the SDK.
                                     logLevel: .all,
                                     reconnectClient: true,
@@ -325,7 +327,7 @@ extension AppDelegate : CXProviderDelegate {
                                     sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket,
                                     // Use Trickle ICE
                                     useTrickleIce: useTrickleIce)
-            
+
             do {
                 try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)
             } catch let error {
@@ -348,6 +350,8 @@ extension AppDelegate : CXProviderDelegate {
                                     pushDeviceToken: deviceToken,
                                     ringtone: "incoming_call.mp3",
                                     ringBackTone: "ringback_tone.mp3",
+                                    // Enable Missed Call Notifications
+                                    enableMissedCallNotifications: userDefaults.getMissedCallNotifications(),
                                     //You can choose the appropriate verbosity level of the SDK.
                                     logLevel: .all,
                                     reconnectClient: true,
@@ -361,7 +365,7 @@ extension AppDelegate : CXProviderDelegate {
                                     sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket,
                                     // Use Trickle ICE
                                     useTrickleIce: useTrickleIce)
-            
+
             do {
                 try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)
             } catch let error {

@@ -316,6 +316,22 @@ extension HomeViewController {
             self.present(confirmAlert, animated: true)
         }))
 
+        // Missed Call Notifications toggle
+        let currentMissedCall = userDefaults.getMissedCallNotifications()
+        let missedCallTitle = currentMissedCall ? "Disable Missed Call Notifications" : "Enable Missed Call Notifications"
+        alert.addAction(UIAlertAction(title: missedCallTitle, style: .default, handler: { _ in
+            let newValue = !currentMissedCall
+            self.userDefaults.saveMissedCallNotifications(newValue)
+
+            let confirmAlert = UIAlertController(
+                title: "Missed Call Notifications \(newValue ? "Enabled" : "Disabled")",
+                message: "Please disconnect and reconnect to apply the changes.",
+                preferredStyle: .alert
+            )
+            confirmAlert.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(confirmAlert, animated: true)
+        }))
+
         alert.addAction(UIAlertAction(title: "Copy APNS token", style: .default, handler: { _ in
             // To copy the APNS push token to pasteboard
             let token = UserDefaults().getPushToken()
@@ -495,6 +511,8 @@ extension HomeViewController {
                                 pushDeviceToken: deviceToken,
                                 ringtone: "incoming_call.mp3",
                                 ringBackTone: "ringback_tone.mp3",
+                                // Enable Missed Call Notifications
+                                enableMissedCallNotifications: userDefaults.getMissedCallNotifications(),
                                 // You can choose the appropriate verbosity level of the SDK.
                                 logLevel: .all,
                                 reconnectClient: true,
@@ -507,7 +525,7 @@ extension HomeViewController {
                                 // Send WebRTC Stats Via Socket
                                 sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket,
                                 // Use Trickle ICE
-                                useTrickleIce: useTrickleIce)
+                                useTrickleIce: useTrickleIce,)
         } else if let credential = sipCredential {
             // To obtain SIP credentials, please go to https://portal.telnyx.com
             txConfig = TxConfig(sipUser: credential.username,
@@ -515,6 +533,8 @@ extension HomeViewController {
                                 pushDeviceToken: deviceToken,
                                 ringtone: "incoming_call.mp3",
                                 ringBackTone: "ringback_tone.mp3",
+                                // Enable Missed Call Notifications
+                                enableMissedCallNotifications: userDefaults.getMissedCallNotifications(),
                                 // You can choose the appropriate verbosity level of the SDK.
                                 logLevel: .all,
                                 reconnectClient: true,

@@ -22,6 +22,7 @@ enum UserDefaultsKey: String {
     case customServerEnabled = "CUSTOM_SERVER_ENABLED"
     case customServerHost = "CUSTOM_SERVER_HOST"
     case customServerPort = "CUSTOM_SERVER_PORT"
+    case enableMissedCallNotifications = "ENABLE_MISSED_CALL_NOTIFICATIONS"
     case aiAssistantTargetId = "AI_ASSISTANT_TARGET_ID"
 }
 
@@ -158,6 +159,18 @@ extension UserDefaults {
 
     func getCustomServerPort() -> String {
         return string(forKey: UserDefaultsKey.customServerPort.rawValue) ?? ""
+    }
+
+    // MARK: - Missed Call Notifications
+    func saveMissedCallNotifications(_ enabled: Bool) {
+        set(enabled, forKey: UserDefaultsKey.enableMissedCallNotifications.rawValue)
+    }
+
+    func getMissedCallNotifications() -> Bool {
+        if object(forKey: UserDefaultsKey.enableMissedCallNotifications.rawValue) == nil {
+            return true
+        }
+        return bool(forKey: UserDefaultsKey.enableMissedCallNotifications.rawValue)
     }
 
     // MARK: - AI Assistant Target ID
