@@ -157,17 +157,30 @@ func handleVoIPPushNotification(payload: PKPushPayload) {
     // ... your existing code
 }
 
-/// Handle missed call VoIP push notification by reporting the call as answered elsewhere
+/// Handle missed call VoIP push notification
+///
+/// Apple requires every VoIP push to have a corresponding `reportNewIncomingCall`.
+/// Since the original incoming call was already reported, we must report a temporary
+/// dummy call for this second VoIP push and immediately end both calls.
 func handleMissedCallNotification(callUUID: UUID, pushMetaData: [String: Any]) {
     guard let provider = callKitProvider else {
         print("CallKit provider not available for missed call handling")
         return
     }
-    
-    // Report the call as ended with .answeredElsewhere reason to dismiss CallKit UI
-    provider.reportCall(with: callUUID, endedAt: Date(), reason: .answeredElsewhere)
-    print("Reported missed call as answered elsewhere for call: \(callUUID)")
-    
+
+    // Satisfy Apple's PushKit requirement: report a temporary incoming call
+    // for this VoIP push delivery, then immediately end both calls.
+    let tempUUID = UUID()
+    let update = CXCallUpdate()
+    update.remoteHandle = CXHandle(type: .generic, value: " ")
+
+    provider.reportNewIncomingCall(with: tempUUID, update: update) { _ in
+        // End the original incoming call that is ringing in CallKit
+        provider.reportCall(with: callUUID, endedAt: Date(), reason: .answeredElsewhere)
+        // End the temporary dummy call
+        provider.reportCall(with: tempUUID, endedAt: Date(), reason: .answeredElsewhere)
+    }
+
     // Clean up any stored call references
     // ... clean up your call state as needed
 }
@@ -184,11 +197,13 @@ func handleMissedCallNotification(callUUID: UUID, pushMetaData: [String: Any]) {
 When a VoIP push notification is received for a call that has already been rejected or missed:
 
 1. Your app detects the "Missed call!" alert in the push payload
-2. Calls `handleMissedCallNotification()` to report the call as ended
-3. CallKit UI is automatically dismissed via `.answeredElsewhere` reason
+2. Calls `handleMissedCallNotification()` which:
+   a. Reports a temporary dummy incoming call to satisfy Apple's PushKit requirement (every VoIP push **must** have a `reportNewIncomingCall`)
+   b. Immediately ends both the original call and the dummy call via `.answeredElsewhere`
+3. CallKit UI is automatically dismissed
 4. Users cannot accept stale call notifications
 
-This eliminates the race condition where CallKit notifications could appear before the SDK was ready to handle them properly.
+**Why the dummy call is needed:** The missed call notification is a separate VoIP push delivery from the original incoming call push. Apple requires each VoIP push to have its own `reportNewIncomingCall`. Without it, iOS will terminate your app for violating PushKit rules.
 
 #### Push Notification Payload Format
 
