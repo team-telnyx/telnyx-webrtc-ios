@@ -1240,6 +1240,13 @@
       "warning": "undocumented"
     },
     {
+      "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Call.swift",
+      "line": 306,
+      "symbol": "Call.enableMissedCallNotifications",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
       "file": "/Users/runner/work/telnyx-webrtc-ios/telnyx-webrtc-ios/TelnyxRTC/Telnyx/WebRTC/Stats/TelnyxCallReportCollector.swift",
       "line": 20,
       "symbol": "CallReportConfig.init(enabled:interval:)",
