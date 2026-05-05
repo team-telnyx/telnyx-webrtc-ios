@@ -30,6 +30,8 @@ public struct TxConfig {
     public internal(set) var ringtone: String?
     public internal(set) var reconnectClient: Bool = true
     public internal(set) var pushEnvironment: PushEnvironment?
+    /// Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`.
+    public internal(set) var enableMissedCallNotifications: Bool = false
     
     /// Enables WebRTC communication statistics reporting to Telnyx servers.
     /// - Note: This flag is different from `logLevel`:
@@ -118,12 +120,14 @@ public struct TxConfig {
     ///   - enableCallReports: (Optional) Enable automatic call quality reporting to voice-sdk-proxy. Default is true.
     ///   - callReportInterval: (Optional) Interval in seconds for collecting call statistics. Default is 5.0.
     ///   - callReportLogLevel: (Optional) Minimum log level to capture for call reports. Default is "debug".
+    ///   - enableMissedCallNotifications: (Optional) Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`. Default is false.
     ///   - callReportMaxLogEntries: (Optional) Maximum number of log entries to buffer per call. Default is 1000.
     public init(sipUser: String, password: String,
                 pushDeviceToken: String? = nil,
                 ringtone: String? = nil,
                 ringBackTone: String? = nil,
                 pushEnvironment: PushEnvironment? = nil,
+                enableMissedCallNotifications: Bool = false,
                 logLevel: LogLevel = .none,
                 customLogger: TxLogger? = nil,
                 reconnectClient: Bool = true,
@@ -148,6 +152,7 @@ public struct TxConfig {
         self.ringtone = ringtone
         self.reconnectClient = reconnectClient
         self.pushEnvironment = pushEnvironment
+        self.enableMissedCallNotifications = enableMissedCallNotifications
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
         self.customLogger = customLogger
@@ -183,12 +188,14 @@ public struct TxConfig {
     ///   - enableCallReports: (Optional) Enable automatic call quality reporting to voice-sdk-proxy. Default is true.
     ///   - callReportInterval: (Optional) Interval in seconds for collecting call statistics. Default is 5.0.
     ///   - callReportLogLevel: (Optional) Minimum log level to capture for call reports. Default is "debug".
+    ///   - enableMissedCallNotifications: (Optional) Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`. Default is false.
     ///   - callReportMaxLogEntries: (Optional) Maximum number of log entries to buffer per call. Default is 1000.
     public init(token: String,
                 pushDeviceToken: String? = nil,
                 ringtone: String? = nil,
                 ringBackTone: String? = nil,
                 pushEnvironment: PushEnvironment? = nil,
+                enableMissedCallNotifications: Bool = false,
                 logLevel: LogLevel = .none,
                 customLogger: TxLogger? = nil,
                 reconnectClient: Bool = true,
@@ -211,6 +218,7 @@ public struct TxConfig {
         self.ringBackTone = ringBackTone
         self.ringtone = ringtone
         self.pushEnvironment = pushEnvironment
+        self.enableMissedCallNotifications = enableMissedCallNotifications
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
         self.enableQualityMetrics = enableQualityMetrics

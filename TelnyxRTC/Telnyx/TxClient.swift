@@ -584,7 +584,8 @@ public class TxClient {
                                         startFromPush: self.isCallFromPush,
                                         pushEnvironment: storedConfig.pushEnvironment,
                                         sessionId: self.sessionId!,
-                                        declinePush: declinePush)
+                                        declinePush: declinePush,
+                                        enableMissedCallNotifications: storedConfig.enableMissedCallNotifications)
             self.socket?.sendMessage(message: vertoLogin.encode())
         } else {
             Logger.log.i(message: "TxClient:: performLogin with SIP User and Password, declinePush: \(declinePush)")
@@ -597,7 +598,8 @@ public class TxClient {
                                         startFromPush: self.isCallFromPush,
                                         pushEnvironment: storedConfig.pushEnvironment,
                                         sessionId: self.sessionId!,
-                                        declinePush: declinePush)
+                                        declinePush: declinePush,
+                                        enableMissedCallNotifications: storedConfig.enableMissedCallNotifications)
             self.socket?.sendMessage(message: vertoLogin.encode())
         }
         
@@ -1203,6 +1205,7 @@ extension TxClient {
                         forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
                         sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
                         useTrickleIce: self.txConfig?.useTrickleIce ?? false,
+                        enableMissedCallNotifications: self.txConfig?.enableMissedCallNotifications ?? false,
                         enableCallReports: self.txConfig?.enableCallReports ?? true,
                         callReportInterval: self.txConfig?.callReportInterval ?? 5.0,
                         callReportLogLevel: self.txConfig?.callReportLogLevel ?? "debug",
@@ -1285,6 +1288,7 @@ extension TxClient {
                         forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
                         sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
                         useTrickleIce: self.txConfig?.useTrickleIce ?? false,
+                        enableMissedCallNotifications: self.txConfig?.enableMissedCallNotifications ?? false,
                         enableCallReports: self.txConfig?.enableCallReports ?? true,
                         callReportInterval: self.txConfig?.callReportInterval ?? 5.0,
                         callReportLogLevel: self.txConfig?.callReportLogLevel ?? "debug",
@@ -1380,21 +1384,27 @@ extension TxClient {
                 try self.connectSocketOnly(serverConfiguration: self.storedServerConfiguration!)
                 
                 // Create an initial call_object to handle early bye message
-                if let newCallId = (pushMetaData["call_id"] as? String) {
-                    self.calls[UUID(uuidString: newCallId)!] = Call(callId: UUID(uuidString: newCallId)!,
-                                                                    remoteSdp: "",
-                                                                    sessionId: newCallId,
-                                                                    socket: self.socket!,
-                                                                    delegate: self,
-                                                                    iceServers: self.storedServerConfiguration!.webRTCIceServers,
-                                                                    debug: self.txConfig?.debug ?? false,
-                                                                    forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
-                                                                    sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
-                                                                    useTrickleIce: self.txConfig?.useTrickleIce ?? false,
-                                                                    enableCallReports: self.txConfig?.enableCallReports ?? true,
-                                                                    callReportInterval: self.txConfig?.callReportInterval ?? 5.0,
-                                                                    callReportLogLevel: self.txConfig?.callReportLogLevel ?? "debug",
-                                                                    callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000)
+                if let newCallId = pushMetaData["call_id"] as? String,
+                   let callUUID = UUID(uuidString: newCallId),
+                   let socket = self.socket,
+                   let iceServers = self.storedServerConfiguration?.webRTCIceServers {
+                    self.calls[callUUID] = Call(callId: callUUID,
+                                               remoteSdp: "",
+                                               sessionId: newCallId,
+                                               socket: socket,
+                                               delegate: self,
+                                               iceServers: iceServers,
+                                               debug: self.txConfig?.debug ?? false,
+                                               forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
+                                               sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
+                                               useTrickleIce: self.txConfig?.useTrickleIce ?? false,
+                                               enableMissedCallNotifications: self.txConfig?.enableMissedCallNotifications ?? false,
+                                               enableCallReports: self.txConfig?.enableCallReports ?? true,
+                                               callReportInterval: self.txConfig?.callReportInterval ?? 5.0,
+                                               callReportLogLevel: self.txConfig?.callReportLogLevel ?? "debug",
+                                               callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000)
+                } else {
+                    Logger.log.e(message: "TxClient:: processVoIPNotification - Invalid call_id, socket, or ICE servers. Cannot create call object.")
                 }
             } catch let error {
                 Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
@@ -1611,7 +1621,8 @@ extension TxClient : SocketDelegate {
                 performLogin(declinePush: false)
                 return
             } else {
-                Logger.log.i(message: "TxClient:: Socket connected from push - waiting for user action before login")
+                Logger.log.i(message: "TxClient:: Socket connected from push - logging in immediately")
+                performLogin(declinePush: false)
                 return
             }
         }
@@ -1651,7 +1662,8 @@ extension TxClient : SocketDelegate {
                                           startFromPush: self.isCallFromPush,
                                           pushEnvironment: self.txConfig?.pushEnvironment,
                                           sessionId: self.sessionId!,
-                                          declinePush: false)
+                                          declinePush: false,
+                                          enableMissedCallNotifications: self.txConfig?.enableMissedCallNotifications ?? false)
             self.socket?.sendMessage(message: vertoLogin.encode())
         } else {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with SIP User and Password")
@@ -1665,7 +1677,8 @@ extension TxClient : SocketDelegate {
                                           startFromPush: self.isCallFromPush,
                                           pushEnvironment: self.txConfig?.pushEnvironment,
                                           sessionId: self.sessionId!,
-                                          declinePush: false)
+                                          declinePush: false,
+                                          enableMissedCallNotifications: self.txConfig?.enableMissedCallNotifications ?? false)
             self.socket?.sendMessage(message: vertoLogin.encode())
         }
     }

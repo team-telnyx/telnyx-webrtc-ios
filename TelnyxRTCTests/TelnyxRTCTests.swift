@@ -3,6 +3,28 @@ import XCTest
 
 class TelnyxRTCTests: XCTestCase {
     
+    func testTxConfigMissedCallNotificationsDefaultsToDisabled() {
+        let txConfig = TxConfig(sipUser: "<userName>",
+                                password: "<password>")
+
+        XCTAssertFalse(txConfig.enableMissedCallNotifications)
+    }
+
+    func testTxConfigCanEnableMissedCallNotificationsForCredentialLogin() {
+        let txConfig = TxConfig(sipUser: "<userName>",
+                                password: "<password>",
+                                enableMissedCallNotifications: true)
+
+        XCTAssertTrue(txConfig.enableMissedCallNotifications)
+    }
+
+    func testTxConfigCanEnableMissedCallNotificationsForTokenLogin() {
+        let txConfig = TxConfig(token: "<token>",
+                                enableMissedCallNotifications: true)
+
+        XCTAssertTrue(txConfig.enableMissedCallNotifications)
+    }
+    
     /**
      Test login error when credentials are empty
      */

@@ -16,10 +16,17 @@ class Message {
     internal static let SDK_VERSION = "3.2.1"
     internal static var USER_AGENT: String {
         get {
-            let type = Message.CLIENT_TYPE
-            let version = Message.SDK_VERSION
-            return type + "-" + version
+            return userAgent(enableMissedCallNotifications: false)
         }
+    }
+
+    internal static func userAgent(enableMissedCallNotifications: Bool) -> String {
+        let type = Message.CLIENT_TYPE
+        let version = Message.SDK_VERSION
+        if enableMissedCallNotifications {
+            return type + "-mpn-" + version
+        }
+        return type + "-" + version
     }
 
     internal var jsonMessage: [String: Any] = [String: Any]()

@@ -230,26 +230,38 @@ extension AppDelegate: PKPushRegistryDelegate {
     ///   - pushMetaData: The metadata from the push notification
     func handleMissedCallNotification(callUUID: UUID, pushMetaData: [String: Any]) {
         print("AppDelegate:: handleMissedCallNotification for call: \(callUUID)")
-        
+
         guard let provider = callKitProvider else {
             print("AppDelegate:: CallKit provider not available for missed call handling")
             return
         }
-        
-        // Report the call as ended with .answeredElsewhere reason to dismiss CallKit UI
-        provider.reportCall(with: callUUID, endedAt: Date(), reason: .answeredElsewhere)
-        print("AppDelegate:: Reported missed call as answered elsewhere for call: \(callUUID)")
-        
-        // Clean up any stored call references
+
+        // Satisfy Apple's PushKit requirement: every VoIP push must have a
+        // corresponding reportNewIncomingCall. Report a temporary call and
+        // immediately end both (temp + original) inside the completion handler.
+        let tempUUID = UUID()
+        let update = CXCallUpdate()
+        update.remoteHandle = CXHandle(type: .generic, value: " ")
+
+        provider.reportNewIncomingCall(with: tempUUID, update: update) { _ in
+            // End the original incoming call that is ringing in CallKit
+            provider.reportCall(with: callUUID, endedAt: Date(), reason: .answeredElsewhere)
+            print("AppDelegate:: Reported original call as answered elsewhere for call: \(callUUID)")
+            // End the temporary call
+            provider.reportCall(with: tempUUID, endedAt: Date(), reason: .answeredElsewhere)
+            print("AppDelegate:: Reported temp call for PushKit compliance: \(tempUUID)")
+        }
+
+        // 3. Clean up any stored call references
         if self.callKitUUID == callUUID {
             self.callKitUUID = nil
         }
-        
+
         if let currentCall = self.currentCall,
            currentCall.callInfo?.callId == callUUID {
             self.currentCall = nil
         }
-        
+
         if let previousCall = self.previousCall,
            previousCall.callInfo?.callId == callUUID {
             self.previousCall = nil

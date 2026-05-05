@@ -20,13 +20,14 @@ class LoginMessage : Message {
          startFromPush: Bool = false,
          pushEnvironment:PushEnvironment? = nil,
          sessionId:String,
-         declinePush: Bool = false
+         declinePush: Bool = false,
+         enableMissedCallNotifications: Bool = false
     ) {
-        
+
         var params = [String: Any]()
         params["login"] = user
         params["passwd"] = password
-        params["User-Agent"] = Message.USER_AGENT
+        params["User-Agent"] = Message.userAgent(enableMissedCallNotifications: enableMissedCallNotifications)
         params["from_push"] = startFromPush
         params["sessid"] = sessionId
         //Setup push variables
@@ -73,11 +74,12 @@ class LoginMessage : Message {
          startFromPush: Bool = false,
          pushEnvironment:PushEnvironment? = nil,
          sessionId:String,
-         declinePush: Bool = false
+         declinePush: Bool = false,
+         enableMissedCallNotifications: Bool = false
     ) {
         var params = [String: Any]()
         params["login_token"] = token
-        params["User-Agent"] = Message.USER_AGENT
+        params["User-Agent"] = Message.userAgent(enableMissedCallNotifications: enableMissedCallNotifications)
         params["from_push"] = startFromPush
         params["sessid"] = sessionId
         var loginParams = [String: Any]()
