@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## [4.0.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.0.0) (2026-05-05)
+
+### ⚠️ Breaking Changes
+
+**Native iOS missed call notifications are now opt-in**
+
+Starting in v4.0.0, native iOS clients no longer advertise missed call notification support by default. To enable missed call notifications, set `enableMissedCallNotifications: true` in `TxConfig`.
+
+**Action Required:** If your app relies on native iOS missed call VoIP push notifications, update your SDK configuration to explicitly opt in before upgrading. See the migration guide for migrating from v3 to v4.
+
+### Features
+- **Missed Call Notification Opt-In**: Added `enableMissedCallNotifications` to `TxConfig` so native iOS apps can explicitly opt in to missed call VoIP push notifications when needed.
+
+### Bug Fixes
+- **Push Notification Safety**: Improved VoIP push notification handling by removing unsafe UUID processing during push-driven call setup.
+
 ## [3.2.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/3.2.1) (2026-04-15)
 
 ### Bug Fixes
