@@ -120,6 +120,7 @@ public struct TxConfig {
     ///   - enableCallReports: (Optional) Enable automatic call quality reporting to voice-sdk-proxy. Default is true.
     ///   - callReportInterval: (Optional) Interval in seconds for collecting call statistics. Default is 5.0.
     ///   - callReportLogLevel: (Optional) Minimum log level to capture for call reports. Default is "debug".
+    ///   - enableMissedCallNotifications: (Optional) Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`. Default is false.
     ///   - callReportMaxLogEntries: (Optional) Maximum number of log entries to buffer per call. Default is 1000.
     public init(sipUser: String, password: String,
                 pushDeviceToken: String? = nil,
@@ -187,6 +188,7 @@ public struct TxConfig {
     ///   - enableCallReports: (Optional) Enable automatic call quality reporting to voice-sdk-proxy. Default is true.
     ///   - callReportInterval: (Optional) Interval in seconds for collecting call statistics. Default is 5.0.
     ///   - callReportLogLevel: (Optional) Minimum log level to capture for call reports. Default is "debug".
+    ///   - enableMissedCallNotifications: (Optional) Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`. Default is false.
     ///   - callReportMaxLogEntries: (Optional) Maximum number of log entries to buffer per call. Default is 1000.
     public init(token: String,
                 pushDeviceToken: String? = nil,

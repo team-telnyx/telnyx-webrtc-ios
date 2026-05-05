@@ -4,17 +4,17 @@ This guide covers the migration from Telnyx WebRTC iOS SDK v3.x to v4.0.0.
 
 ## Overview
 
-Version 4.0.0 introduces a new opt-in mechanism for missed call notifications and an improved push notification connection flow. The main changes are:
+Version 4.0.0 introduces a new opt-in mechanism for missed call notifications and an improved push notification login flow. The main changes are:
 
 - Opt-in `enableMissedCallNotifications` flag on `TxConfig`
-- Immediate socket connection on incoming call push notifications
+- Immediate login after socket connects from a VoIP push notification
 - Missed call notifications delivered when calls end before the socket connects
 
 ## Breaking Changes
 
 ### Missed Call Notifications Are Now Opt-In
 
-In v3.x, all clients receive missed call VoIP push notifications by default. In v4.0.0, this behavior is controlled by the `enableMissedCallNotifications` flag on `TxConfig`.
+In v3.x, all clients receive missed call VoIP push notifications. In v4.0.0, this behavior is controlled by the `enableMissedCallNotifications` flag on `TxConfig`.
 
 **Default value:** `false` (disabled)
 
@@ -24,12 +24,23 @@ When enabled, the SDK sends the user agent as `iOS-mpn-<sdk-version>` instead of
 
 If your app already handles missed call notifications (as described in the [v2-to-v3 migration guide](./v2-to-v3.md)), enable the flag to continue receiving them:
 
+**SIP credentials:**
+
 ```swift
 let txConfig = TxConfig(
     sipUser: sipUser,
     password: password,
     pushDeviceToken: pushToken,
-    pushNotificationConfig: pushConfig,
+    enableMissedCallNotifications: true
+)
+```
+
+**Token authentication:**
+
+```swift
+let txConfig = TxConfig(
+    token: token,
+    pushDeviceToken: pushToken,
     enableMissedCallNotifications: true
 )
 ```
@@ -39,31 +50,30 @@ Pass this flag consistently in all connection scenarios:
 - VoIP push notification handling (`processVoIPNotification()`)
 - Both Token and SIP credential authentication
 
-If your app does **not** handle missed call notifications, no action is needed — the default (`false`) preserves the v2.x behavior where missed call pushes are not sent.
+If your app does **not** handle missed call notifications, no action is needed — the default (`false`) means Telnyx servers will not send missed call pushes to your app.
 
 ## Push Notification Flow Changes
 
 ### What Changed
 
-v4.0.0 changes how the SDK handles incoming call push notifications. The SDK now connects the socket immediately when a VoIP push arrives, rather than deferring the connection.
+v4.0.0 changes the push notification login flow. After the WebSocket connects from a VoIP push, the SDK now logs in immediately instead of waiting for the user to accept or decline via CallKit.
 
 #### v3.x Behavior
 
 1. VoIP push arrives, app calls `processVoIPNotification()`
-2. SDK connects the WebSocket
-3. On socket connect, SDK logs in immediately
-4. SDK waits for the INVITE from the server
-5. If the call was already missed, a separate "Missed call!" push is sent regardless of client state
+2. SDK connects the WebSocket without logging in
+3. SDK waits for the user to accept or decline via CallKit
+4. Based on the user's action, SDK sends login with `decline_push: true/false`
 
 #### v4.0.0 Behavior
 
 1. VoIP push arrives, app calls `processVoIPNotification()`
-2. SDK connects the WebSocket immediately
-3. On socket connect, SDK logs in
-4. SDK waits for the INVITE from the server
-5. **If the call ends before the socket connects** (e.g., the caller hangs up during the connection window), the server sends a "Missed call!" VoIP push notification — but only if `enableMissedCallNotifications` is `true`
+2. SDK connects the WebSocket
+3. On socket connect, SDK logs in immediately (does not wait for user action)
+4. If the user has already accepted or declined via CallKit before the socket connected, the login includes that decision
+5. If the call ended before the socket connected (e.g., the caller hung up), and `enableMissedCallNotifications` is `true`, the server sends a "Missed call!" VoIP push notification
 
-The key difference: missed call notifications are now tied to a real timing condition — the call ended before your app could establish a socket connection. This makes missed call pushes more meaningful and reduces unnecessary push deliveries.
+The immediate login reduces latency for call setup and simplifies the internal state machine.
 
 ### Missed Call Notification Handling
 
@@ -109,11 +119,10 @@ func handleMissedCallNotification(callUUID: UUID) {
 
 ## Migration Checklist
 
-| Step | Required? | Description |
-|------|-----------|-------------|
-| Set `enableMissedCallNotifications` | Only if you want missed call pushes | Add the flag to your `TxConfig` in all connection points |
-| Handle missed call pushes | Only if flag is enabled | Implement the dummy CallKit call workaround (same as v3.x) |
-| Update Podfile | Yes | Point to v4.0.0 |
+- **Enable missed call notifications (optional):** Add `enableMissedCallNotifications: true` to your `TxConfig` in all connection points if you want to continue receiving missed call pushes.
+- **Handle missed call pushes (only if flag is enabled):** Implement the dummy CallKit call workaround (same as v3.x).
+- **Update Podfile:** Point to v4.0.0.
+- **No other code changes required.** The immediate-login behavior is handled internally by the SDK.
 
 ## Recommended Testing
 

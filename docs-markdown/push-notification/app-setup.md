@@ -9,7 +9,6 @@ let txConfig = TxConfig(
     sipUser: sipUser,
     password: password,
     pushDeviceToken: pushToken,
-    pushNotificationConfig: pushConfig,
     enableMissedCallNotifications: true
 )
 ```

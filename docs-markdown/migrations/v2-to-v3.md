@@ -33,7 +33,6 @@ func handleVoIPPushNotification(payload: PKPushPayload) {
        let alert = aps["alert"] as? String,
        alert == "Missed call!" {
 
-        // Handle missed call notification
         if let metadata = payload.dictionaryPayload["metadata"] as? [String: Any] {
             var callID = UUID().uuidString
             if let newCallId = (metadata["call_id"] as? String),
@@ -42,7 +41,6 @@ func handleVoIPPushNotification(payload: PKPushPayload) {
             }
 
             if let uuid = UUID(uuidString: callID) {
-                print("Received missed call notification for call: \(callID)")
                 handleMissedCallNotification(callUUID: uuid)
             }
         }
@@ -59,10 +57,7 @@ func handleVoIPPushNotification(payload: PKPushPayload) {
 /// Since the original incoming call was already reported, we report a temporary
 /// dummy call for this second VoIP push and immediately end both calls.
 func handleMissedCallNotification(callUUID: UUID) {
-    guard let provider = callKitProvider else {
-        print("CallKit provider not available for missed call handling")
-        return
-    }
+    guard let provider = callKitProvider else { return }
 
     let tempUUID = UUID()
     let update = CXCallUpdate()
@@ -116,20 +111,20 @@ When a VoIP push notification was received:
 3. Once authenticated, the SDK waits for the INVITE
 4. User accepts or declines via CallKit
 
+**Issue:** The SDK was already logged in before the user made a decision, which could cause race conditions and unnecessary server connections if the user quickly declined.
+
 #### v3.0.0 Behavior
 
 When a VoIP push notification is received:
 
 1. App calls `processVoIPNotification()` (same method signature)
-2. SDK connects the WebSocket
-3. On socket connect, SDK logs in immediately with context about the push origin
-4. If the user has already accepted or declined via CallKit before the socket connected, the SDK includes that decision in the login (`decline_push: true/false`)
-5. If no user action yet, the SDK logs in and waits for the INVITE
+2. SDK connects the WebSocket **without logging in**
+3. SDK waits for the user to accept or decline via CallKit
+4. Based on the user's action:
+   - **Accept**: SDK calls `performLogin(declinePush: false)` and sends login message
+   - **Decline**: SDK calls `performLogin(declinePush: true)` and sends login message with `decline_push` parameter
 
-The key difference is that the SDK now tracks user actions (accept/decline) that happen while the socket is still connecting, so the login message carries the correct intent from the start. This eliminates race conditions between CallKit UI interactions and the socket connection.
-
-#### Benefits
-
+**Benefits:**
 - Faster call decline — no need to wait for full authentication before rejecting
 - Eliminates race conditions between login and CallKit UI
 - Reduces unnecessary server load when the user quickly declines
@@ -154,8 +149,9 @@ TxClient:: SocketDelegate onSocketConnected() login with Token
 **v3.0.0 logs:**
 ```
 TxClient:: SocketDelegate onSocketConnected()
-TxClient:: Socket connected isCallFromPush == true
-TxClient:: Socket connected from push - logging in immediately
+TxClient:: Socket connected from push - waiting for user action before login
+[User accepts/declines]
+TxClient:: answerFromCallkit - Socket connected, performing login with decline_push: false
 ```
 
 ## New Features
@@ -164,7 +160,7 @@ TxClient:: Socket connected from push - logging in immediately
 
 #### What Changed
 
-In v2.x, declining a call via push notification required the SDK to fully connect before properly rejecting. In v3.0.0, the SDK tracks the decline intent and sends it as part of the login message, providing a faster and more reliable decline.
+In v2.x, declining a call via push notification required the SDK to fully connect before properly rejecting. In v3.0.0, the SDK defers login until the user's decision is known, so the decline intent is sent as part of the login message.
 
 #### Migration Steps
 
