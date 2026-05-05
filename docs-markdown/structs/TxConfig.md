@@ -66,6 +66,14 @@ public internal(set) var reconnectClient: Bool = true
 public internal(set) var pushEnvironment: PushEnvironment?
 ```
 
+### `enableMissedCallNotifications`
+
+```swift
+public internal(set) var enableMissedCallNotifications: Bool = false
+```
+
+Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`.
+
 ### `debug`
 
 ```swift
@@ -186,7 +194,7 @@ Maximum number of log entries to buffer per call.
 - Important: Default is 1000 entries to prevent memory issues on long calls.
 
 ## Methods
-### `init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:useTrickleIce:enableCallReports:callReportInterval:callReportLogLevel:callReportMaxLogEntries:)`
+### `init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:enableMissedCallNotifications:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:useTrickleIce:enableCallReports:callReportInterval:callReportLogLevel:callReportMaxLogEntries:)`
 
 ```swift
 public init(sipUser: String, password: String,
@@ -194,6 +202,7 @@ public init(sipUser: String, password: String,
             ringtone: String? = nil,
             ringBackTone: String? = nil,
             pushEnvironment: PushEnvironment? = nil,
+            enableMissedCallNotifications: Bool = false,
             logLevel: LogLevel = .none,
             customLogger: TxLogger? = nil,
             reconnectClient: Bool = true,
@@ -230,6 +239,7 @@ Constructor for the Telnyx SDK configuration using SIP credentials.
   - enableCallReports: (Optional) Enable automatic call quality reporting to voice-sdk-proxy. Default is true.
   - callReportInterval: (Optional) Interval in seconds for collecting call statistics. Default is 5.0.
   - callReportLogLevel: (Optional) Minimum log level to capture for call reports. Default is "debug".
+  - enableMissedCallNotifications: (Optional) Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`. Default is false.
   - callReportMaxLogEntries: (Optional) Maximum number of log entries to buffer per call. Default is 1000.
 
 #### Parameters
@@ -254,9 +264,10 @@ Constructor for the Telnyx SDK configuration using SIP credentials.
 | enableCallReports | (Optional) Enable automatic call quality reporting to voice-sdk-proxy. Default is true. |
 | callReportInterval | (Optional) Interval in seconds for collecting call statistics. Default is 5.0. |
 | callReportLogLevel | (Optional) Minimum log level to capture for call reports. Default is “debug”. |
+| enableMissedCallNotifications | (Optional) Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`. Default is false. |
 | callReportMaxLogEntries | (Optional) Maximum number of log entries to buffer per call. Default is 1000. |
 
-### `init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:useTrickleIce:enableCallReports:callReportInterval:callReportLogLevel:callReportMaxLogEntries:)`
+### `init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:enableMissedCallNotifications:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:useTrickleIce:enableCallReports:callReportInterval:callReportLogLevel:callReportMaxLogEntries:)`
 
 ```swift
 public init(token: String,
@@ -264,6 +275,7 @@ public init(token: String,
             ringtone: String? = nil,
             ringBackTone: String? = nil,
             pushEnvironment: PushEnvironment? = nil,
+            enableMissedCallNotifications: Bool = false,
             logLevel: LogLevel = .none,
             customLogger: TxLogger? = nil,
             reconnectClient: Bool = true,
@@ -299,6 +311,7 @@ Constructor for the Telnyx SDK configuration using JWT token authentication.
   - enableCallReports: (Optional) Enable automatic call quality reporting to voice-sdk-proxy. Default is true.
   - callReportInterval: (Optional) Interval in seconds for collecting call statistics. Default is 5.0.
   - callReportLogLevel: (Optional) Minimum log level to capture for call reports. Default is "debug".
+  - enableMissedCallNotifications: (Optional) Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`. Default is false.
   - callReportMaxLogEntries: (Optional) Maximum number of log entries to buffer per call. Default is 1000.
 
 #### Parameters
@@ -322,6 +335,7 @@ Constructor for the Telnyx SDK configuration using JWT token authentication.
 | enableCallReports | (Optional) Enable automatic call quality reporting to voice-sdk-proxy. Default is true. |
 | callReportInterval | (Optional) Interval in seconds for collecting call statistics. Default is 5.0. |
 | callReportLogLevel | (Optional) Minimum log level to capture for call reports. Default is “debug”. |
+| enableMissedCallNotifications | (Optional) Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`. Default is false. |
 | callReportMaxLogEntries | (Optional) Maximum number of log entries to buffer per call. Default is 1000. |
 
 ### `validateParams()`

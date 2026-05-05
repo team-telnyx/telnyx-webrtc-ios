@@ -220,6 +220,12 @@ public internal(set) var callReportMaxLogEntries: Int = 1000
 
 Maximum number of log entries to buffer per call.
 
+### `enableMissedCallNotifications`
+
+```swift
+public internal(set) var enableMissedCallNotifications: Bool = false
+```
+
 ### `callInfo`
 
 ```swift
