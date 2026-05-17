@@ -1621,8 +1621,7 @@ extension TxClient : SocketDelegate {
                 performLogin(declinePush: false)
                 return
             } else {
-                Logger.log.i(message: "TxClient:: Socket connected from push - logging in immediately")
-                performLogin(declinePush: false)
+                Logger.log.i(message: "TxClient:: Socket connected from push - waiting for user action before login")
                 return
             }
         }
