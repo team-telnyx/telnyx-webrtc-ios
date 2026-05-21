@@ -23,6 +23,11 @@ fastlane/screenshots/**/*.png
 fastlane/test_output
 Gemfile.lock
 reports/
+drivers/
+e2e/.env.local
+e2e/.chrome-profile/
+e2e/node_modules/
+e2e/package-lock.json
 
 #build
 build/*
