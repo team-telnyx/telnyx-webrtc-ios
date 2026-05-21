@@ -651,7 +651,6 @@ public class TxClient {
         self.calls.removeAll()
         self.stopReconnectTimeout()
         self.stopInviteTimeout()
-        self.pushCallState = .idle
 
         // Clear AI Assistant Manager data
         self.aiAssistantManager.clearAllData()
@@ -1509,9 +1508,6 @@ extension TxClient: CallProtocol {
             } else {
                 self.delegate?.onRemoteCallEnded(callId: callId, reason: nil)
             }
-            if callId == currentCallId && pushCallState != .idle {
-                resetPushVariables()
-            }
             self._isSpeakerEnabled = false
         }
     }
@@ -1919,23 +1915,6 @@ extension TxClient : SocketDelegate {
                                 Logger.log.e(message: "Custom header decoding error: \(error)")
                             }
                         }
-                        if isCallFromPush {
-                            Logger.log.i(message: "[VSUP-62-REPRO] Delaying invite handling by 10s")
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
-                                self.createIncomingCall(callerName: callerName,
-                                                        callerNumber: callerNumber,
-                                                        callId: uuid,
-                                                        remoteSdp: sdp,
-                                                        telnyxSessionId: telnyxSessionId,
-                                                        telnyxLegId: telnyxLegId,
-                                                        customHeaders: customHeaders)
-                                /*FileLogger.shared.log("INVITE : \(message) \n")
-                                FileLogger.shared.log("INVITE telnyxLegId: \(telnyxLegId) \n") */
-                                self.sendFileLogs = true
-                            }
-                            return
-                        }
-
                         self.createIncomingCall(callerName: callerName,
                                                 callerNumber: callerNumber,
                                                 callId: uuid,
@@ -1943,6 +1922,11 @@ extension TxClient : SocketDelegate {
                                                 telnyxSessionId: telnyxSessionId,
                                                 telnyxLegId: telnyxLegId,
                                                 customHeaders: customHeaders)
+                        if(isCallFromPush){
+                            /*FileLogger.shared.log("INVITE : \(message) \n")
+                            FileLogger.shared.log("INVITE telnyxLegId: \(telnyxLegId) \n") */
+                            self.sendFileLogs = true
+                        }
                         
                     }
                    
