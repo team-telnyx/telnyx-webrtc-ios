@@ -651,7 +651,6 @@ public class TxClient {
         self.calls.removeAll()
         self.stopReconnectTimeout()
         self.stopInviteTimeout()
-        self.pushCallState = .idle
 
         // Clear AI Assistant Manager data
         self.aiAssistantManager.clearAllData()
@@ -1508,9 +1507,6 @@ extension TxClient: CallProtocol {
                 self.delegate?.onRemoteCallEnded(callId: callId, reason: reason)
             } else {
                 self.delegate?.onRemoteCallEnded(callId: callId, reason: nil)
-            }
-            if callId == currentCallId && pushCallState != .idle {
-                resetPushVariables()
             }
             self._isSpeakerEnabled = false
         }
