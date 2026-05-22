@@ -856,10 +856,11 @@ extension Call {
         self.statsReporter?.dispose()
         self.answerCustomHeaders = customHeaders
         self.configureStatsReporter(reportID: reportId)
+        Logger.log.i(message: "[TRICKLE-ICE] Call:: Creating Peer for ATTACH with useTrickleIce = \(self.useTrickleIce)")
         self.peer = Peer(iceServers: self.iceServers,
                          isAttach: true,
                          forceRelayCandidate: self.forceRelayCandidate,
-                         useTrickleIce: false,
+                         useTrickleIce: self.useTrickleIce,
                          isAnswering: false)
         self.startStatsReporter()
         self.peer?.delegate = self
