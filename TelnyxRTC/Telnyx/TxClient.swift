@@ -125,6 +125,19 @@ public extension Notification.Name {
 /// }
 /// ```
 public class TxClient {
+    /// Tracks the internal VoIP push handoff before a real incoming `Call` may exist.
+    ///
+    /// This state is intentionally separate from `CallState`: it coordinates socket/login/INVITE
+    /// ordering for CallKit push flows, not the lifecycle of an established call object.
+    /// - `loginSent` prevents `answerFromCallkit` from sending a duplicate login after the
+    ///   socket-connected push path has already logged in.
+    /// - `inviteReceived` prevents the post-answer INVITE timeout from firing when INVITE has
+    ///   arrived but downstream call creation is still pending or delayed.
+    private enum PushCallState {
+        case idle
+        case loginSent
+        case inviteReceived
+    }
 
     // MARK: - Properties
     private static let DEFAULT_REGISTER_INTERVAL = 3.0 // In seconds
@@ -173,6 +186,7 @@ public class TxClient {
     // Timeout mechanism for VoIP push calls
     private var inviteTimeoutTimer: Timer?
     private var isWaitingForInviteAfterPush: Bool = false
+    private var pushCallState: PushCallState = .idle
     private static let INVITE_TIMEOUT_SECONDS: TimeInterval = 10.0
     
     public private(set) var isSpeakerEnabled: Bool {
@@ -713,8 +727,13 @@ public class TxClient {
             // Start the login process by sending a login message with decline_push: false
             // Automatically accept the call once the INVITE is received
             if isConnected() {
-                Logger.log.i(message: "TxClient:: answerFromCallkit - Socket connected, performing login with decline_push: false")
-                performLogin(declinePush: false)
+                if pushCallState == .loginSent {
+                    Logger.log.i(message: "TxClient:: answerFromCallkit - Push login already sent, waiting for INVITE")
+                } else {
+                    Logger.log.i(message: "TxClient:: answerFromCallkit - Socket connected, performing login with decline_push: false")
+                    performLogin(declinePush: false)
+                    pushCallState = .loginSent
+                }
             } else {
                 Logger.log.i(message: "TxClient:: answerFromCallkit - Socket not connected, connecting first")
                 do {
@@ -750,12 +769,18 @@ public class TxClient {
         storedServerConfiguration = nil
         pendingCallDecline = false
         isCallFromPush = false
+        pushCallState = .idle
         stopInviteTimeout()
         isWaitingForInviteAfterPush = false
     }
     
     /// Starts the INVITE timeout timer for VoIP push calls
     private func startInviteTimeout() {
+        if pushCallState == .inviteReceived {
+            Logger.log.i(message: "TxClient:: Skipping INVITE timeout - INVITE already received for VoIP push call")
+            return
+        }
+
         stopInviteTimeout() // Ensure any existing timer is stopped
         
         Logger.log.i(message: "TxClient:: Starting INVITE timeout timer (10 seconds)")
@@ -1050,7 +1075,7 @@ public class TxClient {
                     self.sendAttachCall()
                     
                     // Start INVITE timeout for VoIP push calls that are being answered (not declined)
-                    if answerCallAction != nil && !pendingCallDecline {
+                    if answerCallAction != nil && !pendingCallDecline && pushCallState != .inviteReceived {
                         Logger.log.i(message: "TxClient:: updateGatewayState() Starting INVITE timeout for VoIP push call")
                         startInviteTimeout()
                     }
@@ -1359,6 +1384,7 @@ extension TxClient {
         }
         
         self.pushMetaData = pushMetaData
+        self.pushCallState = .idle
         
         // Store config objects for later use (don't login immediately)
         self.storedTxConfig = txConfig
@@ -1617,12 +1643,18 @@ extension TxClient : SocketDelegate {
                 performLogin(declinePush: true)
                 return
             } else if answerCallAction != nil {
-                Logger.log.i(message: "TxClient:: Socket connected for answer flow")
-                performLogin(declinePush: false)
+                if pushCallState == .loginSent {
+                    Logger.log.i(message: "TxClient:: Socket connected for answer flow - push login already sent")
+                } else {
+                    Logger.log.i(message: "TxClient:: Socket connected for answer flow")
+                    performLogin(declinePush: false)
+                    pushCallState = .loginSent
+                }
                 return
             } else {
                 Logger.log.i(message: "TxClient:: Socket connected from push - logging in immediately")
                 performLogin(declinePush: false)
+                pushCallState = .loginSent
                 return
             }
         }
@@ -1843,7 +1875,9 @@ extension TxClient : SocketDelegate {
 
                 case .INVITE:
                     //invite received
-                    // Stop the INVITE timeout timer if it's running for VoIP push calls
+                    if isCallFromPush {
+                        pushCallState = .inviteReceived
+                    }
                     if isWaitingForInviteAfterPush {
                         Logger.log.i(message: "TxClient:: INVITE received - stopping timeout timer for VoIP push call")
                         stopInviteTimeout()
