@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [4.0.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.0.1) (2026-05-25)
+
+### Bug Fixes
+- **Push Reattach Trickle ICE**: Fixed push notification reattach flow so it respects the configured `useTrickleIce` setting when reconnecting from a VoIP push ([#343](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/343)).
+- **Push Answer Login Race**: Fixed duplicate push login handling by waiting for the CallKit answer path before sending push login, improving reliability when answering incoming VoIP push calls ([#345](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/345)).
+
 ## [4.0.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.0.0) (2026-05-05)
 
 ### ⚠️ Breaking Changes
