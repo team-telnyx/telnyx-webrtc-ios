@@ -17,9 +17,16 @@ class Socket {
     private var reconnect : Bool = false
     internal var signalingServer:URL? = nil
     
-    /// Timer for manual connection timeout (only used when not on auto region)
+    /// Timer for manual connection timeout.
     private var connectionTimeoutTimer: Timer?
     
+    /// Prevents the socket's disconnect callback from sending a second non-timeout disconnect
+    /// after a connection timeout has already requested a reconnect.
+    private var suppressDisconnectCallbackAfterConnectionTimeout = false
+
+    /// Test seam that allows unit tests to validate request/timer setup without opening a network connection.
+    internal var automaticallyConnectWebSocket = true
+
     /// Connection timeout interval in seconds
     private var connectionTimeout: TimeInterval = 5.0
     
@@ -36,6 +43,7 @@ class Socket {
         
         // Cancel any existing timeout timer
         cancelConnectionTimeout()
+        suppressDisconnectCallbackAfterConnectionTimeout = false
         
         var request = URLRequest(url: signalingServer)
         request.timeoutInterval = connectionTimeout
@@ -44,14 +52,13 @@ class Socket {
         
         self.socket = WebSocket(request: request, certPinner: pinner)
         self.socket?.delegate = self
-        self.socket?.request.timeoutInterval = TimeInterval(120)
         
-        // Only start timeout timer if we can fallback to auto (i.e., not already on auto)
-        if shouldFallbackToAuto(signalingServer: signalingServer) {
-            startConnectionTimeout()
+        // Apply the SDK dial timeout to every signaling server, including the default auto URL.
+        startConnectionTimeout()
+        
+        if automaticallyConnectWebSocket {
+            self.socket?.connect()
         }
-        
-        self.socket?.connect()
     }
     
     func disconnect(reconnect:Bool) {
@@ -85,6 +92,8 @@ extension Socket : WebSocketDelegate {
     // Fallback to .auto Region
     func shouldFallbackToAuto(signalingServer: URL?) -> Bool {
         guard let url = signalingServer,
+              let host = url.host,
+              isTelnyxRTCRegionalHost(host),
               let regionPrefix = extractRegionPrefix(from: url),
               let region = Region(rawValue: regionPrefix) else {
             return false
@@ -92,6 +101,10 @@ extension Socket : WebSocketDelegate {
         return region != .auto
     }
     
+    private func isTelnyxRTCRegionalHost(_ host: String) -> Bool {
+        host.hasSuffix(".rtc.telnyx.com") || host.hasSuffix(".rtcdev.telnyx.com")
+    }
+
     func extractRegionPrefix(from url: URL) -> String? {
         let host = url.host ?? ""
         let components = host.components(separatedBy: ".")
@@ -116,6 +129,11 @@ extension Socket : WebSocketDelegate {
             //This are server side disconnections
             cancelConnectionTimeout()
             isConnected = false
+            if suppressDisconnectCallbackAfterConnectionTimeout {
+                suppressDisconnectCallbackAfterConnectionTimeout = false
+                Logger.log.i(message: "Socket:: websocket disconnected after connection timeout: \(reason) with code: \(code)")
+                break
+            }
             self.delegate?.onSocketDisconnected(reconnect: self.reconnect,region: nil)
             Logger.log.i(message: "Socket:: websocket is disconnected: \(reason) with code: \(code)")
             break;
@@ -128,6 +146,11 @@ extension Socket : WebSocketDelegate {
         case .cancelled:
             cancelConnectionTimeout()
             isConnected = false
+            if suppressDisconnectCallbackAfterConnectionTimeout {
+                suppressDisconnectCallbackAfterConnectionTimeout = false
+                Logger.log.i(message: "Socket:: WebSocketDelegate .cancelled after connection timeout")
+                break
+            }
             self.delegate?.onSocketDisconnected(reconnect: self.reconnect,region: nil)
             self.reconnect = false
             Logger.log.i(message: "Socket:: WebSocketDelegate .cancelled")
@@ -136,6 +159,11 @@ extension Socket : WebSocketDelegate {
         case .error(let error):
             cancelConnectionTimeout()
             isConnected = false
+            if suppressDisconnectCallbackAfterConnectionTimeout {
+                suppressDisconnectCallbackAfterConnectionTimeout = false
+                Logger.log.i(message: "Socket:: WebSocketDelegate .error after connection timeout")
+                break
+            }
             guard let error = error else {
                 Logger.log.e(message: "Socket:: WebSocketDelegate .error UNKNOWN")
                 return
@@ -173,7 +201,17 @@ extension Socket : WebSocketDelegate {
         connectionTimeout = max(5.0, timeout)
     }
     
-    /// Starts the connection timeout timer (only when not on auto region)
+    /// The currently configured WebSocket request timeout interval.
+    internal var currentRequestTimeoutInterval: TimeInterval? {
+        socket?.request.timeoutInterval
+    }
+
+    /// Whether the manual connection timeout timer is currently scheduled.
+    internal var hasConnectionTimeoutTimer: Bool {
+        connectionTimeoutTimer != nil
+    }
+
+    /// Starts the connection timeout timer.
     private func startConnectionTimeout() {
         connectionTimeoutTimer = Timer.scheduledTimer(withTimeInterval: connectionTimeout, repeats: false) { [weak self] _ in
             self?.handleConnectionTimeout()
@@ -186,17 +224,29 @@ extension Socket : WebSocketDelegate {
         connectionTimeoutTimer = nil
     }
     
-    /// Handles connection timeout by triggering fallback mechanism
-    private func handleConnectionTimeout() {
+    /// Handles connection timeout by triggering the reconnect mechanism.
+    internal func handleConnectionTimeout() {
         Logger.log.e(message: "Socket:: Connection timeout after \(connectionTimeout) seconds")
+        cancelConnectionTimeout()
         
         // Mark as not connected and disconnect socket
         isConnected = false
+        let shouldSuppressDisconnectCallback = socket != nil
+        suppressDisconnectCallbackAfterConnectionTimeout = shouldSuppressDisconnectCallback
         socket?.disconnect()
+        if !shouldSuppressDisconnectCallback {
+            suppressDisconnectCallbackAfterConnectionTimeout = false
+        }
         
-        // Trigger fallback to auto region (we know we can fallback since timer only starts when shouldFallbackToAuto is true)
-        Logger.log.i(message: "Socket:: Triggering fallback to auto region due to timeout")
-        delegate?.onSocketDisconnected(reconnect: true, region: .auto)
+        let reconnectRegion = connectionTimeoutReconnectRegion(signalingServer: signalingServer)
+        Logger.log.i(message: "Socket:: Triggering reconnect due to timeout with region: \(String(describing: reconnectRegion))")
+        delegate?.onSocketDisconnected(reconnect: true, region: reconnectRegion)
+    }
+
+    /// Region override to pass to TxClient after a connection timeout.
+    /// Region URLs fall back to `.auto`; default/auto URLs keep `nil` so TxClient redials the same URL.
+    internal func connectionTimeoutReconnectRegion(signalingServer: URL?) -> Region? {
+        shouldFallbackToAuto(signalingServer: signalingServer) ? .auto : nil
     }
     
     

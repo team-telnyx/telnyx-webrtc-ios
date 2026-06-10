@@ -333,6 +333,76 @@ class RegionTests: XCTestCase {
         // Test with invalid region URL
         let invalidURL = URL(string: "wss://invalid.domain.com")!
         XCTAssertFalse(socket.shouldFallbackToAuto(signalingServer: invalidURL))
+
+        // Test with custom URL that uses a region-like prefix - should NOT fallback
+        let customURL = URL(string: "wss://eu.example.com")!
+        XCTAssertFalse(socket.shouldFallbackToAuto(signalingServer: customURL))
+    }
+
+    /**
+     Test that Socket.connect preserves the configured dial timeout for the default auto URL
+     and starts the manual timeout timer even when no regional fallback is available.
+     */
+    func testSocketConnectAppliesConnectionTimeoutForDefaultAutoServer() {
+        let socket = Socket()
+        socket.automaticallyConnectWebSocket = false
+        socket.setConnectionTimeout(5.0)
+
+        let autoURL = URL(string: "wss://rtc.telnyx.com")!
+        socket.connect(signalingServer: autoURL)
+
+        XCTAssertEqual(socket.currentRequestTimeoutInterval, 5.0)
+        XCTAssertTrue(socket.hasConnectionTimeoutTimer)
+
+        socket.disconnect(reconnect: false)
+    }
+
+    /**
+     Test that a timeout on the default auto URL asks TxClient to reconnect without changing region.
+     */
+    func testSocketConnectionTimeoutRedialsDefaultAutoServerWithNilRegion() {
+        let socket = Socket()
+        let mockDelegate = MockSocketDelegateForRegionTesting()
+        socket.delegate = mockDelegate
+        socket.signalingServer = URL(string: "wss://rtc.telnyx.com")!
+
+        socket.handleConnectionTimeout()
+
+        XCTAssertTrue(mockDelegate.onSocketDisconnectedCalled)
+        XCTAssertEqual(mockDelegate.lastReconnectValue, true)
+        XCTAssertNil(mockDelegate.lastRegionValue)
+    }
+
+    /**
+     Test that a timeout on a custom URL redials the same server instead of falling back to Telnyx auto.
+     */
+    func testSocketConnectionTimeoutRedialsCustomServerWithNilRegion() {
+        let socket = Socket()
+        let mockDelegate = MockSocketDelegateForRegionTesting()
+        socket.delegate = mockDelegate
+        socket.signalingServer = URL(string: "wss://eu.example.com")!
+
+        socket.handleConnectionTimeout()
+
+        XCTAssertTrue(mockDelegate.onSocketDisconnectedCalled)
+        XCTAssertEqual(mockDelegate.lastReconnectValue, true)
+        XCTAssertNil(mockDelegate.lastRegionValue)
+    }
+
+    /**
+     Test that a timeout on an explicit region URL falls back to auto region.
+     */
+    func testSocketConnectionTimeoutFallsBackToAutoForRegionServer() {
+        let socket = Socket()
+        let mockDelegate = MockSocketDelegateForRegionTesting()
+        socket.delegate = mockDelegate
+        socket.signalingServer = URL(string: "wss://eu.rtc.telnyx.com")!
+
+        socket.handleConnectionTimeout()
+
+        XCTAssertTrue(mockDelegate.onSocketDisconnectedCalled)
+        XCTAssertEqual(mockDelegate.lastReconnectValue, true)
+        XCTAssertEqual(mockDelegate.lastRegionValue, .auto)
     }
 }
 
