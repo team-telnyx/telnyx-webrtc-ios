@@ -12,7 +12,7 @@ import XCTest
 class SocketTests : XCTestCase, SocketDelegate {
     func onSocketDisconnected(reconnect: Bool, region: TelnyxRTC.Region?) {
         //Handle socket disconnected
-        socketDisconnectedExpectation.fulfill()
+        socketDisconnectedExpectation?.fulfill()
     }
 
     private weak var socketConnectedExpectation: XCTestExpectation!
@@ -24,7 +24,7 @@ class SocketTests : XCTestCase, SocketDelegate {
     var isPing = false
 
     func onSocketConnected() {
-        socketConnectedExpectation.fulfill()
+        socketConnectedExpectation?.fulfill()
     }
 
     func onSocketError(error: Error) {
@@ -35,7 +35,7 @@ class SocketTests : XCTestCase, SocketDelegate {
         //For now we are not checking the response, just if we get any response.
         let serverResponse = Message().decode(message: message)
         errorResponse = serverResponse?.serverError
-        socketMessageExpectation.fulfill()
+        socketMessageExpectation?.fulfill()
         
         if serverResponse?.method == .PING {
             isPing = true
@@ -50,6 +50,7 @@ class SocketTests : XCTestCase, SocketDelegate {
         socketConnectedExpectation = expectation(description: "socketConnection")
         let socket = Socket()
         socket.delegate = self
+        socket.setConnectionTimeout(40.0)
         socket.connect(signalingServer: InternalConfig.default.prodSignalingServer)
         waitForExpectations(timeout: 5)
         XCTAssertTrue(socket.isConnected)
@@ -78,12 +79,13 @@ class SocketTests : XCTestCase, SocketDelegate {
         socketPingExpectation = expectation(description: "socketPing")
         socketPingExpectation.fulfill()
         socketDisconnectedExpectation = expectation(description: "socketDisconnection")
-        socketDisconnectedExpectation.fulfill()
+        socketDisconnectedExpectation?.fulfill()
         socketMessageExpectation = expectation(description: "socketSendMessage")
         socketConnectedExpectation = expectation(description: "socketConnection")
         isPing = false
         let socket = Socket()
         socket.delegate = self
+        socket.setConnectionTimeout(40.0)
         socket.connect(signalingServer: InternalConfig.default.prodSignalingServer)
         waitForExpectations(timeout: 40)
         XCTAssertTrue(isPing)
