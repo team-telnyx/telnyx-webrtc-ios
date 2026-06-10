@@ -567,6 +567,9 @@ public class TxClient {
         Logger.log.i(message: "TxClient:: connectSocketOnly - connecting socket without login")
         self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
         self.gatewayState = .NOREG
+        if self.txConfig == nil {
+            self.txConfig = storedTxConfig
+        }
         self.serverConfiguration = serverConfiguration
 
         Logger.log.i(message: "TxClient:: serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
@@ -1733,7 +1736,11 @@ extension TxClient : SocketDelegate {
                         )
                     }
 
-                    try self.connect(txConfig: self.txConfig!, serverConfiguration: updatedServerConfig)
+                    guard let reconnectConfig = self.txConfig ?? self.storedTxConfig else {
+                        Logger.log.e(message: "TxClient:: SocketDelegate reconnect skipped - missing config")
+                        return
+                    }
+                    try self.connect(txConfig: reconnectConfig, serverConfiguration: updatedServerConfig)
                 } catch let error {
                     Logger.log.e(message: "TxClient:: SocketDelegate reconnect error" + error.localizedDescription)
                 }
