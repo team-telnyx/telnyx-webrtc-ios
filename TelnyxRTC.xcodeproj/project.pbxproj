@@ -149,6 +149,7 @@
 		B39121AF25FFCE680051E076 /* TxError.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39121AE25FFCE680051E076 /* TxError.swift */; };
 		B39121E72600F7B10051E076 /* VertoMessagesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39121E62600F7B10051E076 /* VertoMessagesTests.swift */; };
 		B39121ED2602F22F0051E076 /* SocketTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39121EC2602F22F0051E076 /* SocketTests.swift */; };
+		AAB1000000000000000000A1 /* SocketConnectionTimeoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB1000000000000000000A2 /* SocketConnectionTimeoutTests.swift */; };
 		B391220C2604D9C50051E076 /* PeerConnectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B391220B2604D9C50051E076 /* PeerConnectionTests.swift */; };
 		B39122122604FBC00051E076 /* TestConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39122112604FBC00051E076 /* TestConstants.swift */; };
 		B3912220260502650051E076 /* CallTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B391221F260502650051E076 /* CallTests.swift */; };
@@ -370,6 +371,7 @@
 		B39121AE25FFCE680051E076 /* TxError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TxError.swift; sourceTree = "<group>"; };
 		B39121E62600F7B10051E076 /* VertoMessagesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VertoMessagesTests.swift; sourceTree = "<group>"; };
 		B39121EC2602F22F0051E076 /* SocketTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketTests.swift; sourceTree = "<group>"; };
+		AAB1000000000000000000A2 /* SocketConnectionTimeoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketConnectionTimeoutTests.swift; sourceTree = "<group>"; };
 		B391220B2604D9C50051E076 /* PeerConnectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeerConnectionTests.swift; sourceTree = "<group>"; };
 		B39122112604FBC00051E076 /* TestConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConstants.swift; sourceTree = "<group>"; };
 		B391221F260502650051E076 /* CallTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallTests.swift; sourceTree = "<group>"; };
@@ -787,6 +789,7 @@
 			isa = PBXGroup;
 			children = (
 				B39121EC2602F22F0051E076 /* SocketTests.swift */,
+				AAB1000000000000000000A2 /* SocketConnectionTimeoutTests.swift */,
 			);
 			path = Socket;
 			sourceTree = "<group>";
@@ -1248,6 +1251,7 @@
 				B39121E72600F7B10051E076 /* VertoMessagesTests.swift in Sources */,
 				99D717762D6E229800471D44 /* TelnyxRTCLoggerTests.swift in Sources */,
 				B39121ED2602F22F0051E076 /* SocketTests.swift in Sources */,
+				AAB1000000000000000000A1 /* SocketConnectionTimeoutTests.swift in Sources */,
 				B39122122604FBC00051E076 /* TestConstants.swift in Sources */,
 				9906F63B2E391F5C00A02FE7 /* TxClientReconnectTimeoutTests.swift in Sources */,
 					AA0002012F0F0A0100000001 /* TxClientSocketErrorTests.swift in Sources */,

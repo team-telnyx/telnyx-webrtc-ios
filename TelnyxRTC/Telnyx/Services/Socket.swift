@@ -38,19 +38,23 @@ class Socket {
         cancelConnectionTimeout()
         
         var request = URLRequest(url: signalingServer)
+        // Keep the underlying URLRequest timeout aligned with the watchdog interval
+        // (configurable via setConnectionTimeout, minimum 5s). Previously this was
+        // overwritten to 120s, which let a stalled handshake hang on the kernel's TCP
+        // retransmit backoff with no recovery.
         request.timeoutInterval = connectionTimeout
         let pinner = FoundationSecurity(allowSelfSigned: true) // don't validate SSL certificates
         self.signalingServer = signalingServer
-        
+
         self.socket = WebSocket(request: request, certPinner: pinner)
         self.socket?.delegate = self
-        self.socket?.request.timeoutInterval = TimeInterval(120)
-        
-        // Only start timeout timer if we can fallback to auto (i.e., not already on auto)
-        if shouldFallbackToAuto(signalingServer: signalingServer) {
-            startConnectionTimeout()
-        }
-        
+
+        // Always start the connection-timeout watchdog. If the handshake stalls (e.g. a
+        // lost SYN on cellular after a VoIP push), the timer fires and triggers a redial:
+        // falling back to the auto region when on a specific region, otherwise redialing
+        // the same signaling server.
+        startConnectionTimeout()
+
         self.socket?.connect()
     }
     
@@ -173,30 +177,41 @@ extension Socket : WebSocketDelegate {
         connectionTimeout = max(5.0, timeout)
     }
     
-    /// Starts the connection timeout timer (only when not on auto region)
+    /// Indicates whether the connection-timeout watchdog is currently armed.
+    var isConnectionTimeoutActive: Bool {
+        return connectionTimeoutTimer != nil
+    }
+
+    /// Starts the connection timeout watchdog timer.
     private func startConnectionTimeout() {
         connectionTimeoutTimer = Timer.scheduledTimer(withTimeInterval: connectionTimeout, repeats: false) { [weak self] _ in
             self?.handleConnectionTimeout()
         }
     }
-    
+
     /// Cancels the connection timeout timer
     private func cancelConnectionTimeout() {
         connectionTimeoutTimer?.invalidate()
         connectionTimeoutTimer = nil
     }
-    
-    /// Handles connection timeout by triggering fallback mechanism
-    private func handleConnectionTimeout() {
+
+    /// Handles connection timeout by redialing.
+    ///
+    /// When the socket is on a specific region that can fall back, the redial targets
+    /// the auto region. Otherwise (e.g. the default `wss://rtc.telnyx.com` URL) it
+    /// redials the same signaling server.
+    func handleConnectionTimeout() {
         Logger.log.e(message: "Socket:: Connection timeout after \(connectionTimeout) seconds")
-        
+
         // Mark as not connected and disconnect socket
         isConnected = false
         socket?.disconnect()
-        
-        // Trigger fallback to auto region (we know we can fallback since timer only starts when shouldFallbackToAuto is true)
-        Logger.log.i(message: "Socket:: Triggering fallback to auto region due to timeout")
-        delegate?.onSocketDisconnected(reconnect: true, region: .auto)
+
+        // Fall back to the auto region only when we're on a fallback-able region;
+        // otherwise redial the same server (region: nil).
+        let redialRegion: Region? = shouldFallbackToAuto(signalingServer: signalingServer) ? .auto : nil
+        Logger.log.i(message: "Socket:: Triggering redial due to timeout (region: \(String(describing: redialRegion)))")
+        delegate?.onSocketDisconnected(reconnect: true, region: redialRegion)
     }
     
     

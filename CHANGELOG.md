@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [Unreleased]
+
+### Bug Fixes
+- **Socket Connection Timeout / Redial**: The signaling socket now always arms a 5s connection-timeout watchdog and redials on a stalled handshake, instead of only doing so when a region fallback was possible. Previously, on the default `wss://rtc.telnyx.com` URL the watchdog never started (the host has no valid region prefix) and the underlying request timeout was overridden to 120s, so a lost SYN after a VoIP push left the dial hanging on TCP retransmit backoff with no recovery — causing answer-from-push failures on cold start. The watchdog now falls back to the auto region when on a specific region, and otherwise redials the same server. The request timeout is aligned with the (configurable, min 5s) watchdog interval rather than a hardcoded 120s.
+
 ## [4.0.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.0.1) (2026-05-25)
 
 ### Bug Fixes
