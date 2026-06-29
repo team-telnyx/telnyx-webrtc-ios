@@ -53,6 +53,15 @@ class PreCallDiagnosticManager: ObservableObject {
     func setTelnyxClient(_ client: TxClient) {
         self.telnyxClient = client
     }
+
+    var activeDiagnosisCallId: UUID? {
+        return preCallDiagnosisCallId
+    }
+
+    func diagnosisCall(for callId: UUID) -> Call? {
+        guard preCallDiagnosisCallId == callId else { return nil }
+        return diagnosisCall
+    }
     
     /// Starts a pre-call diagnosis with the specified parameters
     /// - Parameters:

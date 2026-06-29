@@ -41,7 +41,7 @@ extension HomeViewController : VoIPDelegate {
         }
         
         DispatchQueue.main.async {
-            self.appDelegate.executeEndCallAction(uuid: UUID());
+            self.appDelegate.executeEndCurrentCallAction()
             
             if error.self is NWError {
                 print("ERROR: socket connectiontion error \(error)")
@@ -245,6 +245,7 @@ extension HomeViewController : VoIPDelegate {
         do {
             guard let sipCred = SipCredentialsManager.shared.getSelectedCredential() else {
                 print("ERROR: executeCall can't be performed. Check callerName - callerNumber and destinationNumber")
+                completionHandler(nil)
                 return
             }
             let headers =  [

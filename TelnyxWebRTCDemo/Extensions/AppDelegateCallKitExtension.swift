@@ -10,6 +10,37 @@ import AVFoundation
 import TelnyxRTC
 import CallKit
 
+enum CallKitStartActionRoute: Equatable {
+    case fulfillExistingDiagnosisCall
+    case startNewCall
+    case failDiagnosisInProgress
+}
+
+struct CallKitStartActionRouter {
+    static func route(
+        callUUID: UUID,
+        diagnosisCallUUID: UUID?,
+        isDiagnosisRunning: Bool,
+        hasDiagnosisCall: Bool
+    ) -> CallKitStartActionRoute {
+        if diagnosisCallUUID == callUUID {
+            if hasDiagnosisCall {
+                return .fulfillExistingDiagnosisCall
+            }
+
+            if isDiagnosisRunning {
+                return .failDiagnosisInProgress
+            }
+        }
+
+        if isDiagnosisRunning {
+            return .failDiagnosisInProgress
+        }
+
+        return .startNewCall
+    }
+}
+
 // MARK: - CXProviderDelegate
 extension AppDelegate : CXProviderDelegate {
 
@@ -120,17 +151,22 @@ extension AppDelegate : CXProviderDelegate {
         }
     }
 
-    /// End the current call
+    /// End the active CallKit/current call when one is known.
+    func executeEndCurrentCallAction() {
+        guard let endUUID = self.callKitUUID ?? self.currentCall?.callInfo?.callId else {
+            print("AppDelegate:: execute END current call action skipped because no CallKit or current call UUID is available")
+            return
+        }
+
+        executeEndCallAction(uuid: endUUID)
+    }
+
+    /// End a call with an explicit UUID.
     /// - Parameter uuid: The uuid of the call
     func executeEndCallAction(uuid: UUID) {
         print("AppDelegate:: execute END call action: callKitUUID [\(String(describing: self.callKitUUID))] uuid [\(uuid)]")
 
-        var endUUID = uuid
-        if let callkitUUID = self.callKitUUID {
-            endUUID = callkitUUID
-        }
-
-        let endCallAction = CXEndCallAction(call: endUUID)
+        let endCallAction = CXEndCallAction(call: uuid)
         let transaction = CXTransaction(action: endCallAction)
         
 
@@ -168,20 +204,57 @@ extension AppDelegate : CXProviderDelegate {
     // MARK: - CXProviderDelegate -
     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
         print("AppDelegate:: START call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
-        self.callKitUUID = action.callUUID
-        // Don't execute if pre-call diagnosis is running
-        if(!PreCallDiagnosticManager.shared.isRunning){
-            self.voipDelegate?.executeCall(callUUID: action.callUUID) { call in
-                self.currentCall = call
-                if call != nil {
-                    print("AppDelegate:: performVoiceCall() successful")
-                    self.isCallOutGoing = true
-                } else {
-                    print("AppDelegate:: performVoiceCall() failed")
+
+        let diagnosisManager = PreCallDiagnosticManager.shared
+        let diagnosisCall = diagnosisManager.diagnosisCall(for: action.callUUID)
+        let route = CallKitStartActionRouter.route(
+            callUUID: action.callUUID,
+            diagnosisCallUUID: diagnosisManager.activeDiagnosisCallId,
+            isDiagnosisRunning: diagnosisManager.isRunning,
+            hasDiagnosisCall: diagnosisCall != nil
+        )
+
+        switch route {
+        case .fulfillExistingDiagnosisCall:
+            print("AppDelegate:: START call action fulfilled for existing pre-call diagnosis call")
+            self.callKitUUID = action.callUUID
+            self.currentCall = diagnosisCall
+            self.isCallOutGoing = true
+            action.fulfill()
+            return
+
+        case .failDiagnosisInProgress:
+            print("AppDelegate:: START call action failed because an unrelated pre-call diagnosis is running")
+            action.fail()
+            return
+
+        case .startNewCall:
+            self.callKitUUID = action.callUUID
+        }
+
+        guard let voipDelegate = self.voipDelegate else {
+            print("AppDelegate:: START call action failed because VoIP delegate is unavailable")
+            self.callKitUUID = nil
+            self.isCallOutGoing = false
+            action.fail()
+            return
+        }
+
+        voipDelegate.executeCall(callUUID: action.callUUID) { call in
+            self.currentCall = call
+            if call != nil {
+                print("AppDelegate:: performVoiceCall() successful")
+                self.isCallOutGoing = true
+                action.fulfill()
+            } else {
+                print("AppDelegate:: performVoiceCall() failed")
+                if self.callKitUUID == action.callUUID {
+                    self.callKitUUID = nil
                 }
+                self.isCallOutGoing = false
+                action.fail()
             }
         }
-        action.fulfill()
     }
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
@@ -203,9 +276,15 @@ extension AppDelegate : CXProviderDelegate {
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         print("AppDelegate:: END call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
-        
+
+        guard let telnyxClient = self.telnyxClient else {
+            print("AppDelegate:: END call action failed because Telnyx client is unavailable")
+            action.fail()
+            return
+        }
+
         // Track call end in call history
-        if let call = self.telnyxClient?.calls[action.callUUID] {
+        if let call = telnyxClient.calls[action.callUUID] {
             // Determine if this was a rejection or normal end
             let status: CallStatus
             switch call.callState {
@@ -221,7 +300,8 @@ extension AppDelegate : CXProviderDelegate {
 
 
 
-        if previousCall?.callState == .HELD {
+        if self.callKitUUID == action.callUUID,
+           previousCall?.callState == .HELD {
             print("AppDelegate:: call held.. unholding call")
             previousCall?.unhold()
         }
@@ -237,7 +317,7 @@ extension AppDelegate : CXProviderDelegate {
             //request to end Previous Call
             print("AppDelegate:: End Previous Call")
         }
-        self.telnyxClient?.endCallFromCallkit(endAction: action)
+        telnyxClient.endCallFromCallkit(endAction: action)
     }
 
     func providerDidReset(_ provider: CXProvider) {
@@ -263,25 +343,54 @@ extension AppDelegate : CXProviderDelegate {
     }
     
     func provider(_ provider: CXProvider, perform action: CXSetHeldCallAction) {
-        print("provider:performSetHeldAction:")
-        //request to hold previous call
-        previousCall?.hold()
+        print("provider:performSetHeldAction: \(action.isOnHold)")
+        guard let call = call(for: action.callUUID) else {
+            print("provider:performSetHeldAction failed because requested call was not found")
+            action.fail()
+            return
+        }
+
+        if action.isOnHold {
+            call.hold()
+        } else {
+            call.unhold()
+        }
         action.fulfill()
     }
     
     func provider(_ provider: CXProvider, perform action: CXSetMutedCallAction) {
         print("provider:performSetMutedAction: \(action.isMuted)")
-        if let call = currentCall {
-            if action.isMuted {
-                print("provider:performSetMutedAction: incoming action to mute call")
-                call.muteAudio()
-            } else {
-                print("provider:performSetMutedAction: incoming action to unmute call")
-                call.unmuteAudio()
-            }
-            print("provider:performSetMutedAction: call.isMuted \(call.isMuted)")
+        guard let call = call(for: action.callUUID) else {
+            print("provider:performSetMutedAction failed because requested call was not found")
+            action.fail()
+            return
         }
+
+        if action.isMuted {
+            print("provider:performSetMutedAction: incoming action to mute call")
+            call.muteAudio()
+        } else {
+            print("provider:performSetMutedAction: incoming action to unmute call")
+            call.unmuteAudio()
+        }
+        print("provider:performSetMutedAction: call.isMuted \(call.isMuted)")
         action.fulfill()
+    }
+
+    private func call(for callUUID: UUID) -> Call? {
+        if let call = telnyxClient?.calls[callUUID] {
+            return call
+        }
+
+        if currentCall?.callInfo?.callId == callUUID {
+            return currentCall
+        }
+
+        if previousCall?.callInfo?.callId == callUUID {
+            return previousCall
+        }
+
+        return nil
     }
     
     func processVoIPNotification(callUUID: UUID,pushMetaData:[String: Any]) {

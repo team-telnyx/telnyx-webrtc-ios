@@ -182,12 +182,14 @@ public class TxClient {
     private var storedTxConfig: TxConfig?
     private var storedServerConfiguration: TxServerConfiguration?
     private var pendingCallDecline: Bool = false
+    private var isReconnectPendingForCallKitDecline: Bool = false
     
     // Timeout mechanism for VoIP push calls
     private var inviteTimeoutTimer: Timer?
     private var isWaitingForInviteAfterPush: Bool = false
     private var pushCallState: PushCallState = .idle
     private static let INVITE_TIMEOUT_SECONDS: TimeInterval = 10.0
+    internal var inviteTimeoutInterval: TimeInterval = TxClient.INVITE_TIMEOUT_SECONDS
     
     public private(set) var isSpeakerEnabled: Bool {
         get {
@@ -582,6 +584,9 @@ public class TxClient {
     private func performLogin(declinePush: Bool = false) {
         guard let storedConfig = storedTxConfig else {
             Logger.log.e(message: "TxClient:: performLogin - No stored config available")
+            if declinePush {
+                cleanupPendingCallKitDecline(reason: "missing stored config during decline_push login")
+            }
             return
         }
         
@@ -606,8 +611,18 @@ public class TxClient {
             self.socket?.sendMessage(message: vertoLogin.encode())
         } else {
             Logger.log.i(message: "TxClient:: performLogin with SIP User and Password, declinePush: \(declinePush)")
-            guard let sipUser = storedConfig.sipUser else { return }
-            guard let password = storedConfig.password else { return }
+            guard let sipUser = storedConfig.sipUser else {
+                if declinePush {
+                    cleanupPendingCallKitDecline(reason: "missing SIP user during decline_push login")
+                }
+                return
+            }
+            guard let password = storedConfig.password else {
+                if declinePush {
+                    cleanupPendingCallKitDecline(reason: "missing SIP password during decline_push login")
+                }
+                return
+            }
             let vertoLogin = LoginMessage(user: sipUser, 
                                         password: password, 
                                         pushDeviceToken: pushToken, 
@@ -771,10 +786,22 @@ public class TxClient {
         storedTxConfig = nil
         storedServerConfiguration = nil
         pendingCallDecline = false
+        isReconnectPendingForCallKitDecline = false
         isCallFromPush = false
         pushCallState = .idle
         stopInviteTimeout()
         isWaitingForInviteAfterPush = false
+    }
+
+    private func cleanupPendingCallKitDecline(reason: String) {
+        guard pendingCallDecline || endCallAction != nil else { return }
+        Logger.log.i(message: "TxClient:: cleanupPendingCallKitDecline - \(reason)")
+        resetPushVariables()
+    }
+
+    private func failEndCallAction(_ endAction: CXEndCallAction) {
+        resetPushVariables()
+        endAction.fail()
     }
     
     /// Starts the INVITE timeout timer for VoIP push calls
@@ -786,10 +813,10 @@ public class TxClient {
 
         stopInviteTimeout() // Ensure any existing timer is stopped
         
-        Logger.log.i(message: "TxClient:: Starting INVITE timeout timer (10 seconds)")
+        Logger.log.i(message: "TxClient:: Starting INVITE timeout timer (\(inviteTimeoutInterval) seconds)")
         isWaitingForInviteAfterPush = true
         
-        inviteTimeoutTimer = Timer.scheduledTimer(withTimeInterval: TxClient.INVITE_TIMEOUT_SECONDS, repeats: false) { [weak self] _ in
+        inviteTimeoutTimer = Timer.scheduledTimer(withTimeInterval: inviteTimeoutInterval, repeats: false) { [weak self] _ in
             self?.handleInviteTimeout()
         }
     }
@@ -803,7 +830,9 @@ public class TxClient {
     
     /// Handles the timeout when no INVITE is received after accepting a VoIP push call
     private func handleInviteTimeout() {
-        Logger.log.w(message: "TxClient:: INVITE timeout - No INVITE received within 10 seconds after accepting VoIP push call")
+        Logger.log.w(message: "TxClient:: INVITE timeout - No INVITE received within \(inviteTimeoutInterval) seconds after accepting VoIP push call")
+        let timedOutCallId = currentCallId
+        let pendingAnswerAction = answerCallAction
         
         // Create the termination reason as specified in the ticket
         let terminationReason = CallTerminationReason(
@@ -814,15 +843,13 @@ public class TxClient {
         )
         
         // Emit both delegate events to ensure proper CallKit termination
-        delegate?.onRemoteCallEnded(callId: currentCallId, reason: terminationReason)
+        delegate?.onRemoteCallEnded(callId: timedOutCallId, reason: terminationReason)
         delegate?.onCallStateUpdated(callState: CallState.DONE(reason: terminationReason),
-                                     callId: currentCallId)
+                                     callId: timedOutCallId)
         
-        // Clean up and reset push variables
+        // Resolve the CallKit action before reset clears the stored action reference.
+        pendingAnswerAction?.fulfill()
         resetPushVariables()
-        
-        // Fulfill the answer action if it exists
-        answerCallAction?.fulfill()
         
         Logger.log.i(message: "TxClient:: INVITE timeout handled - Call terminated with ORIGINATOR_CANCEL, CallKit events emitted")
     }
@@ -838,7 +865,7 @@ public class TxClient {
         if isCallFromPush {
             Logger.log.i(message: "TxClient:: endCallFromCallkit - Call initiated by push notification, sending decline_push")
             self.pendingCallDecline = true
-            self.currentCallId = callId ?? UUID()
+            self.currentCallId = callId ?? endAction.callUUID
 
             // Send a login message with decline_push: true to silently reject the call
             if isConnected() {
@@ -846,13 +873,19 @@ public class TxClient {
                 performLogin(declinePush: true)
             } else {
                 Logger.log.i(message: "TxClient:: endCallFromCallkit - Socket not connected, connecting first")
+                guard let storedServerConfiguration = storedServerConfiguration else {
+                    Logger.log.e(message: "TxClient:: endCallFromCallkit missing stored server configuration")
+                    failEndCallAction(endAction)
+                    return
+                }
+
                 do {
-                    try connectSocketOnly(serverConfiguration: storedServerConfiguration!)
+                    try connectSocketOnly(serverConfiguration: storedServerConfiguration)
                     // Login with decline_push will happen in onSocketConnected
                     // Note: resetPushVariables() will be called after decline_push login is sent
                 } catch let error {
                     Logger.log.e(message: "TxClient:: endCallFromCallkit connect error \(error.localizedDescription)")
-                    endAction.fail()
+                    failEndCallAction(endAction)
                     return
                 }
             }
@@ -881,12 +914,9 @@ public class TxClient {
             self.resetPushVariables()
             self.stopReconnectTimeout()
             endAction.fulfill()
-        } else if let call = self.calls[self.currentCallId] {
-            Logger.log.i(message: "EndClient:: Ended Call")
-            call.hangup()
-            self.resetPushVariables()
-            self.stopReconnectTimeout()
-            endAction.fulfill()
+        } else {
+            Logger.log.e(message: "TxClient:: endCallFromCallkit failed - no call found for \(endAction.callUUID)")
+            failEndCallAction(endAction)
         }
     }
     
@@ -1432,6 +1462,7 @@ extension TxClient {
                                                callReportInterval: self.txConfig?.callReportInterval ?? 5.0,
                                                callReportLogLevel: self.txConfig?.callReportLogLevel ?? "debug",
                                                callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000)
+                    self.currentCallId = callUUID
                 } else {
                     Logger.log.e(message: "TxClient:: processVoIPNotification - Invalid call_id, socket, or ICE servers. Cannot create call object.")
                 }
@@ -1636,6 +1667,7 @@ extension TxClient : SocketDelegate {
   
     func onSocketConnected() {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected()")
+        isReconnectPendingForCallKitDecline = false
         self.delegate?.onSocketConnected()
 
         // Handle push notification flows
@@ -1721,6 +1753,9 @@ extension TxClient : SocketDelegate {
     func onSocketDisconnected(reconnect: Bool, region: Region?) {
         if reconnect {
             Logger.log.i(message: "TxClient:: SocketDelegate  Reconnecting")
+            if pendingCallDecline {
+                isReconnectPendingForCallKitDecline = true
+            }
             DispatchQueue.main.asyncAfter(deadline: .now() + TxClient.RECONNECT_BUFFER) {
                 do {
                     var updatedServerConfig = self.serverConfiguration
@@ -1738,17 +1773,21 @@ extension TxClient : SocketDelegate {
 
                     guard let reconnectConfig = self.txConfig ?? self.storedTxConfig else {
                         Logger.log.e(message: "TxClient:: SocketDelegate reconnect skipped - missing config")
+                        self.cleanupPendingCallKitDecline(reason: "decline_push reconnect skipped because config is missing")
                         return
                     }
                     try self.connect(txConfig: reconnectConfig, serverConfiguration: updatedServerConfig)
+                    self.isReconnectPendingForCallKitDecline = false
                 } catch let error {
                     Logger.log.e(message: "TxClient:: SocketDelegate reconnect error" + error.localizedDescription)
+                    self.cleanupPendingCallKitDecline(reason: "decline_push reconnect failed")
                 }
             }
             return
         }
 
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketDisconnected()")
+        cleanupPendingCallKitDecline(reason: "socket disconnected before decline_push login completed")
         self.socket = nil
         self.sessionId = nil
         self.sessionId = UUID().uuidString.lowercased()
@@ -1757,6 +1796,9 @@ extension TxClient : SocketDelegate {
 
     func onSocketError(error: Error) {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketError()")
+        if pendingCallDecline && !isReconnectPendingForCallKitDecline {
+            cleanupPendingCallKitDecline(reason: "socket error before decline_push login completed")
+        }
         self.delegate?.onSocketDisconnected()
         Logger.log.e(message:"TxClient:: Socket Error" +  error.localizedDescription)
     }
