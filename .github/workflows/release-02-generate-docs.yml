@@ -26,7 +26,7 @@ on:
 jobs:
   generate_docs:
     name: 🛠️ Generate Docs
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
     - name: 🔄 Checkout base branch
