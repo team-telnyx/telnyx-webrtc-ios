@@ -14,6 +14,7 @@ class CallReportCollectorTests: XCTestCase {
     
     var collector: TelnyxCallReportCollector!
     var mockPeerConnection: RTCPeerConnection!
+    private let statsWaitPollInterval: TimeInterval = 0.05
     
     override func setUpWithError() throws {
         try super.setUpWithError()
@@ -169,24 +170,14 @@ class CallReportCollectorTests: XCTestCase {
             endTimestamp: nil
         )
 
-        // Wait for stats to accumulate before first flush
-        let firstWait = expectation(description: "Wait for first stats")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            firstWait.fulfill()
-        }
-        wait(for: [firstWait], timeout: 2.0)
+        waitForCollectedStats(in: collector)
 
         // First flush
         let firstPayload = collector.flush(summary: summary)
         XCTAssertNotNil(firstPayload, "First flush should produce a payload")
         XCTAssertEqual(firstPayload?.segment, 0, "First segment should be 0")
 
-        // Wait for more stats to accumulate
-        let secondWait = expectation(description: "Wait for more stats")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            secondWait.fulfill()
-        }
-        wait(for: [secondWait], timeout: 2.0)
+        waitForCollectedStats(in: collector)
 
         // Second flush
         let secondPayload = collector.flush(summary: summary)
@@ -351,15 +342,35 @@ class CallReportCollectorTests: XCTestCase {
         
         longCallCollector.start(peerConnection: mockPeerConnection)
         
-        // Wait for multiple intervals
-        let longExpectation = expectation(description: "Long call")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            longExpectation.fulfill()
-        }
-        wait(for: [longExpectation], timeout: 2.0)
+        waitForCollectedStats(in: longCallCollector, minimumCount: 2)
         
         longCallCollector.stop()
         
         XCTAssertNotNil(longCallCollector.callEndTime, "Collector should handle long duration calls")
+    }
+
+    private func waitForCollectedStats(
+        in collector: TelnyxCallReportCollector,
+        minimumCount: Int = 1,
+        timeout: TimeInterval = 3.0,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let deadline = Date().addingTimeInterval(timeout)
+
+        while collector.getStatsBuffer().count < minimumCount && Date() < deadline {
+            RunLoop.current.run(
+                mode: .default,
+                before: Date().addingTimeInterval(statsWaitPollInterval)
+            )
+        }
+
+        XCTAssertGreaterThanOrEqual(
+            collector.getStatsBuffer().count,
+            minimumCount,
+            "Timed out waiting for collected stats",
+            file: file,
+            line: line
+        )
     }
 }
