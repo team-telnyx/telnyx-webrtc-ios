@@ -37,7 +37,7 @@ jobs:
     - name: 🧰 Select the latest Xcode version
       uses: maxim-lobanov/setup-xcode@v1
       with:
-        xcode-version: '16.4.0'
+        xcode-version: '26.5.0'
 
     - name: 💎 Setup Ruby 3.3.0
       uses: ruby/setup-ruby@v1
