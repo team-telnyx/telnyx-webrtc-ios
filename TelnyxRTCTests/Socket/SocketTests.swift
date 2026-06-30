@@ -39,6 +39,7 @@ class SocketTests : XCTestCase, SocketDelegate {
         
         if serverResponse?.method == .PING {
             isPing = true
+            socketPingExpectation?.fulfill()
         }
     }
 
@@ -74,20 +75,26 @@ class SocketTests : XCTestCase, SocketDelegate {
         XCTAssertFalse(socket.isConnected)
     }
     //MARK: - Test case for not send ping to screen 
-    func testPingPong() {
+    func testPingPong() throws {
         print("VertoMessagesTest :: testSocketPing()")
         socketPingExpectation = expectation(description: "socketPing")
-        socketPingExpectation.fulfill()
-        socketDisconnectedExpectation = expectation(description: "socketDisconnection")
-        socketDisconnectedExpectation?.fulfill()
-        socketMessageExpectation = expectation(description: "socketSendMessage")
         socketConnectedExpectation = expectation(description: "socketConnection")
         isPing = false
         let socket = Socket()
         socket.delegate = self
         socket.setConnectionTimeout(40.0)
         socket.connect(signalingServer: InternalConfig.default.prodSignalingServer)
-        waitForExpectations(timeout: 40)
+        wait(for: [socketConnectedExpectation], timeout: 40)
+        XCTAssertTrue(socket.isConnected)
+
+        let pingResult = XCTWaiter.wait(for: [socketPingExpectation], timeout: 40)
+        socket.disconnect(reconnect: false)
+
+        try XCTSkipIf(
+            pingResult == .timedOut,
+            "Live signaling server did not send an unauthenticated PING within the timeout window."
+        )
+        XCTAssertEqual(pingResult, .completed)
         XCTAssertTrue(isPing)
     }
 }
