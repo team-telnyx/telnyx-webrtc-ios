@@ -658,10 +658,14 @@ public class TxClient {
         // Clear AI Assistant Manager data
         self.aiAssistantManager.clearAllData()
 
-        // Remove audio route change observer
-        NotificationCenter.default.removeObserver(self,
-                                                  name: AVAudioSession.routeChangeNotification,
-                                                  object: nil)
+        // NOTE: The AVAudioSession.routeChangeNotification observer registered in
+        // `setupAudioRouteChangeMonitoring()` is intentionally NOT removed here.
+        // Disconnect/reconnect cycles re-use the same TxClient instance and need
+        // audio-route tracking to remain wired across calls to `connect()` (which
+        // does not re-register the observer). Removing the observer in `disconnect()`
+        // caused the speaker / audio-route state to stop tracking route changes
+        // after every disconnect (see IOS-C26 / VSDK-337). Observer cleanup is
+        // exclusively handled in `deinit`.
         socket?.disconnect(reconnect: false)
         delegate?.onSocketDisconnected()
     }
