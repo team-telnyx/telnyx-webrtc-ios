@@ -14,6 +14,7 @@ private let prodHost = "wss://rtc.telnyx.com"
 // UDP preferred for lower latency, TCP as fallback for restrictive firewalls
 private let prodTurnServerUdp = "turn:turn.telnyx.com:3478?transport=udp"
 private let prodTurnTcpUrl = "turn:turn.telnyx.com:3478?transport=tcp"
+private let prodTurns443Url = "turns:turn.telnyx.com:443?transport=tcp"
 private let prodStunUrl = "stun:stun.telnyx.com:3478"
 // UDP TURN server (primary - lower latency)
 private let prodTurnUdp = RTCIceServer(urlStrings: [prodTurnServerUdp],
@@ -23,16 +24,21 @@ private let prodTurnUdp = RTCIceServer(urlStrings: [prodTurnServerUdp],
 private let prodTurnTcp = RTCIceServer(urlStrings: [prodTurnTcpUrl],
                                         username: "testuser",
                                         credential: "testpassword")
+// TURNS 443 server (last-resort fallback for highly restrictive firewalls that only allow outbound HTTPS)
+private let prodTurns443 = RTCIceServer(urlStrings: [prodTurns443Url],
+                                          username: "testuser",
+                                          credential: "testpassword")
 private let prodStun = RTCIceServer(urlStrings: [prodStunUrl])
 // Google STUN server for additional STUN redundancy (aligned with JS WebRTC SDK)
 private let googleStun = RTCIceServer(urlStrings: ["stun:stun.l.google.com:19302"])
-private let prodIceServers = [prodStun, googleStun, prodTurnUdp, prodTurnTcp]
+private let prodIceServers = [prodStun, googleStun, prodTurnUdp, prodTurnTcp, prodTurns443]
 
 // MARK: - Development Servers
 private let developmentHost = "wss://rtcdev.telnyx.com"
 // UDP preferred for lower latency, TCP as fallback for restrictive firewalls
 private let devTurnServerUdp = "turn:turndev.telnyx.com:3478?transport=udp"
 private let devTurnTcpUrl = "turn:turndev.telnyx.com:3478?transport=tcp"
+private let devTurns443Url = "turns:turndev.telnyx.com:443?transport=tcp"
 private let devStunUrl = "stun:stundev.telnyx.com:3478"
 // UDP TURN server (primary - lower latency)
 private let devTurnUdp = RTCIceServer(urlStrings: [devTurnServerUdp],
@@ -42,8 +48,12 @@ private let devTurnUdp = RTCIceServer(urlStrings: [devTurnServerUdp],
 private let devTurnTcp = RTCIceServer(urlStrings: [devTurnTcpUrl],
                                        username: "testuser",
                                        credential: "testpassword")
+// TURNS 443 server (last-resort fallback for highly restrictive firewalls that only allow outbound HTTPS)
+private let devTurns443 = RTCIceServer(urlStrings: [devTurns443Url],
+                                          username: "testuser",
+                                          credential: "testpassword")
 private let devStun = RTCIceServer(urlStrings: [devStunUrl])
-private let devIceServers = [devStun, googleStun, devTurnUdp, devTurnTcp]
+private let devIceServers = [devStun, googleStun, devTurnUdp, devTurnTcp, devTurns443]
 
 // Set this to the machine's address which runs the signaling server
 private let defaultSignalingServerUrl = URL(string: prodHost)!
