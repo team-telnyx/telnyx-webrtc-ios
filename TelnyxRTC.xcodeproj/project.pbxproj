@@ -12,6 +12,7 @@
 		3B0F56CB2C7F15830011A48A /* StatsMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B0F56CA2C7F15830011A48A /* StatsMessage.swift */; };
 		3B1B4D132E2532B800A5DD2D /* RegionIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1B4D102E2532B800A5DD2D /* RegionIntegrationTests.swift */; };
 		3B1B4D142E2532B800A5DD2D /* RegionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1B4D112E2532B800A5DD2D /* RegionTests.swift */; };
+		F1A5B00C0100000000000A01 /* MOSCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A5B00D0100000000000A01 /* MOSCalculatorTests.swift */; };
 		3B1B4D3F2E2E563C00A5DD2D /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 3B1B4D3E2E2E563C00A5DD2D /* Config.xcconfig */; };
 		3B1B4D402E2E563C00A5DD2D /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 3B1B4D3E2E2E563C00A5DD2D /* Config.xcconfig */; };
 		3B1BE6F72AA9A467000B7962 /* TxPushIPConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */; };
@@ -230,6 +231,7 @@
 		3B0F56CC2C7F1CCA0011A48A /* Reachability.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Reachability.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B1B4D102E2532B800A5DD2D /* RegionIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionIntegrationTests.swift; sourceTree = "<group>"; };
 		3B1B4D112E2532B800A5DD2D /* RegionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionTests.swift; sourceTree = "<group>"; };
+		F1A5B00D0100000000000A01 /* MOSCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MOSCalculatorTests.swift; sourceTree = "<group>"; };
 		3B1B4D3E2E2E563C00A5DD2D /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		3B1BE6F62AA9A467000B7962 /* TxPushIPConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxPushIPConfig.swift; sourceTree = "<group>"; };
 		3B1F43EE2AE0B01E00A610BA /* Params.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Params.swift; sourceTree = "<group>"; };
@@ -713,6 +715,7 @@
 			children = (
 				3B1B4D102E2532B800A5DD2D /* RegionIntegrationTests.swift */,
 				3B1B4D112E2532B800A5DD2D /* RegionTests.swift */,
+				F1A5B00D0100000000000A01 /* MOSCalculatorTests.swift */,
 				B366D3F926150D0300156FE1 /* Helpers */,
 				B391221C260501C00051E076 /* WebRTC */,
 				B39121F32603AE670051E076 /* Verto */,
@@ -1245,6 +1248,7 @@
 			files = (
 				3B1B4D132E2532B800A5DD2D /* RegionIntegrationTests.swift in Sources */,
 				3B1B4D142E2532B800A5DD2D /* RegionTests.swift in Sources */,
+				F1A5B00C0100000000000A01 /* MOSCalculatorTests.swift in Sources */,
 				B39121E72600F7B10051E076 /* VertoMessagesTests.swift in Sources */,
 				99D717762D6E229800471D44 /* TelnyxRTCLoggerTests.swift in Sources */,
 				B39121ED2602F22F0051E076 /* SocketTests.swift in Sources */,
