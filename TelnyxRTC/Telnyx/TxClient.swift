@@ -1584,13 +1584,32 @@ extension TxClient : SocketDelegate {
             timer.setEventHandler { [weak self] in
                 guard let self = self else { return }
                 Logger.log.i(message: "Reconnect TimeOut : after \(self.txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT) secs")
-                
-                // Execute timeout actions on main queue for UI updates
-                self.updateActiveCallsState(callState: CallState.DONE(reason: nil))
-                self.disconnect()
-                self.delegate?.onClientError(error: TxError.callFailed(reason: .reconnectFailed))
-                
-                // Clean up timer reference
+
+                // VSDK-336 / IOS-C20: Hop the calls-touching work onto the main queue.
+                //
+                // This timer fires on `reconnectQueue` (a private serial GCD queue). It used
+                // to call `updateActiveCallsState()` and `disconnect()` directly from this
+                // queue, which iterate the `calls: [UUID: Call]` dictionary. All other
+                // `self.calls` mutations (newCall, endFromCallkit, createIncomingCall,
+                // callStateUpdated, disconnect) happen on the main thread, so iterating
+                // `self.calls` from `reconnectQueue` while the main thread was mutating it
+                // produced an unsynchronized-dictionary race that could crash with
+                // EXC_BAD_INSTRUCTION (mutated during iteration) or yield torn reads.
+                //
+                // Dispatching the calls-touching work to `.main` serializes every read and
+                // write of `self.calls` on a single thread and matches the comment that
+                // already documented this intent ("Execute timeout actions on main queue
+                // for UI updates").
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    self.updateActiveCallsState(callState: CallState.DONE(reason: nil))
+                    self.disconnect()
+                    self.delegate?.onClientError(error: TxError.callFailed(reason: .reconnectFailed))
+                }
+
+                // Timer reference cleanup stays on `reconnectQueue` — it does not touch
+                // `self.calls` and must run on the queue that owns the DispatchSourceTimer
+                // lifecycle.
                 self.reconnectTimeoutTimer = nil
             }
             
