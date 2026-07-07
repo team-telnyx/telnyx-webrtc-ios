@@ -7,7 +7,7 @@ on:
 jobs:
   tests:
     name: ios_fastlane_tests
-    runs-on: macos-latest
+    runs-on: macos-15
     env:
         TELNYX_SIP_API_KEY: ${{ secrets.TELNYX_SIP_API_KEY }}
         TELNYX_SIP_CONNECTION_ID: ${{ secrets.TELNYX_SIP_CONNECTION_ID }}

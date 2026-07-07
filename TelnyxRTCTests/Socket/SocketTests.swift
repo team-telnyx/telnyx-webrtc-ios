@@ -7,6 +7,7 @@
 //
 
 import XCTest
+import Starscream
 @testable import TelnyxRTC
 
 class SocketTests : XCTestCase, SocketDelegate {
@@ -16,7 +17,6 @@ class SocketTests : XCTestCase, SocketDelegate {
     }
 
     private weak var socketConnectedExpectation: XCTestExpectation!
-    private weak var socketPingExpectation: XCTestExpectation!
     private weak var socketDisconnectedExpectation: XCTestExpectation!
     private weak var socketMessageExpectation: XCTestExpectation!
     private var errorResponse: [String: Any]? = nil
@@ -74,20 +74,30 @@ class SocketTests : XCTestCase, SocketDelegate {
         XCTAssertFalse(socket.isConnected)
     }
     //MARK: - Test case for not send ping to screen 
-    func testPingPong() {
+    func testSocketForwardsPingTextMessage() {
         print("VertoMessagesTest :: testSocketPing()")
-        socketPingExpectation = expectation(description: "socketPing")
-        socketPingExpectation.fulfill()
-        socketDisconnectedExpectation = expectation(description: "socketDisconnection")
-        socketDisconnectedExpectation?.fulfill()
-        socketMessageExpectation = expectation(description: "socketSendMessage")
-        socketConnectedExpectation = expectation(description: "socketConnection")
         isPing = false
+        socketMessageExpectation = expectation(description: "socketSendMessage")
+
         let socket = Socket()
         socket.delegate = self
-        socket.setConnectionTimeout(40.0)
-        socket.connect(signalingServer: InternalConfig.default.prodSignalingServer)
-        waitForExpectations(timeout: 40)
+        socket.didReceive(
+            event: .text("{\"jsonrpc\":\"2.0\",\"method\":\"telnyx_rtc.ping\",\"params\":{}}"),
+            client: MockWebSocketClient()
+        )
+
+        waitForExpectations(timeout: 1)
+
         XCTAssertTrue(isPing)
     }
+}
+
+private final class MockWebSocketClient: WebSocketClient {
+    func connect() {}
+    func disconnect(closeCode: UInt16) {}
+    func write(string: String, completion: (() -> ())?) {}
+    func write(stringData: Data, completion: (() -> ())?) {}
+    func write(data: Data, completion: (() -> ())?) {}
+    func write(ping: Data, completion: (() -> ())?) {}
+    func write(pong: Data, completion: (() -> ())?) {}
 }
