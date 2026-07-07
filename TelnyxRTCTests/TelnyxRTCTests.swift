@@ -296,8 +296,3 @@ class TelnyxRTCTests: XCTestCase {
         XCTAssertFalse(sessionId.isEmpty) // We should get a session ID
     }
 }
-
-
-
-
-

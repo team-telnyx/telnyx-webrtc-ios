@@ -185,43 +185,19 @@ extension AppDelegate: PKPushRegistryDelegate {
         if let aps = payload.dictionaryPayload["aps"] as? [String: Any],
            let alert = aps["alert"] as? String,
            alert == "Missed call!" {
-            
-            // Handle missed call notification
-            if let metadata = payload.dictionaryPayload["metadata"] as? [String: Any] {
-                var callID = UUID.init().uuidString
-                if let newCallId = (metadata["call_id"] as? String),
-                   !newCallId.isEmpty {
-                    callID = newCallId
-                }
-                
-                if let uuid = UUID(uuidString: callID) {
-                    print("AppDelegate:: Received missed call notification for call: \(callID)")
-                    self.handleMissedCallNotification(callUUID: uuid, pushMetaData: metadata)
-                }
-            }
+            PushCallUUIDResolver.handleMissedCall(
+                metadata: payload.dictionaryPayload["metadata"] as? [String: Any],
+                handleMissedCallNotification: { self.handleMissedCallNotification(callUUID: $0, pushMetaData: $1) }
+            )
             return
         }
         
         // Handle regular incoming call notification
-        if let metadata = payload.dictionaryPayload["metadata"] as? [String: Any] {
-            var callID = UUID.init().uuidString
-            if let newCallId = (metadata["call_id"] as? String),
-               !newCallId.isEmpty {
-                callID = newCallId
-            }
-            let callerName = (metadata["caller_name"] as? String) ?? ""
-            let callerNumber = (metadata["caller_number"] as? String) ?? ""
-            
-            let caller = callerName.isEmpty ? (callerNumber.isEmpty ? "Unknown" : callerNumber) : callerName
-            let uuid = UUID(uuidString: callID)
-            self.processVoIPNotification(callUUID: uuid!,pushMetaData: metadata)
-            self.newIncomingCall(from: caller, uuid: uuid!)
-        } else {
-            // If there's no available metadata, let's create the notification with dummy data.
-            let uuid = UUID.init()
-            self.processVoIPNotification(callUUID: uuid,pushMetaData: [String: Any]())
-            self.newIncomingCall(from: "Incoming call", uuid: uuid)
-        }
+        PushCallUUIDResolver.handleIncomingCall(
+            metadata: payload.dictionaryPayload["metadata"] as? [String: Any],
+            processVoIPNotification: { self.processVoIPNotification(callUUID: $0, pushMetaData: $1) },
+            reportNewIncomingCall: { self.newIncomingCall(from: $0, uuid: $1) }
+        )
     }
     
     /// Handle missed call VoIP push notification by reporting the call as answered elsewhere

@@ -7,6 +7,7 @@
 //
 
 import XCTest
+import Starscream
 @testable import TelnyxRTC
 
 class SocketTests : XCTestCase, SocketDelegate {
@@ -16,7 +17,6 @@ class SocketTests : XCTestCase, SocketDelegate {
     }
 
     private weak var socketConnectedExpectation: XCTestExpectation!
-    private weak var socketPingExpectation: XCTestExpectation!
     private weak var socketDisconnectedExpectation: XCTestExpectation!
     private weak var socketMessageExpectation: XCTestExpectation!
     private var errorResponse: [String: Any]? = nil
@@ -39,7 +39,6 @@ class SocketTests : XCTestCase, SocketDelegate {
         
         if serverResponse?.method == .PING {
             isPing = true
-            socketPingExpectation?.fulfill()
         }
     }
 
@@ -74,27 +73,31 @@ class SocketTests : XCTestCase, SocketDelegate {
         waitForExpectations(timeout: 5)
         XCTAssertFalse(socket.isConnected)
     }
-    //MARK: - Test case for not send ping to screen 
-    func testPingPong() throws {
+    //MARK: - Test case for not send ping to screen
+    func testSocketForwardsPingTextMessage() {
         print("VertoMessagesTest :: testSocketPing()")
-        socketPingExpectation = expectation(description: "socketPing")
-        socketConnectedExpectation = expectation(description: "socketConnection")
         isPing = false
+        socketMessageExpectation = expectation(description: "socketSendMessage")
+
         let socket = Socket()
         socket.delegate = self
-        socket.setConnectionTimeout(40.0)
-        socket.connect(signalingServer: InternalConfig.default.prodSignalingServer)
-        wait(for: [socketConnectedExpectation], timeout: 40)
-        XCTAssertTrue(socket.isConnected)
-
-        let pingResult = XCTWaiter.wait(for: [socketPingExpectation], timeout: 40)
-        socket.disconnect(reconnect: false)
-
-        try XCTSkipIf(
-            pingResult == .timedOut,
-            "Live signaling server did not send an unauthenticated PING within the timeout window."
+        socket.didReceive(
+            event: .text("{\"jsonrpc\":\"2.0\",\"method\":\"telnyx_rtc.ping\",\"params\":{}}"),
+            client: MockWebSocketClient()
         )
-        XCTAssertEqual(pingResult, .completed)
+
+        waitForExpectations(timeout: 1)
+
         XCTAssertTrue(isPing)
     }
+}
+
+private final class MockWebSocketClient: WebSocketClient {
+    func connect() {}
+    func disconnect(closeCode: UInt16) {}
+    func write(string: String, completion: (() -> ())?) {}
+    func write(stringData: Data, completion: (() -> ())?) {}
+    func write(data: Data, completion: (() -> ())?) {}
+    func write(ping: Data, completion: (() -> ())?) {}
+    func write(pong: Data, completion: (() -> ())?) {}
 }

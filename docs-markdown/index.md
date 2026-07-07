@@ -349,11 +349,11 @@ extension AppDelegate : CXProviderDelegate {
     ...
     
      func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
-        self.telnyxClient!.enableAudioSession(audioSession: audioSession)
+        self.telnyxClient?.enableAudioSession(audioSession: audioSession)
     }
     
     func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
-        self.telnyxClient!.disableAudioSession(audioSession: audioSession)
+        self.telnyxClient?.disableAudioSession(audioSession: audioSession)
     }
 }
 ```
