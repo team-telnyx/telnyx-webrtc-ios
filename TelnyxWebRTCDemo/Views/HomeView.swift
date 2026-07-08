@@ -255,6 +255,7 @@ struct HomeView: View {
                 Text(socketStateText(for: viewModel.socketState))
                     .font(.system(size: 15, weight: .regular))
                     .foregroundColor(Color(hex: "1D1D1D"))
+                    .accessibilityIdentifier(AccessibilityIdentifiers.connectionStatusLabel)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.top, 5)
@@ -384,4 +385,3 @@ struct HomeView_Previews: PreviewProvider {
         )
     }
 }
-
