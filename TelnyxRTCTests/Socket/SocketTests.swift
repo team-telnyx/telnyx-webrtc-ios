@@ -73,7 +73,7 @@ class SocketTests : XCTestCase, SocketDelegate {
         waitForExpectations(timeout: 5)
         XCTAssertFalse(socket.isConnected)
     }
-    //MARK: - Test case for not send ping to screen 
+    //MARK: - Test case for not send ping to screen
     func testSocketForwardsPingTextMessage() {
         print("VertoMessagesTest :: testSocketPing()")
         isPing = false

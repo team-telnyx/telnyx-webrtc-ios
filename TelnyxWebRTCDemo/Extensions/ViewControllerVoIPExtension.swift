@@ -68,7 +68,7 @@ extension ViewController : VoIPDelegate {
         DispatchQueue.main.async {
             self.removeLoadingView()
             self.incomingCallView.isHidden = true
-            self.appDelegate.executeEndCallAction(uuid: UUID());
+            self.appDelegate.executeEndCurrentCallAction()
             
             if error.self is NWError {
                 print("ERROR: socket connectiontion error \(error)")
@@ -197,6 +197,7 @@ extension ViewController : VoIPDelegate {
                   let callerNumber = self.settingsView.callerIdNumberLabel.text,
                   let destinationNumber = self.callView.destinationNumberOrSip.text else {
                 print("ERROR: executeCall can't be performed. Check callerName - callerNumber and destinationNumber")
+                completionHandler(nil)
                 return
             }
             let headers =  ["X-test1":"ios-test1",

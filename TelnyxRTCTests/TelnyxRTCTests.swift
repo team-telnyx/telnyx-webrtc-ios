@@ -151,11 +151,18 @@ class TelnyxRTCTests: XCTestCase {
         
         class TestDelegate: RTCTestDelegate {
             override func onClientError(error: Error) {
-                if case let TxError.serverError(reason: .signalingServerError(message: _, code: code)) = error {
-                    XCTAssertEqual(code, "-32001")
-                } else {
-                    XCTFail("Expected signaling server error, got: \(error.localizedDescription)")
+                guard case let TxError.serverError(reason) = error,
+                      case let .signalingServerError(message, code) = reason else {
+                    XCTFail("Expected signaling server error, got \(error)")
+                    self.expectation.fulfill()
+                    return
                 }
+
+                XCTAssertEqual(code, "-32001")
+                XCTAssertTrue(
+                    ["JWT token authentication failed", "Login Incorrect"].contains(message),
+                    "Unexpected invalid-token error message: \(message)"
+                )
                 self.expectation.fulfill()
             }
         }
@@ -289,7 +296,3 @@ class TelnyxRTCTests: XCTestCase {
         XCTAssertFalse(sessionId.isEmpty) // We should get a session ID
     }
 }
-
-
-
-
