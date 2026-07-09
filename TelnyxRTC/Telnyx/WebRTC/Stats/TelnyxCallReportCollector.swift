@@ -262,14 +262,16 @@ public class TelnyxCallReportCollector {
         executeUpload(request: request, attempt: 1)
     }
 
-    /// URLSession delegate that accepts self-signed certificates (matches WebSocket behavior)
-    ///
-    /// ⚠️ Security Note: This accepts ALL self-signed certificates for dev/staging parity.
-    /// In production, this enables MITM attacks on call reports. Consider production-gating
-    /// this behavior or restricting to known dev/staging hostnames only.
+    #if DEBUG
     private class AllowSelfSignedDelegate: NSObject, URLSessionDelegate {
         func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge,
                         completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+            let host = challenge.protectionSpace.host
+            guard let checkUrl = URL(string: "https://\(host)"),
+                  SSLValidationHelper.shouldAllowSelfSigned(for: checkUrl) else {
+                completionHandler(.performDefaultHandling, nil)
+                return
+            }
             if let serverTrust = challenge.protectionSpace.serverTrust {
                 completionHandler(.useCredential, URLCredential(trust: serverTrust))
             } else {
@@ -277,14 +279,29 @@ public class TelnyxCallReportCollector {
             }
         }
     }
+    #endif
 
-    private lazy var urlSession: URLSession = {
+    #if DEBUG
+    private lazy var localSession: URLSession = {
         let delegate = AllowSelfSignedDelegate()
         return URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
     }()
+    #endif
+
+    private func urlSession(for url: URL) -> URLSession {
+        #if DEBUG
+        if SSLValidationHelper.shouldAllowSelfSigned(for: url) {
+            return localSession
+        }
+        return URLSession.shared
+        #else
+        return URLSession.shared
+        #endif
+    }
 
     private func executeUpload(request: URLRequest, attempt: Int) {
-        let task = urlSession.dataTask(with: request) { [weak self] data, response, error in
+        let session = urlSession(for: request.url!)
+        let task = session.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self else { return }
 
             if let error = error {
