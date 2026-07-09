@@ -10,7 +10,7 @@ lane :lint do
   swiftlint(
       mode: :lint,
       output_file: 'reports/swiftlint.txt',
-      config_file: 'fastlane/.swiftlint.yml'
+      config_file: '.swiftlint.yml'
     )
 end
   

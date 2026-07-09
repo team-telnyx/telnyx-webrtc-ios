@@ -6,6 +6,7 @@ included:
   - TelnyxRTC
   - TelnyxWebRTCDemo
   - TelnyxRTCTests
+  - TelnyxWebRTCDemoUITests
 
 excluded:
   - Pods
@@ -16,6 +17,8 @@ excluded:
   - docs
   - docs-markdown
   - push-notification-tool
+  - build
+  - dist
 
 # Opt-in rules (good practices but not enabled by default)
 opt_in_rules:
