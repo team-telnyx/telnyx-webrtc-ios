@@ -282,7 +282,7 @@ public class TelnyxCallReportCollector {
     #endif
 
     #if DEBUG
-    private lazy var localSession: URLSession = {
+    private static let localSession: URLSession = {
         let delegate = AllowSelfSignedDelegate()
         return URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
     }()
@@ -291,7 +291,7 @@ public class TelnyxCallReportCollector {
     private func urlSession(for url: URL) -> URLSession {
         #if DEBUG
         if SSLValidationHelper.shouldAllowSelfSigned(for: url) {
-            return localSession
+            return Self.localSession
         }
         return URLSession.shared
         #else
@@ -300,7 +300,11 @@ public class TelnyxCallReportCollector {
     }
 
     private func executeUpload(request: URLRequest, attempt: Int) {
-        let session = urlSession(for: request.url!)
+        guard let requestUrl = request.url else {
+            Logger.log.e(message: "TelnyxCallReportCollector: Request has no URL, skipping upload")
+            return
+        }
+        let session = urlSession(for: requestUrl)
         let task = session.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self else { return }
 

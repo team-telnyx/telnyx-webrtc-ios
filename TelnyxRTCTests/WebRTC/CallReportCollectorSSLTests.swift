@@ -36,7 +36,7 @@ class CallReportCollectorSSLTests: XCTestCase {
         try super.tearDownWithError()
     }
 
-    // MARK: - Integration
+    // MARK: - SSLValidationHelper integration with CallReportCollector
 
     func testCallReportHelperRejectsNonLocalHost() {
         let url = URL(string: "wss://rtc.telnyx.com")!
@@ -48,9 +48,9 @@ class CallReportCollectorSSLTests: XCTestCase {
         XCTAssertTrue(SSLValidationHelper.shouldAllowSelfSigned(for: url))
     }
 
-    // MARK: - Post report
+    // MARK: - Post report — verifies the non-local → URLSession.shared path doesn't crash
 
-    func testPostReportDoesNotCrash() {
+    func testPostReportToNonLocalHostDoesNotCrash() {
         collector.start(peerConnection: mockPeerConnection)
 
         let statsExpectation = expectation(description: "Stats accumulation")
@@ -82,6 +82,41 @@ class CallReportCollectorSSLTests: XCTestCase {
         XCTAssertNotNil(collector.callEndTime)
     }
 
+    // MARK: - Post report to localhost — verifies the local → localSession path doesn't crash
+
+    func testPostReportToLocalHostDoesNotCrash() {
+        collector.start(peerConnection: mockPeerConnection)
+
+        let statsExpectation = expectation(description: "Stats accumulation")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            statsExpectation.fulfill()
+        }
+        wait(for: [statsExpectation], timeout: 1.0)
+
+        collector.stop()
+
+        let summary = CallReportSummary(
+            callId: "test-call-local",
+            state: "done",
+            durationSeconds: 5.0,
+            telnyxSessionId: "session",
+            telnyxLegId: "leg",
+            voiceSdkSessionId: "test-session",
+            startTimestamp: ISO8601DateFormatter().string(from: collector.callStartTime),
+            endTimestamp: ISO8601DateFormatter().string(from: collector.callEndTime ?? Date())
+        )
+
+        // Posting to localhost should use the self-signed session in DEBUG — verify it doesn't crash
+        collector.postReport(
+            summary: summary,
+            callReportId: "report-local",
+            host: "wss://localhost:8080",
+            voiceSdkId: "ios-sdk-test"
+        )
+
+        XCTAssertNotNil(collector.callEndTime)
+    }
+
     // MARK: - HTTP URL derivation
 
     func testHTTPURLDerivedFromWebSocket() {
@@ -96,6 +131,15 @@ class CallReportCollectorSSLTests: XCTestCase {
         let httpUrl = URL(string: "https://rtc.telnyx.com/report")!
         XCTAssertFalse(SSLValidationHelper.shouldAllowSelfSigned(for: httpUrl))
     }
+
+    // MARK: - IPv6 support for call report endpoints
+
+    func testIPv6LoopbackAllowedForCallReport() {
+        let url = URL(string: "wss://[::1]:8080")!
+        XCTAssertTrue(SSLValidationHelper.shouldAllowSelfSigned(for: url))
+    }
+
+    // MARK: - DEBUG-only delegate exists
 
     #if DEBUG
     func testAllowSelfSignedDelegateExistsInDebugBuild() {
