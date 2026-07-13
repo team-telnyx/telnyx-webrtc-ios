@@ -222,7 +222,10 @@ public class TelnyxCallReportCollector {
         }
 
         let scheme = wsUrl.scheme?.replacingOccurrences(of: "ws", with: "http") ?? "https"
-        let endpoint = "\(scheme)://\(wsUrl.host ?? "rtc.telnyx.com")\(wsUrl.port.map { ":\($0)" } ?? "")/call_report"
+        let rawHost = wsUrl.host ?? "rtc.telnyx.com"
+        // IPv6 literals must be bracketed in URLs
+        let urlHost = rawHost.contains(":") ? "[\(rawHost)]" : rawHost
+        let endpoint = "\(scheme)://\(urlHost)\(wsUrl.port.map { ":\($0)" } ?? "")/call_report"
 
         guard let endpointUrl = URL(string: endpoint) else {
             Logger.log.e(message: "TelnyxCallReportCollector: Failed to construct endpoint URL from: \(endpoint)")
@@ -262,14 +265,22 @@ public class TelnyxCallReportCollector {
         executeUpload(request: request, attempt: 1)
     }
 
-    /// URLSession delegate that accepts self-signed certificates (matches WebSocket behavior)
-    ///
-    /// ⚠️ Security Note: This accepts ALL self-signed certificates for dev/staging parity.
-    /// In production, this enables MITM attacks on call reports. Consider production-gating
-    /// this behavior or restricting to known dev/staging hostnames only.
+    #if DEBUG
     private class AllowSelfSignedDelegate: NSObject, URLSessionDelegate {
         func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge,
                         completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+            let host = challenge.protectionSpace.host
+            let urlHost: String
+            if host.contains(":") {
+                urlHost = "[\(host)]"  // IPv6 literal — needs bracketing
+            } else {
+                urlHost = host
+            }
+            guard let checkUrl = URL(string: "https://\(urlHost)"),
+                  SSLValidationHelper.shouldAllowSelfSigned(for: checkUrl) else {
+                completionHandler(.performDefaultHandling, nil)
+                return
+            }
             if let serverTrust = challenge.protectionSpace.serverTrust {
                 completionHandler(.useCredential, URLCredential(trust: serverTrust))
             } else {
@@ -277,14 +288,33 @@ public class TelnyxCallReportCollector {
             }
         }
     }
+    #endif
 
-    private lazy var urlSession: URLSession = {
+    #if DEBUG
+    private static let localSession: URLSession = {
         let delegate = AllowSelfSignedDelegate()
         return URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
     }()
+    #endif
+
+    private func urlSession(for url: URL) -> URLSession {
+        #if DEBUG
+        if SSLValidationHelper.shouldAllowSelfSigned(for: url) {
+            return Self.localSession
+        }
+        return URLSession.shared
+        #else
+        return URLSession.shared
+        #endif
+    }
 
     private func executeUpload(request: URLRequest, attempt: Int) {
-        let task = urlSession.dataTask(with: request) { [weak self] data, response, error in
+        guard let requestUrl = request.url else {
+            Logger.log.e(message: "TelnyxCallReportCollector: Request has no URL, skipping upload")
+            return
+        }
+        let session = urlSession(for: requestUrl)
+        let task = session.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self else { return }
 
             if let error = error {

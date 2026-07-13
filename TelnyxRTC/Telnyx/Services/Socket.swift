@@ -47,7 +47,18 @@ class Socket {
         
         var request = URLRequest(url: signalingServer)
         request.timeoutInterval = connectionTimeout
-        let pinner = FoundationSecurity(allowSelfSigned: true) // don't validate SSL certificates
+
+        let pinner: FoundationSecurity
+        #if DEBUG
+        if SSLValidationHelper.shouldAllowSelfSigned(for: signalingServer) {
+            pinner = FoundationSecurity(allowSelfSigned: true)
+        } else {
+            pinner = FoundationSecurity(allowSelfSigned: false)
+        }
+        #else
+        pinner = FoundationSecurity(allowSelfSigned: false)
+        #endif
+
         self.signalingServer = signalingServer
         
         self.socket = WebSocket(request: request, certPinner: pinner)
