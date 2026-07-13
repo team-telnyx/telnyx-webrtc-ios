@@ -222,7 +222,10 @@ public class TelnyxCallReportCollector {
         }
 
         let scheme = wsUrl.scheme?.replacingOccurrences(of: "ws", with: "http") ?? "https"
-        let endpoint = "\(scheme)://\(wsUrl.host ?? "rtc.telnyx.com")\(wsUrl.port.map { ":\($0)" } ?? "")/call_report"
+        let rawHost = wsUrl.host ?? "rtc.telnyx.com"
+        // IPv6 literals must be bracketed in URLs
+        let urlHost = rawHost.contains(":") ? "[\(rawHost)]" : rawHost
+        let endpoint = "\(scheme)://\(urlHost)\(wsUrl.port.map { ":\($0)" } ?? "")/call_report"
 
         guard let endpointUrl = URL(string: endpoint) else {
             Logger.log.e(message: "TelnyxCallReportCollector: Failed to construct endpoint URL from: \(endpoint)")
@@ -267,7 +270,13 @@ public class TelnyxCallReportCollector {
         func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge,
                         completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
             let host = challenge.protectionSpace.host
-            guard let checkUrl = URL(string: "https://\(host)"),
+            let urlHost: String
+            if host.contains(":") {
+                urlHost = "[\(host)]"  // IPv6 literal — needs bracketing
+            } else {
+                urlHost = host
+            }
+            guard let checkUrl = URL(string: "https://\(urlHost)"),
                   SSLValidationHelper.shouldAllowSelfSigned(for: checkUrl) else {
                 completionHandler(.performDefaultHandling, nil)
                 return

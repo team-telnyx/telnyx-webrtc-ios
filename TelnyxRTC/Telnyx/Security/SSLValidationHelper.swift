@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Darwin
 
 enum SSLValidationHelper {
 
@@ -57,34 +58,19 @@ enum SSLValidationHelper {
     }
 
     private static func isPrivateOrLoopbackIPv6(_ host: String) -> Bool {
-        // Handle IPv6 loopback and unique-local addresses
-        // ::1 → loopback
+        // First validate this is actually an IPv6 literal
+        var addr = in6_addr()
+        guard inet_pton(AF_INET6, host, &addr) == 1 else { return false }
+
+        // Now safe to do prefix checks — host is confirmed IPv6
         if host == "::1" { return true }
 
-        // fc00::/7 → unique-local addresses (fc00:: – fdff::)
-        if host.hasPrefix("fc") || host.hasPrefix("fd") {
-            // Validate it's a valid IPv6 address by attempting to parse components
-            let fullForm = expandIPv6(host)
-            guard !fullForm.isEmpty else { return false }
-            return true
-        }
+        // fc00::/7 → unique-local (fc00:: – fdff::)
+        if host.hasPrefix("fc") || host.hasPrefix("fd") { return true }
 
-        // fe80::/10 → link-local (also private, but typically not used for dev servers)
-        if host.hasPrefix("fe80") {
-            return true
-        }
+        // fe80::/10 → link-local
+        if host.hasPrefix("fe80") { return true }
 
         return false
-    }
-
-    /// Expand a compressed IPv6 address to its full 8-group form for validation.
-    private static func expandIPv6(_ addr: String) -> String {
-        // Basic validation: must contain at least one "::" or 8 groups
-        let parts = addr.split(separator: ":", omittingEmptySubsequences: true)
-        guard parts.count >= 2 && parts.count <= 8 else { return "" }
-
-        // Rejoin to normalize — full validation would require inet_pton
-        // but this is sufficient for our prefix-based checks
-        return parts.joined(separator: ":")
     }
 }
