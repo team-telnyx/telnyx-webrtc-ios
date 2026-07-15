@@ -46,7 +46,7 @@ class AnswerMessage : Message {
         // or whitespace-only tokens are dropped to keep the wire payload clean.
         if pushWhenActive,
            let pushDeviceToken = pushDeviceToken,
-           !pushDeviceToken.isEmpty {
+           !pushDeviceToken.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             params["answered_device_token"] = pushDeviceToken
         }
         super.init(params, method: .ANSWER)

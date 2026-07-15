@@ -159,6 +159,24 @@ final class PushWhenActiveTests: XCTestCase {
                      "answered_device_token must not be set when pushDeviceToken is an empty string")
     }
 
+    /// Whitespace-only tokens must also be treated as absent so the wire payload
+    /// does not send an unusable device token.
+    func testAnswerMessageOmitsAnsweredDeviceTokenWhenTokenWhitespaceOnly() {
+        let callInfo = TxCallInfo(callId: UUID())
+        let callOptions = TxCallOptions(destinationNumber: "+15551234567")
+        let sdp = "v=0\r\no=- 123456 2 IN IP4 127.0.0.1\r\n"
+
+        let message = AnswerMessage(sessionId: "session-1",
+                                    sdp: sdp,
+                                    callInfo: callInfo,
+                                    callOptions: callOptions,
+                                    pushWhenActive: true,
+                                    pushDeviceToken: "   \n\t")
+
+        XCTAssertNil(message.params?["answered_device_token"],
+                     "answered_device_token must not be set when pushDeviceToken is whitespace-only")
+    }
+
     /// Round-trip safety: the field must survive a JSON encode -> decode pass
     /// so the on-the-wire payload can still be parsed by the backend without
     /// losing the new field.
@@ -213,5 +231,83 @@ final class PushWhenActiveTests: XCTestCase {
                        "pushWhenActive must default to false on the SIP config init")
         XCTAssertFalse(tokenConfig.pushWhenActive,
                        "pushWhenActive must default to false on the token config init")
+    }
+
+    // MARK: - TxClient: picked-off delegate call ID remap
+
+    func testPickedOffCallStateUsesSipCallIdForDelegateCallbacks() {
+        let socketCallId = UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
+        let pushCallId = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
+        let client = TxClient()
+        let delegate = PickedOffCallIdDelegate()
+        client.delegate = delegate
+
+        let call = Call(callId: socketCallId,
+                        remoteSdp: "v=0\r\n",
+                        sessionId: "session-1",
+                        socket: Socket(),
+                        delegate: client,
+                        iceServers: [],
+                        enableCallReports: false)
+        client.calls[socketCallId] = call
+
+        let reason = CallTerminationReason(cause: "PICKED_OFF",
+                                           causeCode: 805,
+                                           sipCode: 487,
+                                           sipCallId: pushCallId.uuidString)
+        call.updateCallState(callState: .DONE(reason: reason))
+
+        XCTAssertEqual(delegate.callStateUpdatedIds, [pushCallId])
+        XCTAssertEqual(delegate.remoteCallEndedIds, [pushCallId])
+        XCTAssertNil(client.calls[socketCallId])
+    }
+
+    func testNonPickedOffDoneStateUsesSocketCallIdForDelegateCallbacks() {
+        let socketCallId = UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
+        let pushCallId = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
+        let client = TxClient()
+        let delegate = PickedOffCallIdDelegate()
+        client.delegate = delegate
+
+        let call = Call(callId: socketCallId,
+                        remoteSdp: "v=0\r\n",
+                        sessionId: "session-1",
+                        socket: Socket(),
+                        delegate: client,
+                        iceServers: [],
+                        enableCallReports: false)
+        client.calls[socketCallId] = call
+
+        let reason = CallTerminationReason(cause: "USER_BUSY",
+                                           causeCode: 17,
+                                           sipCallId: pushCallId.uuidString)
+        call.updateCallState(callState: .DONE(reason: reason))
+
+        XCTAssertEqual(delegate.callStateUpdatedIds, [socketCallId])
+        XCTAssertEqual(delegate.remoteCallEndedIds, [socketCallId])
+        XCTAssertNil(client.calls[socketCallId])
+    }
+}
+
+private final class PickedOffCallIdDelegate: TxClientDelegate {
+    var callStateUpdatedIds: [UUID] = []
+    var remoteCallEndedIds: [UUID] = []
+
+    func onSocketConnected() {}
+    func onSocketDisconnected() {}
+    func onClientReady() {}
+    func onSessionUpdated(sessionId: String) {}
+    func onIncomingCall(call: Call) {}
+    func onPushCall(call: Call) {}
+    func onClientError(error: Error) {}
+    func onPushDisabled(success: Bool, message: String) {}
+    func onRemoteCallEnded(callId: UUID) {}
+
+    func onCallStateUpdated(callState: CallState, callId: UUID) {
+        callStateUpdatedIds.append(callId)
+    }
+
+    func onRemoteCallEnded(callId: UUID, reason: CallTerminationReason?) {
+        remoteCallEndedIds.append(callId)
     }
 }
