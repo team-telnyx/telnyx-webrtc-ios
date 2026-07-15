@@ -184,10 +184,16 @@ extension AppDelegate: PKPushRegistryDelegate {
         // Check if this notification should dismiss an existing CallKit call.
         if let aps = payload.dictionaryPayload["aps"] as? [String: Any],
            let alert = aps["alert"] as? String,
-           PushCallUUIDResolver.shouldDismissCall(forAlert: alert) {
+           let callEndedReason = PushCallUUIDResolver.callEndedReason(forAlert: alert) {
             PushCallUUIDResolver.handleMissedCall(
                 metadata: payload.dictionaryPayload["metadata"] as? [String: Any],
-                handleMissedCallNotification: { self.handleMissedCallNotification(callUUID: $0, pushMetaData: $1) }
+                handleMissedCallNotification: { callUUID, pushMetaData in
+                    self.handleMissedCallNotification(
+                        callUUID: callUUID,
+                        pushMetaData: pushMetaData,
+                        callEndedReason: callEndedReason
+                    )
+                }
             )
             return
         }
@@ -204,7 +210,8 @@ extension AppDelegate: PKPushRegistryDelegate {
     /// - Parameters:
     ///   - callUUID: The UUID of the missed call
     ///   - pushMetaData: The metadata from the push notification
-    func handleMissedCallNotification(callUUID: UUID, pushMetaData: [String: Any]) {
+    ///   - callEndedReason: The CallKit reason to use when ending the stale call
+    func handleMissedCallNotification(callUUID: UUID, pushMetaData: [String: Any], callEndedReason: CXCallEndedReason) {
         print("AppDelegate:: handleMissedCallNotification for call: \(callUUID)")
 
         guard let provider = callKitProvider else {
@@ -221,11 +228,11 @@ extension AppDelegate: PKPushRegistryDelegate {
 
         provider.reportNewIncomingCall(with: tempUUID, update: update) { _ in
             // End the original incoming call that is ringing in CallKit
-            provider.reportCall(with: callUUID, endedAt: Date(), reason: .answeredElsewhere)
-            print("AppDelegate:: Reported original call as answered elsewhere for call: \(callUUID)")
+            provider.reportCall(with: callUUID, endedAt: Date(), reason: callEndedReason)
+            print("AppDelegate:: Reported original call ended for call: \(callUUID), reason: \(callEndedReason.rawValue)")
             // End the temporary call
-            provider.reportCall(with: tempUUID, endedAt: Date(), reason: .answeredElsewhere)
-            print("AppDelegate:: Reported temp call for PushKit compliance: \(tempUUID)")
+            provider.reportCall(with: tempUUID, endedAt: Date(), reason: callEndedReason)
+            print("AppDelegate:: Reported temp call for PushKit compliance: \(tempUUID), reason: \(callEndedReason.rawValue)")
         }
 
         // 3. Clean up any stored call references
