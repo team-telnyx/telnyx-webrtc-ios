@@ -253,6 +253,58 @@ func endCallKitCall(callUUID: UUID) {
 
 Failing to end the CallKit call will leave the system call UI in a stale state and may block subsequent calls on that UUID. End the CallKit call from the same place you dismiss your own incoming-call UI — typically the `CallState.DONE` branch above.
 
+#### PushKit cleanup notifications
+
+Some answered-elsewhere and missed-call outcomes can arrive as VoIP pushes instead of, or in addition to, a socket BYE. These pushes are cleanup signals, not new incoming calls. Handle both alert strings through the same CallKit dismissal path:
+
+```Swift
+func pushRegistry(
+    _ registry: PKPushRegistry,
+    didReceiveIncomingPushWith payload: PKPushPayload,
+    for type: PKPushType,
+    completion: @escaping () -> Void
+) {
+    defer { completion() }
+
+    guard type == .voIP else { return }
+
+    let payloadDictionary = payload.dictionaryPayload
+    let aps = payloadDictionary["aps"] as? [String: Any]
+    let alert = aps?["alert"] as? String
+
+    if alert == "Missed call!" || alert == "Answered Elsewhere" {
+        let metadata = payloadDictionary["metadata"] as? [String: Any]
+        let callId = metadata?["call_id"] as? String
+        let metadataUUID = callId.flatMap { UUID(uuidString: $0) }
+
+        // Prefer the push call_id when present. If the cleanup push does not
+        // include call_id, use the CallKit UUID saved when the original
+        // incoming push was reported.
+        if let callUUID = metadataUUID ?? currentIncomingCallKitUUID {
+            reportPushCleanupCall(callUUID: callUUID)
+        }
+
+        return
+    }
+
+    // Otherwise process the payload as a normal incoming call.
+    handleIncomingVoIPPush(payload)
+}
+
+func reportPushCleanupCall(callUUID: UUID) {
+    let temporaryUUID = UUID()
+    let update = CXCallUpdate()
+    update.remoteHandle = CXHandle(type: .generic, value: " ")
+
+    callKitProvider.reportNewIncomingCall(with: temporaryUUID, update: update) { _ in
+        callKitProvider.reportCall(with: callUUID, endedAt: Date(), reason: .answeredElsewhere)
+        callKitProvider.reportCall(with: temporaryUUID, endedAt: Date(), reason: .answeredElsewhere)
+    }
+}
+```
+
+The `reason` parameter is required by `CXProvider.reportCall(with:endedAt:reason:)`. For answered-elsewhere cleanup, use `.answeredElsewhere`. This same reason is appropriate for the temporary CallKit call used to satisfy PushKit's requirement that every VoIP push reports a CallKit call.
+
 ### Expected flow
 
 1. The app connects with `pushWhenActive: true` and a non-empty `pushDeviceToken`.
