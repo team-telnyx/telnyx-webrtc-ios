@@ -21,7 +21,8 @@ class LoginMessage : Message {
          pushEnvironment:PushEnvironment? = nil,
          sessionId:String,
          declinePush: Bool = false,
-         enableMissedCallNotifications: Bool = false
+         enableMissedCallNotifications: Bool = false,
+         pushWhenActive: Bool = false
     ) {
 
         var params = [String: Any]()
@@ -38,11 +39,20 @@ class LoginMessage : Message {
         if let provider = pushNotificationProvider {
             userVariables["push_notification_provider"] = provider
         }
-        
+
+        // Indicate to the backend that this device should be considered active when
+        // receiving push notifications. Required for push-when-active multi-device
+        // flows where the backend needs to know which device answered a call so it
+        // can route the correct answered-elsewhere / picked-off result to the
+        // remaining devices.
+        if pushWhenActive {
+            userVariables["push_when_active"] = "true"
+        }
+
         // Add device environment debug/ production
         // This new field is required to allow our PN service to determine
         // if the push has to be send to APNS Sandbox (app is in debug mode) or production
-        
+
         if let pushEnv = pushEnvironment {
             userVariables["push_notification_environment"] = pushEnv.rawValue
         } else {
@@ -75,7 +85,8 @@ class LoginMessage : Message {
          pushEnvironment:PushEnvironment? = nil,
          sessionId:String,
          declinePush: Bool = false,
-         enableMissedCallNotifications: Bool = false
+         enableMissedCallNotifications: Bool = false,
+         pushWhenActive: Bool = false
     ) {
         var params = [String: Any]()
         params["login_token"] = token
@@ -91,14 +102,23 @@ class LoginMessage : Message {
 
         //Setup push variables
         var userVariables = [String: Any]()
-        
+
         if let pushDeviceToken = pushDeviceToken {
             userVariables["push_device_token"] = pushDeviceToken
         }
         if let provider = pushNotificationProvider {
             userVariables["push_notification_provider"] = provider
         }
-        
+
+        // Indicate to the backend that this device should be considered active when
+        // receiving push notifications. Required for push-when-active multi-device
+        // flows where the backend needs to know which device answered a call so it
+        // can route the correct answered-elsewhere / picked-off result to the
+        // remaining devices.
+        if pushWhenActive {
+            userVariables["push_when_active"] = "true"
+        }
+
         if let pushEnv = pushEnvironment {
             userVariables["push_notification_environment"] = pushEnv.rawValue
         } else {
@@ -109,11 +129,10 @@ class LoginMessage : Message {
             userVariables["push_notification_environment"] = PushEnvironment.production.rawValue
             #endif
         }
-        
 
 
         params["userVariables"] = userVariables
         super.init(params, method: .LOGIN)
     }
-    
+
 }

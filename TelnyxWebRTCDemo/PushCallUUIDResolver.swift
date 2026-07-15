@@ -4,8 +4,20 @@
 //
 
 import Foundation
+import CallKit
 
 enum PushCallUUIDResolver {
+
+    static func callEndedReason(forAlert alert: String) -> CXCallEndedReason? {
+        switch alert {
+        case "Missed call!":
+            return .unanswered
+        case "Answered Elsewhere":
+            return .answeredElsewhere
+        default:
+            return nil
+        }
+    }
 
     static func uuid(
         from metadata: [String: Any]?,
