@@ -15,7 +15,9 @@ class AnswerMessage : Message {
          callInfo: TxCallInfo,
          callOptions: TxCallOptions,
          customHeaders:[String:String] = [:],
-         trickle: Bool = false) {
+         trickle: Bool = false,
+         pushWhenActive: Bool = false,
+         pushDeviceToken: String? = nil) {
 
         var params = [String: Any]()
         var dialogParams = [String: Any]()
@@ -34,6 +36,18 @@ class AnswerMessage : Message {
         params["dialogParams"] = dialogParams
         if trickle {
             params["trickle"] = true
+        }
+
+        // For push-when-active multi-device flows the backend needs to know which
+        // device answered so it can exclude that device from the answered-elsewhere
+        // / picked-off notification sent to the remaining devices. Only include the
+        // token when both the app opted into `pushWhenActive` and a non-empty
+        // PushKit VoIP token is available from `TxConfig(pushDeviceToken:)`. Empty
+        // or whitespace-only tokens are dropped to keep the wire payload clean.
+        if pushWhenActive,
+           let pushDeviceToken = pushDeviceToken,
+           !pushDeviceToken.isEmpty {
+            params["answered_device_token"] = pushDeviceToken
         }
         super.init(params, method: .ANSWER)
     }

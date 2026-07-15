@@ -157,6 +157,29 @@ Telnyx WebRTC supports multidevice push notifications. A single user can have up
 
 This effectively means that you can have up to 5 devices that can receive push notifications for the same incoming call.
 
+### Push-when-active multi-device flows
+
+For multi-device setups where a single incoming call is delivered to several devices via push, the SDK can automatically include the answering device's PushKit VoIP token in the `telnyx_rtc.answer` payload. The backend uses that token to exclude the answering device from the `answered-elsewhere` / `picked-off` notification that is delivered to the remaining devices.
+
+Enable the flow by setting `pushWhenActive: true` on `TxConfig`. The SDK handles the rest internally — no new `call.answer(...)` argument is required and the public API stays unchanged.
+
+```Swift
+let txConfig = TxConfig(
+    sipUser: sipUser,
+    password: password,
+    pushDeviceToken: voipPushToken, // APNS VoIP token (required)
+    pushWhenActive: true            // Opt-in to push-when-active multi-device
+)
+```
+
+When `pushWhenActive` is `true`:
+
+1. The login payload includes `push_when_active = "true"` in `userVariables` so the backend treats this device as active for push routing.
+2. When `call.answer()` is invoked, the SDK sends `answered_device_token` (the same PushKit VoIP token supplied through `TxConfig(pushDeviceToken:)`) inside the `telnyx_rtc.answer` payload. The token is sourced internally from `pushNotificationConfig.pushDeviceToken`, so apps do not need to pass it again at answer time.
+3. If no `pushDeviceToken` is configured (or it is an empty string), the `answered_device_token` field is omitted — the SDK never sends an empty token.
+
+The default value of `pushWhenActive` is `false`, which preserves the existing single-device behaviour exactly (no field is added to either the login or the answer payload).
+
 ## Disable Push Notification
 
 Push notifications can be disabled for the current user by calling :
