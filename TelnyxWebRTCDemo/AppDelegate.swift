@@ -181,10 +181,10 @@ extension AppDelegate: PKPushRegistryDelegate {
     }
 
     func handleVoIPPushNotification(payload: PKPushPayload) {
-        // Check if this is a missed call notification
+        // Check if this notification should dismiss an existing CallKit call.
         if let aps = payload.dictionaryPayload["aps"] as? [String: Any],
            let alert = aps["alert"] as? String,
-           alert == "Missed call!" {
+           PushCallUUIDResolver.shouldDismissCall(forAlert: alert) {
             PushCallUUIDResolver.handleMissedCall(
                 metadata: payload.dictionaryPayload["metadata"] as? [String: Any],
                 handleMissedCallNotification: { self.handleMissedCallNotification(callUUID: $0, pushMetaData: $1) }

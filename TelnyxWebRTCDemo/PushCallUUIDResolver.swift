@@ -7,6 +7,15 @@ import Foundation
 
 enum PushCallUUIDResolver {
 
+    private static let callDismissalAlerts: Set<String> = [
+        "Missed call!",
+        "Answered Elsewhere",
+    ]
+
+    static func shouldDismissCall(forAlert alert: String) -> Bool {
+        callDismissalAlerts.contains(alert)
+    }
+
     static func uuid(
         from metadata: [String: Any]?,
         fallbackUUID: () -> UUID = { UUID() },

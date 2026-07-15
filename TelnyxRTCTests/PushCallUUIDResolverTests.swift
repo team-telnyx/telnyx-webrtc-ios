@@ -7,6 +7,12 @@ import XCTest
 
 final class PushCallUUIDResolverTests: XCTestCase {
 
+    func testDismissalAlertsIncludeMissedCallAndAnsweredElsewhere() {
+        XCTAssertTrue(PushCallUUIDResolver.shouldDismissCall(forAlert: "Missed call!"))
+        XCTAssertTrue(PushCallUUIDResolver.shouldDismissCall(forAlert: "Answered Elsewhere"))
+        XCTAssertFalse(PushCallUUIDResolver.shouldDismissCall(forAlert: "Incoming call!"))
+    }
+
     func testMalformedCallIDUsesFallbackUUID() {
         let fallbackUUID = makeUUID("11111111-1111-1111-1111-111111111111")
 
