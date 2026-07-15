@@ -77,7 +77,7 @@ The immediate login reduces latency for call setup and simplifies the internal s
 
 ### Missed Call Notification Handling
 
-The handling code for missed call notifications remains the same as in v3.x. If you already implemented the dummy CallKit call workaround from the [v2-to-v3 migration guide](./v2-to-v3.md), no changes are needed:
+The handling code for missed call notifications remains the same as in v3.x. If you already implemented the temporary CallKit call workaround from the [v2-to-v3 migration guide](./v2-to-v3.md), keep that flow and report the ended calls as `.unanswered`:
 
 ```swift
 func handleVoIPPushNotification(payload: PKPushPayload) {
@@ -111,8 +111,8 @@ func handleMissedCallNotification(callUUID: UUID) {
     update.remoteHandle = CXHandle(type: .generic, value: " ")
 
     provider.reportNewIncomingCall(with: tempUUID, update: update) { _ in
-        provider.reportCall(with: callUUID, endedAt: Date(), reason: .answeredElsewhere)
-        provider.reportCall(with: tempUUID, endedAt: Date(), reason: .answeredElsewhere)
+        provider.reportCall(with: callUUID, endedAt: Date(), reason: .unanswered)
+        provider.reportCall(with: tempUUID, endedAt: Date(), reason: .unanswered)
     }
 }
 ```

@@ -65,9 +65,9 @@ func handleMissedCallNotification(callUUID: UUID) {
 
     provider.reportNewIncomingCall(with: tempUUID, update: update) { _ in
         // End the original incoming call that is ringing in CallKit
-        provider.reportCall(with: callUUID, endedAt: Date(), reason: .answeredElsewhere)
+        provider.reportCall(with: callUUID, endedAt: Date(), reason: .unanswered)
         // End the temporary dummy call
-        provider.reportCall(with: tempUUID, endedAt: Date(), reason: .answeredElsewhere)
+        provider.reportCall(with: tempUUID, endedAt: Date(), reason: .unanswered)
     }
 
     // Clean up any stored call references

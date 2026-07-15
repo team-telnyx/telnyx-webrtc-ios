@@ -272,7 +272,7 @@ func pushRegistry(
     let aps = payloadDictionary["aps"] as? [String: Any]
     let alert = aps?["alert"] as? String
 
-    if alert == "Missed call!" || alert == "Answered Elsewhere" {
+    if let callEndedReason = callEndedReason(forPushAlert: alert) {
         let metadata = payloadDictionary["metadata"] as? [String: Any]
         let callId = metadata?["call_id"] as? String
         let metadataUUID = callId.flatMap { UUID(uuidString: $0) }
@@ -281,7 +281,7 @@ func pushRegistry(
         // include call_id, use the CallKit UUID saved when the original
         // incoming push was reported.
         if let callUUID = metadataUUID ?? currentIncomingCallKitUUID {
-            reportPushCleanupCall(callUUID: callUUID)
+            reportPushCleanupCall(callUUID: callUUID, reason: callEndedReason)
         }
 
         return
@@ -291,19 +291,30 @@ func pushRegistry(
     handleIncomingVoIPPush(payload)
 }
 
-func reportPushCleanupCall(callUUID: UUID) {
+func callEndedReason(forPushAlert alert: String?) -> CXCallEndedReason? {
+    switch alert {
+    case "Missed call!":
+        return .unanswered
+    case "Answered Elsewhere":
+        return .answeredElsewhere
+    default:
+        return nil
+    }
+}
+
+func reportPushCleanupCall(callUUID: UUID, reason: CXCallEndedReason) {
     let temporaryUUID = UUID()
     let update = CXCallUpdate()
     update.remoteHandle = CXHandle(type: .generic, value: " ")
 
     callKitProvider.reportNewIncomingCall(with: temporaryUUID, update: update) { _ in
-        callKitProvider.reportCall(with: callUUID, endedAt: Date(), reason: .answeredElsewhere)
-        callKitProvider.reportCall(with: temporaryUUID, endedAt: Date(), reason: .answeredElsewhere)
+        callKitProvider.reportCall(with: callUUID, endedAt: Date(), reason: reason)
+        callKitProvider.reportCall(with: temporaryUUID, endedAt: Date(), reason: reason)
     }
 }
 ```
 
-The `reason` parameter is required by `CXProvider.reportCall(with:endedAt:reason:)`. For answered-elsewhere cleanup, use `.answeredElsewhere`. This same reason is appropriate for the temporary CallKit call used to satisfy PushKit's requirement that every VoIP push reports a CallKit call.
+The `reason` parameter is required by `CXProvider.reportCall(with:endedAt:reason:)`. Use `.unanswered` for `"Missed call!"` cleanup and `.answeredElsewhere` for `"Answered Elsewhere"` cleanup. Use the same reason for the temporary CallKit call that satisfies PushKit's requirement that every VoIP push reports a CallKit call.
 
 ### Expected flow
 
