@@ -157,6 +157,107 @@ Telnyx WebRTC supports multidevice push notifications. A single user can have up
 
 This effectively means that you can have up to 5 devices that can receive push notifications for the same incoming call.
 
+## Push when active (multi-device)
+
+By default, the iOS SDK treats VoIP push notifications as the wake-up signal for incoming calls. When the same user is signed in on more than one device (for example, an iPhone and a web client), every registered device may receive the same incoming call. The first device to answer ends the call attempt on the rest.
+
+The `pushWhenActive` option on `TxConfig` opts a device in to the push-when-active multi-device flow. When enabled:
+
+- During login, the SDK advertises the device to the Telnyx backend as `push_when_active = "true"` so the device can receive incoming calls via push while the app is in the background or terminated.
+- When `call.answer()` is invoked, the SDK includes the device's PushKit VoIP token in the `telnyx_rtc.answer` payload as `answered_device_token`. The token is sourced internally from `pushDeviceToken`, so apps do not need to pass it again when answering.
+
+```Swift
+let txConfig = TxConfig(
+    sipUser: sipUser,
+    password: password,
+    pushDeviceToken: voipPushToken, // APNS VoIP token (required for push-when-active)
+    pushWhenActive: true            // Opt-in to push-when-active multi-device
+)
+
+// JWT variant
+let txConfigToken = TxConfig(
+    token: myTelnyxJwt,
+    pushDeviceToken: voipPushToken,
+    pushWhenActive: true
+)
+```
+
+If `pushDeviceToken` is `nil` or empty when answering, the SDK omits `answered_device_token` from the payload. The default value of `pushWhenActive` is `false`, which preserves the existing single-device behaviour exactly — no extra fields are added to either the login or the answer payload.
+
+`call.answer()` is unchanged:
+
+```Swift
+call.answer()
+```
+
+### Handling calls answered on another device
+
+When `pushWhenActive` is enabled, an incoming call can be delivered to more than one client or device. A web client may receive the call over an active WebSocket while iOS devices receive VoIP pushes. When one device answers, the Telnyx backend ends the call attempts on the remaining devices.
+
+iOS apps should treat this as a normal **answered-elsewhere** outcome, not as a call failure. From the app's perspective, the call simply ends after the user has chosen to ignore the prompt — there is nothing to recover from and nothing to retry.
+
+Your app should:
+
+- dismiss the incoming-call UI
+- stop any ringtone or vibration
+- end the CallKit call if one is active
+- mark the call as ended (or as answered elsewhere) in your own state
+- avoid showing an error to the user
+
+The SDK exposes the call termination through `CallState.DONE(reason:)` on the `TxClientDelegate` callback. Use the `reason` payload only for diagnostics — answered-elsewhere is a normal end and should not surface as an error.
+
+```Swift
+extension AppDelegate: TxClientDelegate {
+    func onCallStateUpdated(callState: CallState, callId: UUID) {
+        switch callState {
+        case .DONE(let terminationReason):
+            // Call ended normally — this covers user hangup, remote hangup,
+            // INVITE timeout, AND the "answered on another device" case.
+            // Do not show an error to the user for any of these.
+            incomingCallUI.dismiss()
+            ringtonePlayer.stop()
+            endCallKitCall(callUUID: callId)
+
+            if let reason = terminationReason {
+                // Diagnostics only — never display to end users.
+                print("Call ended: cause=\(reason.cause ?? "nil") "
+                    + "sipCode=\(reason.sipCode ?? 0)")
+            }
+        // ...other states (NEW, CONNECTING, RINGING, ACTIVE, HELD, ...)
+        default:
+            break
+        }
+    }
+
+    // ...other TxClientDelegate methods
+}
+```
+
+`CallTerminationReason` (delivered through `CallState.DONE(reason:)` and the `onRemoteCallEnded(callId:reason:)` callback) exposes the same fields documented in [Error Handling — Call Termination Reasons](/docs-markdown/error-handling/error-handling.md#call-termination-reasons). Common values for a normal end include `NORMAL_CLEARING` (SIP 200) and `ORIGINATOR_CANCEL` (SIP 487). Apps should treat both as expected outcomes — not as failures — when `pushWhenActive` is enabled.
+
+#### CallKit behavior
+
+When a CallKit call has already been reported for the incoming push, your app must end that CallKit call when another device answers. Use `.remoteEnded` so the system logs the call as ended by the remote side, matching the answered-elsewhere outcome:
+
+```Swift
+import CallKit
+
+func endCallKitCall(callUUID: UUID) {
+    // Use the CXProvider that reported the incoming call.
+    callKitProvider.reportCall(with: callUUID, endedAt: Date(), reason: .remoteEnded)
+}
+```
+
+Failing to end the CallKit call will leave the system call UI in a stale state and may block subsequent calls on that UUID. End the CallKit call from the same place you dismiss your own incoming-call UI — typically the `CallState.DONE` branch above.
+
+### Expected flow
+
+1. The app connects with `pushWhenActive: true` and a non-empty `pushDeviceToken`.
+2. The SDK registers the device's VoIP push token with Telnyx.
+3. An incoming call is delivered to multiple devices (push to iOS, WebSocket to web).
+4. One device answers — the backend ends the remaining call attempts.
+5. The remaining iOS apps see `CallState.DONE(reason:)` and dismiss the incoming-call UI.
+
 ## Disable Push Notification
 
 Push notifications can be disabled for the current user by calling :
