@@ -21,12 +21,15 @@ public struct CallTerminationReason {
     public let sipCode: Int?
     /// SIP reason phrase (e.g., "Dialed number is not included in whitelisted countries").
     public let sipReason: String?
+    /// SIP Call-ID associated with the terminated call, when provided by the signaling server.
+    public let sipCallId: String?
     
-    public init(cause: String? = nil, causeCode: Int? = nil, sipCode: Int? = nil, sipReason: String? = nil) {
+    public init(cause: String? = nil, causeCode: Int? = nil, sipCode: Int? = nil, sipReason: String? = nil, sipCallId: String? = nil) {
         self.cause = cause
         self.causeCode = causeCode
         self.sipCode = sipCode
         self.sipReason = sipReason
+        self.sipCallId = sipCallId
     }
 }
 
@@ -1315,14 +1318,16 @@ extension Call {
                 let causeCode = params["causeCode"] as? Int
                 let sipCode = params["sipCode"] as? Int
                 let sipReason = params["sipReason"] as? String
+                let sipCallId = params["sip_call_id"] as? String
                 
                 // Only create a termination reason if we have at least one field
-                if cause != nil || causeCode != nil || sipCode != nil || sipReason != nil {
+                if cause != nil || causeCode != nil || sipCode != nil || sipReason != nil || sipCallId != nil {
                     terminationReason = CallTerminationReason(
                         cause: cause,
                         causeCode: causeCode,
                         sipCode: sipCode,
-                        sipReason: sipReason
+                        sipReason: sipReason,
+                        sipCallId: sipCallId
                     )
                 }
             }

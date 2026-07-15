@@ -1531,9 +1531,10 @@ extension TxClient: CallProtocol {
         Logger.log.i(message: "TxClient:: callStateUpdated()")
 
         guard let callId = call.callInfo?.callId else { return }
+        let delegateCallId = self.delegateCallId(for: call.callState, fallbackCallId: callId)
         
         // Forward call state
-        self.delegate?.onCallStateUpdated(callState: call.callState, callId: callId)
+        self.delegate?.onCallStateUpdated(callState: call.callState, callId: delegateCallId)
 
         // Remove call if it has ended
         if case .DONE = call.callState,
@@ -1546,12 +1547,23 @@ extension TxClient: CallProtocol {
             
             //Forward call ended state with termination reason if available
             if case let .DONE(reason) = call.callState {
-                self.delegate?.onRemoteCallEnded(callId: callId, reason: reason)
+                self.delegate?.onRemoteCallEnded(callId: delegateCallId, reason: reason)
             } else {
-                self.delegate?.onRemoteCallEnded(callId: callId, reason: nil)
+                self.delegate?.onRemoteCallEnded(callId: delegateCallId, reason: nil)
             }
             self._isSpeakerEnabled = false
         }
+    }
+
+    private func delegateCallId(for callState: CallState, fallbackCallId: UUID) -> UUID {
+        guard case let .DONE(reason) = callState,
+              reason?.cause == "PICKED_OFF",
+              let sipCallId = reason?.sipCallId,
+              let sipCallUUID = UUID(uuidString: sipCallId) else {
+            return fallbackCallId
+        }
+
+        return sipCallUUID
     }
 
 }
