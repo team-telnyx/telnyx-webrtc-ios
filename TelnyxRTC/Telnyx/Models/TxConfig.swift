@@ -98,6 +98,20 @@ public struct TxConfig {
     /// - Important: Default is 1000 entries to prevent memory issues on long calls.
     public internal(set) var callReportMaxLogEntries: Int = 1000
 
+    /// Opt-in flag for push-when-active multi-device flows.
+    ///
+    /// When `true`, the SDK signals to the Telnyx backend during login that this
+    /// device should be considered active for the purposes of incoming push
+    /// notifications, and includes the configured VoIP push token in the
+    /// `telnyx_rtc.answer` payload as `answered_device_token`. The backend uses
+    /// that token to exclude the answering device from the answered-elsewhere /
+    /// picked-off notification that is delivered to the remaining devices.
+    ///
+    /// The token is sourced internally from `pushNotificationConfig.pushDeviceToken`,
+    /// so apps do not need to pass it again when calling `call.answer()`.
+    /// - Important: Default is `false` to preserve existing single-device behaviour.
+    public internal(set) var pushWhenActive: Bool = false
+
     // MARK: - Initializers
 
     /// Constructor for the Telnyx SDK configuration using SIP credentials.
@@ -122,6 +136,7 @@ public struct TxConfig {
     ///   - callReportLogLevel: (Optional) Minimum log level to capture for call reports. Default is "debug".
     ///   - enableMissedCallNotifications: (Optional) Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`. Default is false.
     ///   - callReportMaxLogEntries: (Optional) Maximum number of log entries to buffer per call. Default is 1000.
+    ///   - pushWhenActive: (Optional) Opt-in flag for push-when-active multi-device flows. When true, the SDK includes the configured VoIP push token in the `telnyx_rtc.answer` payload as `answered_device_token` and signals `push_when_active = "true"` during login. Default is false.
     public init(sipUser: String, password: String,
                 pushDeviceToken: String? = nil,
                 ringtone: String? = nil,
@@ -140,7 +155,8 @@ public struct TxConfig {
                 enableCallReports: Bool = true,
                 callReportInterval: TimeInterval = 5.0,
                 callReportLogLevel: String = "debug",
-                callReportMaxLogEntries: Int = 1000
+                callReportMaxLogEntries: Int = 1000,
+                pushWhenActive: Bool = false
     ) {
         self.sipUser = sipUser
         self.password = password
@@ -165,6 +181,7 @@ public struct TxConfig {
         self.callReportInterval = callReportInterval
         self.callReportLogLevel = callReportLogLevel
         self.callReportMaxLogEntries = callReportMaxLogEntries
+        self.pushWhenActive = pushWhenActive
         Logger.log.verboseLevel = logLevel
         Logger.log.customLogger = customLogger ?? TxDefaultLogger()
     }
@@ -190,6 +207,7 @@ public struct TxConfig {
     ///   - callReportLogLevel: (Optional) Minimum log level to capture for call reports. Default is "debug".
     ///   - enableMissedCallNotifications: (Optional) Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`. Default is false.
     ///   - callReportMaxLogEntries: (Optional) Maximum number of log entries to buffer per call. Default is 1000.
+    ///   - pushWhenActive: (Optional) Opt-in flag for push-when-active multi-device flows. When true, the SDK includes the configured VoIP push token in the `telnyx_rtc.answer` payload as `answered_device_token` and signals `push_when_active = "true"` during login. Default is false.
     public init(token: String,
                 pushDeviceToken: String? = nil,
                 ringtone: String? = nil,
@@ -208,7 +226,8 @@ public struct TxConfig {
                 enableCallReports: Bool = true,
                 callReportInterval: TimeInterval = 5.0,
                 callReportLogLevel: String = "debug",
-                callReportMaxLogEntries: Int = 1000
+                callReportMaxLogEntries: Int = 1000,
+                pushWhenActive: Bool = false
     ) {
         self.token = token
         if let pushToken = pushDeviceToken {
@@ -231,6 +250,7 @@ public struct TxConfig {
         self.callReportInterval = callReportInterval
         self.callReportLogLevel = callReportLogLevel
         self.callReportMaxLogEntries = callReportMaxLogEntries
+        self.pushWhenActive = pushWhenActive
         Logger.log.verboseLevel = logLevel
         Logger.log.customLogger = customLogger ?? TxDefaultLogger()
     }

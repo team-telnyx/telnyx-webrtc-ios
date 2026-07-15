@@ -21,12 +21,15 @@ public struct CallTerminationReason {
     public let sipCode: Int?
     /// SIP reason phrase (e.g., "Dialed number is not included in whitelisted countries").
     public let sipReason: String?
+    /// SIP Call-ID associated with the terminated call, when provided by the signaling server.
+    public let sipCallId: String?
     
-    public init(cause: String? = nil, causeCode: Int? = nil, sipCode: Int? = nil, sipReason: String? = nil) {
+    public init(cause: String? = nil, causeCode: Int? = nil, sipCode: Int? = nil, sipReason: String? = nil, sipCallId: String? = nil) {
         self.cause = cause
         self.causeCode = causeCode
         self.sipCode = sipCode
         self.sipReason = sipReason
+        self.sipCallId = sipCallId
     }
 }
 
@@ -305,6 +308,18 @@ public class Call {
     public internal(set) var callReportMaxLogEntries: Int = 1000
     public internal(set) var enableMissedCallNotifications: Bool = false
 
+    /// Opt-in flag for push-when-active multi-device flows. When `true` and a
+    /// non-empty `pushDeviceToken` is configured, the SDK includes the token in
+    /// the `telnyx_rtc.answer` payload as `answered_device_token`. The flag and
+    /// token are propagated from `TxConfig` at construction time so the public
+    /// `call.answer()` API stays unchanged.
+    public internal(set) var pushWhenActive: Bool = false
+
+    /// The PushKit VoIP token captured from `TxConfig(pushDeviceToken:)`. Used
+    /// internally to populate `answered_device_token` on `telnyx_rtc.answer`
+    /// when `pushWhenActive` is enabled. Never sent when nil or empty.
+    public internal(set) var pushDeviceToken: String? = nil
+
 
     // MARK: - Properties
     /// Contains essential information about the current call including:
@@ -393,7 +408,9 @@ public class Call {
          enableCallReports: Bool = true,
          callReportInterval: TimeInterval = 5.0,
          callReportLogLevel: String = "debug",
-         callReportMaxLogEntries: Int = 1000
+         callReportMaxLogEntries: Int = 1000,
+         pushWhenActive: Bool = false,
+         pushDeviceToken: String? = nil
     ) {
         if isAttach {
             self.direction = CallDirection.ATTACH
@@ -422,11 +439,11 @@ public class Call {
 
             self.playRingtone()
         }
-      
+
         if !isAttach {
             updateCallState(callState: .NEW)
         }
-        
+
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
         self.enableQualityMetrics = enableQualityMetrics
@@ -437,7 +454,9 @@ public class Call {
         self.callReportInterval = callReportInterval
         self.callReportLogLevel = callReportLogLevel
         self.callReportMaxLogEntries = callReportMaxLogEntries
-        
+        self.pushWhenActive = pushWhenActive
+        self.pushDeviceToken = pushDeviceToken
+
         // Initialize call report collector
         self.configureCallReportCollector()
     }
@@ -459,7 +478,9 @@ public class Call {
          enableCallReports: Bool = true,
          callReportInterval: TimeInterval = 5.0,
          callReportLogLevel: String = "debug",
-         callReportMaxLogEntries: Int = 1000) {
+         callReportMaxLogEntries: Int = 1000,
+         pushWhenActive: Bool = false,
+         pushDeviceToken: String? = nil) {
         self.direction = CallDirection.ATTACH
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
@@ -475,7 +496,7 @@ public class Call {
 
         // Configure iceServers
         self.iceServers = iceServers
-        
+
         self.debug = debug
         self.forceRelayCandidate = forceRelayCandidate
         self.sendWebRTCStatsViaSocket = sendWebRTCStatsViaSocket
@@ -485,7 +506,9 @@ public class Call {
         self.callReportInterval = callReportInterval
         self.callReportLogLevel = callReportLogLevel
         self.callReportMaxLogEntries = callReportMaxLogEntries
-        
+        self.pushWhenActive = pushWhenActive
+        self.pushDeviceToken = pushDeviceToken
+
         // Initialize call report collector
         self.configureCallReportCollector()
     }
@@ -505,7 +528,9 @@ public class Call {
          enableCallReports: Bool = true,
          callReportInterval: TimeInterval = 5.0,
          callReportLogLevel: String = "debug",
-         callReportMaxLogEntries: Int = 1000) {
+         callReportMaxLogEntries: Int = 1000,
+         pushWhenActive: Bool = false,
+         pushDeviceToken: String? = nil) {
         //Session obtained after login with the signaling socket
         self.sessionId = sessionId
         //this is the signaling server socket
@@ -529,7 +554,9 @@ public class Call {
         self.callReportInterval = callReportInterval
         self.callReportLogLevel = callReportLogLevel
         self.callReportMaxLogEntries = callReportMaxLogEntries
-        
+        self.pushWhenActive = pushWhenActive
+        self.pushDeviceToken = pushDeviceToken
+
         // Initialize call report collector
         self.configureCallReportCollector()
     }
@@ -1249,7 +1276,9 @@ extension Call : PeerDelegate {
 
             let answerMessage = AnswerMessage(sessionId: sessionId, sdp: sdp.sdp, callInfo: callInfo, callOptions: callOptions,
                                               customHeaders: self.answerCustomHeaders ?? [:],
-                                              trickle: self.useTrickleIce
+                                              trickle: self.useTrickleIce,
+                                              pushWhenActive: self.pushWhenActive,
+                                              pushDeviceToken: self.pushDeviceToken
             )
             let message = answerMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
@@ -1289,14 +1318,16 @@ extension Call {
                 let causeCode = params["causeCode"] as? Int
                 let sipCode = params["sipCode"] as? Int
                 let sipReason = params["sipReason"] as? String
+                let sipCallId = params["sip_call_id"] as? String
                 
                 // Only create a termination reason if we have at least one field
-                if cause != nil || causeCode != nil || sipCode != nil || sipReason != nil {
+                if cause != nil || causeCode != nil || sipCode != nil || sipReason != nil || sipCallId != nil {
                     terminationReason = CallTerminationReason(
                         cause: cause,
                         causeCode: causeCode,
                         sipCode: sipCode,
-                        sipReason: sipReason
+                        sipReason: sipReason,
+                        sipCallId: sipCallId
                     )
                 }
             }

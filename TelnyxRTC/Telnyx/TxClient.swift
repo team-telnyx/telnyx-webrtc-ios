@@ -600,14 +600,15 @@ public class TxClient {
         //Login into the signaling server
         if let token = storedConfig.token {
             Logger.log.i(message: "TxClient:: performLogin with Token, declinePush: \(declinePush)")
-            let vertoLogin = LoginMessage(token: token, 
-                                        pushDeviceToken: pushToken, 
+            let vertoLogin = LoginMessage(token: token,
+                                        pushDeviceToken: pushToken,
                                         pushNotificationProvider: pushProvider,
                                         startFromPush: self.isCallFromPush,
                                         pushEnvironment: storedConfig.pushEnvironment,
                                         sessionId: self.sessionId!,
                                         declinePush: declinePush,
-                                        enableMissedCallNotifications: storedConfig.enableMissedCallNotifications)
+                                        enableMissedCallNotifications: storedConfig.enableMissedCallNotifications,
+                                        pushWhenActive: storedConfig.pushWhenActive)
             self.socket?.sendMessage(message: vertoLogin.encode())
         } else {
             Logger.log.i(message: "TxClient:: performLogin with SIP User and Password, declinePush: \(declinePush)")
@@ -623,15 +624,16 @@ public class TxClient {
                 }
                 return
             }
-            let vertoLogin = LoginMessage(user: sipUser, 
-                                        password: password, 
-                                        pushDeviceToken: pushToken, 
+            let vertoLogin = LoginMessage(user: sipUser,
+                                        password: password,
+                                        pushDeviceToken: pushToken,
                                         pushNotificationProvider: pushProvider,
                                         startFromPush: self.isCallFromPush,
                                         pushEnvironment: storedConfig.pushEnvironment,
                                         sessionId: self.sessionId!,
                                         declinePush: declinePush,
-                                        enableMissedCallNotifications: storedConfig.enableMissedCallNotifications)
+                                        enableMissedCallNotifications: storedConfig.enableMissedCallNotifications,
+                                        pushWhenActive: storedConfig.pushWhenActive)
             self.socket?.sendMessage(message: vertoLogin.encode())
         }
         
@@ -1267,7 +1269,9 @@ extension TxClient {
                         enableCallReports: self.txConfig?.enableCallReports ?? true,
                         callReportInterval: self.txConfig?.callReportInterval ?? 5.0,
                         callReportLogLevel: self.txConfig?.callReportLogLevel ?? "debug",
-                        callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000)
+                        callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000,
+                        pushWhenActive: self.txConfig?.pushWhenActive ?? false,
+                        pushDeviceToken: self.txConfig?.pushNotificationConfig?.pushDeviceToken)
         call.newCall(callerName: callerName,
                      callerNumber: callerNumber,
                      destinationNumber: destinationNumber,
@@ -1350,7 +1354,9 @@ extension TxClient {
                         enableCallReports: self.txConfig?.enableCallReports ?? true,
                         callReportInterval: self.txConfig?.callReportInterval ?? 5.0,
                         callReportLogLevel: self.txConfig?.callReportLogLevel ?? "debug",
-                        callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000)
+                        callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000,
+                        pushWhenActive: self.txConfig?.pushWhenActive ?? false,
+                        pushDeviceToken: self.txConfig?.pushNotificationConfig?.pushDeviceToken)
         call.callInfo?.callerName = callerName
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)
@@ -1461,7 +1467,9 @@ extension TxClient {
                                                enableCallReports: self.txConfig?.enableCallReports ?? true,
                                                callReportInterval: self.txConfig?.callReportInterval ?? 5.0,
                                                callReportLogLevel: self.txConfig?.callReportLogLevel ?? "debug",
-                                               callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000)
+                                               callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000,
+                                               pushWhenActive: self.storedTxConfig?.pushWhenActive ?? false,
+                                               pushDeviceToken: self.storedTxConfig?.pushNotificationConfig?.pushDeviceToken)
                     self.currentCallId = callUUID
                 } else {
                     Logger.log.e(message: "TxClient:: processVoIPNotification - Invalid call_id, socket, or ICE servers. Cannot create call object.")
@@ -1523,9 +1531,10 @@ extension TxClient: CallProtocol {
         Logger.log.i(message: "TxClient:: callStateUpdated()")
 
         guard let callId = call.callInfo?.callId else { return }
+        let delegateCallId = self.delegateCallId(for: call.callState, fallbackCallId: callId)
         
         // Forward call state
-        self.delegate?.onCallStateUpdated(callState: call.callState, callId: callId)
+        self.delegate?.onCallStateUpdated(callState: call.callState, callId: delegateCallId)
 
         // Remove call if it has ended
         if case .DONE = call.callState,
@@ -1538,12 +1547,23 @@ extension TxClient: CallProtocol {
             
             //Forward call ended state with termination reason if available
             if case let .DONE(reason) = call.callState {
-                self.delegate?.onRemoteCallEnded(callId: callId, reason: reason)
+                self.delegate?.onRemoteCallEnded(callId: delegateCallId, reason: reason)
             } else {
-                self.delegate?.onRemoteCallEnded(callId: callId, reason: nil)
+                self.delegate?.onRemoteCallEnded(callId: delegateCallId, reason: nil)
             }
             self._isSpeakerEnabled = false
         }
+    }
+
+    private func delegateCallId(for callState: CallState, fallbackCallId: UUID) -> UUID {
+        guard case let .DONE(reason) = callState,
+              reason?.cause == "PICKED_OFF",
+              let sipCallId = reason?.sipCallId,
+              let sipCallUUID = UUID(uuidString: sipCallId) else {
+            return fallbackCallId
+        }
+
+        return sipCallUUID
     }
 
 }
@@ -1730,7 +1750,8 @@ extension TxClient : SocketDelegate {
                                           pushEnvironment: self.txConfig?.pushEnvironment,
                                           sessionId: self.sessionId!,
                                           declinePush: false,
-                                          enableMissedCallNotifications: self.txConfig?.enableMissedCallNotifications ?? false)
+                                          enableMissedCallNotifications: self.txConfig?.enableMissedCallNotifications ?? false,
+                                          pushWhenActive: self.txConfig?.pushWhenActive ?? false)
             self.socket?.sendMessage(message: vertoLogin.encode())
         } else {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with SIP User and Password")
@@ -1745,7 +1766,8 @@ extension TxClient : SocketDelegate {
                                           pushEnvironment: self.txConfig?.pushEnvironment,
                                           sessionId: self.sessionId!,
                                           declinePush: false,
-                                          enableMissedCallNotifications: self.txConfig?.enableMissedCallNotifications ?? false)
+                                          enableMissedCallNotifications: self.txConfig?.enableMissedCallNotifications ?? false,
+                                          pushWhenActive: self.txConfig?.pushWhenActive ?? false)
             self.socket?.sendMessage(message: vertoLogin.encode())
         }
     }

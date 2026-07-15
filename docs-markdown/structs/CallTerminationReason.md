@@ -41,9 +41,17 @@ public let sipReason: String?
 
 SIP reason phrase (e.g., "Dialed number is not included in whitelisted countries").
 
-## Methods
-### `init(cause:causeCode:sipCode:sipReason:)`
+### `sipCallId`
 
 ```swift
-public init(cause: String? = nil, causeCode: Int? = nil, sipCode: Int? = nil, sipReason: String? = nil)
+public let sipCallId: String?
+```
+
+SIP Call-ID associated with the terminated call, when provided by the signaling server.
+
+## Methods
+### `init(cause:causeCode:sipCode:sipReason:sipCallId:)`
+
+```swift
+public init(cause: String? = nil, causeCode: Int? = nil, sipCode: Int? = nil, sipReason: String? = nil, sipCallId: String? = nil)
 ```
