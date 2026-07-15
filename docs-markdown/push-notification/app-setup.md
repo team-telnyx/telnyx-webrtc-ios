@@ -163,8 +163,9 @@ By default, the iOS SDK treats VoIP push notifications as the wake-up signal for
 
 The `pushWhenActive` option on `TxConfig` opts a device in to the push-when-active multi-device flow. When enabled:
 
-- During login, the SDK advertises the device to the Telnyx backend as `push_when_active = "true"` so the device can receive incoming calls via push while the app is in the background or terminated.
-- When `call.answer()` is invoked, the SDK includes the device's PushKit VoIP token in the `telnyx_rtc.answer` payload as `answered_device_token`. The token is sourced internally from `pushDeviceToken`, so apps do not need to pass it again when answering.
+- During login, the SDK sends `push_device_token` and `push_when_active = "true"` in `userVariables`. This registers the APNS VoIP token for the user and tells the Telnyx backend that this device should be considered active for push routing.
+- The SDK keeps the configured `pushDeviceToken` in memory with the current `TxConfig` and propagates it to created `Call` objects.
+- When `call.answer()` is invoked, the SDK includes the same PushKit VoIP token in the `telnyx_rtc.answer` payload as `answered_device_token`. Apps do not need to pass it again when answering.
 
 ```Swift
 let txConfig = TxConfig(
@@ -181,6 +182,8 @@ let txConfigToken = TxConfig(
     pushWhenActive: true
 )
 ```
+
+The `pushDeviceToken` value is the VoIP token your app receives from PushKit/APNS in `pushRegistry(_:didUpdate:for:)`. Login does not create this token; login registers the token you provide in `TxConfig`.
 
 If `pushDeviceToken` is `nil` or empty when answering, the SDK omits `answered_device_token` from the payload. The default value of `pushWhenActive` is `false`, which preserves the existing single-device behaviour exactly — no extra fields are added to either the login or the answer payload.
 
@@ -233,18 +236,18 @@ extension AppDelegate: TxClientDelegate {
 }
 ```
 
-`CallTerminationReason` (delivered through `CallState.DONE(reason:)` and the `onRemoteCallEnded(callId:reason:)` callback) exposes the same fields documented in [Error Handling — Call Termination Reasons](/docs-markdown/error-handling/error-handling.md#call-termination-reasons). Common values for a normal end include `NORMAL_CLEARING` (SIP 200) and `ORIGINATOR_CANCEL` (SIP 487). Apps should treat both as expected outcomes — not as failures — when `pushWhenActive` is enabled.
+`CallTerminationReason` (delivered through `CallState.DONE(reason:)` and the `onRemoteCallEnded(callId:reason:)` callback) exposes the same fields documented in [Error Handling — Call Termination Reasons](/docs-markdown/error-handling/error-handling.md#call-termination-reasons). In answered-elsewhere flows, the socket BYE commonly arrives as `PICKED_OFF` (`causeCode` 805, SIP 487). Apps should treat this as an expected outcome — not as a failure — when `pushWhenActive` is enabled.
 
 #### CallKit behavior
 
-When a CallKit call has already been reported for the incoming push, your app must end that CallKit call when another device answers. Use `.remoteEnded` so the system logs the call as ended by the remote side, matching the answered-elsewhere outcome:
+When a CallKit call has already been reported for the incoming push, your app must end that CallKit call when another device answers. Use `.answeredElsewhere` so the system logs the call with the matching answered-elsewhere outcome:
 
 ```Swift
 import CallKit
 
 func endCallKitCall(callUUID: UUID) {
     // Use the CXProvider that reported the incoming call.
-    callKitProvider.reportCall(with: callUUID, endedAt: Date(), reason: .remoteEnded)
+    callKitProvider.reportCall(with: callUUID, endedAt: Date(), reason: .answeredElsewhere)
 }
 ```
 
@@ -255,7 +258,7 @@ Failing to end the CallKit call will leave the system call UI in a stale state a
 1. The app connects with `pushWhenActive: true` and a non-empty `pushDeviceToken`.
 2. The SDK registers the device's VoIP push token with Telnyx.
 3. An incoming call is delivered to multiple devices (push to iOS, WebSocket to web).
-4. One device answers — the backend ends the remaining call attempts.
+4. One device answers — the backend ends the remaining call attempts, commonly with a `PICKED_OFF` BYE on active sockets or an answered-elsewhere VoIP push for devices that need push cleanup.
 5. The remaining iOS apps see `CallState.DONE(reason:)` and dismiss the incoming-call UI.
 
 ## Disable Push Notification
