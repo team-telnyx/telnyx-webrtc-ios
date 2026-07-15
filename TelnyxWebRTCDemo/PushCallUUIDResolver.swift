@@ -8,10 +8,6 @@ import CallKit
 
 enum PushCallUUIDResolver {
 
-    static func shouldDismissCall(forAlert alert: String) -> Bool {
-        callEndedReason(forAlert: alert) != nil
-    }
-
     static func callEndedReason(forAlert alert: String) -> CXCallEndedReason? {
         switch alert {
         case "Missed call!":

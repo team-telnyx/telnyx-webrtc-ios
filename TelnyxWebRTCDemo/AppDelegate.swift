@@ -184,7 +184,6 @@ extension AppDelegate: PKPushRegistryDelegate {
         // Check if this notification should dismiss an existing CallKit call.
         if let aps = payload.dictionaryPayload["aps"] as? [String: Any],
            let alert = aps["alert"] as? String,
-           PushCallUUIDResolver.shouldDismissCall(forAlert: alert),
            let callEndedReason = PushCallUUIDResolver.callEndedReason(forAlert: alert) {
             PushCallUUIDResolver.handleMissedCall(
                 metadata: payload.dictionaryPayload["metadata"] as? [String: Any],

@@ -7,12 +7,6 @@ import XCTest
 
 final class PushCallUUIDResolverTests: XCTestCase {
 
-    func testDismissalAlertsIncludeMissedCallAndAnsweredElsewhere() {
-        XCTAssertTrue(PushCallUUIDResolver.shouldDismissCall(forAlert: "Missed call!"))
-        XCTAssertTrue(PushCallUUIDResolver.shouldDismissCall(forAlert: "Answered Elsewhere"))
-        XCTAssertFalse(PushCallUUIDResolver.shouldDismissCall(forAlert: "Incoming call!"))
-    }
-
     func testDismissalAlertsMapToCallKitEndedReasons() {
         XCTAssertEqual(PushCallUUIDResolver.callEndedReason(forAlert: "Missed call!"), .unanswered)
         XCTAssertEqual(PushCallUUIDResolver.callEndedReason(forAlert: "Answered Elsewhere"), .answeredElsewhere)
