@@ -172,13 +172,152 @@ let txConfig = TxConfig(
 )
 ```
 
+The `pushDeviceToken` value is the VoIP token your app receives from PushKit/APNS in `pushRegistry(_:didUpdate:for:)`. Login does not create this token; login registers the token you provide in `TxConfig`.
+
 When `pushWhenActive` is `true`:
 
 1. The login payload includes `push_when_active = "true"` in `userVariables` so the backend treats this device as active for push routing.
 2. When `call.answer()` is invoked, the SDK sends `answered_device_token` (the same PushKit VoIP token supplied through `TxConfig(pushDeviceToken:)`) inside the `telnyx_rtc.answer` payload. The token is sourced internally from `pushNotificationConfig.pushDeviceToken`, so apps do not need to pass it again at answer time.
-3. If no `pushDeviceToken` is configured (or it is an empty string), the `answered_device_token` field is omitted — the SDK never sends an empty token.
+3. If no `pushDeviceToken` is configured, or it is empty or whitespace-only, the `answered_device_token` field is omitted — the SDK never sends an unusable token.
 
-The default value of `pushWhenActive` is `false`, which preserves the existing single-device behaviour exactly (no field is added to either the login or the answer payload).
+The default value of `pushWhenActive` is `false`, which preserves the existing single-device behaviour exactly — no extra fields are added to either the login or the answer payload.
+
+`call.answer()` is unchanged:
+
+```Swift
+call.answer()
+```
+
+### Handling calls answered on another device
+
+When `pushWhenActive` is enabled, an incoming call can be delivered to more than one client or device. A web client may receive the call over an active WebSocket while iOS devices receive VoIP pushes. When one device answers, the Telnyx backend ends the call attempts on the remaining devices.
+
+iOS apps should treat this as a normal **answered-elsewhere** outcome, not as a call failure. From the app's perspective, the call simply ends after the user has chosen to ignore the prompt — there is nothing to recover from and nothing to retry.
+
+Your app should:
+
+- dismiss the incoming-call UI
+- stop any ringtone or vibration
+- end the CallKit call if one is active
+- mark the call as ended (or as answered elsewhere) in your own state
+- avoid showing an error to the user
+
+The SDK exposes the call termination through `CallState.DONE(reason:)` on the `TxClientDelegate` callback. Use the `reason` payload only for diagnostics — answered-elsewhere is a normal end and should not surface as an error.
+
+```Swift
+extension AppDelegate: TxClientDelegate {
+    func onCallStateUpdated(callState: CallState, callId: UUID) {
+        switch callState {
+        case .DONE(let terminationReason):
+            // Call ended normally — this covers user hangup, remote hangup,
+            // INVITE timeout, AND the "answered on another device" case.
+            // Do not show an error to the user for any of these.
+            incomingCallUI.dismiss()
+            ringtonePlayer.stop()
+            endCallKitCall(callUUID: callId)
+
+            if let reason = terminationReason {
+                // Diagnostics only — never display to end users.
+                print("Call ended: cause=\(reason.cause ?? "nil") "
+                    + "sipCode=\(reason.sipCode ?? 0)")
+            }
+        // ...other states (NEW, CONNECTING, RINGING, ACTIVE, HELD, ...)
+        default:
+            break
+        }
+    }
+
+    // ...other TxClientDelegate methods
+}
+```
+
+`CallTerminationReason` (delivered through `CallState.DONE(reason:)` and the `onRemoteCallEnded(callId:reason:)` callback) exposes the same fields documented in [Error Handling — Call Termination Reasons](/docs-markdown/error-handling/error-handling.md#call-termination-reasons). In answered-elsewhere flows, the socket BYE commonly arrives as `PICKED_OFF` (`causeCode` 805, SIP 487). Apps should treat this as an expected outcome — not as a failure — when `pushWhenActive` is enabled.
+
+#### CallKit behavior
+
+When a CallKit call has already been reported for the incoming push, your app must end that CallKit call when another device answers. Use `.answeredElsewhere` so the system logs the call with the matching answered-elsewhere outcome:
+
+```Swift
+import CallKit
+
+func endCallKitCall(callUUID: UUID) {
+    // Use the CXProvider that reported the incoming call.
+    callKitProvider.reportCall(with: callUUID, endedAt: Date(), reason: .answeredElsewhere)
+}
+```
+
+Failing to end the CallKit call will leave the system call UI in a stale state and may block subsequent calls on that UUID. End the CallKit call from the same place you dismiss your own incoming-call UI — typically the `CallState.DONE` branch above.
+
+#### PushKit cleanup notifications
+
+Some answered-elsewhere and missed-call outcomes can arrive as VoIP pushes instead of, or in addition to, a socket BYE. These pushes are cleanup signals, not new incoming calls. Handle both alert strings through the same CallKit dismissal path:
+
+```Swift
+func pushRegistry(
+    _ registry: PKPushRegistry,
+    didReceiveIncomingPushWith payload: PKPushPayload,
+    for type: PKPushType,
+    completion: @escaping () -> Void
+) {
+    defer { completion() }
+
+    guard type == .voIP else { return }
+
+    let payloadDictionary = payload.dictionaryPayload
+    let aps = payloadDictionary["aps"] as? [String: Any]
+    let alert = aps?["alert"] as? String
+
+    if let callEndedReason = callEndedReason(forPushAlert: alert) {
+        let metadata = payloadDictionary["metadata"] as? [String: Any]
+        let callId = metadata?["call_id"] as? String
+        let metadataUUID = callId.flatMap { UUID(uuidString: $0) }
+
+        // Prefer the push call_id when present. If the cleanup push does not
+        // include call_id, use the CallKit UUID saved when the original
+        // incoming push was reported.
+        if let callUUID = metadataUUID ?? currentIncomingCallKitUUID {
+            reportPushCleanupCall(callUUID: callUUID, reason: callEndedReason)
+        }
+
+        return
+    }
+
+    // Otherwise process the payload as a normal incoming call.
+    handleIncomingVoIPPush(payload)
+}
+
+func callEndedReason(forPushAlert alert: String?) -> CXCallEndedReason? {
+    switch alert {
+    case "Missed call!":
+        return .unanswered
+    case "Answered Elsewhere":
+        return .answeredElsewhere
+    default:
+        return nil
+    }
+}
+
+func reportPushCleanupCall(callUUID: UUID, reason: CXCallEndedReason) {
+    let temporaryUUID = UUID()
+    let update = CXCallUpdate()
+    update.remoteHandle = CXHandle(type: .generic, value: " ")
+
+    callKitProvider.reportNewIncomingCall(with: temporaryUUID, update: update) { _ in
+        callKitProvider.reportCall(with: callUUID, endedAt: Date(), reason: reason)
+        callKitProvider.reportCall(with: temporaryUUID, endedAt: Date(), reason: reason)
+    }
+}
+```
+
+The `reason` parameter is required by `CXProvider.reportCall(with:endedAt:reason:)`. Use `.unanswered` for `"Missed call!"` cleanup and `.answeredElsewhere` for `"Answered Elsewhere"` cleanup. Use the same reason for the temporary CallKit call that satisfies PushKit's requirement that every VoIP push reports a CallKit call.
+
+### Expected flow
+
+1. The app connects with `pushWhenActive: true` and a non-empty `pushDeviceToken`.
+2. The SDK registers the device's VoIP push token with Telnyx.
+3. An incoming call is delivered to multiple devices (push to iOS, WebSocket to web).
+4. One device answers — the backend ends the remaining call attempts, commonly with a `PICKED_OFF` BYE on active sockets or an answered-elsewhere VoIP push for devices that need push cleanup.
+5. The remaining iOS apps see `CallState.DONE(reason:)` and dismiss the incoming-call UI.
 
 ## Disable Push Notification
 

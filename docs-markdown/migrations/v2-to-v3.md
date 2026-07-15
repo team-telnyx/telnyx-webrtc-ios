@@ -16,7 +16,7 @@ Version 3.0.0 introduces significant improvements to push notification handling 
 
 Starting in v3.0.0, Telnyx servers send "Missed call!" VoIP push notifications to all v3.x clients when a call is rejected remotely or missed. v2.x clients do not receive these notifications.
 
-Per Apple's PushKit policy, every VoIP push notification **must** have a corresponding `reportNewIncomingCall` to CallKit. Since the original incoming call was already reported, the missed call push is a second delivery that also needs its own `reportNewIncomingCall`. The workaround is to report a temporary dummy call and immediately end both.
+Per Apple's PushKit policy, every VoIP push notification **must** have a corresponding `reportNewIncomingCall` to CallKit. Since the original incoming call was already reported, the missed call push is a second delivery that also needs its own `reportNewIncomingCall`. The workaround is to report a temporary CallKit call and immediately end both.
 
 **Failure to handle these notifications will result in:**
 - Apple disabling VoIP push notification delivery to your app
@@ -55,7 +55,7 @@ func handleVoIPPushNotification(payload: PKPushPayload) {
 ///
 /// Apple requires every VoIP push to have a corresponding `reportNewIncomingCall`.
 /// Since the original incoming call was already reported, we report a temporary
-/// dummy call for this second VoIP push and immediately end both calls.
+/// CallKit call for this second VoIP push and immediately end both calls.
 func handleMissedCallNotification(callUUID: UUID) {
     guard let provider = callKitProvider else { return }
 
@@ -65,9 +65,9 @@ func handleMissedCallNotification(callUUID: UUID) {
 
     provider.reportNewIncomingCall(with: tempUUID, update: update) { _ in
         // End the original incoming call that is ringing in CallKit
-        provider.reportCall(with: callUUID, endedAt: Date(), reason: .answeredElsewhere)
-        // End the temporary dummy call
-        provider.reportCall(with: tempUUID, endedAt: Date(), reason: .answeredElsewhere)
+        provider.reportCall(with: callUUID, endedAt: Date(), reason: .unanswered)
+        // End the temporary CallKit call
+        provider.reportCall(with: tempUUID, endedAt: Date(), reason: .unanswered)
     }
 
     // Clean up any stored call references
