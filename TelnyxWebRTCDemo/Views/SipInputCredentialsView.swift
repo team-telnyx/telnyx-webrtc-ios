@@ -62,6 +62,7 @@ struct SipInputCredentialsView: View {
                     TextField("Enter token", text: $tokenCallerId)
                         .padding(.horizontal, 10)
                         .frame(height: 40)
+                        .accessibilityIdentifier(AccessibilityIdentifiers.tokenTextField)
                 }
                 .background(RoundedRectangle(cornerRadius: 4)
                     .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
@@ -73,6 +74,7 @@ struct SipInputCredentialsView: View {
                     TextField("Enter caller number", text: $callerIdNumber)
                         .padding(.horizontal, 10)
                         .frame(height: 40)
+                        .accessibilityIdentifier(AccessibilityIdentifiers.callerNumberTextField)
                 }
                 .background(RoundedRectangle(cornerRadius: 4)
                     .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
@@ -84,6 +86,7 @@ struct SipInputCredentialsView: View {
                     TextField("Enter caller name", text: $callerName)
                         .padding(.horizontal, 10)
                         .frame(height: 40)
+                        .accessibilityIdentifier(AccessibilityIdentifiers.callerNameTextField)
                 }
                 .background(RoundedRectangle(cornerRadius: 4)
                     .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
@@ -135,6 +138,7 @@ struct SipInputCredentialsView: View {
                             .foregroundColor(Color(hex: "#525252"))
                             .padding(.trailing, 10)
                     }
+                    .accessibilityIdentifier(AccessibilityIdentifiers.togglePasswordVisibilityButton)
                 }
                 .background(RoundedRectangle(cornerRadius: 4)
                     .stroke(hasError ? Color(hex: "#D40000") : Color(hex: "#525252"), lineWidth: 2))
@@ -235,5 +239,4 @@ struct SipInputCredentialsView: View {
         }
     }
 }
-
 

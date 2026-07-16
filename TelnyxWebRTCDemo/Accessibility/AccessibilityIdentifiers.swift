@@ -15,6 +15,8 @@ enum AccessibilityIdentifiers {
     static let createUserButton = "createUserButton"
     static let addProfileButton = "addProfileButton"
     static let signInButton = "signInButton"
+    static let tokenTextField = "tokenTextField"
+    static let togglePasswordVisibilityButton = "togglePasswordVisibilityButton"
     
     // User Selection
     static let userSelectionBottomSheet = "userSelectionBottomSheet"
@@ -42,6 +44,7 @@ enum AccessibilityIdentifiers {
     static let speakerButton = "speakerButton"
     static let holdButton = "holdButton"
     static let dtmfButton = "dtmfButton"
+    static let callMetricsButton = "callMetricsButton"
     
     // DTMF Pad
     static let dtmfPad = "dtmfPad"

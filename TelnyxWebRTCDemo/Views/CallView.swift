@@ -249,7 +249,7 @@ struct CallView: View {
                                 .background(Color(hex: "#F5F3E4"))
                                 .clipShape(Circle())
                         }
-                        .accessibilityIdentifier("callMetricsButton")
+                        .accessibilityIdentifier(AccessibilityIdentifiers.callMetricsButton)
                         
                         Button(action: {
                             onIceRestart()
