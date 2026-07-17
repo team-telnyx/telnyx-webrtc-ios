@@ -525,9 +525,7 @@ extension HomeViewController {
                                 // Send WebRTC Stats Via Socket
                                 sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket,
                                 // Use Trickle ICE
-                                useTrickleIce: useTrickleIce,
-                                // Enable Push When Active
-                                pushWhenActive: false)
+                                useTrickleIce: useTrickleIce,)
         } else if let credential = sipCredential {
             // To obtain SIP credentials, please go to https://portal.telnyx.com
             txConfig = TxConfig(sipUser: credential.username,
@@ -549,9 +547,7 @@ extension HomeViewController {
                                 // Send WebRTC Stats Via Socket
                                 sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket,
                                 // Use Trickle ICE
-                                useTrickleIce: useTrickleIce,
-                                // Enable Push When Active
-                                pushWhenActive: false)
+                                useTrickleIce: useTrickleIce)
         }
 
         guard let config = txConfig else {

@@ -235,47 +235,6 @@ final class PushWhenActiveTests: XCTestCase {
 
     // MARK: - TxClient: picked-off delegate call ID remap
 
-    func testCallKitAliasResolvesToSocketCallIdForSignaling() {
-        let socketCallId = UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
-        let parentCallId = UUID(uuidString: "33333333-3333-3333-3333-333333333333")!
-        let client = TxClient()
-
-        client.registerCallKitAlias(callKitId: parentCallId, socketCallId: socketCallId)
-
-        XCTAssertEqual(client.signalingCallId(forCallKitId: parentCallId), socketCallId)
-        XCTAssertEqual(client.appCallId(forSocketCallId: socketCallId), parentCallId)
-    }
-
-    func testPickedOffCallStateUsesMappedCallKitIdBeforeSipCallId() {
-        let socketCallId = UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
-        let sipCallId = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
-        let parentCallId = UUID(uuidString: "33333333-3333-3333-3333-333333333333")!
-        let client = TxClient()
-        let delegate = PickedOffCallIdDelegate()
-        client.delegate = delegate
-        client.registerCallKitAlias(callKitId: parentCallId, socketCallId: socketCallId)
-
-        let call = Call(callId: socketCallId,
-                        remoteSdp: "v=0\r\n",
-                        sessionId: "session-1",
-                        socket: Socket(),
-                        delegate: client,
-                        iceServers: [],
-                        enableCallReports: false)
-        client.calls[socketCallId] = call
-
-        let reason = CallTerminationReason(cause: "PICKED_OFF",
-                                           causeCode: 805,
-                                           sipCode: 487,
-                                           sipCallId: sipCallId.uuidString)
-        call.updateCallState(callState: .DONE(reason: reason))
-
-        XCTAssertEqual(delegate.callStateUpdatedIds, [parentCallId])
-        XCTAssertEqual(delegate.remoteCallEndedIds, [parentCallId])
-        XCTAssertNil(client.calls[socketCallId])
-        XCTAssertEqual(client.signalingCallId(forCallKitId: parentCallId), parentCallId)
-    }
-
     func testPickedOffCallStateUsesSipCallIdForDelegateCallbacks() {
         let socketCallId = UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
         let pushCallId = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
