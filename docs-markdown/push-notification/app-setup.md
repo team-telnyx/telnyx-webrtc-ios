@@ -86,13 +86,13 @@ extension AppDelegate: PKPushRegistryDelegate {
     func handleVoIPPushNotification(payload: PKPushPayload) {
         if let metadata = payload.dictionaryPayload["metadata"] as? [String: Any] {
 
-            let callKitId = (metadata["parent_call_id"] as? String) ?? (metadata["call_id"] as? String)
+            let callId = metadata["call_id"] as? String
             let callerName = (metadata["caller_name"] as? String) ?? ""
             let callerNumber = (metadata["caller_number"] as? String) ?? ""
             let caller = callerName.isEmpty ? (callerNumber.isEmpty ? "Unknown" : callerNumber) : callerName
             
 
-            guard let callKitId = callKitId, let uuid = UUID(uuidString: callKitId) else { return }
+            let uuid = UUID(uuidString: callId)
             
             // Re-connect the client and process the push notification when is received.
             // You will need to use the credentials of the same user that is receiving the call. 
@@ -178,9 +178,7 @@ When `pushWhenActive` is `true`:
 
 1. The login payload includes `push_when_active = "true"` in `userVariables` so the backend treats this device as active for push routing.
 2. When `call.answer()` is invoked, the SDK sends `answered_device_token` (the same PushKit VoIP token supplied through `TxConfig(pushDeviceToken:)`) inside the `telnyx_rtc.answer` payload. The token is sourced internally from `pushNotificationConfig.pushDeviceToken`, so apps do not need to pass it again at answer time.
-3. If push metadata includes `parent_call_id`, apps should use it as the CallKit UUID and fall back to `call_id` when it is missing. The SDK maps that CallKit ID to the socket `callID` internally after the INVITE arrives.
-4. If the socket is already connected and the INVITE arrives without a push, the SDK uses the INVITE variable `telnyx_rtc_svar_parent_call_id` for the same CallKit-to-socket mapping.
-5. If no `pushDeviceToken` is configured, or it is empty or whitespace-only, the `answered_device_token` field is omitted — the SDK never sends an unusable token.
+3. If no `pushDeviceToken` is configured, or it is empty or whitespace-only, the `answered_device_token` field is omitted — the SDK never sends an unusable token.
 
 The default value of `pushWhenActive` is `false`, which preserves the existing single-device behaviour exactly — no extra fields are added to either the login or the answer payload.
 
