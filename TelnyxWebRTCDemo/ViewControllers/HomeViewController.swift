@@ -527,7 +527,7 @@ extension HomeViewController {
                                 // Use Trickle ICE
                                 useTrickleIce: useTrickleIce,
                                 // Enable Push When Active
-                                pushWhenActive: true)
+                                pushWhenActive: false)
         } else if let credential = sipCredential {
             // To obtain SIP credentials, please go to https://portal.telnyx.com
             txConfig = TxConfig(sipUser: credential.username,
@@ -551,7 +551,7 @@ extension HomeViewController {
                                 // Use Trickle ICE
                                 useTrickleIce: useTrickleIce,
                                 // Enable Push When Active
-                                pushWhenActive: true)
+                                pushWhenActive: false)
         }
 
         guard let config = txConfig else {

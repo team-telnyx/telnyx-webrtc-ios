@@ -674,6 +674,7 @@ public class TxClient {
         self.calls.removeAll()
         self.stopReconnectTimeout()
         self.stopInviteTimeout()
+        self.pendingPushCallKitId = nil
 
         // Clear AI Assistant Manager data
         self.aiAssistantManager.clearAllData()
@@ -820,6 +821,7 @@ public class TxClient {
     }
 
     func registerCallKitAlias(callKitId: UUID, socketCallId: UUID) {
+        pendingPushCallKitId = nil
         guard callKitId != socketCallId else { return }
         socketCallIdByCallKitId[callKitId] = socketCallId
         callKitIdBySocketCallId[socketCallId] = callKitId
@@ -1409,9 +1411,11 @@ extension TxClient {
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)
         call.inviteCustomHeaders = customHeaders
-        if let callKitId = callKitId, callKitId != callId {
+        if let callKitId = callKitId {
             registerCallKitAlias(callKitId: callKitId, socketCallId: callId)
-            calls.removeValue(forKey: callKitId)
+            if callKitId != callId {
+                calls.removeValue(forKey: callKitId)
+            }
         }
         self.calls[callId] = call
         // propagate the incoming call to the App
@@ -1615,7 +1619,8 @@ extension TxClient: CallProtocol {
 
     private func delegateCallId(for callState: CallState, fallbackCallId: UUID) -> UUID {
         // App callbacks use the CallKit parent ID; answer/end remap it back to socket callID.
-        if let mappedCallId = callKitIdBySocketCallId[fallbackCallId] {
+        let mappedCallId = appCallId(forSocketCallId: fallbackCallId)
+        if mappedCallId != fallbackCallId {
             return mappedCallId
         }
 

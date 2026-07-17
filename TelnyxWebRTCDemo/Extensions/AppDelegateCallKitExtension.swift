@@ -437,7 +437,7 @@ extension AppDelegate : CXProviderDelegate {
                                     // Use Trickle ICE
                                     useTrickleIce: useTrickleIce,
                                     // Enable Push When Active
-                                    pushWhenActive: true)
+                                    pushWhenActive: false)
 
             do {
                 try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)
@@ -477,7 +477,7 @@ extension AppDelegate : CXProviderDelegate {
                                     // Use Trickle ICE
                                     useTrickleIce: useTrickleIce,
                                     // Enable Push When Active
-                                    pushWhenActive: true)
+                                    pushWhenActive: false)
 
             do {
                 try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)
