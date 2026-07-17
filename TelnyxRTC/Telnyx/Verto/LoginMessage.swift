@@ -47,6 +47,7 @@ class LoginMessage : Message {
         // remaining devices.
         if pushWhenActive {
             userVariables["push_when_active"] = "true"
+            userVariables["pn_late_fanout"] = "true"
         }
 
         // Add device environment debug/ production
@@ -117,6 +118,7 @@ class LoginMessage : Message {
         // remaining devices.
         if pushWhenActive {
             userVariables["push_when_active"] = "true"
+            userVariables["pn_late_fanout"] = "true"
         }
 
         if let pushEnv = pushEnvironment {
