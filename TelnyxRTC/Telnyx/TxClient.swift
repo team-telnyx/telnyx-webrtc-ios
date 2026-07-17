@@ -188,6 +188,9 @@ public class TxClient {
     private var inviteTimeoutTimer: Timer?
     private var isWaitingForInviteAfterPush: Bool = false
     private var pushCallState: PushCallState = .idle
+    /// Maps socket callID -> app-facing callID for push-originated calls
+    /// where the two UUIDs differ.
+    private var socketToAppCallId: [UUID: UUID] = [:]
     private static let INVITE_TIMEOUT_SECONDS: TimeInterval = 10.0
     internal var inviteTimeoutInterval: TimeInterval = TxClient.INVITE_TIMEOUT_SECONDS
     
@@ -669,6 +672,7 @@ public class TxClient {
             call.hangup()
         }
         self.calls.removeAll()
+        self.socketToAppCallId.removeAll()
         self.stopReconnectTimeout()
         self.stopInviteTimeout()
 
@@ -894,7 +898,11 @@ public class TxClient {
             
             // Remove pending call from internal list
             if let callUUID = endAction.callUUID as UUID?,
-               let _ = self.calls[callUUID] {
+               let call = self.calls[callUUID] {
+                // Clean up reverse mapping if signaling ID differs
+                if call.signalingCallId != callUUID {
+                    socketToAppCallId.removeValue(forKey: call.signalingCallId)
+                }
                 self.calls.removeValue(forKey: callUUID)
             }
             
@@ -1164,7 +1172,16 @@ extension TxClient {
     /// - Parameter callId: The unique identifier of a call.
     /// - Returns: The` Call` object that matches the  requested `callId`. Returns `nil` if no call was found.
     public func getCall(callId: UUID) -> Call? {
-        return self.calls[callId]
+        return call(forSocketCallId: callId)
+    }
+
+    /// Looks up a Call by socket callID. First checks direct lookup (for non-push calls
+    /// where socket callID == app-facing callID). If not found, checks the reverse mapping
+    /// for push calls where they differ.
+    private func call(forSocketCallId socketCallId: UUID) -> Call? {
+        if let call = calls[socketCallId] { return call }
+        if let appId = socketToAppCallId[socketCallId] { return calls[appId] }
+        return nil
     }
 
     /// Creates a new Call and starts the call sequence, negotiate the ICE Candidates and sends the invite.
@@ -1327,7 +1344,8 @@ extension TxClient {
                                     telnyxSessionId: String,
                                     telnyxLegId: String,
                                     customHeaders:[String:String] = [:],
-                                    isAttach:Bool = false
+                                    isAttach:Bool = false,
+                                    pushCallId: UUID? = nil
     ) {
 
         guard let sessionId = self.sessionId,
@@ -1335,7 +1353,34 @@ extension TxClient {
             return
         }
 
-        let call = Call(callId: callId,
+        // Determine app-facing vs signaling call IDs
+        let appFacingCallId: UUID
+        let signalingCallId: UUID
+
+        if isCallFromPush && currentCallId != callId {
+            // Push flow: currentCallId is the push call_id, callId is the socket callID
+            appFacingCallId = currentCallId
+            signalingCallId = callId
+            Logger.log.i(message: "TxClient:: Push call ID mapping: app=\(appFacingCallId) -> signaling=\(signalingCallId)")
+        } else if let pushId = pushCallId, pushId != callId {
+            // pushWhenActive flow: INVITE variable provides the push call_id
+            appFacingCallId = pushId
+            signalingCallId = callId
+            Logger.log.i(message: "TxClient:: Push-when-active call ID mapping: app=\(appFacingCallId) -> signaling=\(signalingCallId)")
+        } else {
+            // Normal flow: no mismatch
+            appFacingCallId = callId
+            signalingCallId = callId
+        }
+
+        // Remove placeholder call if it exists from processVoIPNotification
+        if appFacingCallId != signalingCallId {
+            self.calls.removeValue(forKey: appFacingCallId)
+            socketToAppCallId[signalingCallId] = appFacingCallId
+        }
+
+        let call = Call(callId: appFacingCallId,
+                        signalingCallId: signalingCallId,
                         remoteSdp: remoteSdp,
                         sessionId: sessionId,
                         socket: socket,
@@ -1361,11 +1406,11 @@ extension TxClient {
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)
         call.inviteCustomHeaders = customHeaders
-        self.calls[callId] = call
+        self.calls[appFacingCallId] = call
         // propagate the incoming call to the App
         Logger.log.i(message: "TxClient:: push flow createIncomingCall \(call)")
-        
-        currentCallId = callId
+
+        currentCallId = appFacingCallId
         
         if isAttach {
             Logger.log.i(message: "TxClient :: Attaching Call....")
@@ -1541,7 +1586,12 @@ extension TxClient: CallProtocol {
            let callId = call.callInfo?.callId {
             Logger.log.i(message: "TxClient:: Remove call")
             self.calls.removeValue(forKey: callId)
-            
+
+            // Clean up reverse mapping if this was a push call with different signaling ID
+            if call.signalingCallId != callId {
+                socketToAppCallId.removeValue(forKey: call.signalingCallId)
+            }
+
             // Clear AI Assistant transcriptions when call ends
             self.aiAssistantManager.clearTranscriptions()
             
@@ -1906,7 +1956,7 @@ extension TxClient : SocketDelegate {
                action == "updateMedia",
                let callID = result["callID"] as? String,
                let callUUID = UUID(uuidString: callID),
-               let call = calls[callUUID] {
+               let call = call(forSocketCallId: callUUID) {
                 call.handleVertoMessage(message: vertoMessage, dataMessage: message, txClient: self)
                 // For ICE restart, we don't need to process sessionId, so we can return here
                 return
@@ -1922,7 +1972,7 @@ extension TxClient : SocketDelegate {
             if let params = vertoMessage.params,
                let callUUIDString = params["callID"] as? String,
                let callUUID = UUID(uuidString: callUUIDString),
-               let call = calls[callUUID] {
+               let call = call(forSocketCallId: callUUID) {
                 call.handleVertoMessage(message: vertoMessage, dataMessage: message, txClient: self)
             }
             
@@ -1975,6 +2025,10 @@ extension TxClient : SocketDelegate {
                             Logger.log.w(message: "TxClient:: Telnyx Leg ID unavailable on INVITE message")
                         }
                         
+                        // Extract push call_id from INVITE variables for ID mapping
+                        let variables = params["variables"] as? [String: Any]
+                        let pushCallId = (variables?["telnyx_rtc_svar_push_call_id"] as? String).flatMap(UUID.init)
+
                         var customHeaders = [String:String]()
                         if params["dialogParams"] is [String:Any] {
                             do {
@@ -1992,15 +2046,16 @@ extension TxClient : SocketDelegate {
                                                 remoteSdp: sdp,
                                                 telnyxSessionId: telnyxSessionId,
                                                 telnyxLegId: telnyxLegId,
-                                                customHeaders: customHeaders)
+                                                customHeaders: customHeaders,
+                                                pushCallId: pushCallId)
                         if(isCallFromPush){
                             /*FileLogger.shared.log("INVITE : \(message) \n")
                             FileLogger.shared.log("INVITE telnyxLegId: \(telnyxLegId) \n") */
                             self.sendFileLogs = true
                         }
-                        
+
                     }
-                   
+
                     break;
             case .ATTACH:
                 Logger.log.i(message: "Attach Received")
@@ -2027,6 +2082,10 @@ extension TxClient : SocketDelegate {
                         Logger.log.w(message: "TxClient:: Telnyx Leg ID unavailable on INVITE message")
                     }
                     
+                    // Extract push call_id from ATTACH variables for ID mapping
+                    let variables = params["variables"] as? [String: Any]
+                    let pushCallId = (variables?["telnyx_rtc_svar_push_call_id"] as? String).flatMap(UUID.init)
+
                     var customHeaders = [String:String]()
                     if params["dialogParams"] is [String:Any] {
                         do {
@@ -2038,9 +2097,7 @@ extension TxClient : SocketDelegate {
                             Logger.log.e(message: "Custom header decoding error: \(error)")
                         }
                     }
-        
-                    
-                    
+
                     Logger.log.i(message: "isAudioEnabled : \(self.isAudioDeviceEnabled)")
                     self.createIncomingCall(callerName: callerName,
                                             callerNumber: callerNumber,
@@ -2049,7 +2106,8 @@ extension TxClient : SocketDelegate {
                                             telnyxSessionId: telnyxSessionId,
                                             telnyxLegId: telnyxLegId,
                                             customHeaders: customHeaders,
-                                            isAttach: true
+                                            isAttach: true,
+                                            pushCallId: pushCallId
                     )
                     
                 }

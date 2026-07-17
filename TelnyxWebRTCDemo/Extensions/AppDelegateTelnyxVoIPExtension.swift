@@ -51,6 +51,7 @@ extension AppDelegate: TxClientDelegate {
             return
         }
         print("AppDelegate:: TxClientDelegate onIncomingCall() callKitUUID [\(String(describing: self.callKitUUID))] callId [\(callId)]")
+        print("📞 [ID-MAP] onIncomingCall -> appFacingId: \(callId) | callKitUUID: \(self.callKitUUID?.uuidString ?? "nil") | match: \(callId == self.callKitUUID)")
 
         self.callKitUUID = call.callInfo?.callId
         self.previousCall = self.currentCall
@@ -63,6 +64,7 @@ extension AppDelegate: TxClientDelegate {
     
     func onPushCall(call: Call) {
         print("AppDelegate:: TxClientDelegate onPushCall() \(call)")
+        print("📞 [ID-MAP] onPushCall -> appFacingId: \(call.callInfo?.callId.uuidString ?? "nil") | callKitUUID: \(self.callKitUUID?.uuidString ?? "nil") | match: \(call.callInfo?.callId == self.callKitUUID)")
         self.currentCall = call //Update the current call with the incoming call
         let headers = call.inviteCustomHeaders
         print("Custom Headers onPushCall: \(headers as AnyObject)")
@@ -70,6 +72,7 @@ extension AppDelegate: TxClientDelegate {
     
     func onRemoteCallEnded(callId: UUID, reason: CallTerminationReason? = nil) {
         print("AppDelegate:: TxClientDelegate onRemoteCallEnded() callKitUUID [\(String(describing: self.callKitUUID))] callId [\(callId)], reason: \(reason?.cause ?? "None")")
+        print("📞 [ID-MAP] onRemoteCallEnded -> callId: \(callId) | callKitUUID: \(self.callKitUUID?.uuidString ?? "nil") | match: \(callId == self.callKitUUID)")
         
         // If we have a SIP code, use it for the disconnect cause
         var disconnectCause = CXCallEndedReason.remoteEnded
@@ -128,6 +131,7 @@ extension AppDelegate: TxClientDelegate {
     
     func onCallStateUpdated(callState: CallState, callId: UUID) {
         print("AppDelegate:: TxClientDelegate onCallStateUpdated() callKitUUID [\(String(describing: self.callKitUUID))] callId [\(callId)]")
+        print("📞 [ID-MAP] onCallStateUpdated -> state: \(callState) | callId: \(callId) | callKitUUID: \(self.callKitUUID?.uuidString ?? "nil") | match: \(callId == self.callKitUUID)")
         self.voipDelegate?.onCallStateUpdated(callState: callState, callId: callId)
         
         if callState.isConsideredActive {
