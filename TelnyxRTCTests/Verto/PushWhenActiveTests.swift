@@ -233,6 +233,90 @@ final class PushWhenActiveTests: XCTestCase {
                        "pushWhenActive must default to false on the token config init")
     }
 
+    // MARK: - Call: signalingCallId mapping
+
+    func testSignalingCallIdDefaultsToCallId() {
+        let callId = UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
+        let call = Call(callId: callId,
+                        remoteSdp: "v=0\r\n",
+                        sessionId: "session-1",
+                        socket: Socket(),
+                        delegate: TxClient(),
+                        iceServers: [],
+                        enableCallReports: false)
+
+        XCTAssertEqual(call.signalingCallId, callId,
+                       "signalingCallId should default to callId when not explicitly set")
+    }
+
+    func testSignalingCallIdCanDifferFromCallId() {
+        let appCallId = UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
+        let socketCallId = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
+        let call = Call(callId: appCallId,
+                        signalingCallId: socketCallId,
+                        remoteSdp: "v=0\r\n",
+                        sessionId: "session-1",
+                        socket: Socket(),
+                        delegate: TxClient(),
+                        iceServers: [],
+                        enableCallReports: false)
+
+        XCTAssertEqual(call.callInfo?.callId, appCallId,
+                       "callInfo.callId should be the app-facing push call ID")
+        XCTAssertEqual(call.signalingCallId, socketCallId,
+                       "signalingCallId should be the socket callID for signaling messages")
+    }
+
+    func testSignalingCallInfoUsesSignalingCallId() {
+        let appCallId = UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
+        let socketCallId = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
+        let call = Call(callId: appCallId,
+                        signalingCallId: socketCallId,
+                        remoteSdp: "v=0\r\n",
+                        sessionId: "session-1",
+                        socket: Socket(),
+                        delegate: TxClient(),
+                        iceServers: [],
+                        enableCallReports: false)
+        call.callInfo?.callerName = "Test Caller"
+        call.callInfo?.callerNumber = "+15551234567"
+
+        let sigInfo = call.signalingCallInfo
+        XCTAssertEqual(sigInfo.callId, socketCallId,
+                       "signalingCallInfo should use signalingCallId, not app-facing callId")
+        XCTAssertEqual(sigInfo.callerName, "Test Caller",
+                       "signalingCallInfo should preserve callerName")
+        XCTAssertEqual(sigInfo.callerNumber, "+15551234567",
+                       "signalingCallInfo should preserve callerNumber")
+    }
+
+    func testDelegateCallbackUsesAppFacingIdWithMismatch() {
+        let appCallId = UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
+        let socketCallId = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
+        let client = TxClient()
+        let delegate = PickedOffCallIdDelegate()
+        client.delegate = delegate
+
+        let call = Call(callId: appCallId,
+                        signalingCallId: socketCallId,
+                        remoteSdp: "v=0\r\n",
+                        sessionId: "session-1",
+                        socket: Socket(),
+                        delegate: client,
+                        iceServers: [],
+                        enableCallReports: false)
+        client.calls[appCallId] = call
+
+        let reason = CallTerminationReason(cause: "NORMAL_CLEARING",
+                                           causeCode: 16)
+        call.updateCallState(callState: .DONE(reason: reason))
+
+        XCTAssertEqual(delegate.callStateUpdatedIds, [appCallId],
+                       "Delegate should receive the app-facing callId, not the socket callID")
+        XCTAssertEqual(delegate.remoteCallEndedIds, [appCallId],
+                       "onRemoteCallEnded should receive the app-facing callId")
+    }
+
     // MARK: - TxClient: picked-off delegate call ID remap
 
     func testPickedOffCallStateUsesSipCallIdForDelegateCallbacks() {

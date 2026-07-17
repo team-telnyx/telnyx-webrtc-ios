@@ -328,7 +328,23 @@ public class Call {
     /// - callerNumber: Phone number or SIP URI of the caller
     /// See `TxCallInfo` for complete details.
     public var callInfo: TxCallInfo?
-    
+
+    /// The call ID used for signaling (verto messages over the socket).
+    /// When a push notification arrives, the app-facing callId (from push metadata)
+    /// may differ from the socket callID (from the INVITE). This property holds the
+    /// socket callID so signaling messages use the correct value while the app sees
+    /// the push callId via `callInfo.callId`.
+    internal var signalingCallId: UUID
+
+    /// Returns a `TxCallInfo` that uses `signalingCallId` instead of the app-facing callId.
+    /// Used when building verto messages that must carry the socket callID.
+    internal var signalingCallInfo: TxCallInfo {
+        var info = TxCallInfo(callId: signalingCallId)
+        info.callerName = callInfo?.callerName
+        info.callerNumber = callInfo?.callerNumber
+        return info
+    }
+
     /// The current state of the call. Possible values:
     /// - NEW: Call object created but not yet initiated
     /// - CONNECTING: Outbound call is being established
@@ -389,6 +405,7 @@ public class Call {
     // MARK: - Initializers
     /// Constructor for incoming calls
     init(callId: UUID,
+         signalingCallId: UUID? = nil,
          remoteSdp: String,
          sessionId: String,
          socket: Socket,
@@ -427,6 +444,7 @@ public class Call {
 
         self.remoteSdp = remoteSdp
         self.callInfo = TxCallInfo(callId: callId)
+        self.signalingCallId = signalingCallId ?? callId
         self.delegate = delegate
 
         // Configure iceServers
@@ -463,6 +481,7 @@ public class Call {
     
     //Contructor for attachCalls
     init(callId: UUID,
+         signalingCallId: UUID? = nil,
          remoteSdp: String,
          sessionId: String,
          socket: Socket,
@@ -492,6 +511,7 @@ public class Call {
 
         self.remoteSdp = remoteSdp
         self.callInfo = TxCallInfo(callId: callId)
+        self.signalingCallId = signalingCallId ?? callId
         self.delegate = delegate
 
         // Configure iceServers
@@ -536,6 +556,7 @@ public class Call {
         //this is the signaling server socket
         self.socket = socket
         self.callInfo = TxCallInfo(callId: callId)
+        self.signalingCallId = callId
         self.delegate = delegate
 
         // Configure iceServers
@@ -592,8 +613,8 @@ public class Call {
         self.peer?.socket = self.socket
         self.peer?.sessionId = self.sessionId
         // Set callId for trickle ICE messages - must match the callID sent in INVITE
-        self.peer?.callId = self.callInfo?.callId.uuidString.lowercased()
-        Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.callInfo?.callId.uuidString.lowercased() ?? "nil") for trickle ICE")
+        self.peer?.callId = self.signalingCallId.uuidString.lowercased()
+        Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.signalingCallId.uuidString.lowercased()) for trickle ICE")
         self.setupPeerEventLogging()
         self.peer?.offer(preferredCodecs: preferredCodecs, completion: { (sdp, error)  in
 
@@ -772,7 +793,7 @@ extension Call {
     ///     call.hangup()
     public func hangup() {
         Logger.log.i(message: "Call:: hangup()")
-        guard let sessionId = self.sessionId, let callId = self.callInfo?.callId else { return }
+        guard let sessionId = self.sessionId else { return }
         
         // Create a termination reason for local hangup
         // Use USER_BUSY for incoming calls (NEW state) and outbound calls not yet connected (RINGING, CONNECTING)
@@ -793,7 +814,7 @@ extension Call {
             causeCode: causeCode.rawValue
         )
 
-        let byeMessage = ByeMessage(sessionId: sessionId, callId: callId.uuidString, causeCode: causeCode)
+        let byeMessage = ByeMessage(sessionId: sessionId, callId: signalingCallId.uuidString, causeCode: causeCode)
         let message = byeMessage.encode() ?? ""
         self.socket?.sendMessage(message: message)
         self.endCall(terminationReason: terminationReason)
@@ -844,8 +865,8 @@ extension Call {
         self.peer?.socket = self.socket
         self.peer?.sessionId = self.sessionId
         // Set callId for trickle ICE messages - must match the callID from the incoming INVITE
-        self.peer?.callId = self.callInfo?.callId.uuidString.lowercased()
-        Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.callInfo?.callId.uuidString.lowercased() ?? "nil") for trickle ICE")
+        self.peer?.callId = self.signalingCallId.uuidString.lowercased()
+        Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.signalingCallId.uuidString.lowercased()) for trickle ICE")
         self.setupPeerEventLogging()
         self.incomingOffer(sdp: remoteSdp)
         self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", completion: { (sdp, error)  in
@@ -894,8 +915,8 @@ extension Call {
         self.peer?.socket = self.socket
         self.peer?.sessionId = self.sessionId
         // Set callId for trickle ICE messages - must match the callID from ATTACH
-        self.peer?.callId = self.callInfo?.callId.uuidString.lowercased()
-        Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.callInfo?.callId.uuidString.lowercased() ?? "nil") for ATTACH")
+        self.peer?.callId = self.signalingCallId.uuidString.lowercased()
+        Logger.log.i(message: "[TRICKLE-ICE] Call:: Peer callId set to \(self.signalingCallId.uuidString.lowercased()) for ATTACH")
         self.setupPeerEventLogging()
         self.incomingOffer(sdp: remoteSdp)
         self.peer?.answer(callLegId: self.telnyxLegId?.uuidString ?? "", completion: { (sdp, error)  in
@@ -1112,7 +1133,7 @@ extension Call {
 
         let dtmfMessage = InfoMessage(sessionId: sessionId,
                                       dtmf: dtmf,
-                                      callInfo: callInfo,
+                                      callInfo: signalingCallInfo,
                                       callOptions: callOptions)
         guard let message = dtmfMessage.encode(),
               let socket = self.socket else { return }
@@ -1178,9 +1199,8 @@ extension Call {
     ///     call.hold()
     public func hold() {
         Logger.log.i(message: "Call:: hold()")
-        guard let callId = self.callInfo?.callId,
-              let sessionId = self.sessionId else { return }
-        let hold = ModifyMessage(sessionId: sessionId, callId: callId.uuidString, action: .HOLD)
+        guard let sessionId = self.sessionId else { return }
+        let hold = ModifyMessage(sessionId: sessionId, callId: signalingCallId.uuidString, action: .HOLD)
         let message = hold.encode() ?? ""
         self.socket?.sendMessage(message: message)
         self.updateCallState(callState: .HELD)
@@ -1193,9 +1213,8 @@ extension Call {
     ///     call.unhold()
     public func unhold() {
         Logger.log.i(message: "Call:: unhold()")
-        guard let callId = self.callInfo?.callId,
-              let sessionId = self.sessionId else { return }
-        let unhold = ModifyMessage(sessionId: sessionId, callId: callId.uuidString, action: .UNHOLD)
+        guard let sessionId = self.sessionId else { return }
+        let unhold = ModifyMessage(sessionId: sessionId, callId: signalingCallId.uuidString, action: .UNHOLD)
         let message = unhold.encode() ?? ""
         self.socket?.sendMessage(message: message)
         self.updateCallState(callState: .ACTIVE)
@@ -1207,9 +1226,8 @@ extension Call {
     ///     call.toggleHold()
     public func toggleHold() {
         Logger.log.i(message: "Call:: toggleHold()")
-        guard let callId = self.callInfo?.callId,
-              let sessionId = self.sessionId else { return }
-        let toggleHold = ModifyMessage(sessionId: sessionId, callId: callId.uuidString, action: .TOGGLE_HOLD)
+        guard let sessionId = self.sessionId else { return }
+        let toggleHold = ModifyMessage(sessionId: sessionId, callId: signalingCallId.uuidString, action: .TOGGLE_HOLD)
         let message = toggleHold.encode() ?? ""
         self.socket?.sendMessage(message: message)
 
@@ -1248,7 +1266,7 @@ extension Call : PeerDelegate {
             //Build the telnyx_rtc.invite message and send it
             let inviteMessage = InviteMessage(sessionId: sessionId,
                                               sdp: sdp.sdp,
-                                              callInfo: callInfo,
+                                              callInfo: signalingCallInfo,
                                               callOptions: callOptions,
                                               customHeaders: self.inviteCustomHeaders ?? [:],
                                               trickle: self.useTrickleIce,
@@ -1264,7 +1282,7 @@ extension Call : PeerDelegate {
             let attachCallOption = TxCallOptions(destinationNumber: callOptions.destinationNumber,attach: true,userVariables: callOptions.userVariables)
 
             
-            let attachMessage = ReAttachMessage(sessionId: sessionId, sdp: sdp.sdp, callInfo: callInfo, callOptions: attachCallOption,
+            let attachMessage = ReAttachMessage(sessionId: sessionId, sdp: sdp.sdp, callInfo: signalingCallInfo, callOptions: attachCallOption,
                                               customHeaders: self.answerCustomHeaders ?? [:]
             )
             let message = attachMessage.encode() ?? ""
@@ -1274,7 +1292,7 @@ extension Call : PeerDelegate {
         } else {
             //Build the telnyx_rtc.answer message and send it
 
-            let answerMessage = AnswerMessage(sessionId: sessionId, sdp: sdp.sdp, callInfo: callInfo, callOptions: callOptions,
+            let answerMessage = AnswerMessage(sessionId: sessionId, sdp: sdp.sdp, callInfo: signalingCallInfo, callOptions: callOptions,
                                               customHeaders: self.answerCustomHeaders ?? [:],
                                               trickle: self.useTrickleIce,
                                               pushWhenActive: self.pushWhenActive,

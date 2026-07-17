@@ -9,7 +9,6 @@ extension Call {
     /// - Parameter completion: Callback indicating success or failure of the ICE restart
     public func iceRestart(completion: @escaping (_ success: Bool, _ error: Error?) -> Void) {
         guard let peer = self.peer,
-              let callId = self.callInfo?.callId,
               let sessionId = self.sessionId else {
             Logger.log.e(message: "[ICE-RESTART] Call:: ICE restart failed - missing peer, callId, or sessionId")
             completion(false, NSError(domain: "Call", code: -1, userInfo: [NSLocalizedDescriptionKey: "Missing required parameters for ICE restart"]))
@@ -59,7 +58,7 @@ extension Call {
             }
             
             // Send ICE restart message via telnyx_rtc.modify
-            let iceRestartMessage = ICERestartMessage(sessionId: sessionId, callId: callId.uuidString, sdp: sdp.sdp)
+            let iceRestartMessage = ICERestartMessage(sessionId: sessionId, callId: self.signalingCallId.uuidString, sdp: sdp.sdp)
             let message = iceRestartMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
             
