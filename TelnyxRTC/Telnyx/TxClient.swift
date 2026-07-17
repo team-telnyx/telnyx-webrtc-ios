@@ -805,11 +805,13 @@ public class TxClient {
         return UUID(uuidString: value)
     }
 
+    // Push path: app-provided APNS metadata can seed CallKit with parent_call_id before the INVITE arrives.
     private func pushCallKitId(from metadata: [String: Any]?, txConfig: TxConfig?) -> UUID? {
         guard txConfig?.pushWhenActive == true else { return nil }
         return Self.uuid(from: metadata, key: "parent_call_id") ?? Self.uuid(from: metadata, key: "call_id")
     }
 
+    // Socket path: already-connected clients get the parent ID from INVITE variables instead of push metadata.
     private func inviteCallKitId(from variables: [String: Any]?, socketCallId: UUID) -> UUID? {
         guard (txConfig?.pushWhenActive ?? storedTxConfig?.pushWhenActive ?? false) else { return nil }
         return Self.uuid(from: variables, key: "telnyx_rtc_svar_parent_call_id")
@@ -1500,6 +1502,7 @@ extension TxClient {
                 
                 // Create an initial call_object to handle early bye message
                 let pushCallUUID = Self.uuid(from: pushMetaData, key: "call_id")
+                // CallKit uses the parent ID; signaling still waits for the socket callID from INVITE.
                 let callKitUUID = pushCallKitId(from: pushMetaData, txConfig: txConfig) ?? pushCallUUID
                 pendingPushCallKitId = callKitUUID
 
@@ -1611,6 +1614,7 @@ extension TxClient: CallProtocol {
     }
 
     private func delegateCallId(for callState: CallState, fallbackCallId: UUID) -> UUID {
+        // App callbacks use the CallKit parent ID; answer/end remap it back to socket callID.
         if let mappedCallId = callKitIdBySocketCallId[fallbackCallId] {
             return mappedCallId
         }
