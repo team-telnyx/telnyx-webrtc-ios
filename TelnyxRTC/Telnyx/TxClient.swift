@@ -188,6 +188,9 @@ public class TxClient {
     private var inviteTimeoutTimer: Timer?
     private var isWaitingForInviteAfterPush: Bool = false
     private var pushCallState: PushCallState = .idle
+    private var pendingPushCallKitId: UUID?
+    private var socketCallIdByCallKitId: [UUID: UUID] = [:]
+    private var callKitIdBySocketCallId: [UUID: UUID] = [:]
     private static let INVITE_TIMEOUT_SECONDS: TimeInterval = 10.0
     internal var inviteTimeoutInterval: TimeInterval = TxClient.INVITE_TIMEOUT_SECONDS
     
@@ -671,6 +674,7 @@ public class TxClient {
         self.calls.removeAll()
         self.stopReconnectTimeout()
         self.stopInviteTimeout()
+        self.pendingPushCallKitId = nil
 
         // Clear AI Assistant Manager data
         self.aiAssistantManager.clearAllData()
@@ -733,7 +737,8 @@ public class TxClient {
     public func answerFromCallkit(answerAction: CXAnswerCallAction,
                                   customHeaders: [String:String] = [:],
                                   debug: Bool = false) {
-        Logger.log.i(message: "TxClient:: answerFromCallkit - started for callId: \(String(describing: answerAction.callUUID))")
+        let resolvedCallId = signalingCallId(forCallKitId: answerAction.callUUID)
+        Logger.log.i(message: "TxClient:: answerFromCallkit - started for callId: \(String(describing: answerAction.callUUID)), resolvedCallId: \(resolvedCallId)")
         self.answerCallAction = answerAction
 
         // Check if the call was initiated by a push notification
@@ -768,7 +773,7 @@ public class TxClient {
         }
 
         // If already connected and there's a pending INVITE, immediately accept the call
-        if let currentCall = self.calls[currentCallId] {
+        if let currentCall = self.calls[resolvedCallId] ?? self.calls[currentCallId] {
             currentCall.answer(customHeaders: customHeaders,
                                debug: debug)
             answerCallAction?.fulfill()
@@ -791,8 +796,50 @@ public class TxClient {
         isReconnectPendingForCallKitDecline = false
         isCallFromPush = false
         pushCallState = .idle
+        pendingPushCallKitId = nil
         stopInviteTimeout()
         isWaitingForInviteAfterPush = false
+    }
+
+    private static func uuid(from metadata: [String: Any]?, key: String) -> UUID? {
+        guard let value = metadata?[key] as? String else { return nil }
+        return UUID(uuidString: value)
+    }
+
+    // Push path: use the app-visible push call_id and remap it to the socket callID when INVITE arrives.
+    private func pushCallKitId(from metadata: [String: Any]?, txConfig: TxConfig?) -> UUID? {
+        guard txConfig?.pushWhenActive == true else { return nil }
+        return Self.uuid(from: metadata, key: "call_id")
+    }
+
+    // Socket path: already-connected clients get the parent ID from INVITE variables instead of push metadata.
+    private func inviteCallKitId(from variables: [String: Any]?, socketCallId: UUID) -> UUID? {
+        guard (txConfig?.pushWhenActive ?? storedTxConfig?.pushWhenActive ?? false) else { return nil }
+        return Self.uuid(from: variables, key: "telnyx_rtc_svar_parent_call_id")
+            ?? pendingPushCallKitId
+            ?? callKitIdBySocketCallId[socketCallId]
+    }
+
+    func registerCallKitAlias(callKitId: UUID, socketCallId: UUID) {
+        pendingPushCallKitId = nil
+        guard callKitId != socketCallId else { return }
+        socketCallIdByCallKitId[callKitId] = socketCallId
+        callKitIdBySocketCallId[socketCallId] = callKitId
+        Logger.log.i(message: "TxClient:: registered CallKit alias callKitId \(callKitId) -> socketCallId \(socketCallId)")
+    }
+
+    func signalingCallId(forCallKitId callKitId: UUID) -> UUID {
+        return socketCallIdByCallKitId[callKitId] ?? callKitId
+    }
+
+    func appCallId(forSocketCallId socketCallId: UUID) -> UUID {
+        return callKitIdBySocketCallId[socketCallId] ?? socketCallId
+    }
+
+    func clearCallKitAlias(forSocketCallId socketCallId: UUID) {
+        if let callKitId = callKitIdBySocketCallId.removeValue(forKey: socketCallId) {
+            socketCallIdByCallKitId.removeValue(forKey: callKitId)
+        }
     }
 
     private func cleanupPendingCallKitDecline(reason: String) {
@@ -859,7 +906,8 @@ public class TxClient {
     /// To end and control callKit active and conn
     public func endCallFromCallkit(endAction: CXEndCallAction,
                                    callId: UUID? = nil) {
-        Logger.log.i(message: "TxClient:: endCallFromCallkit - started for callID \(String(describing: endAction.callUUID))")
+        let resolvedCallId = signalingCallId(forCallKitId: callId ?? endAction.callUUID)
+        Logger.log.i(message: "TxClient:: endCallFromCallkit - started for callID \(String(describing: endAction.callUUID)), resolvedCallId: \(resolvedCallId)")
 
         self.endCallAction = endAction
         
@@ -867,7 +915,7 @@ public class TxClient {
         if isCallFromPush {
             Logger.log.i(message: "TxClient:: endCallFromCallkit - Call initiated by push notification, sending decline_push")
             self.pendingCallDecline = true
-            self.currentCallId = callId ?? endAction.callUUID
+            self.currentCallId = resolvedCallId
 
             // Send a login message with decline_push: true to silently reject the call
             if isConnected() {
@@ -893,9 +941,10 @@ public class TxClient {
             }
             
             // Remove pending call from internal list
-            if let callUUID = endAction.callUUID as UUID?,
-               let _ = self.calls[callUUID] {
-                self.calls.removeValue(forKey: callUUID)
+            if let _ = self.calls[resolvedCallId] {
+                self.calls.removeValue(forKey: resolvedCallId)
+            } else if let _ = self.calls[endAction.callUUID] {
+                self.calls.removeValue(forKey: endAction.callUUID)
             }
             
             // Only reset push variables if socket is already connected
@@ -910,14 +959,14 @@ public class TxClient {
         
         // If the call was not initiated by push and there's an active call (currentCall exists)
         // Perform a standard call rejection
-        if let call = self.calls[endAction.callUUID] {
-            Logger.log.i(message: "EndClient:: Ended Call with Id \(endAction.callUUID)")
+        if let call = self.calls[resolvedCallId] {
+            Logger.log.i(message: "EndClient:: Ended Call with Id \(resolvedCallId)")
             call.hangup()
             self.resetPushVariables()
             self.stopReconnectTimeout()
             endAction.fulfill()
         } else {
-            Logger.log.e(message: "TxClient:: endCallFromCallkit failed - no call found for \(endAction.callUUID)")
+            Logger.log.e(message: "TxClient:: endCallFromCallkit failed - no call found for \(endAction.callUUID), resolvedCallId: \(resolvedCallId)")
             failEndCallAction(endAction)
         }
     }
@@ -1327,6 +1376,7 @@ extension TxClient {
                                     telnyxSessionId: String,
                                     telnyxLegId: String,
                                     customHeaders:[String:String] = [:],
+                                    callKitId: UUID? = nil,
                                     isAttach:Bool = false
     ) {
 
@@ -1361,6 +1411,12 @@ extension TxClient {
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)
         call.inviteCustomHeaders = customHeaders
+        if let callKitId = callKitId {
+            registerCallKitAlias(callKitId: callKitId, socketCallId: callId)
+            if callKitId != callId {
+                calls.removeValue(forKey: callKitId)
+            }
+        }
         self.calls[callId] = call
         // propagate the incoming call to the App
         Logger.log.i(message: "TxClient:: push flow createIncomingCall \(call)")
@@ -1449,13 +1505,18 @@ extension TxClient {
                 try self.connectSocketOnly(serverConfiguration: self.storedServerConfiguration!)
                 
                 // Create an initial call_object to handle early bye message
-                if let newCallId = pushMetaData["call_id"] as? String,
-                   let callUUID = UUID(uuidString: newCallId),
+                let pushCallUUID = Self.uuid(from: pushMetaData, key: "call_id")
+                // CallKit uses the app-visible push ID; signaling waits for the socket callID from INVITE.
+                let callKitUUID = pushCallKitId(from: pushMetaData, txConfig: txConfig) ?? pushCallUUID
+                pendingPushCallKitId = callKitUUID
+
+                if let pushCallUUID = pushCallUUID,
                    let socket = self.socket,
                    let iceServers = self.storedServerConfiguration?.webRTCIceServers {
-                    self.calls[callUUID] = Call(callId: callUUID,
+                    let placeholderUUID = callKitUUID ?? pushCallUUID
+                    self.calls[placeholderUUID] = Call(callId: placeholderUUID,
                                                remoteSdp: "",
-                                               sessionId: newCallId,
+                                               sessionId: pushCallUUID.uuidString,
                                                socket: socket,
                                                delegate: self,
                                                iceServers: iceServers,
@@ -1470,7 +1531,7 @@ extension TxClient {
                                                callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000,
                                                pushWhenActive: self.storedTxConfig?.pushWhenActive ?? false,
                                                pushDeviceToken: self.storedTxConfig?.pushNotificationConfig?.pushDeviceToken)
-                    self.currentCallId = callUUID
+                    self.currentCallId = placeholderUUID
                 } else {
                     Logger.log.e(message: "TxClient:: processVoIPNotification - Invalid call_id, socket, or ICE servers. Cannot create call object.")
                 }
@@ -1552,10 +1613,17 @@ extension TxClient: CallProtocol {
                 self.delegate?.onRemoteCallEnded(callId: delegateCallId, reason: nil)
             }
             self._isSpeakerEnabled = false
+            clearCallKitAlias(forSocketCallId: callId)
         }
     }
 
     private func delegateCallId(for callState: CallState, fallbackCallId: UUID) -> UUID {
+        // App callbacks use the app-facing CallKit ID; answer/end remap it back to socket callID.
+        let mappedCallId = appCallId(forSocketCallId: fallbackCallId)
+        if mappedCallId != fallbackCallId {
+            return mappedCallId
+        }
+
         guard case let .DONE(reason) = callState,
               reason?.cause == "PICKED_OFF",
               let sipCallId = reason?.sipCallId,
@@ -1967,6 +2035,8 @@ extension TxClient : SocketDelegate {
                         let callerNumber = params["caller_id_number"] as? String ?? ""
                         let telnyxSessionId = params["telnyx_session_id"] as? String ?? ""
                         let telnyxLegId = params["telnyx_leg_id"] as? String ?? ""
+                        let variables = params["variables"] as? [String: Any]
+                        let callKitId = inviteCallKitId(from: variables, socketCallId: uuid)
                         
                         if telnyxSessionId.isEmpty {
                             Logger.log.w(message: "TxClient:: Telnyx Session ID unavailable on INVITE message")
@@ -1992,7 +2062,8 @@ extension TxClient : SocketDelegate {
                                                 remoteSdp: sdp,
                                                 telnyxSessionId: telnyxSessionId,
                                                 telnyxLegId: telnyxLegId,
-                                                customHeaders: customHeaders)
+                                                customHeaders: customHeaders,
+                                                callKitId: callKitId)
                         if(isCallFromPush){
                             /*FileLogger.shared.log("INVITE : \(message) \n")
                             FileLogger.shared.log("INVITE telnyxLegId: \(telnyxLegId) \n") */
@@ -2019,6 +2090,8 @@ extension TxClient : SocketDelegate {
                     let callerNumber = params["caller_id_number"] as? String ?? ""
                     let telnyxSessionId = params["telnyx_session_id"] as? String ?? ""
                     let telnyxLegId = params["telnyx_leg_id"] as? String ?? ""
+                    let variables = params["variables"] as? [String: Any]
+                    let callKitId = inviteCallKitId(from: variables, socketCallId: uuid)
                     
                     if telnyxSessionId.isEmpty {
                         Logger.log.w(message: "TxClient:: Telnyx Session ID unavailable on INVITE message")
@@ -2049,6 +2122,7 @@ extension TxClient : SocketDelegate {
                                             telnyxSessionId: telnyxSessionId,
                                             telnyxLegId: telnyxLegId,
                                             customHeaders: customHeaders,
+                                            callKitId: callKitId,
                                             isAttach: true
                     )
                     

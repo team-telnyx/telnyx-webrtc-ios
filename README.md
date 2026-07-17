@@ -934,13 +934,13 @@ extension AppDelegate: PKPushRegistryDelegate {
     func handleVoIPPushNotification(payload: PKPushPayload) {
         if let metadata = payload.dictionaryPayload["metadata"] as? [String: Any] {
 
-            let callId = metadata["call_id"] as? String
+            let callKitId = metadata["call_id"] as? String
             let callerName = (metadata["caller_name"] as? String) ?? ""
             let callerNumber = (metadata["caller_number"] as? String) ?? ""
             let caller = callerName.isEmpty ? (callerNumber.isEmpty ? "Unknown" : callerNumber) : callerName
             
 
-            let uuid = UUID(uuidString: callId)
+            guard let callKitId = callKitId, let uuid = UUID(uuidString: callKitId) else { return }
             
             // Re-connect the client and process the push notification when is received.
             // You will need to use the credentials of the same user that is receiving the call. 
@@ -949,7 +949,8 @@ extension AppDelegate: PKPushRegistryDelegate {
                                 pushDeviceToken: "APNS_PUSH_TOKEN")
                                 
                         
-            //Call processVoIPNotification method 
+            // Pass the full push metadata to the SDK so it can map the
+            // app-visible push call_id to the socket callID internally.
         
             try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: metadata)
             
