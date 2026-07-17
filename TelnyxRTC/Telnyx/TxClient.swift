@@ -806,10 +806,10 @@ public class TxClient {
         return UUID(uuidString: value)
     }
 
-    // Push path: app-provided APNS metadata can seed CallKit with parent_call_id before the INVITE arrives.
+    // Push path: use the app-visible push call_id and remap it to the socket callID when INVITE arrives.
     private func pushCallKitId(from metadata: [String: Any]?, txConfig: TxConfig?) -> UUID? {
         guard txConfig?.pushWhenActive == true else { return nil }
-        return Self.uuid(from: metadata, key: "parent_call_id") ?? Self.uuid(from: metadata, key: "call_id")
+        return Self.uuid(from: metadata, key: "call_id")
     }
 
     // Socket path: already-connected clients get the parent ID from INVITE variables instead of push metadata.
@@ -1506,7 +1506,7 @@ extension TxClient {
                 
                 // Create an initial call_object to handle early bye message
                 let pushCallUUID = Self.uuid(from: pushMetaData, key: "call_id")
-                // CallKit uses the parent ID; signaling still waits for the socket callID from INVITE.
+                // CallKit uses the app-visible push ID; signaling waits for the socket callID from INVITE.
                 let callKitUUID = pushCallKitId(from: pushMetaData, txConfig: txConfig) ?? pushCallUUID
                 pendingPushCallKitId = callKitUUID
 
@@ -1618,7 +1618,7 @@ extension TxClient: CallProtocol {
     }
 
     private func delegateCallId(for callState: CallState, fallbackCallId: UUID) -> UUID {
-        // App callbacks use the CallKit parent ID; answer/end remap it back to socket callID.
+        // App callbacks use the app-facing CallKit ID; answer/end remap it back to socket callID.
         let mappedCallId = appCallId(forSocketCallId: fallbackCallId)
         if mappedCallId != fallbackCallId {
             return mappedCallId

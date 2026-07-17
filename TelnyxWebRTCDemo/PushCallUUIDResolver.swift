@@ -26,12 +26,6 @@ enum PushCallUUIDResolver {
             print("AppDelegate:: Replacing invalid VoIP push call_id '\(callID)' with fallback UUID: \(uuid)")
         }
     ) -> UUID {
-        if let parentCallIDValue = metadata?["parent_call_id"],
-           let parentCallID = parentCallIDValue as? String,
-           let uuid = UUID(uuidString: parentCallID) {
-            return uuid
-        }
-
         guard let callIDValue = metadata?["call_id"] else {
             return fallbackUUID()
         }

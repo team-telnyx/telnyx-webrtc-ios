@@ -55,7 +55,7 @@ final class PushCallUUIDResolverTests: XCTestCase {
         XCTAssertEqual(resolvedUUID, serverUUID)
     }
 
-    func testParentCallIDTakesPrecedenceOverCallID() {
+    func testCallIDTakesPrecedenceOverParentCallID() {
         let parentUUID = makeUUID("33333333-3333-3333-3333-333333333333")
         let pushUUID = makeUUID("22222222-2222-2222-2222-222222222222")
         let fallbackUUID = makeUUID("11111111-1111-1111-1111-111111111111")
@@ -68,10 +68,10 @@ final class PushCallUUIDResolverTests: XCTestCase {
             fallbackUUID: { fallbackUUID }
         )
 
-        XCTAssertEqual(resolvedUUID, parentUUID)
+        XCTAssertEqual(resolvedUUID, pushUUID)
     }
 
-    func testMalformedParentCallIDFallsBackToCallID() {
+    func testParentCallIDIsIgnoredWhenCallIDIsPresent() {
         let pushUUID = makeUUID("22222222-2222-2222-2222-222222222222")
         let fallbackUUID = makeUUID("11111111-1111-1111-1111-111111111111")
 
