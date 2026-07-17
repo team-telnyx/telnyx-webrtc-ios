@@ -259,6 +259,7 @@ extension AppDelegate : CXProviderDelegate {
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         print("AppDelegate:: ANSWER call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
+        print("📞 [ID-MAP] CXAnswerCallAction -> actionUUID: \(action.callUUID) | callKitUUID: \(self.callKitUUID?.uuidString ?? "nil") | match: \(action.callUUID == self.callKitUUID)")
 
         // Track incoming call answer in call history
         if let call = self.telnyxClient?.calls[action.callUUID] {
@@ -272,10 +273,14 @@ extension AppDelegate : CXProviderDelegate {
         }
 
         self.telnyxClient?.answerFromCallkit(answerAction: action, customHeaders:  ["X-test-answer":"ios-test"], debug: true)
+        if let call = self.currentCall {
+            print("📞 [ID-MAP] After answerFromCallkit -> appFacingId: \(call.callInfo?.callId.uuidString ?? "nil")")
+        }
     }
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         print("AppDelegate:: END call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
+        print("📞 [ID-MAP] CXEndCallAction -> actionUUID: \(action.callUUID) | callKitUUID: \(self.callKitUUID?.uuidString ?? "nil") | currentCall: \(self.currentCall?.callInfo?.callId.uuidString ?? "nil") | match: \(action.callUUID == self.callKitUUID)")
 
         guard let telnyxClient = self.telnyxClient else {
             print("AppDelegate:: END call action failed because Telnyx client is unavailable")
