@@ -176,7 +176,7 @@ The `pushDeviceToken` value is the VoIP token your app receives from PushKit/APN
 
 When `pushWhenActive` is `true`:
 
-1. The login payload includes `push_when_active = "true"` in `userVariables` so the backend treats this device as active for push routing.
+1. The login payload includes `push_when_active = "true"` and `pn_late_fanout = "true"` in `userVariables` so the backend treats this device as active for push routing and allows late socket fanout for parked push calls.
 2. When `call.answer()` is invoked, the SDK sends `answered_device_token` (the same PushKit VoIP token supplied through `TxConfig(pushDeviceToken:)`) inside the `telnyx_rtc.answer` payload. The token is sourced internally from `pushNotificationConfig.pushDeviceToken`, so apps do not need to pass it again at answer time.
 3. If no `pushDeviceToken` is configured, or it is empty or whitespace-only, the `answered_device_token` field is omitted — the SDK never sends an unusable token.
 

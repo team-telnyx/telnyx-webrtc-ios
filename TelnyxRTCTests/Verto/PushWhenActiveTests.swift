@@ -32,6 +32,8 @@ final class PushWhenActiveTests: XCTestCase {
         XCTAssertNotNil(userVariables, "userVariables should be present")
         XCTAssertEqual(userVariables?["push_when_active"] as? String, "true",
                        "push_when_active must be set to \"true\" when pushWhenActive is enabled")
+        XCTAssertEqual(userVariables?["pn_late_fanout"] as? String, "true",
+                       "pn_late_fanout must be set to \"true\" when pushWhenActive is enabled")
         // Existing fields must still be there.
         XCTAssertEqual(userVariables?["push_device_token"] as? String, "<voip-token>")
     }
@@ -49,6 +51,8 @@ final class PushWhenActiveTests: XCTestCase {
         XCTAssertNotNil(userVariables)
         XCTAssertNil(userVariables?["push_when_active"],
                      "push_when_active must not be emitted when pushWhenActive is false (default)")
+        XCTAssertNil(userVariables?["pn_late_fanout"],
+                     "pn_late_fanout must not be emitted when pushWhenActive is false (default)")
     }
 
     /// The token-based login init must support the same `pushWhenActive` flow.
@@ -61,6 +65,7 @@ final class PushWhenActiveTests: XCTestCase {
 
         let userVariables = message.params?["userVariables"] as? [String: Any]
         XCTAssertEqual(userVariables?["push_when_active"] as? String, "true")
+        XCTAssertEqual(userVariables?["pn_late_fanout"] as? String, "true")
     }
 
     /// When the round-trip JSON serialization is applied, the field must still
@@ -78,6 +83,8 @@ final class PushWhenActiveTests: XCTestCase {
         let decodedUserVariables = decoded?.params?["userVariables"] as? [String: Any]
         XCTAssertEqual(decodedUserVariables?["push_when_active"] as? String, "true",
                        "push_when_active must survive encode -> JSON -> decode round trip")
+        XCTAssertEqual(decodedUserVariables?["pn_late_fanout"] as? String, "true",
+                       "pn_late_fanout must survive encode -> JSON -> decode round trip")
     }
 
     // MARK: - AnswerMessage: answered_device_token emission
