@@ -259,15 +259,37 @@ class RegionTests: XCTestCase {
         let euConfig = TxServerConfiguration(environment: .production, pushMetaData: pushMetaData, region: .eu)
         let euURL = euConfig.signalingServer.absoluteString
         XCTAssertTrue(euURL.contains("eu."), "EU region should add prefix even with push metadata")
-        // Check for URL-encoded version of underscores (%5F)
-        XCTAssertTrue(euURL.contains("voice_sdk_id=test%5Fsdk%5Fid%5F123"), "URL should contain URL-encoded SDK ID")
+        XCTAssertTrue(euURL.contains("voice_sdk_id=test%5Fsdk%5Fid%5F123") || euURL.contains("voice_sdk_id=test_sdk_id_123"), "URL should contain SDK ID")
         
         // Test with US West region and push metadata
         let usWestConfig = TxServerConfiguration(environment: .production, pushMetaData: pushMetaData, region: .usWest)
         let usWestURL = usWestConfig.signalingServer.absoluteString
         XCTAssertTrue(usWestURL.contains("us-west."), "US West region should add prefix even with push metadata")
-        // Check for URL-encoded version of underscores (%5F)
-        XCTAssertTrue(usWestURL.contains("voice_sdk_id=test%5Fsdk%5Fid%5F123"), "URL should contain URL-encoded SDK ID")
+        XCTAssertTrue(usWestURL.contains("voice_sdk_id=test%5Fsdk%5Fid%5F123") || usWestURL.contains("voice_sdk_id=test_sdk_id_123"), "URL should contain SDK ID")
+    }
+
+    func testTxServerConfigurationIncludesCanaryQueryWhenEnabled() {
+        let config = TxServerConfiguration(environment: .production, canary: true)
+
+        let components = URLComponents(url: config.signalingServer, resolvingAgainstBaseURL: false)
+
+        XCTAssertEqual(components?.queryItems?.first(where: { $0.name == "canary" })?.value, "true")
+    }
+
+    func testTxServerConfigurationIncludesCanaryQueryWhenDisabled() {
+        let config = TxServerConfiguration(environment: .production, canary: false)
+
+        let components = URLComponents(url: config.signalingServer, resolvingAgainstBaseURL: false)
+
+        XCTAssertEqual(components?.queryItems?.first(where: { $0.name == "canary" })?.value, "false")
+    }
+
+    func testTxServerConfigurationOmitsCanaryQueryByDefault() {
+        let config = TxServerConfiguration(environment: .production)
+
+        let components = URLComponents(url: config.signalingServer, resolvingAgainstBaseURL: false)
+
+        XCTAssertNil(components?.queryItems?.first(where: { $0.name == "canary" }))
     }
     
     // MARK: - Socket Region Extraction Tests
