@@ -324,33 +324,34 @@ final class PushWhenActiveTests: XCTestCase {
                        "onRemoteCallEnded should receive the app-facing callId")
     }
 
-    // MARK: - TxClient: picked-off delegate call ID remap
+    // MARK: - TxClient: picked-off delegate call ID handling
 
-    func testPickedOffCallStateUsesSipCallIdForDelegateCallbacks() {
-        let socketCallId = UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
-        let pushCallId = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
+    func testPickedOffCallStateUsesAppFacingCallIdForDelegateCallbacks() {
+        let appCallId = UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
+        let socketCallId = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
         let client = TxClient()
         let delegate = PickedOffCallIdDelegate()
         client.delegate = delegate
 
-        let call = Call(callId: socketCallId,
+        let call = Call(callId: appCallId,
+                        signalingCallId: socketCallId,
                         remoteSdp: "v=0\r\n",
                         sessionId: "session-1",
                         socket: Socket(),
                         delegate: client,
                         iceServers: [],
                         enableCallReports: false)
-        client.calls[socketCallId] = call
+        client.calls[appCallId] = call
 
         let reason = CallTerminationReason(cause: "PICKED_OFF",
                                            causeCode: 805,
                                            sipCode: 487,
-                                           sipCallId: pushCallId.uuidString)
+                                           sipCallId: appCallId.uuidString)
         call.updateCallState(callState: .DONE(reason: reason))
 
-        XCTAssertEqual(delegate.callStateUpdatedIds, [pushCallId])
-        XCTAssertEqual(delegate.remoteCallEndedIds, [pushCallId])
-        XCTAssertNil(client.calls[socketCallId])
+        XCTAssertEqual(delegate.callStateUpdatedIds, [appCallId])
+        XCTAssertEqual(delegate.remoteCallEndedIds, [appCallId])
+        XCTAssertNil(client.calls[appCallId])
     }
 
     func testNonPickedOffDoneStateUsesSocketCallIdForDelegateCallbacks() {

@@ -1344,8 +1344,7 @@ extension TxClient {
                                     telnyxSessionId: String,
                                     telnyxLegId: String,
                                     customHeaders:[String:String] = [:],
-                                    isAttach:Bool = false,
-                                    pushCallId: UUID? = nil
+                                    isAttach:Bool = false
     ) {
 
         guard let sessionId = self.sessionId,
@@ -1362,9 +1361,9 @@ extension TxClient {
             appFacingCallId = currentCallId
             signalingCallId = callId
             Logger.log.i(message: "TxClient:: Push call ID mapping: app=\(appFacingCallId) -> signaling=\(signalingCallId)")
-        } else if let pushId = pushCallId, pushId != callId {
-            // pushWhenActive flow: INVITE variable provides the push call_id
-            appFacingCallId = pushId
+        } else if let appId = socketToAppCallId[callId], appId != callId {
+            // Existing alias mapping learned from the push flow still wins for later socket events.
+            appFacingCallId = appId
             signalingCallId = callId
             Logger.log.i(message: "TxClient:: Push-when-active call ID mapping: app=\(appFacingCallId) -> signaling=\(signalingCallId)")
         } else {
@@ -1576,10 +1575,9 @@ extension TxClient: CallProtocol {
         Logger.log.i(message: "TxClient:: callStateUpdated()")
 
         guard let callId = call.callInfo?.callId else { return }
-        let delegateCallId = self.delegateCallId(for: call.callState, fallbackCallId: callId)
         
         // Forward call state
-        self.delegate?.onCallStateUpdated(callState: call.callState, callId: delegateCallId)
+        self.delegate?.onCallStateUpdated(callState: call.callState, callId: callId)
 
         // Remove call if it has ended
         if case .DONE = call.callState,
@@ -1597,23 +1595,12 @@ extension TxClient: CallProtocol {
             
             //Forward call ended state with termination reason if available
             if case let .DONE(reason) = call.callState {
-                self.delegate?.onRemoteCallEnded(callId: delegateCallId, reason: reason)
+                self.delegate?.onRemoteCallEnded(callId: callId, reason: reason)
             } else {
-                self.delegate?.onRemoteCallEnded(callId: delegateCallId, reason: nil)
+                self.delegate?.onRemoteCallEnded(callId: callId, reason: nil)
             }
             self._isSpeakerEnabled = false
         }
-    }
-
-    private func delegateCallId(for callState: CallState, fallbackCallId: UUID) -> UUID {
-        guard case let .DONE(reason) = callState,
-              reason?.cause == "PICKED_OFF",
-              let sipCallId = reason?.sipCallId,
-              let sipCallUUID = UUID(uuidString: sipCallId) else {
-            return fallbackCallId
-        }
-
-        return sipCallUUID
     }
 
 }
@@ -2025,10 +2012,6 @@ extension TxClient : SocketDelegate {
                             Logger.log.w(message: "TxClient:: Telnyx Leg ID unavailable on INVITE message")
                         }
                         
-                        // Extract push call_id from INVITE variables for ID mapping
-                        let variables = params["variables"] as? [String: Any]
-                        let pushCallId = (variables?["telnyx_rtc_svar_push_call_id"] as? String).flatMap(UUID.init)
-
                         var customHeaders = [String:String]()
                         if params["dialogParams"] is [String:Any] {
                             do {
@@ -2046,8 +2029,7 @@ extension TxClient : SocketDelegate {
                                                 remoteSdp: sdp,
                                                 telnyxSessionId: telnyxSessionId,
                                                 telnyxLegId: telnyxLegId,
-                                                customHeaders: customHeaders,
-                                                pushCallId: pushCallId)
+                                                customHeaders: customHeaders)
                         if(isCallFromPush){
                             /*FileLogger.shared.log("INVITE : \(message) \n")
                             FileLogger.shared.log("INVITE telnyxLegId: \(telnyxLegId) \n") */
@@ -2082,10 +2064,6 @@ extension TxClient : SocketDelegate {
                         Logger.log.w(message: "TxClient:: Telnyx Leg ID unavailable on INVITE message")
                     }
                     
-                    // Extract push call_id from ATTACH variables for ID mapping
-                    let variables = params["variables"] as? [String: Any]
-                    let pushCallId = (variables?["telnyx_rtc_svar_push_call_id"] as? String).flatMap(UUID.init)
-
                     var customHeaders = [String:String]()
                     if params["dialogParams"] is [String:Any] {
                         do {
@@ -2106,8 +2084,7 @@ extension TxClient : SocketDelegate {
                                             telnyxSessionId: telnyxSessionId,
                                             telnyxLegId: telnyxLegId,
                                             customHeaders: customHeaders,
-                                            isAttach: true,
-                                            pushCallId: pushCallId
+                                            isAttach: true
                     )
                     
                 }
