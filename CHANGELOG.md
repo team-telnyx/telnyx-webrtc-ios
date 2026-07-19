@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [4.1.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.1.1) (2026-07-19)
+
+### Bug Fixes
+- **Push Call ID Mapping**: Preserved the call ID supplied in push metadata for app-facing callbacks while using the signaling socket call ID internally. This fixes push-originated call handling, including calls received while another call is active ([#365](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/365), [#368](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/368), [#369](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/369)).
+
+### Enhancements
+- **Late Push Fanout**: Enabled late push fanout when `pushWhenActive` is configured, improving delivery behavior for calls received while the app is active ([#367](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/367)).
+
+## [4.1.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.1.0) (2026-07-15)
+
 ### Bug Fixes
 - **Socket Connection Timeout / Redial**: The signaling socket now always arms a 5s connection-timeout watchdog and redials on a stalled handshake, instead of only doing so when a region fallback was possible. Previously, on the default `wss://rtc.telnyx.com` URL the watchdog never started (the host has no valid region prefix) and the underlying request timeout was overridden to 120s, so a lost SYN after a VoIP push left the dial hanging on TCP retransmit backoff with no recovery — causing answer-from-push failures on cold start. On timeout the socket now falls back to the auto region only for genuine Telnyx regional hosts (`*.rtc.telnyx.com` / `*.rtcdev.telnyx.com`) and otherwise redials the same server, the duplicate disconnect callback from the timed-out socket is suppressed so it does not surface a spurious disconnect mid-redial, and the push socket-only reconnect path no longer force-unwraps a possibly-nil `TxConfig` ([#348](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/348)).
 
