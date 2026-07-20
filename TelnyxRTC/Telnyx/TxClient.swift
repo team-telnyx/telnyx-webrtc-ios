@@ -534,7 +534,8 @@ public class TxClient {
                                                              environment: serverConfiguration.environment,
                                                              pushMetaData: [
                                                                 "voice_sdk_id":self.voiceSdkId!
-                                                             ])
+                                                             ],
+                                                             canary: serverConfiguration.canary)
         } else {
             self.serverConfiguration = serverConfiguration
         }
@@ -558,7 +559,8 @@ public class TxClient {
         self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,
                                                          webRTCIceServers: serverConfiguration.webRTCIceServers,
                                                          environment: serverConfiguration.environment,
-                                                         pushMetaData: self.pushMetaData)
+                                                         pushMetaData: self.pushMetaData,
+                                                         canary: serverConfiguration.canary)
 
         Logger.log.i(message: "TxClient:: serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
         self.socket = Socket()
@@ -1026,7 +1028,8 @@ public class TxClient {
                     signalingServer: serverConfiguration.signalingServer,
                     webRTCIceServers: serverConfiguration.webRTCIceServers,
                     environment: serverConfiguration.environment,
-                    pushMetaData: ["voice_sdk_id": self.voiceSdkId!]
+                    pushMetaData: ["voice_sdk_id": self.voiceSdkId!],
+                    canary: serverConfiguration.canary
                 )
             } else {
                 Logger.log.i(message: "TxClient:: anonymousLogin() without voice_sdk_id")
@@ -1475,7 +1478,8 @@ extension TxClient {
             signalingServer:nil,
             webRTCIceServers: serverConfiguration.webRTCIceServers,
             environment: serverConfiguration.environment,
-            pushMetaData: pushMetaData)
+            pushMetaData: pushMetaData,
+            canary: serverConfiguration.canary)
                 
         let noActiveCalls = self.calls.filter { 
             $0.value.callState.isConsideredActive
@@ -1826,6 +1830,7 @@ extension TxClient : SocketDelegate {
                             webRTCIceServers: updatedServerConfig.webRTCIceServers,
                             environment: updatedServerConfig.environment,
                             pushMetaData: updatedServerConfig.pushMetaData,
+                            canary: updatedServerConfig.canary,
                             region: .auto
                         )
                     }
