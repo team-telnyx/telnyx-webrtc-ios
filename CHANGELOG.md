@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [4.1.2](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.1.2) (2026-07-21)
+
+### Bug Fixes
+- **Regional VoIP Push Connections**: Preserve the configured signaling region when rebuilding the server configuration from a VoIP push, ensuring push-triggered connections remain pinned to the selected regional endpoint.
+
+### Enhancements
+- **Regional Signaling Diagnostics**: Log the resolved signaling server URL whenever a non-auto region is configured.
+
 ## [4.1.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.1.1) (2026-07-19)
 
 ### Bug Fixes
