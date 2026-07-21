@@ -1475,7 +1475,8 @@ extension TxClient {
             signalingServer:nil,
             webRTCIceServers: serverConfiguration.webRTCIceServers,
             environment: serverConfiguration.environment,
-            pushMetaData: pushMetaData)
+            pushMetaData: pushMetaData,
+            region: serverConfiguration.region)
                 
         let noActiveCalls = self.calls.filter { 
             $0.value.callState.isConsideredActive

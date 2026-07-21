@@ -231,6 +231,7 @@ class RegionTests: XCTestCase {
         let apacConfig = TxServerConfiguration(environment: .production, region: .apac)
         let apacURL = apacConfig.signalingServer.absoluteString
         XCTAssertTrue(apacURL.contains("apac."), "APAC region should add 'apac.' prefix to URL")
+        XCTAssertEqual(apacConfig.region, .apac)
     }
     
     /**
@@ -268,6 +269,15 @@ class RegionTests: XCTestCase {
         XCTAssertTrue(usWestURL.contains("us-west."), "US West region should add prefix even with push metadata")
         // Check for URL-encoded version of underscores (%5F)
         XCTAssertTrue(usWestURL.contains("voice_sdk_id=test%5Fsdk%5Fid%5F123"), "URL should contain URL-encoded SDK ID")
+
+        let apacConfig = TxServerConfiguration(environment: .production, region: .apac)
+        let pushConfig = TxServerConfiguration(
+            webRTCIceServers: apacConfig.webRTCIceServers,
+            environment: apacConfig.environment,
+            pushMetaData: pushMetaData,
+            region: apacConfig.region
+        )
+        XCTAssertEqual(pushConfig.signalingServer.host, "apac.rtc.telnyx.com")
     }
     
     // MARK: - Socket Region Extraction Tests

@@ -17,6 +17,7 @@ public enum WebRTCEnvironment {
 public struct TxServerConfiguration {
 
     public internal(set) var environment: WebRTCEnvironment = .production
+    public internal(set) var region: Region = .auto
     public internal(set) var signalingServer: URL
     public internal(set) var pushMetaData: [String:Any]?
     public internal(set) var webRTCIceServers: [RTCIceServer]
@@ -28,6 +29,7 @@ public struct TxServerConfiguration {
     ///   - pushMetaData: Contains push info when a PN is received
     public init(signalingServer: URL? = nil, webRTCIceServers: [RTCIceServer]? = nil, environment: WebRTCEnvironment = .production,pushMetaData:[String: Any]? = nil,region:Region = Region.auto) {
         
+        self.region = region
         self.pushMetaData = pushMetaData
         // Get rtc_id  to setup TxPushServerConfig
         let rtc_id = (pushMetaData?["voice_sdk_id"] as? String)
