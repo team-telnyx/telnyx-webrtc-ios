@@ -74,6 +74,10 @@ public struct TxServerConfiguration {
             self.environment = environment
         }
 
+        if region != .auto {
+            Logger.log.i(message: "TxServerConfiguration:: resolved signaling server for region [\(region)]: \(self.signalingServer.absoluteString)")
+        }
+
         if let webRTCIceServers = webRTCIceServers {
             self.webRTCIceServers = webRTCIceServers
         } else {
