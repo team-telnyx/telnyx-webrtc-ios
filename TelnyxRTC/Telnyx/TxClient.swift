@@ -969,6 +969,7 @@ public class TxClient {
     ///   - targetId: The target ID for the AI assistant
     ///   - targetType: The target type (defaults to "ai_assistant")
     ///   - targetVersionId: Optional target version ID
+    ///   - conversationId: Optional conversation ID to join an existing conversation
     ///   - userVariables: Optional user variables to include in the login
     ///   - reconnection: Whether this is a reconnection attempt (defaults to false)
     ///   - serverConfiguration: Server configuration to use for connection (defaults to TxServerConfiguration())
@@ -976,11 +977,12 @@ public class TxClient {
         targetId: String, 
         targetType: String = "ai_assistant", 
         targetVersionId: String? = nil,
+        conversationId: String? = nil,
         userVariables: [String: Any] = [:],
         reconnection: Bool = false,
         serverConfiguration: TxServerConfiguration = TxServerConfiguration()
     ) {
-        Logger.log.i(message: "TxClient:: anonymousLogin() targetId: \(targetId), targetType: \(targetType)")
+        Logger.log.i(message: "TxClient:: anonymousLogin() targetId: \(targetId), targetType: \(targetType), conversationId: \(conversationId ?? "nil")")
         
         // Generate session ID if not available
         if self.sessionId == nil {
@@ -997,6 +999,7 @@ public class TxClient {
             targetType: targetType,
             targetId: targetId,
             targetVersionId: targetVersionId,
+            conversationId: conversationId,
             sessionId: sessionId,
             userVariables: userVariables,
             reconnection: reconnection

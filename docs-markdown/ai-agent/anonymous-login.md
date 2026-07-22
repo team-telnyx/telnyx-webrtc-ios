@@ -11,6 +11,7 @@ public func anonymousLogin(
     targetId: String,
     targetType: String = "ai_assistant",
     targetVersionId: String? = nil,
+    conversationId: String? = nil,
     userVariables: [String: Any] = [:],
     reconnection: Bool = false,
     serverConfiguration: TxServerConfiguration = TxServerConfiguration()
@@ -24,6 +25,7 @@ public func anonymousLogin(
 | `targetId` | String | Yes | - | The ID of your AI assistant |
 | `targetType` | String | No | "ai_assistant" | The type of target |
 | `targetVersionId` | String? | No | nil | Optional version ID of the target. If not provided, uses latest version |
+| `conversationId` | String? | No | nil | Optional conversation ID to join an existing conversation |
 | `userVariables` | [String: Any] | No | [:] | Optional user variables to include |
 | `reconnection` | Bool | No | false | Whether this is a reconnection attempt |
 | `serverConfiguration` | TxServerConfiguration | No | TxServerConfiguration() | Server configuration (signaling server URL and STUN/TURN servers) |
@@ -74,6 +76,29 @@ client.anonymousLogin(
     targetId: "your_assistant_id",
     targetVersionId: "v1.2.0" // Use specific version
 )
+```
+
+### Joining an Existing Conversation
+
+You can join an existing conversation by providing a `conversationId`. This is useful when you want to continue a previous conversation or join a conversation that was started elsewhere.
+
+```swift
+client.anonymousLogin(
+    targetId: "your_assistant_id",
+    conversationId: "existing-conversation-id" // Join existing conversation
+)
+```
+
+The `conversationId` is passed as part of the `target_params` object in the anonymous login message:
+
+```json
+{
+  "anonymous_login": {
+    "target_params": {
+      "conversation_id": "existing-conversation-id"
+    }
+  }
+}
 ```
 
 ### With Custom Server Configuration
