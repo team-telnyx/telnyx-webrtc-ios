@@ -56,7 +56,7 @@ class PeerConnectionTests: XCTestCase {
             return XCTFail("Expected peer connection")
         }
 
-        peerConnection.peerConnection(connection, didChange: .failed)
+        peerConnection.peerConnection(connection, didChange: RTCPeerConnectionState.failed)
 
         XCTAssertEqual(receivedState, .failed)
     }
