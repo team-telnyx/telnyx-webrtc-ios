@@ -184,9 +184,6 @@ public class TxClient {
         SignalingHealthMonitor(
             isSignalingAvailable: { [weak self] in
                 guard let self = self else { return false }
-                if Thread.isMainThread {
-                    return self.socket?.isConnected == true
-                }
                 return DispatchQueue.main.sync {
                     self.socket?.isConnected == true
                 }
@@ -200,9 +197,6 @@ public class TxClient {
                     guard let encodedPing = ping.encode() else { return nil }
                     self.socket?.sendMessage(message: encodedPing)
                     return ping.id
-                }
-                if Thread.isMainThread {
-                    return sendProbe()
                 }
                 return DispatchQueue.main.sync(execute: sendProbe)
             },
