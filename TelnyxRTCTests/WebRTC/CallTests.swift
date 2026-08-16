@@ -92,6 +92,32 @@ class CallTests: XCTestCase {
         XCTAssertEqual(callCustomHeaders?["X-test1"], "ios-test1", "X-test1 header should match")
         XCTAssertEqual(callCustomHeaders?["X-test2"], "ios-test2", "X-test2 header should match")
     }
+
+    func testSelectedDirectVPNCandidateRequiresRelayForRecovery() {
+        let statistics: [String: [String: Any]] = [
+            "transport": ["type": "transport", "selectedCandidatePairId": "pair"],
+            "pair": ["type": "candidate-pair", "localCandidateId": "local"],
+            "local": ["type": "local-candidate", "networkType": "vpn", "candidateType": "host"]
+        ]
+
+        XCTAssertTrue(Call.selectedCandidateUsesDirectVPN(statistics))
+    }
+
+    func testSelectedRelayOrNonVPNCandidateDoesNotRequireRelayForRecovery() {
+        let relayStatistics: [String: [String: Any]] = [
+            "transport": ["type": "transport", "selectedCandidatePairId": "pair"],
+            "pair": ["type": "candidate-pair", "localCandidateId": "local"],
+            "local": ["type": "local-candidate", "networkType": "vpn", "candidateType": "relay"]
+        ]
+        let wifiStatistics: [String: [String: Any]] = [
+            "transport": ["type": "transport", "selectedCandidatePairId": "pair"],
+            "pair": ["type": "candidate-pair", "localCandidateId": "local"],
+            "local": ["type": "local-candidate", "networkType": "wifi", "candidateType": "host"]
+        ]
+
+        XCTAssertFalse(Call.selectedCandidateUsesDirectVPN(relayStatistics))
+        XCTAssertFalse(Call.selectedCandidateUsesDirectVPN(wifiStatistics))
+    }
 }
 
 // MARK: - CallProtocol

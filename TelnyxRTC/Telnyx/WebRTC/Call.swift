@@ -734,6 +734,40 @@ public class Call {
         self.peer?.dispose()
     }
 
+    /// Checks whether the selected local ICE candidate is a non-relay VPN path.
+    /// This is evaluated only after a peer failure and only affects the replacement
+    /// call created by reconnect/reattach.
+    internal func shouldForceRelayForRecovery(completion: @escaping (Bool) -> Void) {
+        guard let connection = peer?.connection else {
+            completion(false)
+            return
+        }
+
+        connection.statistics { report in
+            var statistics = [String: [String: Any]]()
+            for stat in report.statistics.values {
+                var values = stat.values
+                values["type"] = stat.type as NSObject
+                statistics[stat.id] = values.mapValues { $0 as Any }
+            }
+            completion(Self.selectedCandidateUsesDirectVPN(statistics))
+        }
+    }
+
+    internal static func selectedCandidateUsesDirectVPN(_ statistics: [String: [String: Any]]) -> Bool {
+        guard let transport = statistics.values.first(where: { $0["type"] as? String == "transport" }),
+              let candidatePairId = transport["selectedCandidatePairId"] as? String,
+              let candidatePair = statistics[candidatePairId],
+              let localCandidateId = candidatePair["localCandidateId"] as? String,
+              let localCandidate = statistics[localCandidateId],
+              let networkType = localCandidate["networkType"] as? String,
+              let candidateType = localCandidate["candidateType"] as? String else {
+            return false
+        }
+
+        return networkType.lowercased() == "vpn" && candidateType.lowercased() != "relay"
+    }
+
     internal func updateCallState(callState: CallState) {
         Logger.log.i(message: "Call state updated: \(callState)")
         self.callState = callState
