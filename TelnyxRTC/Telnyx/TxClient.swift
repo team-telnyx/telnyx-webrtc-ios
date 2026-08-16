@@ -188,6 +188,7 @@ public class TxClient {
             sendSignalingProbe: { [weak self] in
                 guard let self = self, self.socket?.isConnected == true else { return nil }
                 let ping = Message([:], method: .PING)
+                ping.jsonMessage["voice_sdk_id"] = self.voiceSdkId
                 guard let encodedPing = ping.encode() else { return nil }
                 self.socket?.sendMessage(message: encodedPing)
                 return ping.id

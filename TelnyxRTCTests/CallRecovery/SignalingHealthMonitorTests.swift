@@ -105,6 +105,45 @@ final class SignalingHealthMonitorTests: XCTestCase {
         wait(for: [reattachExpectation], timeout: 1)
     }
 
+    func testActiveCallProbesAfterSustainedSignalingSilence() {
+        let call = makeActiveCall()
+        let probeExpectation = expectation(description: "active call sends signaling probe")
+        let monitor = SignalingHealthMonitor(
+            signalingProbeTimeout: 1,
+            staleInboundActivityThreshold: 0.01,
+            signalingHealthCheckInterval: 0.01,
+            isSignalingAvailable: { true },
+            sendSignalingProbe: {
+                probeExpectation.fulfill()
+                return "probe-id"
+            },
+            startIceRestart: { _ in XCTFail("Should not restart ICE") },
+            requestReattach: { XCTFail("Should not reattach before probe timeout") }
+        )
+
+        monitor.callStateDidChange(call)
+
+        wait(for: [probeExpectation], timeout: 1)
+    }
+
+    func testActiveCallReattachesWhenSignalingProbeTimesOut() {
+        let call = makeActiveCall()
+        let reattachExpectation = expectation(description: "active call reattaches after probe timeout")
+        let monitor = SignalingHealthMonitor(
+            signalingProbeTimeout: 0.01,
+            staleInboundActivityThreshold: 0.01,
+            signalingHealthCheckInterval: 0.01,
+            isSignalingAvailable: { true },
+            sendSignalingProbe: { "probe-id" },
+            startIceRestart: { _ in XCTFail("Should not restart ICE") },
+            requestReattach: { reattachExpectation.fulfill() }
+        )
+
+        monitor.callStateDidChange(call)
+
+        wait(for: [reattachExpectation], timeout: 1)
+    }
+
     private func makeResponse(id: String) -> Message {
         Message().decode(message: "{\"jsonrpc\":\"2.0\",\"id\":\"\(id)\",\"result\":{}}")!
     }
