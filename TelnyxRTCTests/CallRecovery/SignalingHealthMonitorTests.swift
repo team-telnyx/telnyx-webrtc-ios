@@ -33,7 +33,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
             isSignalingAvailable: { true },
             sendSignalingProbe: { "probe-id" },
             startIceRestart: { _ in restartExpectation.fulfill() },
-            requestReattach: { XCTFail("Should not reattach while signaling is healthy") }
+            requestReattach: { _ in XCTFail("Should not reattach while signaling is healthy") }
         )
 
         monitor.peerConnectionStateDidChange(call, state: .disconnected)
