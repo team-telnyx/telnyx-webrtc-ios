@@ -91,9 +91,12 @@ internal final class SignalingHealthMonitor {
     }
 
     func peerConnectionStateDidChange(_ call: Call, state: RTCPeerConnectionState) {
-        guard state == .failed else { return }
+        guard state == .disconnected || state == .failed else { return }
         executeOnQueue { [weak self] in
-            self?.requestRecovery(for: call, trigger: "peer_connection_failed")
+            let trigger = state == .disconnected
+                ? "peer_connection_disconnected"
+                : "peer_connection_failed"
+            self?.requestRecovery(for: call, trigger: trigger)
         }
     }
 

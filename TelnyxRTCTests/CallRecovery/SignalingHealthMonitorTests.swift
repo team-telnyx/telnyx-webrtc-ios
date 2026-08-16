@@ -25,6 +25,21 @@ final class SignalingHealthMonitorTests: XCTestCase {
         XCTAssertEqual(reattachCount, 0)
     }
 
+    func testPeerDisconnectionStartsIceRestartWhenSignalingIsHealthy() {
+        let call = makeActiveCall()
+        let restartExpectation = expectation(description: "starts ICE restart after peer disconnection")
+        let monitor = SignalingHealthMonitor(
+            isSignalingAvailable: { true },
+            sendSignalingProbe: { "probe-id" },
+            startIceRestart: { _ in restartExpectation.fulfill() },
+            requestReattach: { XCTFail("Should not reattach while signaling is healthy") }
+        )
+
+        monitor.peerConnectionStateDidChange(call, state: .disconnected)
+
+        wait(for: [restartExpectation], timeout: 1)
+    }
+
     func testPeerFailureWithUnavailableSignalingUsesReattach() {
         let call = makeActiveCall()
         var restartCount = 0
