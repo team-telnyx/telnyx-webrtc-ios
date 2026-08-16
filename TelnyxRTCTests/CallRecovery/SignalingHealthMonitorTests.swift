@@ -126,6 +126,32 @@ final class SignalingHealthMonitorTests: XCTestCase {
         wait(for: [probeExpectation], timeout: 1)
     }
 
+    func testSuccessfulActiveCallHealthProbeDoesNotRestartICE() {
+        let call = makeActiveCall()
+        let probeExpectation = expectation(description: "active call sends signaling probe")
+        var restartCount = 0
+        var reattachCount = 0
+        let monitor = SignalingHealthMonitor(
+            signalingProbeTimeout: 1,
+            staleInboundActivityThreshold: 0.01,
+            signalingHealthCheckInterval: 0.01,
+            isSignalingAvailable: { true },
+            sendSignalingProbe: {
+                probeExpectation.fulfill()
+                return "health-probe-id"
+            },
+            startIceRestart: { _ in restartCount += 1 },
+            requestReattach: { reattachCount += 1 }
+        )
+
+        monitor.callStateDidChange(call)
+        wait(for: [probeExpectation], timeout: 1)
+        monitor.signalingMessageReceived(makeResponse(id: "health-probe-id"))
+
+        XCTAssertEqual(restartCount, 0)
+        XCTAssertEqual(reattachCount, 0)
+    }
+
     func testActiveCallReattachesWhenSignalingProbeTimesOut() {
         let call = makeActiveCall()
         let reattachExpectation = expectation(description: "active call reattaches after probe timeout")

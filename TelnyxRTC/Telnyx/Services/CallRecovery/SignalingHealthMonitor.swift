@@ -13,6 +13,11 @@ internal final class SignalingHealthMonitor {
         case reattaching
     }
 
+    private enum SignalingProbePurpose {
+        case mediaRecovery
+        case healthCheck
+    }
+
     private let iceRestartTimeout: TimeInterval
     private let signalingProbeTimeout: TimeInterval
     private let recentInboundActivityThreshold: TimeInterval
@@ -30,6 +35,7 @@ internal final class SignalingHealthMonitor {
     private var signalingProbeTimeoutWorkItem: DispatchWorkItem?
     private var signalingHealthCheckTimer: DispatchSourceTimer?
     private var pendingSignalingProbeId: String?
+    private var pendingSignalingProbePurpose: SignalingProbePurpose?
     private var lastInboundSignalingActivity = Date()
     private var lastConfirmedOutboundActivity = Date()
     private weak var monitoredActiveCall: Call?
@@ -94,12 +100,18 @@ internal final class SignalingHealthMonitor {
             self.lastConfirmedOutboundActivity = Date()
             guard self.recoveryMode == .probing,
                   self.pendingSignalingProbeId == message.id,
-                  let call = self.recoveringCall else { return }
+                  let purpose = self.pendingSignalingProbePurpose else { return }
 
             Logger.log.i(message: "[CALL-RECOVERY] Signaling health probe succeeded")
             self.cancelSignalingProbeTimeout()
             self.recoveryMode = .idle
-            self.startIceRestartRecovery(for: call)
+            switch purpose {
+            case .mediaRecovery:
+                guard let call = self.recoveringCall else { return }
+                self.startIceRestartRecovery(for: call)
+            case .healthCheck:
+                self.recoveringCall = nil
+            }
         }
     }
 
@@ -166,7 +178,7 @@ internal final class SignalingHealthMonitor {
                 self.startIceRestartRecovery(for: call)
             } else {
                 Logger.log.w(message: "[CALL-RECOVERY] \(trigger) with stale signaling; probing before ICE restart")
-                self.startSignalingProbe(for: call)
+                self.startSignalingProbe(for: call, purpose: .mediaRecovery)
             }
         }
     }
@@ -183,7 +195,7 @@ internal final class SignalingHealthMonitor {
         startIceRestart(call)
     }
 
-    private func startSignalingProbe(for call: Call) {
+    private func startSignalingProbe(for call: Call, purpose: SignalingProbePurpose) {
         guard let probeId = sendSignalingProbe() else {
             Logger.log.e(message: "[CALL-RECOVERY] Unable to send signaling health probe")
             beginReattach()
@@ -193,6 +205,7 @@ internal final class SignalingHealthMonitor {
         cancelSignalingProbeTimeout()
         recoveryMode = .probing
         pendingSignalingProbeId = probeId
+        pendingSignalingProbePurpose = purpose
         let workItem = DispatchWorkItem { [weak self, weak call] in
             guard let self = self,
                   let call = call,
@@ -241,7 +254,7 @@ internal final class SignalingHealthMonitor {
 
         Logger.log.w(message: "[CALL-RECOVERY] Signaling activity is stale during an active call; probing")
         recoveringCall = call
-        startSignalingProbe(for: call)
+        startSignalingProbe(for: call, purpose: .healthCheck)
     }
 
     private func startIceRestartTimeout(for call: Call) {
@@ -284,6 +297,7 @@ internal final class SignalingHealthMonitor {
         signalingProbeTimeoutWorkItem?.cancel()
         signalingProbeTimeoutWorkItem = nil
         pendingSignalingProbeId = nil
+        pendingSignalingProbePurpose = nil
     }
 
     private func executeOnMain(_ block: @escaping () -> Void) {
