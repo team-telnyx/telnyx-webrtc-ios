@@ -185,6 +185,13 @@ public class TxClient {
             isSignalingAvailable: { [weak self] in
                 self?.socket?.isConnected == true
             },
+            sendSignalingProbe: { [weak self] in
+                guard let self = self, self.socket?.isConnected == true else { return nil }
+                let ping = Message([:], method: .PING)
+                guard let encodedPing = ping.encode() else { return nil }
+                self.socket?.sendMessage(message: encodedPing)
+                return ping.id
+            },
             startIceRestart: { [weak self] call in
                 call.iceRestart { success, error in
                     guard !success else { return }
@@ -1912,6 +1919,7 @@ extension TxClient : SocketDelegate {
         NotificationCenter.default.post(name: .telnyxWebSocketMessageReceived, object: nil, userInfo: ["message": message])
         
         guard let vertoMessage = Message().decode(message: message) else { return }
+        self.signalingHealthMonitor.signalingMessageReceived(vertoMessage)
         
         // Process message through AI Assistant Manager
         if let messageDict = try? JSONSerialization.jsonObject(with: Data(message.utf8), options: []) as? [String: Any] {

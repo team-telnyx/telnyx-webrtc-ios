@@ -8,27 +8,44 @@ import WebRTC
 internal final class SignalingHealthMonitor {
     private enum RecoveryMode: Equatable {
         case idle
+        case probing
         case iceRestarting
         case reattaching
     }
 
     private let iceRestartTimeout: TimeInterval
+    private let signalingProbeTimeout: TimeInterval
+    private let recentInboundActivityThreshold: TimeInterval
+    private let confirmedOutboundActivityThreshold: TimeInterval
     private let isSignalingAvailable: () -> Bool
+    private let sendSignalingProbe: () -> String?
     private let startIceRestart: (Call) -> Void
     private let requestReattach: () -> Void
 
     private weak var recoveringCall: Call?
     private var recoveryMode: RecoveryMode = .idle
     private var iceRestartTimeoutWorkItem: DispatchWorkItem?
+    private var signalingProbeTimeoutWorkItem: DispatchWorkItem?
+    private var pendingSignalingProbeId: String?
+    private var lastInboundSignalingActivity = Date()
+    private var lastConfirmedOutboundActivity = Date()
 
     init(
         iceRestartTimeout: TimeInterval = 15,
+        signalingProbeTimeout: TimeInterval = 5,
+        recentInboundActivityThreshold: TimeInterval = 3,
+        confirmedOutboundActivityThreshold: TimeInterval = 45,
         isSignalingAvailable: @escaping () -> Bool,
+        sendSignalingProbe: @escaping () -> String?,
         startIceRestart: @escaping (Call) -> Void,
         requestReattach: @escaping () -> Void
     ) {
         self.iceRestartTimeout = iceRestartTimeout
+        self.signalingProbeTimeout = signalingProbeTimeout
+        self.recentInboundActivityThreshold = recentInboundActivityThreshold
+        self.confirmedOutboundActivityThreshold = confirmedOutboundActivityThreshold
         self.isSignalingAvailable = isSignalingAvailable
+        self.sendSignalingProbe = sendSignalingProbe
         self.startIceRestart = startIceRestart
         self.requestReattach = requestReattach
     }
@@ -37,7 +54,7 @@ internal final class SignalingHealthMonitor {
         executeOnMain { [weak self] in
             guard let self = self, self.recoveryMode != .reattaching else { return }
             Logger.log.i(message: "[CALL-RECOVERY] Network path changed; using required reconnect/reattach flow")
-            self.cancelIceRestartTimeout()
+            self.cancelRecoveryTimeouts()
             self.recoveringCall = nil
             self.recoveryMode = .reattaching
         }
@@ -51,6 +68,26 @@ internal final class SignalingHealthMonitor {
     func peerConnectionStateDidChange(_ call: Call, state: RTCPeerConnectionState) {
         guard state == .failed else { return }
         requestRecovery(for: call, trigger: "peer_connection_failed")
+    }
+
+    /// Records every inbound signaling frame. A probe is successful only when a
+    /// result or error has the exact JSON-RPC id generated for that probe.
+    func signalingMessageReceived(_ message: Message) {
+        executeOnMain { [weak self] in
+            guard let self = self else { return }
+            self.lastInboundSignalingActivity = Date()
+
+            guard message.result != nil || message.serverError != nil else { return }
+            self.lastConfirmedOutboundActivity = Date()
+            guard self.recoveryMode == .probing,
+                  self.pendingSignalingProbeId == message.id,
+                  let call = self.recoveringCall else { return }
+
+            Logger.log.i(message: "[CALL-RECOVERY] Signaling health probe succeeded")
+            self.cancelSignalingProbeTimeout()
+            self.recoveryMode = .idle
+            self.startIceRestartRecovery(for: call)
+        }
     }
 
     func iceRestartDidComplete(for call: Call) {
@@ -102,16 +139,51 @@ internal final class SignalingHealthMonitor {
             }
 
             self.recoveringCall = call
-            if self.isSignalingAvailable() {
-                Logger.log.w(message: "[CALL-RECOVERY] \(trigger) with signaling available; starting ICE restart")
-                self.recoveryMode = .iceRestarting
-                self.startIceRestartTimeout(for: call)
-                self.startIceRestart(call)
-            } else {
+            if !self.isSignalingAvailable() {
                 Logger.log.w(message: "[CALL-RECOVERY] \(trigger) with signaling unavailable; starting reconnect/reattach")
                 self.beginReattach()
+            } else if self.hasRecentSignalingActivity() {
+                Logger.log.w(message: "[CALL-RECOVERY] \(trigger) with signaling available; starting ICE restart")
+                self.startIceRestartRecovery(for: call)
+            } else {
+                Logger.log.w(message: "[CALL-RECOVERY] \(trigger) with stale signaling; probing before ICE restart")
+                self.startSignalingProbe(for: call)
             }
         }
+    }
+
+    private func hasRecentSignalingActivity() -> Bool {
+        let now = Date()
+        return now.timeIntervalSince(lastInboundSignalingActivity) <= recentInboundActivityThreshold
+            && now.timeIntervalSince(lastConfirmedOutboundActivity) <= confirmedOutboundActivityThreshold
+    }
+
+    private func startIceRestartRecovery(for call: Call) {
+        recoveryMode = .iceRestarting
+        startIceRestartTimeout(for: call)
+        startIceRestart(call)
+    }
+
+    private func startSignalingProbe(for call: Call) {
+        guard let probeId = sendSignalingProbe() else {
+            Logger.log.e(message: "[CALL-RECOVERY] Unable to send signaling health probe")
+            beginReattach()
+            return
+        }
+
+        cancelSignalingProbeTimeout()
+        recoveryMode = .probing
+        pendingSignalingProbeId = probeId
+        let workItem = DispatchWorkItem { [weak self, weak call] in
+            guard let self = self,
+                  let call = call,
+                  self.recoveryMode == .probing,
+                  self.recoveringCall === call else { return }
+            Logger.log.e(message: "[CALL-RECOVERY] Signaling health probe timed out after \(self.signalingProbeTimeout)s")
+            self.beginReattach()
+        }
+        signalingProbeTimeoutWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + signalingProbeTimeout, execute: workItem)
     }
 
     private func startIceRestartTimeout(for call: Call) {
@@ -129,20 +201,31 @@ internal final class SignalingHealthMonitor {
     }
 
     private func beginReattach() {
-        cancelIceRestartTimeout()
+        cancelRecoveryTimeouts()
         recoveryMode = .reattaching
         requestReattach()
     }
 
     private func finishRecovery() {
-        cancelIceRestartTimeout()
+        cancelRecoveryTimeouts()
         recoveringCall = nil
         recoveryMode = .idle
+    }
+
+    private func cancelRecoveryTimeouts() {
+        cancelIceRestartTimeout()
+        cancelSignalingProbeTimeout()
     }
 
     private func cancelIceRestartTimeout() {
         iceRestartTimeoutWorkItem?.cancel()
         iceRestartTimeoutWorkItem = nil
+    }
+
+    private func cancelSignalingProbeTimeout() {
+        signalingProbeTimeoutWorkItem?.cancel()
+        signalingProbeTimeoutWorkItem = nil
+        pendingSignalingProbeId = nil
     }
 
     private func executeOnMain(_ block: @escaping () -> Void) {
