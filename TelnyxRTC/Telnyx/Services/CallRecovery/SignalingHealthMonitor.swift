@@ -6,6 +6,10 @@ import WebRTC
 /// The monitor owns recovery state and timers, while `Call` owns WebRTC
 /// renegotiation and `TxClient` owns reconnect/reattach mechanics.
 internal final class SignalingHealthMonitor {
+    /// Serializes recovery transitions and timer callbacks independently of the
+    /// main queue, where CallKit and other UI-facing work may run.
+    private let queue = DispatchQueue(label: "com.telnyx.SignalingHealthMonitor")
+
     private enum RecoveryMode: Equatable {
         case idle
         case probing
@@ -70,7 +74,7 @@ internal final class SignalingHealthMonitor {
     }
 
     func networkPathDidChange() {
-        executeOnMain { [weak self] in
+        executeOnQueue { [weak self] in
             guard let self = self, self.recoveryMode != .reattaching else { return }
             Logger.log.i(message: "[CALL-RECOVERY] Network path changed; using required reconnect/reattach flow")
             self.cancelRecoveryTimeouts()
@@ -81,18 +85,22 @@ internal final class SignalingHealthMonitor {
 
     func iceConnectionStateDidChange(_ call: Call, state: RTCIceConnectionState) {
         guard state == .failed else { return }
-        requestRecovery(for: call, trigger: "ice_failed")
+        executeOnQueue { [weak self] in
+            self?.requestRecovery(for: call, trigger: "ice_failed")
+        }
     }
 
     func peerConnectionStateDidChange(_ call: Call, state: RTCPeerConnectionState) {
         guard state == .failed else { return }
-        requestRecovery(for: call, trigger: "peer_connection_failed")
+        executeOnQueue { [weak self] in
+            self?.requestRecovery(for: call, trigger: "peer_connection_failed")
+        }
     }
 
     /// Records every inbound signaling frame. A probe is successful only when a
     /// result or error has the exact JSON-RPC id generated for that probe.
     func signalingMessageReceived(_ message: Message) {
-        executeOnMain { [weak self] in
+        executeOnQueue { [weak self] in
             guard let self = self else { return }
             self.lastInboundSignalingActivity = Date()
 
@@ -116,7 +124,7 @@ internal final class SignalingHealthMonitor {
     }
 
     func iceRestartDidComplete(for call: Call) {
-        executeOnMain { [weak self] in
+        executeOnQueue { [weak self] in
             guard let self = self, self.recoveryMode == .iceRestarting, self.recoveringCall === call else { return }
             Logger.log.i(message: "[CALL-RECOVERY] ICE restart answer applied")
             self.finishRecovery()
@@ -124,7 +132,7 @@ internal final class SignalingHealthMonitor {
     }
 
     func iceRestartRequestDidFail(for call: Call, error: Error) {
-        executeOnMain { [weak self] in
+        executeOnQueue { [weak self] in
             guard let self = self, self.recoveryMode == .iceRestarting, self.recoveringCall === call else { return }
             Logger.log.e(message: "[CALL-RECOVERY] ICE restart failed: \(error.localizedDescription)")
             self.beginReattach()
@@ -132,7 +140,7 @@ internal final class SignalingHealthMonitor {
     }
 
     func callStateDidChange(_ call: Call) {
-        executeOnMain { [weak self] in
+        executeOnQueue { [weak self] in
             guard let self = self else { return }
 
             switch call.callState {
@@ -158,28 +166,25 @@ internal final class SignalingHealthMonitor {
     }
 
     private func requestRecovery(for call: Call, trigger: String) {
-        executeOnMain { [weak self] in
-            guard let self = self else { return }
-            guard call.callState == .ACTIVE else {
-                Logger.log.i(message: "[CALL-RECOVERY] Ignoring \(trigger); call is \(call.callState.value)")
-                return
-            }
-            guard self.recoveryMode == .idle else {
-                Logger.log.i(message: "[CALL-RECOVERY] Ignoring \(trigger); recovery is already in progress")
-                return
-            }
+        guard call.callState == .ACTIVE else {
+            Logger.log.i(message: "[CALL-RECOVERY] Ignoring \(trigger); call is \(call.callState.value)")
+            return
+        }
+        guard recoveryMode == .idle else {
+            Logger.log.i(message: "[CALL-RECOVERY] Ignoring \(trigger); recovery is already in progress")
+            return
+        }
 
-            self.recoveringCall = call
-            if !self.isSignalingAvailable() {
-                Logger.log.w(message: "[CALL-RECOVERY] \(trigger) with signaling unavailable; starting reconnect/reattach")
-                self.beginReattach()
-            } else if self.hasRecentSignalingActivity() {
-                Logger.log.w(message: "[CALL-RECOVERY] \(trigger) with signaling available; starting ICE restart")
-                self.startIceRestartRecovery(for: call)
-            } else {
-                Logger.log.w(message: "[CALL-RECOVERY] \(trigger) with stale signaling; probing before ICE restart")
-                self.startSignalingProbe(for: call, purpose: .mediaRecovery)
-            }
+        recoveringCall = call
+        if !isSignalingAvailable() {
+            Logger.log.w(message: "[CALL-RECOVERY] \(trigger) with signaling unavailable; starting reconnect/reattach")
+            beginReattach()
+        } else if hasRecentSignalingActivity() {
+            Logger.log.w(message: "[CALL-RECOVERY] \(trigger) with signaling available; starting ICE restart")
+            startIceRestartRecovery(for: call)
+        } else {
+            Logger.log.w(message: "[CALL-RECOVERY] \(trigger) with stale signaling; probing before ICE restart")
+            startSignalingProbe(for: call, purpose: .mediaRecovery)
         }
     }
 
@@ -215,12 +220,12 @@ internal final class SignalingHealthMonitor {
             self.beginReattach()
         }
         signalingProbeTimeoutWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + signalingProbeTimeout, execute: workItem)
+        queue.asyncAfter(deadline: .now() + signalingProbeTimeout, execute: workItem)
     }
 
     private func startSignalingHealthChecks() {
         guard signalingHealthCheckTimer == nil else { return }
-        let timer = DispatchSource.makeTimerSource(queue: .main)
+        let timer = DispatchSource.makeTimerSource(queue: queue)
         timer.schedule(deadline: .now() + signalingHealthCheckInterval, repeating: signalingHealthCheckInterval)
         timer.setEventHandler { [weak self] in
             self?.checkSignalingHealth()
@@ -268,7 +273,7 @@ internal final class SignalingHealthMonitor {
             self.beginReattach()
         }
         iceRestartTimeoutWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + iceRestartTimeout, execute: workItem)
+        queue.asyncAfter(deadline: .now() + iceRestartTimeout, execute: workItem)
     }
 
     private func beginReattach() {
@@ -300,11 +305,7 @@ internal final class SignalingHealthMonitor {
         pendingSignalingProbePurpose = nil
     }
 
-    private func executeOnMain(_ block: @escaping () -> Void) {
-        if Thread.isMainThread {
-            block()
-        } else {
-            DispatchQueue.main.async(execute: block)
-        }
+    private func executeOnQueue(_ block: @escaping () -> Void) {
+        queue.async(execute: block)
     }
 }

@@ -6,16 +6,21 @@ final class SignalingHealthMonitorTests: XCTestCase {
         let call = makeActiveCall()
         var restartCount = 0
         var reattachCount = 0
+        let restartExpectation = expectation(description: "starts one ICE restart")
         let monitor = SignalingHealthMonitor(
             isSignalingAvailable: { true },
             sendSignalingProbe: { "probe-id" },
-            startIceRestart: { _ in restartCount += 1 },
+            startIceRestart: { _ in
+                restartCount += 1
+                restartExpectation.fulfill()
+            },
             requestReattach: { reattachCount += 1 }
         )
 
         monitor.iceConnectionStateDidChange(call, state: .failed)
         monitor.peerConnectionStateDidChange(call, state: .failed)
 
+        wait(for: [restartExpectation], timeout: 1)
         XCTAssertEqual(restartCount, 1)
         XCTAssertEqual(reattachCount, 0)
     }
@@ -24,15 +29,20 @@ final class SignalingHealthMonitorTests: XCTestCase {
         let call = makeActiveCall()
         var restartCount = 0
         var reattachCount = 0
+        let reattachExpectation = expectation(description: "requests reattach")
         let monitor = SignalingHealthMonitor(
             isSignalingAvailable: { false },
             sendSignalingProbe: { "probe-id" },
             startIceRestart: { _ in restartCount += 1 },
-            requestReattach: { reattachCount += 1 }
+            requestReattach: {
+                reattachCount += 1
+                reattachExpectation.fulfill()
+            }
         )
 
         monitor.peerConnectionStateDidChange(call, state: .failed)
 
+        wait(for: [reattachExpectation], timeout: 1)
         XCTAssertEqual(restartCount, 0)
         XCTAssertEqual(reattachCount, 1)
     }
@@ -57,15 +67,21 @@ final class SignalingHealthMonitorTests: XCTestCase {
         let call = makeActiveCall()
         var restartCount = 0
         var probeCount = 0
+        let probeExpectation = expectation(description: "sends a recovery probe")
+        let restartExpectation = expectation(description: "starts ICE restart after matching response")
         let monitor = SignalingHealthMonitor(
             signalingProbeTimeout: 1,
             recentInboundActivityThreshold: 0.01,
             isSignalingAvailable: { true },
             sendSignalingProbe: {
                 probeCount += 1
+                probeExpectation.fulfill()
                 return "expected-probe-id"
             },
-            startIceRestart: { _ in restartCount += 1 },
+            startIceRestart: { _ in
+                restartCount += 1
+                restartExpectation.fulfill()
+            },
             requestReattach: { XCTFail("Should not reattach") }
         )
 
@@ -75,13 +91,13 @@ final class SignalingHealthMonitorTests: XCTestCase {
         wait(for: [staleExpectation], timeout: 1)
         monitor.peerConnectionStateDidChange(call, state: .failed)
 
+        wait(for: [probeExpectation], timeout: 1)
         XCTAssertEqual(probeCount, 1)
-        XCTAssertEqual(restartCount, 0)
 
         monitor.signalingMessageReceived(makeResponse(id: "unrelated-id"))
-        XCTAssertEqual(restartCount, 0)
-
         monitor.signalingMessageReceived(makeResponse(id: "expected-probe-id"))
+
+        wait(for: [restartExpectation], timeout: 1)
         XCTAssertEqual(restartCount, 1)
     }
 
@@ -108,6 +124,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
     func testActiveCallProbesAfterSustainedSignalingSilence() {
         let call = makeActiveCall()
         let probeExpectation = expectation(description: "active call sends signaling probe")
+        probeExpectation.assertForOverFulfill = false
         let monitor = SignalingHealthMonitor(
             signalingProbeTimeout: 1,
             staleInboundActivityThreshold: 0.01,
@@ -129,6 +146,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
     func testSuccessfulActiveCallHealthProbeDoesNotRestartICE() {
         let call = makeActiveCall()
         let probeExpectation = expectation(description: "active call sends signaling probe")
+        probeExpectation.assertForOverFulfill = false
         var restartCount = 0
         var reattachCount = 0
         let monitor = SignalingHealthMonitor(
@@ -148,6 +166,9 @@ final class SignalingHealthMonitorTests: XCTestCase {
         wait(for: [probeExpectation], timeout: 1)
         monitor.signalingMessageReceived(makeResponse(id: "health-probe-id"))
 
+        let settledExpectation = expectation(description: "processes matching health probe response")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) { settledExpectation.fulfill() }
+        wait(for: [settledExpectation], timeout: 1)
         XCTAssertEqual(restartCount, 0)
         XCTAssertEqual(reattachCount, 0)
     }

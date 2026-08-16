@@ -183,31 +183,48 @@ public class TxClient {
     private lazy var signalingHealthMonitor: SignalingHealthMonitor = {
         SignalingHealthMonitor(
             isSignalingAvailable: { [weak self] in
-                self?.socket?.isConnected == true
+                guard let self = self else { return false }
+                if Thread.isMainThread {
+                    return self.socket?.isConnected == true
+                }
+                return DispatchQueue.main.sync {
+                    self.socket?.isConnected == true
+                }
             },
             sendSignalingProbe: { [weak self] in
-                guard let self = self, self.socket?.isConnected == true else { return nil }
-                let ping = Message([:], method: .PING)
-                ping.jsonMessage["voice_sdk_id"] = self.voiceSdkId
-                guard let encodedPing = ping.encode() else { return nil }
-                self.socket?.sendMessage(message: encodedPing)
-                return ping.id
+                guard let self = self else { return nil }
+                let sendProbe: () -> String? = {
+                    guard self.socket?.isConnected == true else { return nil }
+                    let ping = Message([:], method: .PING)
+                    ping.jsonMessage["voice_sdk_id"] = self.voiceSdkId
+                    guard let encodedPing = ping.encode() else { return nil }
+                    self.socket?.sendMessage(message: encodedPing)
+                    return ping.id
+                }
+                if Thread.isMainThread {
+                    return sendProbe()
+                }
+                return DispatchQueue.main.sync(execute: sendProbe)
             },
             startIceRestart: { [weak self] call in
-                call.iceRestart { success, error in
-                    guard !success else { return }
-                    self?.signalingHealthMonitor.iceRestartRequestDidFail(
-                        for: call,
-                        error: error ?? NSError(
-                            domain: "SignalingHealthMonitor",
-                            code: -1,
-                            userInfo: [NSLocalizedDescriptionKey: "ICE restart request failed"]
+                DispatchQueue.main.async {
+                    call.iceRestart { success, error in
+                        guard !success else { return }
+                        self?.signalingHealthMonitor.iceRestartRequestDidFail(
+                            for: call,
+                            error: error ?? NSError(
+                                domain: "SignalingHealthMonitor",
+                                code: -1,
+                                userInfo: [NSLocalizedDescriptionKey: "ICE restart request failed"]
+                            )
                         )
-                    )
+                    }
                 }
             },
             requestReattach: { [weak self] in
-                self?.reconnectClient()
+                DispatchQueue.main.async {
+                    self?.reconnectClient()
+                }
             }
         )
     }()
