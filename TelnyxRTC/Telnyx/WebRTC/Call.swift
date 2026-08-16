@@ -137,6 +137,17 @@ enum SoundFileType : String {
 
 protocol CallProtocol: AnyObject {
     func callStateUpdated(call: Call)
+    func callIceConnectionStateUpdated(call: Call, state: RTCIceConnectionState)
+    func callPeerConnectionStateUpdated(call: Call, state: RTCPeerConnectionState)
+    func callIceRestartCompleted(call: Call)
+    func callIceRestartFailed(call: Call, error: Error)
+}
+
+extension CallProtocol {
+    func callIceConnectionStateUpdated(call: Call, state: RTCIceConnectionState) {}
+    func callPeerConnectionStateUpdated(call: Call, state: RTCPeerConnectionState) {}
+    func callIceRestartCompleted(call: Call) {}
+    func callIceRestartFailed(call: Call, error: Error) {}
 }
 
 
@@ -227,6 +238,9 @@ public class Call {
     
     /// Previous ICE connection state for monitoring transitions
     private var previousIceConnectionState: RTCIceConnectionState = .new
+
+    /// Previous overall peer connection state for recovery monitoring.
+    private var previousPeerConnectionState: RTCPeerConnectionState = .new
 
     /// Flag to track if ICE connection has been successfully established at least once
     private var hasBeenConnectedBefore: Bool = false
@@ -742,11 +756,13 @@ public class Call {
         switch callState {
         case .ACTIVE:
             setupIceConnectionStateMonitoring()
+            setupPeerConnectionStateMonitoring()
             setupRttMonitoring()
             // Start call report collector when call becomes active
             startCallReportCollector()
         case .DONE, .DROPPED, .HELD:
             removeIceConnectionStateMonitoring()
+            removePeerConnectionStateMonitoring()
             removeRttMonitoring()
         default:
             break
@@ -1564,6 +1580,9 @@ extension Call {
             )
             self?.handleIceConnectionStateTransition(from: self?.previousIceConnectionState ?? .new, to: newState)
             self?.previousIceConnectionState = newState
+            if let self = self {
+                self.delegate?.callIceConnectionStateUpdated(call: self, state: newState)
+            }
         }
     }
     
@@ -1574,6 +1593,30 @@ extension Call {
         // Clear the callback
         self.peer?.onIceConnectionStateChange = nil
     }
+
+    private func setupPeerConnectionStateMonitoring() {
+        Logger.log.i(message: "Call:: Setting up peer connection state monitoring")
+
+        self.peer?.onPeerConnectionStateChange = { [weak self] newState in
+            guard let self = self else { return }
+
+            self.callReportCollector?.addLogEntry(
+                level: "info",
+                message: "Peer connection state changed",
+                context: [
+                    "state": newState.telnyx_to_string(),
+                    "previousState": self.previousPeerConnectionState.telnyx_to_string()
+                ]
+            )
+            self.previousPeerConnectionState = newState
+            self.delegate?.callPeerConnectionStateUpdated(call: self, state: newState)
+        }
+    }
+
+    private func removePeerConnectionStateMonitoring() {
+        Logger.log.i(message: "Call:: Removing peer connection state monitoring")
+        self.peer?.onPeerConnectionStateChange = nil
+    }
     
     /// Handles ICE connection state transitions for automatic recovery
     /// - Parameters:
@@ -1581,27 +1624,6 @@ extension Call {
     ///   - to: New ICE connection state
     private func handleIceConnectionStateTransition(from previousState: RTCIceConnectionState, to newState: RTCIceConnectionState) {
         Logger.log.i(message: "Call:: ICE state transition: \(previousState.telnyx_to_string()) -> \(newState.telnyx_to_string())")
-        
-        // Case 1: disconnected -> failed: Attempt ICE restart/renegotiation
-        if previousState == .disconnected && newState == .failed {
-            Logger.log.w(message: "Call:: ICE connection failed after disconnect - attempting ICE restart")
-            
-            // Save current speaker state immediately before iOS can change audio route due to network change
-            let currentRoute = AVAudioSession.sharedInstance().currentRoute
-            speakerStateAtNetworkChange = currentRoute.outputs.contains { $0.portType == .builtInSpeaker }
-            Logger.log.i(message: "Call:: Saved speaker state at network change: \(speakerStateAtNetworkChange ?? false)")
-            
-            // Trigger ICE restart to recover from failed state
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                self?.performIceRestart { success, error in
-                    if success {
-                        Logger.log.i(message: "Call:: Auto ICE restart completed successfully")
-                    } else {
-                        Logger.log.e(message: "Call:: Auto ICE restart failed: \(error?.localizedDescription ?? "Unknown error")")
-                    }
-                }
-            }
-        }
         
         // Track first successful connection
         if newState == .connected && !hasBeenConnectedBefore {
@@ -1637,36 +1659,6 @@ extension Call {
         }
     }
     
-    /// Performs ICE restart using the existing Call+IceRestart implementation
-    /// - Parameter completion: Callback with success status and error
-    private func performIceRestart(completion: @escaping (Bool, Error?) -> Void) {
-        guard let _ = self.peer else {
-            Logger.log.e(message: "Call:: performIceRestart - No peer connection available")
-            completion(false, NSError(domain: "Call", code: -1, userInfo: [NSLocalizedDescriptionKey: "No peer connection available"]))
-            return
-        }
-        
-        Logger.log.i(message: "Call:: Starting ICE restart")
-        
-        // Set ICE restart flags
-        self.isIceRestarting = true
-        self.shouldResetAudioAfterIceRestart = true
-        
-        // Use the existing iceRestart method from Call+IceRestart
-        self.iceRestart { [weak self] success, error in
-            guard let self = self else { return }
-            
-            if success {
-                Logger.log.i(message: "Call:: ICE restart completed successfully")
-                completion(true, nil)
-            } else {
-                Logger.log.e(message: "Call:: ICE restart failed: \(error?.localizedDescription ?? "Unknown error")")
-                self.isIceRestarting = false
-                self.shouldResetAudioAfterIceRestart = false
-                completion(false, error)
-            }
-        }
-    }
 }
 
 // MARK: - RTT Monitoring
@@ -1782,4 +1774,3 @@ extension Call {
         lastAudioResetTime = Date()
     }
 }
-

@@ -14,6 +14,13 @@ extension Call {
             completion(false, NSError(domain: "Call", code: -1, userInfo: [NSLocalizedDescriptionKey: "Missing required parameters for ICE restart"]))
             return
         }
+
+        guard let socket = self.socket, socket.isConnected else {
+            let error = NSError(domain: "Call", code: -5, userInfo: [NSLocalizedDescriptionKey: "Signaling socket is not connected"])
+            Logger.log.w(message: "[ICE-RESTART] Call:: ICE restart skipped - signaling socket is not connected")
+            completion(false, error)
+            return
+        }
         
         // Check if call is in a valid state for ICE restart
         guard self.callState == .ACTIVE || self.callState == .CONNECTING else {
@@ -60,10 +67,10 @@ extension Call {
             // Send ICE restart message via telnyx_rtc.modify
             let iceRestartMessage = ICERestartMessage(sessionId: sessionId, callId: self.signalingCallId.uuidString, sdp: sdp.sdp)
             let message = iceRestartMessage.encode() ?? ""
-            self.socket?.sendMessage(message: message)
-            
-            // Reset ICE restart flag after sending
-            self.isIceRestarting = false
+            socket.sendMessage(message: message)
+
+            // Keep the restart in flight until the updateMedia answer is applied.
+            // Sending an SDP offer is only a request, not successful recovery.
             
             // Stop ICE gathering to prevent further candidates
             self.peer?.stopICEGathering()
@@ -124,6 +131,7 @@ extension Call {
                 // Reset ICE restart flags
                 self.isIceRestarting = false
                 self.shouldResetAudioAfterIceRestart = false
+                self.delegate?.callIceRestartFailed(call: self, error: error)
             } else {
                 
                 // Reset audio to clear jitter buffers after successful ICE restart
@@ -137,6 +145,7 @@ extension Call {
                 self.shouldResetAudioAfterIceRestart = false
                 
                 Logger.log.i(message: "[ICE-RESTART] Call:: ICE restart completed successfully - connection should be stable")
+                self.delegate?.callIceRestartCompleted(call: self)
             }
         })
     }
