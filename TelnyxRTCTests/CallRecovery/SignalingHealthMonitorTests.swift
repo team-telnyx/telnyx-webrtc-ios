@@ -14,7 +14,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
                 restartCount += 1
                 restartExpectation.fulfill()
             },
-            requestReattach: { reattachCount += 1 }
+            requestReattach: { _ in reattachCount += 1 }
         )
 
         monitor.iceConnectionStateDidChange(call, state: .failed)
@@ -68,7 +68,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
             isSignalingAvailable: { false },
             sendSignalingProbe: { "probe-id" },
             startIceRestart: { _ in restartCount += 1 },
-            requestReattach: {
+            requestReattach: { _ in
                 reattachCount += 1
                 reattachExpectation.fulfill()
             }
@@ -81,6 +81,27 @@ final class SignalingHealthMonitorTests: XCTestCase {
         XCTAssertEqual(reattachCount, 1)
     }
 
+    func testPeerFailureForProvenVPNDirectPathForcesRelayOnReattach() {
+        let call = makeActiveCall()
+        var reattachForceRelay: Bool?
+        let reattachExpectation = expectation(description: "reattaches with forced relay")
+        let monitor = SignalingHealthMonitor(
+            isSignalingAvailable: { false },
+            sendSignalingProbe: { "probe-id" },
+            startIceRestart: { _ in XCTFail("Should not restart ICE") },
+            shouldForceRelayForRecovery: { _, completion in completion(true) },
+            requestReattach: { forceRelay in
+                reattachForceRelay = forceRelay
+                reattachExpectation.fulfill()
+            }
+        )
+
+        monitor.peerConnectionStateDidChange(call, state: .failed)
+
+        wait(for: [reattachExpectation], timeout: 1)
+        XCTAssertEqual(reattachForceRelay, true)
+    }
+
     func testIceRestartTimeoutFallsBackToReattach() {
         let call = makeActiveCall()
         let reattachExpectation = expectation(description: "ICE restart timeout requests reattach")
@@ -89,7 +110,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
             isSignalingAvailable: { true },
             sendSignalingProbe: { "probe-id" },
             startIceRestart: { _ in },
-            requestReattach: { reattachExpectation.fulfill() }
+            requestReattach: { _ in reattachExpectation.fulfill() }
         )
 
         monitor.peerConnectionStateDidChange(call, state: .failed)
@@ -116,7 +137,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
                 restartCount += 1
                 restartExpectation.fulfill()
             },
-            requestReattach: { XCTFail("Should not reattach") }
+            requestReattach: { _ in XCTFail("Should not reattach") }
         )
 
         // Let the initial freshness window expire before the failure.
@@ -144,7 +165,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
             isSignalingAvailable: { true },
             sendSignalingProbe: { "probe-id" },
             startIceRestart: { _ in XCTFail("Should not restart ICE") },
-            requestReattach: { reattachExpectation.fulfill() }
+            requestReattach: { _ in reattachExpectation.fulfill() }
         )
 
         let staleExpectation = expectation(description: "signaling becomes stale")
@@ -169,7 +190,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
                 return "probe-id"
             },
             startIceRestart: { _ in XCTFail("Should not restart ICE") },
-            requestReattach: { XCTFail("Should not reattach before probe timeout") }
+            requestReattach: { _ in XCTFail("Should not reattach before probe timeout") }
         )
 
         monitor.callStateDidChange(call)
@@ -193,7 +214,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
                 return "health-probe-id"
             },
             startIceRestart: { _ in restartCount += 1 },
-            requestReattach: { reattachCount += 1 }
+            requestReattach: { _ in reattachCount += 1 }
         )
 
         monitor.callStateDidChange(call)
@@ -217,7 +238,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
             isSignalingAvailable: { true },
             sendSignalingProbe: { "probe-id" },
             startIceRestart: { _ in XCTFail("Should not restart ICE") },
-            requestReattach: { reattachExpectation.fulfill() }
+            requestReattach: { _ in reattachExpectation.fulfill() }
         )
 
         monitor.callStateDidChange(call)

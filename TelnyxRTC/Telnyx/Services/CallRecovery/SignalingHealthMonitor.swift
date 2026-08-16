@@ -32,7 +32,8 @@ internal final class SignalingHealthMonitor {
     private let isSignalingAvailable: () -> Bool
     private let sendSignalingProbe: () -> String?
     private let startIceRestart: (Call) -> Void
-    private let requestReattach: () -> Void
+    private let shouldForceRelayForRecovery: (Call, @escaping (Bool) -> Void) -> Void
+    private let requestReattach: (Bool) -> Void
 
     private weak var recoveringCall: Call?
     private var recoveryMode: RecoveryMode = .idle
@@ -45,6 +46,7 @@ internal final class SignalingHealthMonitor {
     private var lastInboundSignalingActivity = Date()
     private var lastConfirmedOutboundActivity = Date()
     private weak var monitoredActiveCall: Call?
+    private var shouldEvaluateRelayFallback = false
 
     init(
         iceRestartTimeout: TimeInterval = 15,
@@ -57,7 +59,8 @@ internal final class SignalingHealthMonitor {
         isSignalingAvailable: @escaping () -> Bool,
         sendSignalingProbe: @escaping () -> String?,
         startIceRestart: @escaping (Call) -> Void,
-        requestReattach: @escaping () -> Void
+        shouldForceRelayForRecovery: @escaping (Call, @escaping (Bool) -> Void) -> Void = { _, completion in completion(false) },
+        requestReattach: @escaping (Bool) -> Void
     ) {
         self.iceRestartTimeout = iceRestartTimeout
         self.signalingProbeTimeout = signalingProbeTimeout
@@ -69,6 +72,7 @@ internal final class SignalingHealthMonitor {
         self.isSignalingAvailable = isSignalingAvailable
         self.sendSignalingProbe = sendSignalingProbe
         self.startIceRestart = startIceRestart
+        self.shouldForceRelayForRecovery = shouldForceRelayForRecovery
         self.requestReattach = requestReattach
     }
 
@@ -84,6 +88,7 @@ internal final class SignalingHealthMonitor {
             Logger.log.i(message: "[CALL-RECOVERY] Network path changed; using required reconnect/reattach flow")
             self.cancelRecoveryTimeouts()
             self.recoveringCall = nil
+            self.shouldEvaluateRelayFallback = false
             self.recoveryMode = .reattaching
         }
     }
@@ -193,6 +198,7 @@ internal final class SignalingHealthMonitor {
         }
 
         recoveringCall = call
+        shouldEvaluateRelayFallback = true
         if !isSignalingAvailable() {
             Logger.log.w(message: "[CALL-RECOVERY] \(trigger) with signaling unavailable; starting reconnect/reattach")
             beginReattach()
@@ -284,6 +290,7 @@ internal final class SignalingHealthMonitor {
         guard recoveryMode == .idle,
               let call = monitoredActiveCall,
               call.callState == .ACTIVE else { return }
+        shouldEvaluateRelayFallback = false
 
         guard isSignalingAvailable() else {
             Logger.log.w(message: "[CALL-RECOVERY] Signaling socket is unavailable during an active call")
@@ -319,12 +326,27 @@ internal final class SignalingHealthMonitor {
     private func beginReattach() {
         cancelRecoveryTimeouts()
         recoveryMode = .reattaching
-        requestReattach()
+        guard shouldEvaluateRelayFallback, let call = recoveringCall else {
+            requestReattach(false)
+            return
+        }
+
+        shouldEvaluateRelayFallback = false
+        shouldForceRelayForRecovery(call) { [weak self] shouldForceRelay in
+            self?.executeOnQueue { [weak self] in
+                guard let self = self, self.recoveryMode == .reattaching else { return }
+                if shouldForceRelay {
+                    Logger.log.w(message: "[CALL-RECOVERY] Failed VPN direct path; forcing relay for replacement call")
+                }
+                self.requestReattach(shouldForceRelay)
+            }
+        }
     }
 
     private func finishRecovery() {
         cancelRecoveryTimeouts()
         recoveringCall = nil
+        shouldEvaluateRelayFallback = false
         recoveryMode = .idle
     }
 

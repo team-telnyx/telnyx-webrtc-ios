@@ -173,6 +173,7 @@ public class TxClient {
     private var enableQualityMetrics: Bool = false
     private var isACMResetInProgress: Bool = false
     private var pendingAnonymousLoginMessage: AnonymousLoginMessage?
+    private var forceRelayForNextRecoveredCall = false
     
     /// AI Assistant Manager for handling AI-related functionality
     public let aiAssistantManager = AIAssistantManager()
@@ -215,9 +216,12 @@ public class TxClient {
                     }
                 }
             },
-            requestReattach: { [weak self] in
+            shouldForceRelayForRecovery: { call, completion in
+                call.shouldForceRelayForRecovery(completion: completion)
+            },
+            requestReattach: { [weak self] forceRelay in
                 DispatchQueue.main.async {
-                    self?.reconnectClient()
+                    self?.reconnectClient(forceRelayCandidateForRecovery: forceRelay)
                 }
             }
         )
@@ -1434,6 +1438,12 @@ extension TxClient {
             socketToAppCallId[signalingCallId] = appFacingCallId
         }
 
+        let forceRelayCandidate = (self.txConfig?.forceRelayCandidate ?? false)
+            || (isAttach && self.forceRelayForNextRecoveredCall)
+        if isAttach {
+            self.forceRelayForNextRecoveredCall = false
+        }
+
         let call = Call(callId: appFacingCallId,
                         signalingCallId: signalingCallId,
                         remoteSdp: remoteSdp,
@@ -1447,7 +1457,7 @@ extension TxClient {
                         iceServers: self.serverConfiguration.webRTCIceServers,
                         isAttach: isAttach,
                         debug: self.txConfig?.debug ?? false,
-                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
+                        forceRelayCandidate: forceRelayCandidate,
                         sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
                         useTrickleIce: self.txConfig?.useTrickleIce ?? false,
                         enableMissedCallNotifications: self.txConfig?.enableMissedCallNotifications ?? false,
@@ -1746,7 +1756,8 @@ extension TxClient : SocketDelegate {
         }
     }
    
-    func reconnectClient() {
+    func reconnectClient(forceRelayCandidateForRecovery: Bool = false) {
+        forceRelayForNextRecoveredCall = forceRelayCandidateForRecovery
         if self.isCallsActive {
             updateActiveCallsState(callState: CallState.RECONNECTING(reason: .networkSwitch))
             startReconnectTimeout()
