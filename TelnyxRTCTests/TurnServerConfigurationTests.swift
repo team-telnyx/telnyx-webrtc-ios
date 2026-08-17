@@ -133,7 +133,152 @@ class TurnServerConfigurationTests: XCTestCase {
         XCTAssertTrue(InternalConfig.devTurnServer.contains("transport=udp"), "Development primary TURN server should use UDP transport")
         XCTAssertTrue(InternalConfig.devTurnServerTcp.contains("transport=tcp"), "Development fallback TURN server should use TCP transport")
     }
-    
+
+    // MARK: - TURNS 443 Server Tests (VSDK-503)
+
+    /// Test that production includes both primary and secondary TURNS endpoints
+    func testProdIceServersCountIsSix() {
+        let config = InternalConfig.default
+        let iceServers = config.prodWebRTCIceServers
+
+        XCTAssertEqual(iceServers.count, 6, "Production should have 6 ICE servers including both TURNS endpoints")
+    }
+
+    /// Test that development ICE servers contain exactly 5 servers including TURNS 443
+    func testDevIceServersCountIsFive() {
+        let config = InternalConfig.default
+        let iceServers = config.devWebRTCIceServers
+
+        XCTAssertEqual(iceServers.count, 5, "Development should have exactly 5 ICE servers: STUN, Google STUN, TURN UDP, TURN TCP, TURNS 443")
+    }
+
+    /// Test that the 5th production ICE server is TURNS 443
+    func testProdTurns443IsPresent() {
+        let config = InternalConfig.default
+        let iceServers = config.prodWebRTCIceServers
+
+        guard iceServers.count >= 5 else {
+            XCTFail("Production should have at least 5 ICE servers")
+            return
+        }
+
+        let turns443 = iceServers[4]
+        let urls = turns443.urlStrings
+
+        XCTAssertTrue(urls.contains("turns:turn.telnyx.com:443"),
+                      "5th production ICE server should be the primary TURNS endpoint")
+        XCTAssertEqual(turns443.username, "testuser", "TURNS 443 server should have username 'testuser'")
+        XCTAssertNotNil(turns443.credential, "TURNS 443 server should have a credential set")
+        XCTAssertEqual(turns443.credential, "testpassword", "TURNS 443 server should have credential 'testpassword'")
+    }
+
+    /// Test that the 5th development ICE server is TURNS 443
+    func testDevTurns443IsPresent() {
+        let config = InternalConfig.default
+        let iceServers = config.devWebRTCIceServers
+
+        guard iceServers.count >= 5 else {
+            XCTFail("Development should have at least 5 ICE servers")
+            return
+        }
+
+        let turns443 = iceServers[4]
+        let urls = turns443.urlStrings
+
+        XCTAssertTrue(urls.contains("turns:turndev.telnyx.com:443"),
+                      "5th development ICE server should be TURNS 443")
+        XCTAssertEqual(turns443.username, "testuser", "TURNS 443 server should have username 'testuser'")
+        XCTAssertNotNil(turns443.credential, "TURNS 443 server should have a credential set")
+        XCTAssertEqual(turns443.credential, "testpassword", "TURNS 443 server should have credential 'testpassword'")
+    }
+
+    /// Test that the final fallback entries are last in prod and dev arrays
+    func testTurns443FallbacksAreLast() {
+        let config = InternalConfig.default
+        let prodServers = config.prodWebRTCIceServers
+        let devServers = config.devWebRTCIceServers
+
+        XCTAssertFalse(prodServers.isEmpty, "Production ICE servers should not be empty")
+        XCTAssertFalse(devServers.isEmpty, "Development ICE servers should not be empty")
+
+        let lastProd = prodServers[prodServers.count - 1]
+        let lastDev = devServers[devServers.count - 1]
+
+        XCTAssertTrue(lastProd.urlStrings.contains { $0.contains("turns:") && $0.contains("443") },
+                      "Last production ICE server should be TURNS 443")
+        XCTAssertTrue(lastProd.urlStrings.contains("turns:turn2.telnyx.com:443"),
+                      "Last production ICE server should be the secondary turn2 endpoint")
+        XCTAssertTrue(lastDev.urlStrings.contains { $0.contains("turns:") && $0.contains("443") },
+                      "Last development ICE server should be TURNS 443")
+    }
+
+    /// Test that the full production ICE server ordering is preserved:
+    /// STUN → Google STUN → TURN UDP → TURN TCP → primary TURNS → secondary TURNS
+    func testProdIceServerOrdering() {
+        let config = InternalConfig.default
+        let iceServers = config.prodWebRTCIceServers
+
+        guard iceServers.count == 6 else {
+            XCTFail("Production should have exactly 6 ICE servers")
+            return
+        }
+
+        // Index 0: Telnyx STUN
+        XCTAssertTrue(iceServers[0].urlStrings.contains { $0.contains("stun:stun.telnyx.com") },
+                      "Index 0 should be Telnyx STUN server")
+
+        // Index 1: Google STUN
+        XCTAssertTrue(iceServers[1].urlStrings.contains { $0.contains("stun:stun.l.google.com") },
+                      "Index 1 should be Google STUN server")
+
+        // Index 2: TURN UDP
+        XCTAssertTrue(iceServers[2].urlStrings.contains { $0.contains("turn:") && $0.contains("transport=udp") },
+                      "Index 2 should be TURN UDP server")
+
+        // Index 3: TURN TCP (not TURNS)
+        XCTAssertTrue(iceServers[3].urlStrings.contains { $0.contains("turn:") && $0.contains("transport=tcp") && !$0.contains("turns:") },
+                      "Index 3 should be TURN TCP server")
+
+        // Index 4: TURNS 443
+        XCTAssertTrue(iceServers[4].urlStrings.contains { $0.contains("turns:") && $0.contains("443") },
+                      "Index 4 should be TURNS 443 server")
+
+        XCTAssertTrue(iceServers[5].urlStrings.contains("turns:turn2.telnyx.com:443"),
+                      "Index 5 should be the secondary TURNS endpoint")
+    }
+
+    /// Test that the full development ICE server ordering is preserved:
+    /// STUN → Google STUN → TURN UDP → TURN TCP → TURNS 443
+    func testDevIceServerOrdering() {
+        let config = InternalConfig.default
+        let iceServers = config.devWebRTCIceServers
+
+        guard iceServers.count == 5 else {
+            XCTFail("Development should have exactly 5 ICE servers")
+            return
+        }
+
+        // Index 0: Telnyx STUN
+        XCTAssertTrue(iceServers[0].urlStrings.contains { $0.contains("stun:stundev.telnyx.com") },
+                      "Index 0 should be Telnyx dev STUN server")
+
+        // Index 1: Google STUN
+        XCTAssertTrue(iceServers[1].urlStrings.contains { $0.contains("stun:stun.l.google.com") },
+                      "Index 1 should be Google STUN server")
+
+        // Index 2: TURN UDP
+        XCTAssertTrue(iceServers[2].urlStrings.contains { $0.contains("turn:") && $0.contains("transport=udp") },
+                      "Index 2 should be TURN UDP server")
+
+        // Index 3: TURN TCP (not TURNS)
+        XCTAssertTrue(iceServers[3].urlStrings.contains { $0.contains("turn:") && $0.contains("transport=tcp") && !$0.contains("turns:") },
+                      "Index 3 should be TURN TCP server")
+
+        // Index 4: TURNS 443
+        XCTAssertTrue(iceServers[4].urlStrings.contains { $0.contains("turns:") && $0.contains("443") },
+                      "Index 4 should be TURNS 443 server")
+    }
+
     // MARK: - STUN Server Tests
     
     /// Test that STUN servers are correctly configured
