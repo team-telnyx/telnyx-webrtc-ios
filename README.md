@@ -222,6 +222,39 @@ telnyxClient.delegate = nil
 
 ```
 
+### Relay-only media
+
+Set `forceRelayCandidate: true` on `TxConfig` when every media path must use
+TURN, or while diagnosing restrictive NAT/firewall behavior:
+
+```swift
+let txConfig = TxConfig(
+    token: "MY_JWT_TELNYX_TOKEN",
+    pushDeviceToken: "DEVICE_APNS_TOKEN",
+    forceRelayCandidate: true,
+    logLevel: .all
+)
+
+try telnyxClient.connect(txConfig: txConfig)
+```
+
+Relay-only mode sets WebRTC's ICE transport policy to `.relay` for outbound,
+inbound, push, and recovered calls. STUN entries may remain in the ICE catalog,
+but they cannot become the selected media path. A reachable TURN server and
+valid credentials are mandatory. Production defaults include TURN over UDP and
+TCP on port 3478, followed by TURNS on port 443 at `turn.telnyx.com` and
+`turn2.telnyx.com`.
+
+Use this setting selectively. Relaying all media can add connection time,
+latency, relay bandwidth/cost, and may reduce quality for devices that could
+otherwise use a shorter path. ICE server array order does not guarantee
+sequential fallback; WebRTC prioritizes gathered candidate pairs.
+
+To verify relay-only behavior, enable SDK logging/call reporting, place a call,
+and inspect the selected ICE candidate pair. Its local candidate type must be
+`relay`; `host` or `srflx` indicates that relay-only policy was not
+applied.
+
 ### Telnyx client delegate
 
 You will need to instantiate the client and set the delegate. 
