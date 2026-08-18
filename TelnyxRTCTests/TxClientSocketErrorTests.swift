@@ -116,6 +116,24 @@ class TxClientPingAuthTests: XCTestCase {
         XCTAssertEqual(answerAction.fulfillCallCount, 1)
     }
 
+    func testPassivePushInviteTimeoutUsesPushUUIDWithoutAnswerAction() throws {
+        let callUUID = UUID()
+        txClient.inviteTimeoutInterval = 0.01
+        try startPushFlow(callId: callUUID)
+
+        txClient.onSocketConnected()
+        txClient.onMessageReceived(message: gatewayStateMessage(state: "REGED"))
+
+        let timeoutExpectation = expectation(description: "Passive VoIP push INVITE timeout handled")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            timeoutExpectation.fulfill()
+        }
+        wait(for: [timeoutExpectation], timeout: 1.0)
+
+        XCTAssertEqual(mockDelegate.remoteEndedCallIds, [callUUID])
+        XCTAssertEqual(mockDelegate.doneCallIds, [callUUID])
+    }
+
     private func startPushFlow(callId: UUID) throws {
         let txConfig = TxConfig(sipUser: "test_user", password: "test_password")
         let serverConfig = TxServerConfiguration()

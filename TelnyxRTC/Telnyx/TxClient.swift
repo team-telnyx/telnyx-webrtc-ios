@@ -840,7 +840,7 @@ public class TxClient {
     
     /// Handles the timeout when no INVITE is received after accepting a VoIP push call
     private func handleInviteTimeout() {
-        Logger.log.w(message: "TxClient:: INVITE timeout - No INVITE received within \(inviteTimeoutInterval) seconds after accepting VoIP push call")
+        Logger.log.w(message: "TxClient:: INVITE timeout - No INVITE received within \(inviteTimeoutInterval) seconds after attachCalls")
         let timedOutCallId = currentCallId
         let pendingAnswerAction = answerCallAction
         
@@ -1121,9 +1121,12 @@ public class TxClient {
                 if (self.isCallFromPush == true){
                     self.sendAttachCall()
                     
-                    // Start INVITE timeout for VoIP push calls that are being answered (not declined)
-                    if answerCallAction != nil && !pendingCallDecline && pushCallState != .inviteReceived {
-                        Logger.log.i(message: "TxClient:: updateGatewayState() Starting INVITE timeout for VoIP push call")
+                    // Every push-originated ringing call needs a terminal path. Start the watchdog
+                    // after registration + attachCalls even when the user has not pressed Answer;
+                    // otherwise a secondary device can remain in CallKit until its system timeout
+                    // when the backend never replays INVITE or terminal cleanup.
+                    if !pendingCallDecline && pushCallState != .inviteReceived {
+                        Logger.log.i(message: "TxClient:: updateGatewayState() Starting post-attach INVITE timeout for VoIP push call")
                         startInviteTimeout()
                     }
                 }
