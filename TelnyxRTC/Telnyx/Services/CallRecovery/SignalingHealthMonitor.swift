@@ -67,7 +67,7 @@ internal final class SignalingHealthMonitor {
         staleInboundActivityThreshold: TimeInterval = 20,
         signalingHealthCheckInterval: TimeInterval = 3,
         inboundRtpCheckInterval: TimeInterval = 1,
-        inboundRtpStallTimeout: TimeInterval = 5,
+        inboundRtpStallTimeout: TimeInterval = 3,
         postIceRestartMediaTimeout: TimeInterval = 5,
         peerDisconnectedRecoveryDelay: TimeInterval = 3,
         isSignalingAvailable: @escaping () -> Bool,

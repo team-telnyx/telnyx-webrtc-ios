@@ -246,7 +246,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
         wait(for: [reattachExpectation], timeout: 1)
     }
 
-    func testInboundRtpStallStartsIceRestartAfterFiveSecondThreshold() {
+    func testInboundRtpStallStartsIceRestartAfterThreeSecondThreshold() {
         let call = makeActiveCall()
         let restartExpectation = expectation(description: "inbound RTP stall starts ICE restart")
         let monitor = SignalingHealthMonitor(
