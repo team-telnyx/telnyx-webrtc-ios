@@ -14,6 +14,7 @@ internal final class SignalingHealthMonitor {
         case idle
         case probing
         case iceRestarting
+        case verifyingMedia
         case reattaching
     }
 
@@ -28,10 +29,14 @@ internal final class SignalingHealthMonitor {
     private let confirmedOutboundActivityThreshold: TimeInterval
     private let staleInboundActivityThreshold: TimeInterval
     private let signalingHealthCheckInterval: TimeInterval
+    private let inboundRtpCheckInterval: TimeInterval
+    private let inboundRtpStallTimeout: TimeInterval
+    private let postIceRestartMediaTimeout: TimeInterval
     private let peerDisconnectedRecoveryDelay: TimeInterval
     private let isSignalingAvailable: () -> Bool
     private let sendSignalingProbe: () -> String?
     private let startIceRestart: (Call) -> Void
+    private let readInboundRtpPackets: (Call, @escaping (Int?) -> Void) -> Void
     private let shouldForceRelayForRecovery: (Call, @escaping (Bool) -> Void) -> Void
     private let requestReattach: (Bool) -> Void
 
@@ -40,6 +45,8 @@ internal final class SignalingHealthMonitor {
     private var iceRestartTimeoutWorkItem: DispatchWorkItem?
     private var signalingProbeTimeoutWorkItem: DispatchWorkItem?
     private var signalingHealthCheckTimer: DispatchSourceTimer?
+    private var inboundRtpCheckTimer: DispatchSourceTimer?
+    private var mediaVerificationTimeoutWorkItem: DispatchWorkItem?
     private var peerDisconnectedRecoveryWorkItem: DispatchWorkItem?
     private var pendingSignalingProbeId: String?
     private var pendingSignalingProbePurpose: SignalingProbePurpose?
@@ -47,6 +54,10 @@ internal final class SignalingHealthMonitor {
     private var lastConfirmedOutboundActivity = Date()
     private weak var monitoredActiveCall: Call?
     private var shouldEvaluateRelayFallback = false
+    private var lastInboundRtpPacketCount: Int?
+    private var lastInboundRtpProgressAt: Date?
+    private var iceRestartStartedAt: Date?
+    private var mediaVerificationStartedAt: Date?
 
     init(
         iceRestartTimeout: TimeInterval = 15,
@@ -55,10 +66,14 @@ internal final class SignalingHealthMonitor {
         confirmedOutboundActivityThreshold: TimeInterval = 45,
         staleInboundActivityThreshold: TimeInterval = 20,
         signalingHealthCheckInterval: TimeInterval = 3,
+        inboundRtpCheckInterval: TimeInterval = 1,
+        inboundRtpStallTimeout: TimeInterval = 5,
+        postIceRestartMediaTimeout: TimeInterval = 5,
         peerDisconnectedRecoveryDelay: TimeInterval = 3,
         isSignalingAvailable: @escaping () -> Bool,
         sendSignalingProbe: @escaping () -> String?,
         startIceRestart: @escaping (Call) -> Void,
+        readInboundRtpPackets: @escaping (Call, @escaping (Int?) -> Void) -> Void = { _, completion in completion(nil) },
         shouldForceRelayForRecovery: @escaping (Call, @escaping (Bool) -> Void) -> Void = { _, completion in completion(false) },
         requestReattach: @escaping (Bool) -> Void
     ) {
@@ -68,10 +83,14 @@ internal final class SignalingHealthMonitor {
         self.confirmedOutboundActivityThreshold = confirmedOutboundActivityThreshold
         self.staleInboundActivityThreshold = staleInboundActivityThreshold
         self.signalingHealthCheckInterval = signalingHealthCheckInterval
+        self.inboundRtpCheckInterval = inboundRtpCheckInterval
+        self.inboundRtpStallTimeout = inboundRtpStallTimeout
+        self.postIceRestartMediaTimeout = postIceRestartMediaTimeout
         self.peerDisconnectedRecoveryDelay = peerDisconnectedRecoveryDelay
         self.isSignalingAvailable = isSignalingAvailable
         self.sendSignalingProbe = sendSignalingProbe
         self.startIceRestart = startIceRestart
+        self.readInboundRtpPackets = readInboundRtpPackets
         self.shouldForceRelayForRecovery = shouldForceRelayForRecovery
         self.requestReattach = requestReattach
     }
@@ -79,6 +98,8 @@ internal final class SignalingHealthMonitor {
     deinit {
         signalingHealthCheckTimer?.setEventHandler {}
         signalingHealthCheckTimer?.cancel()
+        inboundRtpCheckTimer?.setEventHandler {}
+        inboundRtpCheckTimer?.cancel()
         peerDisconnectedRecoveryWorkItem?.cancel()
     }
 
@@ -147,7 +168,21 @@ internal final class SignalingHealthMonitor {
         executeOnQueue { [weak self] in
             guard let self = self, self.recoveryMode == .iceRestarting, self.recoveringCall === call else { return }
             Logger.log.i(message: "[CALL-RECOVERY] ICE restart answer applied")
-            self.finishRecovery()
+            self.cancelIceRestartTimeout()
+
+            // An SDP response only proves signaling succeeded. Media recovery is
+            // complete only after the restarted transport receives RTP again.
+            if let restartStartedAt = self.iceRestartStartedAt,
+               let lastProgressAt = self.lastInboundRtpProgressAt,
+               lastProgressAt >= restartStartedAt {
+                Logger.log.i(message: "[CALL-RECOVERY] Inbound RTP resumed during ICE restart")
+                self.finishRecovery()
+                return
+            }
+
+            self.recoveryMode = .verifyingMedia
+            self.mediaVerificationStartedAt = Date()
+            self.startMediaVerificationTimeout(for: call)
         }
     }
 
@@ -171,10 +206,18 @@ internal final class SignalingHealthMonitor {
                 }
                 self.monitoredActiveCall = call
                 self.startSignalingHealthChecks()
+                self.startInboundRtpChecks()
+                self.resetInboundRtpTracking()
+            case .HELD:
+                if self.monitoredActiveCall === call {
+                    self.stopInboundRtpChecks()
+                    self.resetInboundRtpTracking()
+                }
             case .DONE, .DROPPED:
                 self.cancelPeerDisconnectedRecovery()
                 if self.monitoredActiveCall === call {
                     self.stopSignalingHealthChecks()
+                    self.stopInboundRtpChecks()
                     self.monitoredActiveCall = nil
                 }
                 if self.recoveringCall === call {
@@ -219,6 +262,7 @@ internal final class SignalingHealthMonitor {
 
     private func startIceRestartRecovery(for call: Call) {
         recoveryMode = .iceRestarting
+        iceRestartStartedAt = Date()
         startIceRestartTimeout(for: call)
         startIceRestart(call)
     }
@@ -257,9 +301,12 @@ internal final class SignalingHealthMonitor {
         timer.resume()
     }
 
-    /// `disconnected` is commonly transient while iOS changes radio or Wi-Fi
-    /// paths. Give WebRTC a short chance to return to connected before
-    /// renegotiating; terminal `failed` still recovers immediately.
+    private func stopSignalingHealthChecks() {
+        signalingHealthCheckTimer?.setEventHandler {}
+        signalingHealthCheckTimer?.cancel()
+        signalingHealthCheckTimer = nil
+    }
+
     private func startPeerDisconnectedRecoveryDelay(for call: Call) {
         guard recoveryMode == .idle else { return }
         cancelPeerDisconnectedRecovery()
@@ -280,10 +327,73 @@ internal final class SignalingHealthMonitor {
         peerDisconnectedRecoveryWorkItem = nil
     }
 
-    private func stopSignalingHealthChecks() {
-        signalingHealthCheckTimer?.setEventHandler {}
-        signalingHealthCheckTimer?.cancel()
-        signalingHealthCheckTimer = nil
+    private func startInboundRtpChecks() {
+        guard inboundRtpCheckTimer == nil else { return }
+        let timer = DispatchSource.makeTimerSource(queue: queue)
+        timer.schedule(deadline: .now() + inboundRtpCheckInterval, repeating: inboundRtpCheckInterval)
+        timer.setEventHandler { [weak self] in
+            self?.checkInboundRtpHealth()
+        }
+        inboundRtpCheckTimer = timer
+        timer.resume()
+    }
+
+    private func stopInboundRtpChecks() {
+        inboundRtpCheckTimer?.setEventHandler {}
+        inboundRtpCheckTimer?.cancel()
+        inboundRtpCheckTimer = nil
+    }
+
+    private func resetInboundRtpTracking() {
+        lastInboundRtpPacketCount = nil
+        lastInboundRtpProgressAt = Date()
+        iceRestartStartedAt = nil
+        mediaVerificationStartedAt = nil
+    }
+
+    private func checkInboundRtpHealth() {
+        guard let call = monitoredActiveCall,
+              call.callState == .ACTIVE,
+              recoveryMode == .idle || recoveryMode == .iceRestarting || recoveryMode == .verifyingMedia else { return }
+
+        readInboundRtpPackets(call) { [weak self, weak call] packetsReceived in
+            guard let call = call else { return }
+            self?.executeOnQueue {
+                self?.recordInboundRtpPackets(packetsReceived, for: call)
+            }
+        }
+    }
+
+    private func recordInboundRtpPackets(_ packetsReceived: Int?, for call: Call) {
+        guard monitoredActiveCall === call, call.callState == .ACTIVE else { return }
+        guard let packetsReceived = packetsReceived else { return }
+
+        let now = Date()
+        let previousPacketCount = lastInboundRtpPacketCount
+        lastInboundRtpPacketCount = packetsReceived
+
+        guard let previousPacketCount = previousPacketCount else {
+            lastInboundRtpProgressAt = now
+            return
+        }
+
+        guard packetsReceived > previousPacketCount else {
+            if recoveryMode == .idle,
+               let lastProgressAt = lastInboundRtpProgressAt,
+               now.timeIntervalSince(lastProgressAt) >= inboundRtpStallTimeout {
+                Logger.log.w(message: "[CALL-RECOVERY] Inbound RTP has not advanced for \(inboundRtpStallTimeout)s; starting ICE restart")
+                requestRecovery(for: call, trigger: "inbound_rtp_stalled")
+            }
+            return
+        }
+
+        lastInboundRtpProgressAt = now
+        if recoveryMode == .verifyingMedia,
+           let verificationStartedAt = mediaVerificationStartedAt,
+           now >= verificationStartedAt {
+            Logger.log.i(message: "[CALL-RECOVERY] Inbound RTP resumed after ICE restart")
+            finishRecovery()
+        }
     }
 
     private func checkSignalingHealth() {
@@ -323,6 +433,20 @@ internal final class SignalingHealthMonitor {
         queue.asyncAfter(deadline: .now() + iceRestartTimeout, execute: workItem)
     }
 
+    private func startMediaVerificationTimeout(for call: Call) {
+        cancelMediaVerificationTimeout()
+        let workItem = DispatchWorkItem { [weak self, weak call] in
+            guard let self = self,
+                  let call = call,
+                  self.recoveryMode == .verifyingMedia,
+                  self.recoveringCall === call else { return }
+            Logger.log.e(message: "[CALL-RECOVERY] ICE restart did not restore inbound RTP after \(self.postIceRestartMediaTimeout)s; reattaching")
+            self.beginReattach()
+        }
+        mediaVerificationTimeoutWorkItem = workItem
+        queue.asyncAfter(deadline: .now() + postIceRestartMediaTimeout, execute: workItem)
+    }
+
     private func beginReattach() {
         cancelRecoveryTimeouts()
         recoveryMode = .reattaching
@@ -348,11 +472,14 @@ internal final class SignalingHealthMonitor {
         recoveringCall = nil
         shouldEvaluateRelayFallback = false
         recoveryMode = .idle
+        iceRestartStartedAt = nil
+        mediaVerificationStartedAt = nil
     }
 
     private func cancelRecoveryTimeouts() {
         cancelIceRestartTimeout()
         cancelSignalingProbeTimeout()
+        cancelMediaVerificationTimeout()
     }
 
     private func cancelIceRestartTimeout() {
@@ -365,6 +492,11 @@ internal final class SignalingHealthMonitor {
         signalingProbeTimeoutWorkItem = nil
         pendingSignalingProbeId = nil
         pendingSignalingProbePurpose = nil
+    }
+
+    private func cancelMediaVerificationTimeout() {
+        mediaVerificationTimeoutWorkItem?.cancel()
+        mediaVerificationTimeoutWorkItem = nil
     }
 
     private func executeOnQueue(_ block: @escaping () -> Void) {

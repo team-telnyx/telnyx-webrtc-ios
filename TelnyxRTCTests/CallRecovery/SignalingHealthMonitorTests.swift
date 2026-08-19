@@ -246,6 +246,90 @@ final class SignalingHealthMonitorTests: XCTestCase {
         wait(for: [reattachExpectation], timeout: 1)
     }
 
+    func testInboundRtpStallStartsIceRestartAfterFiveSecondThreshold() {
+        let call = makeActiveCall()
+        let restartExpectation = expectation(description: "inbound RTP stall starts ICE restart")
+        let monitor = SignalingHealthMonitor(
+            inboundRtpCheckInterval: 0.01,
+            inboundRtpStallTimeout: 0.02,
+            isSignalingAvailable: { true },
+            sendSignalingProbe: { "probe-id" },
+            startIceRestart: { _ in restartExpectation.fulfill() },
+            readInboundRtpPackets: { _, completion in completion(100) },
+            requestReattach: { _ in XCTFail("Should restart ICE before reattaching") }
+        )
+
+        monitor.callStateDidChange(call)
+
+        wait(for: [restartExpectation], timeout: 1)
+    }
+
+    func testRestartAnswerWithoutInboundRtpFallsBackToReattach() {
+        let call = makeActiveCall()
+        let restartExpectation = expectation(description: "starts ICE restart")
+        let reattachExpectation = expectation(description: "reattaches after media verification timeout")
+        let monitor = SignalingHealthMonitor(
+            inboundRtpCheckInterval: 0.01,
+            postIceRestartMediaTimeout: 0.02,
+            isSignalingAvailable: { true },
+            sendSignalingProbe: { "probe-id" },
+            startIceRestart: { _ in restartExpectation.fulfill() },
+            readInboundRtpPackets: { _, completion in completion(100) },
+            requestReattach: { _ in reattachExpectation.fulfill() }
+        )
+
+        monitor.callStateDidChange(call)
+        monitor.peerConnectionStateDidChange(call, state: .failed)
+        wait(for: [restartExpectation], timeout: 1)
+        monitor.iceRestartDidComplete(for: call)
+
+        wait(for: [reattachExpectation], timeout: 1)
+    }
+
+    func testInboundRtpGrowthAfterRestartAnswerCompletesRecovery() {
+        let call = makeActiveCall()
+        let initialSampleExpectation = expectation(description: "captures inbound RTP baseline")
+        let restartExpectation = expectation(description: "starts ICE restart")
+        let resumedExpectation = expectation(description: "watchdog observes inbound RTP growth")
+        var packetsReceived = 100
+        var shouldExpectGrowth = false
+        var didCaptureInitialSample = false
+        var reattachCount = 0
+        let monitor = SignalingHealthMonitor(
+            inboundRtpCheckInterval: 0.01,
+            postIceRestartMediaTimeout: 0.1,
+            isSignalingAvailable: { true },
+            sendSignalingProbe: { "probe-id" },
+            startIceRestart: { _ in restartExpectation.fulfill() },
+            readInboundRtpPackets: { _, completion in
+                if !didCaptureInitialSample {
+                    didCaptureInitialSample = true
+                    initialSampleExpectation.fulfill()
+                }
+                if shouldExpectGrowth && packetsReceived == 101 {
+                    resumedExpectation.fulfill()
+                    shouldExpectGrowth = false
+                }
+                completion(packetsReceived)
+            },
+            requestReattach: { _ in reattachCount += 1 }
+        )
+
+        monitor.callStateDidChange(call)
+        wait(for: [initialSampleExpectation], timeout: 1)
+        monitor.peerConnectionStateDidChange(call, state: .failed)
+        wait(for: [restartExpectation], timeout: 1)
+        monitor.iceRestartDidComplete(for: call)
+        packetsReceived = 101
+        shouldExpectGrowth = true
+
+        wait(for: [resumedExpectation], timeout: 1)
+        let settledExpectation = expectation(description: "media verification window expires")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { settledExpectation.fulfill() }
+        wait(for: [settledExpectation], timeout: 1)
+        XCTAssertEqual(reattachCount, 0)
+    }
+
     private func makeResponse(id: String) -> Message {
         Message().decode(message: "{\"jsonrpc\":\"2.0\",\"id\":\"\(id)\",\"result\":{}}")!
     }

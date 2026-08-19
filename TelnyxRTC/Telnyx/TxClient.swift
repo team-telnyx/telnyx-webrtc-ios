@@ -216,6 +216,9 @@ public class TxClient {
                     }
                 }
             },
+            readInboundRtpPackets: { call, completion in
+                call.inboundAudioRtpPackets(completion: completion)
+            },
             shouldForceRelayForRecovery: { call, completion in
                 call.shouldForceRelayForRecovery(completion: completion)
             },
