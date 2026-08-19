@@ -334,6 +334,55 @@ class CallReportCollectorTests: XCTestCase {
             XCTFail("Failed to encode payload: \(error)")
         }
     }
+
+    func testIntervalEncodesJSCompatibleIceAndTransportStats() throws {
+        let local = ICECandidateStats(
+            id: "local-candidate",
+            address: "10.0.0.2",
+            port: 54543,
+            candidateType: "relay",
+            protocolType: "udp",
+            networkType: "wifi",
+            url: "turn:turn.telnyx.com:3478",
+            relayProtocol: "udp"
+        )
+        let ice = ICECandidatePairStats(
+            id: "candidate-pair",
+            localCandidateId: "local-candidate",
+            remoteCandidateId: "remote-candidate",
+            state: "succeeded",
+            nominated: true,
+            writable: true,
+            currentRoundTripTime: 0.125,
+            requestsSent: 7,
+            responsesReceived: 7,
+            local: local
+        )
+        let transport = TransportStats(
+            iceState: "connected",
+            dtlsState: "connected",
+            srtpCipher: "AES_CM_128_HMAC_SHA1_80",
+            tlsVersion: "FEFD",
+            selectedCandidatePairChanges: 1,
+            selectedCandidatePairId: "candidate-pair"
+        )
+        let interval = CallReportInterval(
+            intervalStartUtc: "2026-08-19T10:00:00.000Z",
+            intervalEndUtc: "2026-08-19T10:00:05.000Z",
+            ice: ice,
+            transport: transport
+        )
+
+        let json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(interval)) as? [String: Any]
+        let encodedIce = try XCTUnwrap(json?["ice"] as? [String: Any])
+        let encodedLocal = try XCTUnwrap(encodedIce["local"] as? [String: Any])
+        let encodedTransport = try XCTUnwrap(json?["transport"] as? [String: Any])
+
+        XCTAssertEqual(encodedIce["localCandidateId"] as? String, "local-candidate")
+        XCTAssertEqual(encodedLocal["protocol"] as? String, "udp")
+        XCTAssertEqual(encodedTransport["selectedCandidatePairId"] as? String, "candidate-pair")
+        XCTAssertEqual(encodedTransport["iceState"] as? String, "connected")
+    }
     
     func testCollectorHandlesLongCalls() {
         // Simulate a scenario where stats buffer could grow large

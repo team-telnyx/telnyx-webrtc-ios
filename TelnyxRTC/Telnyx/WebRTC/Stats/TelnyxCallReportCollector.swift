@@ -409,6 +409,12 @@ public class TelnyxCallReportCollector {
         let outbound: RTCOutboundRTPStreamStats?
         let inbound: RTCInboundRTPStreamStats?
         let candidate: RTCIceCandidatePairStats?
+        let localCandidate: RTCIceCandidateStats?
+        let remoteCandidate: RTCIceCandidateStats?
+        let transport: RTCTransportStats?
+        let mediaPlayout: RTCMediaPlayoutStats?
+        let remoteInbound: RTCRemoteInboundRTPStreamStats?
+        let remoteOutbound: RTCRemoteOutboundRTPStreamStats?
     }
 
     private struct PreviousStats {
@@ -456,7 +462,11 @@ public class TelnyxCallReportCollector {
     private func parseStatsReport(_ report: RTCStatisticsReport) -> ParsedStats {
         var outboundAudio: RTCOutboundRTPStreamStats?
         var inboundAudio: RTCInboundRTPStreamStats?
-        var candidatePair: RTCIceCandidatePairStats?
+        var candidatePairs: [RTCIceCandidatePairStats] = []
+        var transport: RTCTransportStats?
+        var mediaPlayout: RTCMediaPlayoutStats?
+        var remoteInbound: RTCRemoteInboundRTPStreamStats?
+        var remoteOutbound: RTCRemoteOutboundRTPStreamStats?
 
         for stats in report.statistics.values {
             switch stats.type {
@@ -472,13 +482,48 @@ public class TelnyxCallReportCollector {
                 let nominated = stats.values["nominated"] as? Bool ?? false
                 let state = stats.values["state"] as? String ?? ""
                 if nominated || state == "succeeded" {
-                    candidatePair = RTCIceCandidatePairStats(stats)
+                    candidatePairs.append(RTCIceCandidatePairStats(stats))
+                }
+            case "transport":
+                transport = RTCTransportStats(stats)
+            case "media-playout":
+                if let kind = stats.values["kind"] as? String, kind == "audio" {
+                    mediaPlayout = RTCMediaPlayoutStats(stats)
+                }
+            case "remote-inbound-rtp":
+                if let kind = stats.values["kind"] as? String, kind == "audio" {
+                    remoteInbound = RTCRemoteInboundRTPStreamStats(stats)
+                }
+            case "remote-outbound-rtp":
+                if let kind = stats.values["kind"] as? String, kind == "audio" {
+                    remoteOutbound = RTCRemoteOutboundRTPStreamStats(stats)
                 }
             default:
                 break
             }
         }
-        return ParsedStats(outbound: outboundAudio, inbound: inboundAudio, candidate: candidatePair)
+
+        let candidatePair = transport?.selectedCandidatePairId.flatMap { selectedId in
+            candidatePairs.first { $0.id == selectedId }
+        } ?? candidatePairs.last
+        let localCandidate = candidatePair?.localCandidateId.flatMap { id in
+            report.statistics[id].map(RTCIceCandidateStats.init)
+        }
+        let remoteCandidate = candidatePair?.remoteCandidateId.flatMap { id in
+            report.statistics[id].map(RTCIceCandidateStats.init)
+        }
+
+        return ParsedStats(
+            outbound: outboundAudio,
+            inbound: inboundAudio,
+            candidate: candidatePair,
+            localCandidate: localCandidate,
+            remoteCandidate: remoteCandidate,
+            transport: transport,
+            mediaPlayout: mediaPlayout,
+            remoteInbound: remoteInbound,
+            remoteOutbound: remoteOutbound
+        )
     }
 
     private func accumulateSamples(
@@ -517,8 +562,10 @@ public class TelnyxCallReportCollector {
             previousStats.inboundBytes = inbound.bytesReceived
         }
 
-        if let candidate = parsed.candidate, candidate.currentRoundTripTime > 0 {
-            intervalRTTs.append(candidate.currentRoundTripTime)
+        if let candidate = parsed.candidate,
+           let currentRoundTripTime = candidate.currentRoundTripTime,
+           currentRoundTripTime > 0 {
+            intervalRTTs.append(currentRoundTripTime)
         }
 
         previousStats.timestamp = parsed.outbound?.timestamp ?? parsed.inbound?.timestamp ?? now.timeIntervalSince1970 * 1000
@@ -530,7 +577,13 @@ public class TelnyxCallReportCollector {
             end: end,
             outboundAudio: parsed.outbound,
             inboundAudio: parsed.inbound,
-            candidatePair: parsed.candidate
+            candidatePair: parsed.candidate,
+            localCandidate: parsed.localCandidate,
+            remoteCandidate: parsed.remoteCandidate,
+            transport: parsed.transport,
+            mediaPlayout: parsed.mediaPlayout,
+            remoteInbound: parsed.remoteInbound,
+            remoteOutbound: parsed.remoteOutbound
         )
 
         statsBuffer.append(statsEntry)
@@ -559,7 +612,13 @@ public class TelnyxCallReportCollector {
         end: Date,
         outboundAudio: RTCOutboundRTPStreamStats?,
         inboundAudio: RTCInboundRTPStreamStats?,
-        candidatePair: RTCIceCandidatePairStats?
+        candidatePair: RTCIceCandidatePairStats?,
+        localCandidate: RTCIceCandidateStats?,
+        remoteCandidate: RTCIceCandidateStats?,
+        transport: RTCTransportStats?,
+        mediaPlayout: RTCMediaPlayoutStats?,
+        remoteInbound: RTCRemoteInboundRTPStreamStats?,
+        remoteOutbound: RTCRemoteOutboundRTPStreamStats?
     ) -> CallReportInterval {
         
         var audioStats: AudioStats?
@@ -571,7 +630,14 @@ public class TelnyxCallReportCollector {
                 packetsSent: outbound.packetsSent,
                 bytesSent: outbound.bytesSent,
                 audioLevelAvg: average(intervalAudioLevels.outbound),
-                bitrateAvg: average(intervalBitrates.outbound)
+                bitrateAvg: average(intervalBitrates.outbound),
+                retransmittedPacketsSent: outbound.retransmittedPacketsSent,
+                retransmittedBytesSent: outbound.retransmittedBytesSent,
+                headerBytesSent: outbound.headerBytesSent,
+                nackCount: outbound.nackCount,
+                targetBitrate: outbound.targetBitrate,
+                totalPacketSendDelay: outbound.totalPacketSendDelay,
+                active: outbound.active
             )
         }
         
@@ -588,7 +654,18 @@ public class TelnyxCallReportCollector {
                 concealmentEvents: inbound.concealmentEvents,
                 audioLevelAvg: average(intervalAudioLevels.inbound),
                 jitterAvg: average(intervalJitters),
-                bitrateAvg: average(intervalBitrates.inbound)
+                bitrateAvg: average(intervalBitrates.inbound),
+                nackCount: inbound.nackCount,
+                headerBytesReceived: inbound.headerBytesReceived,
+                fecPacketsReceived: inbound.fecPacketsReceived,
+                fecPacketsDiscarded: inbound.fecPacketsDiscarded,
+                jitterBufferTargetDelay: inbound.jitterBufferTargetDelay,
+                jitterBufferMinimumDelay: inbound.jitterBufferMinimumDelay,
+                totalSamplesDecoded: inbound.totalSamplesDecoded,
+                samplesDecodedWithSilence: inbound.samplesDecodedWithSilence,
+                samplesDecodedWithConcealment: inbound.samplesDecodedWithConcealment,
+                totalAudioEnergy: inbound.totalAudioEnergy,
+                totalSamplesDuration: inbound.totalSamplesDuration
             )
         }
         
@@ -603,15 +680,94 @@ public class TelnyxCallReportCollector {
                 packetsSent: candidate.packetsSent,
                 packetsReceived: candidate.packetsReceived,
                 bytesSent: candidate.bytesSent,
-                bytesReceived: candidate.bytesReceived
+                bytesReceived: candidate.bytesReceived,
+                currentRoundTripTime: candidate.currentRoundTripTime,
+                roundTripTimeSource: candidate.currentRoundTripTime == nil ? nil : "candidate-pair.currentRoundTripTime"
             )
         }
+
+        let iceStats = candidatePair.map { candidate in
+            ICECandidatePairStats(
+                id: candidate.id,
+                localCandidateId: candidate.localCandidateId,
+                remoteCandidateId: candidate.remoteCandidateId,
+                state: candidate.state,
+                nominated: candidate.nominated,
+                writable: candidate.writable,
+                currentRoundTripTime: candidate.currentRoundTripTime,
+                requestsSent: candidate.requestsSent,
+                responsesReceived: candidate.responsesReceived,
+                local: localCandidate.map(ICECandidateStats.init),
+                remote: remoteCandidate.map(ICECandidateStats.init)
+            )
+        }
+
+        let transportStats = transport.map { stats in
+            TransportStats(
+                iceState: stats.iceState,
+                dtlsState: stats.dtlsState,
+                srtpCipher: stats.srtpCipher,
+                tlsVersion: stats.tlsVersion,
+                selectedCandidatePairChanges: stats.selectedCandidatePairChanges,
+                selectedCandidatePairId: stats.selectedCandidatePairId
+            )
+        }
+
+        let mediaPlayoutStats = mediaPlayout.map { stats in
+            MediaPlayoutStats(
+                synthesizedSamplesEvents: stats.synthesizedSamplesEvents,
+                synthesizedSamplesDuration: stats.synthesizedSamplesDuration,
+                totalPlayoutDelay: stats.totalPlayoutDelay,
+                totalSamplesCount: stats.totalSamplesCount,
+                totalSamplesDuration: stats.totalSamplesDuration
+            )
+        }
+
+        let remoteInboundStats = remoteInbound.map { stats -> RemoteInboundRTCPStats in
+            let rttAverage: Double?
+            if let total = stats.totalRoundTripTime,
+               let measurements = stats.roundTripTimeMeasurements,
+               measurements > 0 {
+                rttAverage = total / Double(measurements)
+            } else {
+                rttAverage = nil
+            }
+            return RemoteInboundRTCPStats(
+                packetsReceived: stats.packetsReceived,
+                packetsLost: stats.packetsLost,
+                fractionLost: stats.fractionLost,
+                jitter: stats.jitter.map { $0 * 1000 },
+                roundTripTime: stats.roundTripTime,
+                totalRoundTripTime: stats.totalRoundTripTime,
+                roundTripTimeMeasurements: stats.roundTripTimeMeasurements,
+                roundTripTimeAvg: rttAverage,
+                nackCount: stats.nackCount,
+                reportsReceived: stats.reportsReceived,
+                packetsDiscarded: stats.packetsDiscarded
+            )
+        }
+        let remoteOutboundStats = remoteOutbound.map { stats in
+            RemoteOutboundRTCPStats(
+                packetsSent: stats.packetsSent,
+                bytesSent: stats.bytesSent,
+                reportsCount: stats.reportsCount,
+                roundTripTime: stats.roundTripTime,
+                totalPacketSendDelay: stats.totalPacketSendDelay
+            )
+        }
+        let remoteRtcpStats = (remoteInboundStats != nil || remoteOutboundStats != nil)
+            ? RemoteRTCPStats(inbound: remoteInboundStats, outbound: remoteOutboundStats)
+            : nil
         
         return CallReportInterval(
             intervalStartUtc: Self.iso8601Formatter.string(from: start),
             intervalEndUtc: Self.iso8601Formatter.string(from: end),
             audio: audioStats,
-            connection: connectionStats
+            connection: connectionStats,
+            ice: iceStats,
+            transport: transportStats,
+            mediaPlayout: mediaPlayoutStats,
+            remoteRtcp: remoteRtcpStats
         )
     }
     
@@ -657,12 +813,26 @@ private struct RTCOutboundRTPStreamStats {
     let bytesSent: Int
     let trackId: String?
     let timestamp: Double
+    let retransmittedPacketsSent: Int?
+    let retransmittedBytesSent: Int?
+    let headerBytesSent: Int?
+    let nackCount: Int?
+    let targetBitrate: Double?
+    let totalPacketSendDelay: Double?
+    let active: Bool?
     
     init(_ stats: RTCStatistics) {
         self.packetsSent = stats.values["packetsSent"] as? Int ?? 0
         self.bytesSent = stats.values["bytesSent"] as? Int ?? 0
         self.trackId = stats.values["trackId"] as? String
         self.timestamp = stats.timestamp_us / 1000.0
+        self.retransmittedPacketsSent = stats.values["retransmittedPacketsSent"] as? Int
+        self.retransmittedBytesSent = stats.values["retransmittedBytesSent"] as? Int
+        self.headerBytesSent = stats.values["headerBytesSent"] as? Int
+        self.nackCount = stats.values["nackCount"] as? Int
+        self.targetBitrate = stats.values["targetBitrate"] as? Double
+        self.totalPacketSendDelay = stats.values["totalPacketSendDelay"] as? Double
+        self.active = stats.values["active"] as? Bool
     }
 }
 
@@ -679,6 +849,17 @@ private struct RTCInboundRTPStreamStats {
     let concealmentEvents: Int?
     let trackId: String?
     let timestamp: Double
+    let nackCount: Int?
+    let headerBytesReceived: Int?
+    let fecPacketsReceived: Int?
+    let fecPacketsDiscarded: Int?
+    let jitterBufferTargetDelay: Double?
+    let jitterBufferMinimumDelay: Double?
+    let totalSamplesDecoded: Int?
+    let samplesDecodedWithSilence: Int?
+    let samplesDecodedWithConcealment: Int?
+    let totalAudioEnergy: Double?
+    let totalSamplesDuration: Double?
     
     init(_ stats: RTCStatistics) {
         self.packetsReceived = stats.values["packetsReceived"] as? Int ?? 0
@@ -693,21 +874,152 @@ private struct RTCInboundRTPStreamStats {
         self.concealmentEvents = stats.values["concealmentEvents"] as? Int
         self.trackId = stats.values["trackId"] as? String
         self.timestamp = stats.timestamp_us / 1000.0
+        self.nackCount = stats.values["nackCount"] as? Int
+        self.headerBytesReceived = stats.values["headerBytesReceived"] as? Int
+        self.fecPacketsReceived = stats.values["fecPacketsReceived"] as? Int
+        self.fecPacketsDiscarded = stats.values["fecPacketsDiscarded"] as? Int
+        self.jitterBufferTargetDelay = stats.values["jitterBufferTargetDelay"] as? Double
+        self.jitterBufferMinimumDelay = stats.values["jitterBufferMinimumDelay"] as? Double
+        self.totalSamplesDecoded = stats.values["totalSamplesDecoded"] as? Int
+        self.samplesDecodedWithSilence = stats.values["samplesDecodedWithSilence"] as? Int
+        self.samplesDecodedWithConcealment = stats.values["samplesDecodedWithConcealment"] as? Int
+        self.totalAudioEnergy = stats.values["totalAudioEnergy"] as? Double
+        self.totalSamplesDuration = stats.values["totalSamplesDuration"] as? Double
     }
 }
 
 private struct RTCIceCandidatePairStats {
+    let id: String
+    let localCandidateId: String?
+    let remoteCandidateId: String?
+    let state: String?
+    let nominated: Bool?
+    let writable: Bool?
     let packetsSent: Int?
     let packetsReceived: Int?
     let bytesSent: Int?
     let bytesReceived: Int?
-    let currentRoundTripTime: Double
+    let currentRoundTripTime: Double?
+    let requestsSent: Int?
+    let responsesReceived: Int?
     
     init(_ stats: RTCStatistics) {
+        self.id = stats.id
+        self.localCandidateId = stats.values["localCandidateId"] as? String
+        self.remoteCandidateId = stats.values["remoteCandidateId"] as? String
+        self.state = stats.values["state"] as? String
+        self.nominated = stats.values["nominated"] as? Bool
+        self.writable = stats.values["writable"] as? Bool
         self.packetsSent = stats.values["packetsSent"] as? Int
         self.packetsReceived = stats.values["packetsReceived"] as? Int
         self.bytesSent = stats.values["bytesSent"] as? Int
         self.bytesReceived = stats.values["bytesReceived"] as? Int
-        self.currentRoundTripTime = stats.values["currentRoundTripTime"] as? Double ?? 0
+        self.currentRoundTripTime = stats.values["currentRoundTripTime"] as? Double
+        self.requestsSent = stats.values["requestsSent"] as? Int
+        self.responsesReceived = stats.values["responsesReceived"] as? Int
+    }
+}
+
+private struct RTCIceCandidateStats {
+    let id: String
+    let address: String?
+    let port: Int?
+    let candidateType: String?
+    let protocolType: String?
+    let networkType: String?
+    let url: String?
+    let relayProtocol: String?
+
+    init(_ stats: RTCStatistics) {
+        self.id = stats.id
+        self.address = (stats.values["address"] as? String) ?? (stats.values["ip"] as? String)
+        self.port = stats.values["port"] as? Int
+        self.candidateType = stats.values["candidateType"] as? String
+        self.protocolType = stats.values["protocol"] as? String
+        self.networkType = stats.values["networkType"] as? String
+        self.url = stats.values["url"] as? String
+        self.relayProtocol = stats.values["relayProtocol"] as? String
+    }
+}
+
+private extension ICECandidateStats {
+    init(_ stats: RTCIceCandidateStats) {
+        self.init(id: stats.id, address: stats.address, port: stats.port, candidateType: stats.candidateType, protocolType: stats.protocolType, networkType: stats.networkType, url: stats.url, relayProtocol: stats.relayProtocol)
+    }
+}
+
+private struct RTCTransportStats {
+    let iceState: String?
+    let dtlsState: String?
+    let srtpCipher: String?
+    let tlsVersion: String?
+    let selectedCandidatePairChanges: Int?
+    let selectedCandidatePairId: String?
+
+    init(_ stats: RTCStatistics) {
+        self.iceState = stats.values["iceState"] as? String
+        self.dtlsState = stats.values["dtlsState"] as? String
+        self.srtpCipher = stats.values["srtpCipher"] as? String
+        self.tlsVersion = stats.values["tlsVersion"] as? String
+        self.selectedCandidatePairChanges = stats.values["selectedCandidatePairChanges"] as? Int
+        self.selectedCandidatePairId = stats.values["selectedCandidatePairId"] as? String
+    }
+}
+
+private struct RTCMediaPlayoutStats {
+    let synthesizedSamplesEvents: Int?
+    let synthesizedSamplesDuration: Double?
+    let totalPlayoutDelay: Double?
+    let totalSamplesCount: Int?
+    let totalSamplesDuration: Double?
+
+    init(_ stats: RTCStatistics) {
+        self.synthesizedSamplesEvents = stats.values["synthesizedSamplesEvents"] as? Int
+        self.synthesizedSamplesDuration = stats.values["synthesizedSamplesDuration"] as? Double
+        self.totalPlayoutDelay = stats.values["totalPlayoutDelay"] as? Double
+        self.totalSamplesCount = stats.values["totalSamplesCount"] as? Int
+        self.totalSamplesDuration = stats.values["totalSamplesDuration"] as? Double
+    }
+}
+
+private struct RTCRemoteInboundRTPStreamStats {
+    let packetsReceived: Int?
+    let packetsLost: Int?
+    let fractionLost: Double?
+    let jitter: Double?
+    let roundTripTime: Double?
+    let totalRoundTripTime: Double?
+    let roundTripTimeMeasurements: Int?
+    let nackCount: Int?
+    let reportsReceived: Int?
+    let packetsDiscarded: Int?
+
+    init(_ stats: RTCStatistics) {
+        self.packetsReceived = stats.values["packetsReceived"] as? Int
+        self.packetsLost = stats.values["packetsLost"] as? Int
+        self.fractionLost = stats.values["fractionLost"] as? Double
+        self.jitter = stats.values["jitter"] as? Double
+        self.roundTripTime = stats.values["roundTripTime"] as? Double
+        self.totalRoundTripTime = stats.values["totalRoundTripTime"] as? Double
+        self.roundTripTimeMeasurements = stats.values["roundTripTimeMeasurements"] as? Int
+        self.nackCount = stats.values["nackCount"] as? Int
+        self.reportsReceived = stats.values["reportsReceived"] as? Int
+        self.packetsDiscarded = stats.values["packetsDiscarded"] as? Int
+    }
+}
+
+private struct RTCRemoteOutboundRTPStreamStats {
+    let packetsSent: Int?
+    let bytesSent: Int?
+    let reportsCount: Int?
+    let roundTripTime: Double?
+    let totalPacketSendDelay: Double?
+
+    init(_ stats: RTCStatistics) {
+        self.packetsSent = stats.values["packetsSent"] as? Int
+        self.bytesSent = stats.values["bytesSent"] as? Int
+        self.reportsCount = stats.values["reportsCount"] as? Int
+        self.roundTripTime = stats.values["roundTripTime"] as? Double
+        self.totalPacketSendDelay = stats.values["totalPacketSendDelay"] as? Double
     }
 }

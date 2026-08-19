@@ -31,12 +31,26 @@ public struct OutboundAudioStats: Codable {
     public let bytesSent: Int?
     public let audioLevelAvg: Double?
     public let bitrateAvg: Double?
+    public let retransmittedPacketsSent: Int?
+    public let retransmittedBytesSent: Int?
+    public let headerBytesSent: Int?
+    public let nackCount: Int?
+    public let targetBitrate: Double?
+    public let totalPacketSendDelay: Double?
+    public let active: Bool?
     
-    public init(packetsSent: Int? = nil, bytesSent: Int? = nil, audioLevelAvg: Double? = nil, bitrateAvg: Double? = nil) {
+    public init(packetsSent: Int? = nil, bytesSent: Int? = nil, audioLevelAvg: Double? = nil, bitrateAvg: Double? = nil, retransmittedPacketsSent: Int? = nil, retransmittedBytesSent: Int? = nil, headerBytesSent: Int? = nil, nackCount: Int? = nil, targetBitrate: Double? = nil, totalPacketSendDelay: Double? = nil, active: Bool? = nil) {
         self.packetsSent = packetsSent
         self.bytesSent = bytesSent
         self.audioLevelAvg = audioLevelAvg
         self.bitrateAvg = bitrateAvg
+        self.retransmittedPacketsSent = retransmittedPacketsSent
+        self.retransmittedBytesSent = retransmittedBytesSent
+        self.headerBytesSent = headerBytesSent
+        self.nackCount = nackCount
+        self.targetBitrate = targetBitrate
+        self.totalPacketSendDelay = totalPacketSendDelay
+        self.active = active
     }
 }
 
@@ -54,6 +68,17 @@ public struct InboundAudioStats: Codable {
     public let audioLevelAvg: Double?
     public let jitterAvg: Double?
     public let bitrateAvg: Double?
+    public let nackCount: Int?
+    public let headerBytesReceived: Int?
+    public let fecPacketsReceived: Int?
+    public let fecPacketsDiscarded: Int?
+    public let jitterBufferTargetDelay: Double?
+    public let jitterBufferMinimumDelay: Double?
+    public let totalSamplesDecoded: Int?
+    public let samplesDecodedWithSilence: Int?
+    public let samplesDecodedWithConcealment: Int?
+    public let totalAudioEnergy: Double?
+    public let totalSamplesDuration: Double?
     
     public init(
         packetsReceived: Int? = nil,
@@ -67,7 +92,18 @@ public struct InboundAudioStats: Codable {
         concealmentEvents: Int? = nil,
         audioLevelAvg: Double? = nil,
         jitterAvg: Double? = nil,
-        bitrateAvg: Double? = nil
+        bitrateAvg: Double? = nil,
+        nackCount: Int? = nil,
+        headerBytesReceived: Int? = nil,
+        fecPacketsReceived: Int? = nil,
+        fecPacketsDiscarded: Int? = nil,
+        jitterBufferTargetDelay: Double? = nil,
+        jitterBufferMinimumDelay: Double? = nil,
+        totalSamplesDecoded: Int? = nil,
+        samplesDecodedWithSilence: Int? = nil,
+        samplesDecodedWithConcealment: Int? = nil,
+        totalAudioEnergy: Double? = nil,
+        totalSamplesDuration: Double? = nil
     ) {
         self.packetsReceived = packetsReceived
         self.bytesReceived = bytesReceived
@@ -81,6 +117,17 @@ public struct InboundAudioStats: Codable {
         self.audioLevelAvg = audioLevelAvg
         self.jitterAvg = jitterAvg
         self.bitrateAvg = bitrateAvg
+        self.nackCount = nackCount
+        self.headerBytesReceived = headerBytesReceived
+        self.fecPacketsReceived = fecPacketsReceived
+        self.fecPacketsDiscarded = fecPacketsDiscarded
+        self.jitterBufferTargetDelay = jitterBufferTargetDelay
+        self.jitterBufferMinimumDelay = jitterBufferMinimumDelay
+        self.totalSamplesDecoded = totalSamplesDecoded
+        self.samplesDecodedWithSilence = samplesDecodedWithSilence
+        self.samplesDecodedWithConcealment = samplesDecodedWithConcealment
+        self.totalAudioEnergy = totalAudioEnergy
+        self.totalSamplesDuration = totalSamplesDuration
     }
 }
 
@@ -102,20 +149,137 @@ public struct ConnectionStats: Codable {
     public let packetsReceived: Int?
     public let bytesSent: Int?
     public let bytesReceived: Int?
+    public let currentRoundTripTime: Double?
+    public let roundTripTimeSource: String?
     
     public init(
         roundTripTimeAvg: Double? = nil,
         packetsSent: Int? = nil,
         packetsReceived: Int? = nil,
         bytesSent: Int? = nil,
-        bytesReceived: Int? = nil
+        bytesReceived: Int? = nil,
+        currentRoundTripTime: Double? = nil,
+        roundTripTimeSource: String? = nil
     ) {
         self.roundTripTimeAvg = roundTripTimeAvg
         self.packetsSent = packetsSent
         self.packetsReceived = packetsReceived
         self.bytesSent = bytesSent
         self.bytesReceived = bytesReceived
+        self.currentRoundTripTime = currentRoundTripTime
+        self.roundTripTimeSource = roundTripTimeSource
     }
+}
+
+/// A local or remote ICE candidate resolved from the selected candidate pair.
+public struct ICECandidateStats: Codable {
+    public let id: String?
+    public let address: String?
+    public let port: Int?
+    public let candidateType: String?
+    public let protocolType: String?
+    public let networkType: String?
+    public let url: String?
+    public let relayProtocol: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, address, port, candidateType, networkType, url, relayProtocol
+        case protocolType = "protocol"
+    }
+
+    public init(id: String? = nil, address: String? = nil, port: Int? = nil, candidateType: String? = nil, protocolType: String? = nil, networkType: String? = nil, url: String? = nil, relayProtocol: String? = nil) {
+        self.id = id
+        self.address = address
+        self.port = port
+        self.candidateType = candidateType
+        self.protocolType = protocolType
+        self.networkType = networkType
+        self.url = url
+        self.relayProtocol = relayProtocol
+    }
+}
+
+/// Selected ICE candidate-pair details. Field names mirror the JS SDK report.
+public struct ICECandidatePairStats: Codable {
+    public let id: String?
+    public let localCandidateId: String?
+    public let remoteCandidateId: String?
+    public let state: String?
+    public let nominated: Bool?
+    public let writable: Bool?
+    public let currentRoundTripTime: Double?
+    public let requestsSent: Int?
+    public let responsesReceived: Int?
+    public let local: ICECandidateStats?
+    public let remote: ICECandidateStats?
+
+    public init(id: String? = nil, localCandidateId: String? = nil, remoteCandidateId: String? = nil, state: String? = nil, nominated: Bool? = nil, writable: Bool? = nil, currentRoundTripTime: Double? = nil, requestsSent: Int? = nil, responsesReceived: Int? = nil, local: ICECandidateStats? = nil, remote: ICECandidateStats? = nil) {
+        self.id = id
+        self.localCandidateId = localCandidateId
+        self.remoteCandidateId = remoteCandidateId
+        self.state = state
+        self.nominated = nominated
+        self.writable = writable
+        self.currentRoundTripTime = currentRoundTripTime
+        self.requestsSent = requestsSent
+        self.responsesReceived = responsesReceived
+        self.local = local
+        self.remote = remote
+    }
+}
+
+/// DTLS/ICE transport snapshot for a reporting interval.
+public struct TransportStats: Codable {
+    public let iceState: String?
+    public let dtlsState: String?
+    public let srtpCipher: String?
+    public let tlsVersion: String?
+    public let selectedCandidatePairChanges: Int?
+    public let selectedCandidatePairId: String?
+
+    public init(iceState: String? = nil, dtlsState: String? = nil, srtpCipher: String? = nil, tlsVersion: String? = nil, selectedCandidatePairChanges: Int? = nil, selectedCandidatePairId: String? = nil) {
+        self.iceState = iceState
+        self.dtlsState = dtlsState
+        self.srtpCipher = srtpCipher
+        self.tlsVersion = tlsVersion
+        self.selectedCandidatePairChanges = selectedCandidatePairChanges
+        self.selectedCandidatePairId = selectedCandidatePairId
+    }
+}
+
+public struct MediaPlayoutStats: Codable {
+    public let synthesizedSamplesEvents: Int?
+    public let synthesizedSamplesDuration: Double?
+    public let totalPlayoutDelay: Double?
+    public let totalSamplesCount: Int?
+    public let totalSamplesDuration: Double?
+}
+
+public struct RemoteInboundRTCPStats: Codable {
+    public let packetsReceived: Int?
+    public let packetsLost: Int?
+    public let fractionLost: Double?
+    public let jitter: Double?
+    public let roundTripTime: Double?
+    public let totalRoundTripTime: Double?
+    public let roundTripTimeMeasurements: Int?
+    public let roundTripTimeAvg: Double?
+    public let nackCount: Int?
+    public let reportsReceived: Int?
+    public let packetsDiscarded: Int?
+}
+
+public struct RemoteOutboundRTCPStats: Codable {
+    public let packetsSent: Int?
+    public let bytesSent: Int?
+    public let reportsCount: Int?
+    public let roundTripTime: Double?
+    public let totalPacketSendDelay: Double?
+}
+
+public struct RemoteRTCPStats: Codable {
+    public let inbound: RemoteInboundRTCPStats?
+    public let outbound: RemoteOutboundRTCPStats?
 }
 
 /// Statistics collected during a single reporting interval
@@ -124,12 +288,20 @@ public struct CallReportInterval: Codable {
     public let intervalEndUtc: String
     public let audio: AudioStats?
     public let connection: ConnectionStats?
+    public let ice: ICECandidatePairStats?
+    public let transport: TransportStats?
+    public let mediaPlayout: MediaPlayoutStats?
+    public let remoteRtcp: RemoteRTCPStats?
     
-    public init(intervalStartUtc: String, intervalEndUtc: String, audio: AudioStats? = nil, connection: ConnectionStats? = nil) {
+    public init(intervalStartUtc: String, intervalEndUtc: String, audio: AudioStats? = nil, connection: ConnectionStats? = nil, ice: ICECandidatePairStats? = nil, transport: TransportStats? = nil, mediaPlayout: MediaPlayoutStats? = nil, remoteRtcp: RemoteRTCPStats? = nil) {
         self.intervalStartUtc = intervalStartUtc
         self.intervalEndUtc = intervalEndUtc
         self.audio = audio
         self.connection = connection
+        self.ice = ice
+        self.transport = transport
+        self.mediaPlayout = mediaPlayout
+        self.remoteRtcp = remoteRtcp
     }
 }
 
