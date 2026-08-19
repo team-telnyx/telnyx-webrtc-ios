@@ -165,6 +165,7 @@ public class TxClient {
     private var pendingAnswerHeaders = [String:String]()
     internal var sendFileLogs: Bool = false
     private var attachCallId: String?
+    internal var pendingAttachCallIdForTesting: String? { attachCallId }
     private var pushMetaData: [String:Any]?
     private let AUTH_ERROR_CODE = "-32001"
     private var reconnectTimeoutTimer: DispatchSourceTimer?
@@ -1608,6 +1609,13 @@ extension TxClient: CallProtocol {
                 self.delegate?.onRemoteCallEnded(callId: callId, reason: nil)
             }
             self._isSpeakerEnabled = false
+
+            // A terminal event can arrive for the placeholder call before the
+            // replayed INVITE. Cancel the post-attach watchdog so it cannot emit
+            // a second DONE/onRemoteCallEnded callback for the same push call.
+            if isCallFromPush && callId == currentCallId {
+                resetPushVariables()
+            }
         }
     }
 
@@ -1892,6 +1900,7 @@ extension TxClient : SocketDelegate {
         //Check if server is sending an error code
         if let error = vertoMessage.serverError {
             if attachCallId == vertoMessage.id {
+                stopInviteTimeout()
                 // Call failed from remote end
               if let callId = pushMetaData?["call_id"] as? String,
                 let callUUID = UUID(uuidString: callId) {
@@ -1902,6 +1911,7 @@ extension TxClient : SocketDelegate {
                   self.delegate?.onRemoteCallEnded(callId: callUUID, reason: terminationReason)
                   self.delegate?.onCallStateUpdated(callState: .DONE(reason: terminationReason), callId: callUUID)
                 }
+                resetPushVariables()
                 return
             }
             let message: String = error["message"] as? String ?? "Unknown"
@@ -1990,20 +2000,21 @@ extension TxClient : SocketDelegate {
                     break
 
                 case .INVITE:
-                    //invite received
-                    if isCallFromPush {
-                        pushCallState = .inviteReceived
-                    }
-                    if isWaitingForInviteAfterPush {
-                        Logger.log.i(message: "TxClient:: INVITE received - stopping timeout timer for VoIP push call")
-                        stopInviteTimeout()
-                    }
-                    
                     if let params = vertoMessage.params {
                         guard let sdp = params["sdp"] as? String,
                               let callId = params["callID"] as? String,
                               let uuid = UUID(uuidString: callId) else {
                             return
+                        }
+
+                        // Only a usable INVITE resolves the pending push flow.
+                        // Malformed messages must leave the watchdog armed.
+                        if isCallFromPush {
+                            pushCallState = .inviteReceived
+                        }
+                        if isWaitingForInviteAfterPush {
+                            Logger.log.i(message: "TxClient:: INVITE received - stopping timeout timer for VoIP push call")
+                            stopInviteTimeout()
                         }
                         
                         self.voiceSdkId = vertoMessage.voiceSdkId
@@ -2057,6 +2068,10 @@ extension TxClient : SocketDelegate {
                           let uuid = UUID(uuidString: callId) else {
                         return
                     }
+
+                    // ATTACH is a successful terminal outcome for the pending
+                    // replay wait. Do not let the INVITE watchdog end this call.
+                    stopInviteTimeout()
                     
                     self.voiceSdkId = vertoMessage.voiceSdkId
 
@@ -2094,6 +2109,7 @@ extension TxClient : SocketDelegate {
                                             customHeaders: customHeaders,
                                             isAttach: true
                     )
+                    resetPushVariables()
                     
                 }
                  break;

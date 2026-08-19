@@ -134,6 +134,43 @@ class TxClientPingAuthTests: XCTestCase {
         XCTAssertEqual(mockDelegate.doneCallIds, [callUUID])
     }
 
+    func testMalformedInviteDoesNotCancelPushWatchdog() throws {
+        let callUUID = UUID()
+        txClient.inviteTimeoutInterval = 0.01
+        try startPushFlow(callId: callUUID)
+        txClient.onMessageReceived(message: gatewayStateMessage(state: "REGED"))
+
+        txClient.onMessageReceived(message: """
+        {"jsonrpc":"2.0","method":"telnyx_rtc.invite","params":{"callID":"\(UUID().uuidString)"}}
+        """)
+        waitForWatchdog()
+
+        XCTAssertEqual(mockDelegate.remoteEndedCallIds, [callUUID])
+        XCTAssertEqual(mockDelegate.doneCallIds, [callUUID])
+    }
+
+    func testAttachErrorCancelsPushWatchdogAfterSingleCleanup() throws {
+        let callUUID = UUID()
+        txClient.inviteTimeoutInterval = 0.01
+        try startPushFlow(callId: callUUID)
+        txClient.onMessageReceived(message: gatewayStateMessage(state: "REGED"))
+
+        let attachId = try XCTUnwrap(txClient.pendingAttachCallIdForTesting)
+        txClient.onMessageReceived(message: """
+        {"jsonrpc":"2.0","id":"\(attachId)","error":{"code":-1,"message":"Call failed"}}
+        """)
+        waitForWatchdog()
+
+        XCTAssertEqual(mockDelegate.remoteEndedCallIds, [callUUID])
+        XCTAssertEqual(mockDelegate.doneCallIds, [callUUID])
+    }
+
+    private func waitForWatchdog() {
+        let expectation = expectation(description: "Wait beyond INVITE watchdog")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { expectation.fulfill() }
+        wait(for: [expectation], timeout: 1.0)
+    }
+
     private func startPushFlow(callId: UUID) throws {
         let txConfig = TxConfig(sipUser: "test_user", password: "test_password")
         let serverConfig = TxServerConfiguration()
