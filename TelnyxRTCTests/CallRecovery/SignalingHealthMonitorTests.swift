@@ -250,7 +250,8 @@ final class SignalingHealthMonitorTests: XCTestCase {
         let call = makeActiveCall()
         let restartExpectation = expectation(description: "inbound RTP stall starts ICE restart")
         let monitor = SignalingHealthMonitor(
-            inboundRtpCheckInterval: 0.01,
+            inboundRtpSteadyStateCheckInterval: 0.01,
+            inboundRtpVerificationCheckInterval: 0.01,
             inboundRtpStallTimeout: 0.02,
             isSignalingAvailable: { true },
             sendSignalingProbe: { "probe-id" },
@@ -269,7 +270,8 @@ final class SignalingHealthMonitorTests: XCTestCase {
         let restartExpectation = expectation(description: "starts ICE restart")
         let reattachExpectation = expectation(description: "reattaches after media verification timeout")
         let monitor = SignalingHealthMonitor(
-            inboundRtpCheckInterval: 0.01,
+            inboundRtpSteadyStateCheckInterval: 0.01,
+            inboundRtpVerificationCheckInterval: 0.01,
             postIceRestartMediaTimeout: 0.02,
             isSignalingAvailable: { true },
             sendSignalingProbe: { "probe-id" },
@@ -296,7 +298,8 @@ final class SignalingHealthMonitorTests: XCTestCase {
         var didCaptureInitialSample = false
         var reattachCount = 0
         let monitor = SignalingHealthMonitor(
-            inboundRtpCheckInterval: 0.01,
+            inboundRtpSteadyStateCheckInterval: 0.01,
+            inboundRtpVerificationCheckInterval: 0.01,
             postIceRestartMediaTimeout: 0.1,
             isSignalingAvailable: { true },
             sendSignalingProbe: { "probe-id" },

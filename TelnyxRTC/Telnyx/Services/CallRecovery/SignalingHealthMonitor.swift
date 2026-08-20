@@ -29,7 +29,8 @@ internal final class SignalingHealthMonitor {
     private let confirmedOutboundActivityThreshold: TimeInterval
     private let staleInboundActivityThreshold: TimeInterval
     private let signalingHealthCheckInterval: TimeInterval
-    private let inboundRtpCheckInterval: TimeInterval
+    private let inboundRtpSteadyStateCheckInterval: TimeInterval
+    private let inboundRtpVerificationCheckInterval: TimeInterval
     private let inboundRtpStallTimeout: TimeInterval
     private let postIceRestartMediaTimeout: TimeInterval
     private let peerDisconnectedRecoveryDelay: TimeInterval
@@ -66,7 +67,8 @@ internal final class SignalingHealthMonitor {
         confirmedOutboundActivityThreshold: TimeInterval = 45,
         staleInboundActivityThreshold: TimeInterval = 20,
         signalingHealthCheckInterval: TimeInterval = 3,
-        inboundRtpCheckInterval: TimeInterval = 1,
+        inboundRtpSteadyStateCheckInterval: TimeInterval = 3,
+        inboundRtpVerificationCheckInterval: TimeInterval = 1,
         inboundRtpStallTimeout: TimeInterval = 3,
         postIceRestartMediaTimeout: TimeInterval = 5,
         peerDisconnectedRecoveryDelay: TimeInterval = 3,
@@ -83,7 +85,8 @@ internal final class SignalingHealthMonitor {
         self.confirmedOutboundActivityThreshold = confirmedOutboundActivityThreshold
         self.staleInboundActivityThreshold = staleInboundActivityThreshold
         self.signalingHealthCheckInterval = signalingHealthCheckInterval
-        self.inboundRtpCheckInterval = inboundRtpCheckInterval
+        self.inboundRtpSteadyStateCheckInterval = inboundRtpSteadyStateCheckInterval
+        self.inboundRtpVerificationCheckInterval = inboundRtpVerificationCheckInterval
         self.inboundRtpStallTimeout = inboundRtpStallTimeout
         self.postIceRestartMediaTimeout = postIceRestartMediaTimeout
         self.peerDisconnectedRecoveryDelay = peerDisconnectedRecoveryDelay
@@ -182,6 +185,7 @@ internal final class SignalingHealthMonitor {
 
             self.recoveryMode = .verifyingMedia
             self.mediaVerificationStartedAt = Date()
+            self.startInboundRtpChecks(interval: self.inboundRtpVerificationCheckInterval)
             self.startMediaVerificationTimeout(for: call)
         }
     }
@@ -206,7 +210,7 @@ internal final class SignalingHealthMonitor {
                 }
                 self.monitoredActiveCall = call
                 self.startSignalingHealthChecks()
-                self.startInboundRtpChecks()
+                self.startInboundRtpChecks(interval: self.inboundRtpSteadyStateCheckInterval)
                 self.resetInboundRtpTracking()
             case .HELD:
                 if self.monitoredActiveCall === call {
@@ -327,10 +331,13 @@ internal final class SignalingHealthMonitor {
         peerDisconnectedRecoveryWorkItem = nil
     }
 
-    private func startInboundRtpChecks() {
-        guard inboundRtpCheckTimer == nil else { return }
+    /// Full WebRTC stats are expensive. In healthy media we sample once every
+    /// three seconds (immediate baseline plus one comparison); only the short
+    /// post-restart verification window samples once per second.
+    private func startInboundRtpChecks(interval: TimeInterval) {
+        stopInboundRtpChecks()
         let timer = DispatchSource.makeTimerSource(queue: queue)
-        timer.schedule(deadline: .now() + inboundRtpCheckInterval, repeating: inboundRtpCheckInterval)
+        timer.schedule(deadline: .now(), repeating: interval)
         timer.setEventHandler { [weak self] in
             self?.checkInboundRtpHealth()
         }
@@ -474,6 +481,9 @@ internal final class SignalingHealthMonitor {
         recoveryMode = .idle
         iceRestartStartedAt = nil
         mediaVerificationStartedAt = nil
+        if monitoredActiveCall?.callState == .ACTIVE {
+            startInboundRtpChecks(interval: inboundRtpSteadyStateCheckInterval)
+        }
     }
 
     private func cancelRecoveryTimeouts() {
