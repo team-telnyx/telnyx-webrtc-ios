@@ -25,10 +25,11 @@ final class SignalingHealthMonitorTests: XCTestCase {
         XCTAssertEqual(reattachCount, 0)
     }
 
-    func testPeerDisconnectionStartsIceRestartWhenSignalingIsHealthy() {
+    func testSustainedPeerDisconnectionStartsIceRestartWhenSignalingIsHealthy() {
         let call = makeActiveCall()
-        let restartExpectation = expectation(description: "starts ICE restart after peer disconnection")
+        let restartExpectation = expectation(description: "starts ICE restart after sustained peer disconnection")
         let monitor = SignalingHealthMonitor(
+            peerDisconnectedRecoveryDelay: 0.01,
             isSignalingAvailable: { true },
             sendSignalingProbe: { "probe-id" },
             startIceRestart: { _ in restartExpectation.fulfill() },
@@ -38,6 +39,24 @@ final class SignalingHealthMonitorTests: XCTestCase {
         monitor.peerConnectionStateDidChange(call, state: .disconnected)
 
         wait(for: [restartExpectation], timeout: 1)
+    }
+
+    func testPeerReconnectCancelsDisconnectedRecoveryDelay() {
+        let call = makeActiveCall()
+        let noRestartExpectation = expectation(description: "does not restart after transient peer disconnection")
+        noRestartExpectation.isInverted = true
+        let monitor = SignalingHealthMonitor(
+            peerDisconnectedRecoveryDelay: 0.02,
+            isSignalingAvailable: { true },
+            sendSignalingProbe: { "probe-id" },
+            startIceRestart: { _ in noRestartExpectation.fulfill() },
+            requestReattach: { XCTFail("Should not reattach after peer reconnects") }
+        )
+
+        monitor.peerConnectionStateDidChange(call, state: .disconnected)
+        monitor.peerConnectionStateDidChange(call, state: .connected)
+
+        wait(for: [noRestartExpectation], timeout: 0.1)
     }
 
     func testPeerFailureWithUnavailableSignalingUsesReattach() {

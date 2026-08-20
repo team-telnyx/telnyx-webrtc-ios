@@ -28,6 +28,7 @@ internal final class SignalingHealthMonitor {
     private let confirmedOutboundActivityThreshold: TimeInterval
     private let staleInboundActivityThreshold: TimeInterval
     private let signalingHealthCheckInterval: TimeInterval
+    private let peerDisconnectedRecoveryDelay: TimeInterval
     private let isSignalingAvailable: () -> Bool
     private let sendSignalingProbe: () -> String?
     private let startIceRestart: (Call) -> Void
@@ -38,6 +39,7 @@ internal final class SignalingHealthMonitor {
     private var iceRestartTimeoutWorkItem: DispatchWorkItem?
     private var signalingProbeTimeoutWorkItem: DispatchWorkItem?
     private var signalingHealthCheckTimer: DispatchSourceTimer?
+    private var peerDisconnectedRecoveryWorkItem: DispatchWorkItem?
     private var pendingSignalingProbeId: String?
     private var pendingSignalingProbePurpose: SignalingProbePurpose?
     private var lastInboundSignalingActivity = Date()
@@ -51,6 +53,7 @@ internal final class SignalingHealthMonitor {
         confirmedOutboundActivityThreshold: TimeInterval = 45,
         staleInboundActivityThreshold: TimeInterval = 20,
         signalingHealthCheckInterval: TimeInterval = 3,
+        peerDisconnectedRecoveryDelay: TimeInterval = 3,
         isSignalingAvailable: @escaping () -> Bool,
         sendSignalingProbe: @escaping () -> String?,
         startIceRestart: @escaping (Call) -> Void,
@@ -62,6 +65,7 @@ internal final class SignalingHealthMonitor {
         self.confirmedOutboundActivityThreshold = confirmedOutboundActivityThreshold
         self.staleInboundActivityThreshold = staleInboundActivityThreshold
         self.signalingHealthCheckInterval = signalingHealthCheckInterval
+        self.peerDisconnectedRecoveryDelay = peerDisconnectedRecoveryDelay
         self.isSignalingAvailable = isSignalingAvailable
         self.sendSignalingProbe = sendSignalingProbe
         self.startIceRestart = startIceRestart
@@ -71,6 +75,7 @@ internal final class SignalingHealthMonitor {
     deinit {
         signalingHealthCheckTimer?.setEventHandler {}
         signalingHealthCheckTimer?.cancel()
+        peerDisconnectedRecoveryWorkItem?.cancel()
     }
 
     func networkPathDidChange() {
@@ -91,12 +96,19 @@ internal final class SignalingHealthMonitor {
     }
 
     func peerConnectionStateDidChange(_ call: Call, state: RTCPeerConnectionState) {
-        guard state == .disconnected || state == .failed else { return }
         executeOnQueue { [weak self] in
-            let trigger = state == .disconnected
-                ? "peer_connection_disconnected"
-                : "peer_connection_failed"
-            self?.requestRecovery(for: call, trigger: trigger)
+            guard let self = self else { return }
+            switch state {
+            case .failed:
+                self.cancelPeerDisconnectedRecovery()
+                self.requestRecovery(for: call, trigger: "peer_connection_failed")
+            case .disconnected:
+                self.startPeerDisconnectedRecoveryDelay(for: call)
+            case .connected:
+                self.cancelPeerDisconnectedRecovery()
+            default:
+                break
+            }
         }
     }
 
@@ -155,6 +167,7 @@ internal final class SignalingHealthMonitor {
                 self.monitoredActiveCall = call
                 self.startSignalingHealthChecks()
             case .DONE, .DROPPED:
+                self.cancelPeerDisconnectedRecovery()
                 if self.monitoredActiveCall === call {
                     self.stopSignalingHealthChecks()
                     self.monitoredActiveCall = nil
@@ -169,6 +182,7 @@ internal final class SignalingHealthMonitor {
     }
 
     private func requestRecovery(for call: Call, trigger: String) {
+        cancelPeerDisconnectedRecovery()
         guard call.callState == .ACTIVE else {
             Logger.log.i(message: "[CALL-RECOVERY] Ignoring \(trigger); call is \(call.callState.value)")
             return
@@ -235,6 +249,29 @@ internal final class SignalingHealthMonitor {
         }
         signalingHealthCheckTimer = timer
         timer.resume()
+    }
+
+    /// `disconnected` is commonly transient while iOS changes radio or Wi-Fi
+    /// paths. Give WebRTC a short chance to return to connected before
+    /// renegotiating; terminal `failed` still recovers immediately.
+    private func startPeerDisconnectedRecoveryDelay(for call: Call) {
+        guard recoveryMode == .idle else { return }
+        cancelPeerDisconnectedRecovery()
+        let workItem = DispatchWorkItem { [weak self, weak call] in
+            guard let self = self,
+                  let call = call,
+                  self.recoveryMode == .idle,
+                  call.callState == .ACTIVE else { return }
+            Logger.log.w(message: "[CALL-RECOVERY] Peer remained disconnected for \(self.peerDisconnectedRecoveryDelay)s; starting recovery")
+            self.requestRecovery(for: call, trigger: "peer_connection_disconnected")
+        }
+        peerDisconnectedRecoveryWorkItem = workItem
+        queue.asyncAfter(deadline: .now() + peerDisconnectedRecoveryDelay, execute: workItem)
+    }
+
+    private func cancelPeerDisconnectedRecovery() {
+        peerDisconnectedRecoveryWorkItem?.cancel()
+        peerDisconnectedRecoveryWorkItem = nil
     }
 
     private func stopSignalingHealthChecks() {
