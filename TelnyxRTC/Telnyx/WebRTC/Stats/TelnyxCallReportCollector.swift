@@ -47,7 +47,6 @@ public class TelnyxCallReportCollector {
     private let logCollectorConfig: LogCollectorConfig
     private weak var peerConnection: RTCPeerConnection?
     private var timer: Timer?
-    private var isMediaVerificationSamplingEnabled = false
     private var statsBuffer: [CallReportInterval] = []
     private var intervalStartTime: Date?
     private(set) var callStartTime: Date
@@ -112,12 +111,12 @@ public class TelnyxCallReportCollector {
         self.peerConnection = peerConnection
         self.intervalStartTime = Date()
         
-        Logger.log.i(message: "TelnyxCallReportCollector: Starting stats collection (interval: \(config.interval)s, logCollectorActive: \(logCollector?.isActive() ?? false))")
+        Logger.log.i(message: "TelnyxCallReportCollector: Starting stats collection (sample: \(sampleInterval)s, interval: \(config.interval)s, logCollectorActive: \(logCollector?.isActive() ?? false))")
 
         logCollector?.addEntry(
             level: "info",
             message: "CallReportCollector: Starting stats and log collection",
-            context: ["interval": config.interval, "logLevel": logCollectorConfig.level]
+            context: ["sampleInterval": sampleInterval, "interval": config.interval, "logLevel": logCollectorConfig.level]
         )
 
         // Schedule on main RunLoop — start() may be called from a WebRTC background thread
@@ -128,18 +127,6 @@ public class TelnyxCallReportCollector {
         }
     }
 
-    /// Temporarily increases the existing collector cadence while an ICE
-    /// restart is verifying media. Normal reporting remains at the configured
-    /// interval; this does not introduce a second stats query.
-    internal func setMediaVerificationSamplingEnabled(_ enabled: Bool) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self,
-                  self.isMediaVerificationSamplingEnabled != enabled else { return }
-            self.isMediaVerificationSamplingEnabled = enabled
-            self.scheduleStatsTimer()
-        }
-    }
-    
     /// Stop collecting stats and prepare for final report
     public func stop() {
         // Timer was scheduled on main RunLoop, must invalidate there
@@ -445,12 +432,16 @@ public class TelnyxCallReportCollector {
 
     private func scheduleStatsTimer() {
         timer?.invalidate()
-        let interval = isMediaVerificationSamplingEnabled
-            ? min(config.interval, 1.0)
-            : config.interval
-        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+        timer = Timer.scheduledTimer(withTimeInterval: sampleInterval, repeats: true) { [weak self] _ in
             self?.collectStats()
         }
+    }
+
+    /// WebRTC counters are sampled at most once per second so health logic can
+    /// detect three seconds without inbound media. Report rows and interval
+    /// logs are still emitted only when `config.interval` elapses.
+    private var sampleInterval: TimeInterval {
+        min(config.interval, 1.0)
     }
 
     private func parseStatsReport(_ report: RTCStatisticsReport) -> ParsedStats {
