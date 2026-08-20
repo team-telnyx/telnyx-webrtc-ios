@@ -3,6 +3,22 @@ import WebRTC
 
 // MARK: - ICE Restart handling
 extension Call {
+
+    /// Mirrors the JavaScript SDK's ICE-restart lifecycle entries in the
+    /// call-report `logs` array. These are signaling lifecycle events, not
+    /// WebRTC statistics snapshots.
+    private func recordIceRestartEvent(level: String = "info", message: String, context: [String: Any] = [:]) {
+        var eventContext = context
+        eventContext["callId"] = signalingCallId.uuidString
+        if let sessionId = sessionId {
+            eventContext["sessionId"] = sessionId
+        }
+        callReportCollector?.addLogEntry(
+            level: level,
+            message: message,
+            context: eventContext
+        )
+    }
     
     /// Performs ICE restart to renegotiate ICE candidates when network conditions change
     /// This helps resolve audio delay issues by establishing new network paths
@@ -11,6 +27,10 @@ extension Call {
         guard let peer = self.peer,
               let sessionId = self.sessionId else {
             Logger.log.e(message: "[ICE-RESTART] Call:: ICE restart failed - missing peer, callId, or sessionId")
+            recordIceRestartEvent(
+                level: "error",
+                message: "ICE restart failed - missing required parameters"
+            )
             completion(false, NSError(domain: "Call", code: -1, userInfo: [NSLocalizedDescriptionKey: "Missing required parameters for ICE restart"]))
             return
         }
@@ -18,6 +38,10 @@ extension Call {
         guard let socket = self.socket, socket.isConnected else {
             let error = NSError(domain: "Call", code: -5, userInfo: [NSLocalizedDescriptionKey: "Signaling socket is not connected"])
             Logger.log.w(message: "[ICE-RESTART] Call:: ICE restart skipped - signaling socket is not connected")
+            recordIceRestartEvent(
+                level: "warn",
+                message: "ICE restart skipped - signaling socket is not connected"
+            )
             completion(false, error)
             return
         }
@@ -25,12 +49,18 @@ extension Call {
         // Check if call is in a valid state for ICE restart
         guard self.callState == .ACTIVE || self.callState == .CONNECTING else {
             Logger.log.w(message: "[ICE-RESTART] Call:: ICE restart skipped - call not in active state: \(self.callState)")
+            recordIceRestartEvent(
+                level: "warn",
+                message: "ICE restart skipped - call not in active state",
+                context: ["callState": callState.value]
+            )
             completion(false, NSError(domain: "Call", code: -2, userInfo: [NSLocalizedDescriptionKey: "Call not in active state"]))
             return
         }
         
         // Set ICE restart flag to prevent automatic answer
         self.isIceRestarting = true
+        recordIceRestartEvent(message: "ICE restart: initiated")
         
         // Mark that we need to reset audio after ICE restart to clear jitter buffers
         self.shouldResetAudioAfterIceRestart = true
@@ -44,6 +74,11 @@ extension Call {
             
             if let error = error {
                 Logger.log.e(message: "[ICE-RESTART] Call:: ICE restart failed: \(error)")
+                self.recordIceRestartEvent(
+                    level: "error",
+                    message: "ICE restart offer creation failed",
+                    context: ["error": error.localizedDescription]
+                )
                 
                 // Reset ICE restart flags
                 self.isIceRestarting = false
@@ -55,6 +90,10 @@ extension Call {
             
             guard let sdp = sdp else {
                 Logger.log.e(message: "[ICE-RESTART] Call:: ICE restart failed - no SDP generated")
+                self.recordIceRestartEvent(
+                    level: "error",
+                    message: "ICE restart failed - no SDP generated"
+                )
                 
                 // Reset ICE restart flags
                 self.isIceRestarting = false
@@ -68,6 +107,10 @@ extension Call {
             let iceRestartMessage = ICERestartMessage(sessionId: sessionId, callId: self.signalingCallId.uuidString, sdp: sdp.sdp)
             let message = iceRestartMessage.encode() ?? ""
             socket.sendMessage(message: message)
+            self.recordIceRestartEvent(
+                message: "ICE restart: sending \(self.useTrickleIce ? "trickle " : "")Modify with new offer SDP",
+                context: ["trickle": self.useTrickleIce]
+            )
 
             // Keep the restart in flight until the updateMedia answer is applied.
             // Sending an SDP offer is only a request, not successful recovery.
@@ -113,12 +156,23 @@ extension Call {
     internal func handleIceRestartResponse(message: Message, dataMessage: String, txClient: TxClient) {
         guard let result = message.result,
               let action = result["action"] as? String,
-              action == "updateMedia",
-              let sdp = result["sdp"] as? String else {
+              action == "updateMedia" else {
+            return
+        }
+
+        guard let sdp = result["sdp"] as? String else {
+            Logger.log.e(message: "[ICE-RESTART] Call:: ICE restart Modify response missing SDP")
+            recordIceRestartEvent(
+                level: "error",
+                message: "ICE restart Modify response missing SDP"
+            )
+            isIceRestarting = false
+            shouldResetAudioAfterIceRestart = false
             return
         }
         
         Logger.log.i(message: "[ICE-RESTART] Call:: Processing ICE restart response")
+        recordIceRestartEvent(message: "ICE restart Modify response received")
         
         // Set the new remote SDP from the ICE restart response as answer
         let remoteDescription = RTCSessionDescription(type: .answer, sdp: sdp)
@@ -127,6 +181,11 @@ extension Call {
             
             if let error = error {
                 Logger.log.e(message: "[ICE-RESTART] Call:: Error setting ICE restart remote description: \(error)")
+                self.recordIceRestartEvent(
+                    level: "error",
+                    message: "ICE restart remote SDP apply failed",
+                    context: ["error": error.localizedDescription]
+                )
                 
                 // Reset ICE restart flags
                 self.isIceRestarting = false
@@ -145,6 +204,7 @@ extension Call {
                 self.shouldResetAudioAfterIceRestart = false
                 
                 Logger.log.i(message: "[ICE-RESTART] Call:: ICE restart completed successfully - connection should be stable")
+                self.recordIceRestartEvent(message: "ICE restart remote SDP applied")
                 self.delegate?.callIceRestartCompleted(call: self)
             }
         })
