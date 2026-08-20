@@ -12,8 +12,7 @@ import Foundation
 /// - Network statistics
 ///
 /// The reporter is enabled when the `debug` flag is set to true in the Call configuration.
-/// Statistics are sampled once per second for quality callbacks. When debug socket
-/// reporting is explicitly enabled, a condensed report is sent every two seconds.
+/// Statistics are collected every 2 seconds and sent to Telnyx's servers for analysis.
 ///
 /// ## Usage
 /// ```swift
@@ -61,10 +60,6 @@ class WebRTCStatsReporter {
     /// Interval for sending stats to socket (in seconds)
     private var socketSendInterval: TimeInterval = 2.0
 
-    /// Sampling cadence for local quality metrics. Raw samples are intentionally
-    /// not logged: `RTCStatisticsReport` is large and would overwhelm call logs.
-    private let statsSampleInterval: TimeInterval = 1.0
-    
     /// Timestamp of last socket send
     private var lastSocketSendTime: TimeInterval = 0
     
@@ -76,7 +71,7 @@ class WebRTCStatsReporter {
     
     public func startDebugReport(peerId: UUID,
                                  call: Call) {
-        
+
         self.peerId = peerId
         self.peer = call.peer
         self.call  = call
@@ -96,7 +91,7 @@ class WebRTCStatsReporter {
         self.setupEventHandler()
         let queue = DispatchQueue.main
         timer = DispatchSource.makeTimerSource(queue: queue)
-        timer?.schedule(deadline: .now(), repeating: statsSampleInterval)
+        timer?.schedule(deadline: .now(), repeating: 0.2) // Even more frequent updates for ultra-responsive waveform
         timer?.setEventHandler { [weak self] in
             self?.executeTask()
         }
@@ -112,6 +107,7 @@ class WebRTCStatsReporter {
     // MARK: - Private Helper Methods
     private func sendDebugReportStartMessage(id: UUID) {
         if self.call?.debug == false || self.call?.sendWebRTCStatsViaSocket == false {
+            Logger.log.i(message: "WebRTCStatsReporter:: Skipping sending stats message - debug not enabled or socket sending disabled")
             return
         }
         let statsMessage = DebugReportStartMessage(reportID: id.uuidString.lowercased())
@@ -125,6 +121,7 @@ class WebRTCStatsReporter {
     
     private func sendDebugReportStopMessage(id: UUID) {
         if self.call?.debug == false || self.call?.sendWebRTCStatsViaSocket == false {
+            Logger.log.i(message: "WebRTCStatsReporter:: Skipping sending stats message - debug not enabled or socket sending disabled")
             return
         }
         let statsMessage = DebugReportStopMessage(reportID: id.uuidString.lowercased())
@@ -138,10 +135,12 @@ class WebRTCStatsReporter {
     
     private func sendDebugReportDataMessage(id: UUID, data: [String: Any]) {
         if self.call?.debug == false || self.call?.sendWebRTCStatsViaSocket == false {
+            Logger.log.i(message: "WebRTCStatsReporter:: Skipping sending stats message - debug not enabled or socket sending disabled")
             return
         }
         // Skip sending messages if reporting is paused due to socket disconnection or call state
         if isReportingPaused {
+            Logger.log.i(message: "WebRTCStatsReporter:: Skipping stats message while socket is disconnected or call is recovering")
             return
         }
         
@@ -372,12 +371,11 @@ class WebRTCStatsReporter {
             updateReportingState(shouldPause: false)
         }
         
-        // Sample local quality metrics once per second. Keep the raw report
-        // internal; it is large and is not useful as a per-sample log entry.
+        // Always collect stats for real-time metrics (every 0.2s)
         let currentTime = Date().timeIntervalSince1970
-        let isSocketReportingEnabled = call.debug && call.sendWebRTCStatsViaSocket
-        let shouldSendToSocket = isSocketReportingEnabled
-            && (currentTime - lastSocketSendTime) >= socketSendInterval
+        let shouldSendToSocket = (currentTime - lastSocketSendTime) >= socketSendInterval
+
+        Logger.log.i(message: "WebRTCStatsReporter:: Task executed at \(Date()) - SendToSocket: \(shouldSendToSocket)")
         peer.connection?.statistics(completionHandler: { [weak self] reports in
             guard let self = self else { return }
             var statsEvent = [String: Any]()
@@ -389,6 +387,8 @@ class WebRTCStatsReporter {
             var connectionCandidates = [Any]()
             var statsData = [String: Any]()
             var statsObject = [String: Any]()
+            Logger.log.i(message: "WebRTCStatsReporter:: Task executed at \(reports.statistics)")
+
             reports.statistics.forEach { report in
                 var values = report.value.values
                 values["type"] = report.value.type as NSObject
@@ -426,6 +426,7 @@ class WebRTCStatsReporter {
                     }
 
                 case "candidate-pair":
+                    Logger.log.i(message: "Default_Values : \(values)")
                     connectionCandidates.append(values)
                     statsObject[report.key] = values
 
@@ -511,7 +512,7 @@ class WebRTCStatsReporter {
                 // Calculate real-time metrics
                 let metrics = self.toRealTimeMetrics(inboundboundAudio: typedAudioInboundStats, audio: remoteData)
                 
-                // Emit local quality metrics at the one-second sample cadence.
+                // Always emit metrics for real-time visualization (every 0.2s)
                 self.onStatsFrame?(metrics)
             }
             
@@ -523,6 +524,8 @@ class WebRTCStatsReporter {
                 self.lastSocketSendTime = currentTime
                 self.sendDebugReportDataMessage(id: self.reportId, data: statsEvent)
                 Logger.log.i(message: "WebRTCStatsReporter:: Stats sent to socket at \(Date())")
+            } else {
+                Logger.log.i(message: "WebRTCStatsReporter:: Stats collected but not sent to socket (waiting for interval)")
             }
         })
     }
@@ -531,9 +534,11 @@ class WebRTCStatsReporter {
     private func enqueueMessage(_ message: String) {
         messageQueue.async { [weak self] in
             guard let self = self, !self.isReportingPaused else {
+                Logger.log.i(message: "WebRTCStatsReporter:: Message sending skipped due to paused state")
                 return
             }
             guard self.call?.sendWebRTCStatsViaSocket == true else {
+                Logger.log.i(message: "WebRTCStatsReporter:: Message sending skipped - socket sending disabled")
                 return
             }
             self.socket?.sendMessage(message: message)
