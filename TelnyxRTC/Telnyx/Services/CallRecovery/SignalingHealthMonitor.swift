@@ -352,11 +352,13 @@ internal final class SignalingHealthMonitor {
         guard recoveryMode == .idle,
               let call = monitoredActiveCall,
               call.callState == .ACTIVE else { return }
-        shouldEvaluateRelayFallback = false
 
         guard isSignalingAvailable() else {
             Logger.log.w(message: "[CALL-RECOVERY] Signaling socket is unavailable during an active call")
             recoveringCall = call
+            // This is a proactive signaling-health recovery, not evidence of
+            // a failed direct media path.
+            shouldEvaluateRelayFallback = false
             beginReattach()
             return
         }
@@ -368,6 +370,10 @@ internal final class SignalingHealthMonitor {
 
         Logger.log.w(message: "[CALL-RECOVERY] Signaling activity is stale during an active call; probing")
         recoveringCall = call
+        // A health-check probe must not inherit relay-fallback intent from a
+        // different recovery. Failure-triggered recovery keeps its intent
+        // until beginReattach consumes it.
+        shouldEvaluateRelayFallback = false
         startSignalingProbe(for: call, purpose: .healthCheck)
     }
 
