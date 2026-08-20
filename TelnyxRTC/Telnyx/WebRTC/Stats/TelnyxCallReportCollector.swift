@@ -415,6 +415,9 @@ public class TelnyxCallReportCollector {
         let mediaPlayout: RTCMediaPlayoutStats?
         let remoteInbound: RTCRemoteInboundRTPStreamStats?
         let remoteOutbound: RTCRemoteOutboundRTPStreamStats?
+        let outboundCodec: RTCCodecStats?
+        let inboundCodec: RTCCodecStats?
+        let outboundMediaSource: RTCMediaSourceStats?
     }
 
     private struct PreviousStats {
@@ -477,6 +480,8 @@ public class TelnyxCallReportCollector {
         var mediaPlayout: RTCMediaPlayoutStats?
         var remoteInbound: RTCRemoteInboundRTPStreamStats?
         var remoteOutbound: RTCRemoteOutboundRTPStreamStats?
+        var codecs: [String: RTCCodecStats] = [:]
+        var mediaSources: [String: RTCMediaSourceStats] = [:]
 
         for stats in statistics.values {
             switch stats.statsType {
@@ -508,6 +513,12 @@ public class TelnyxCallReportCollector {
                 if let kind = stats.statsValues["kind"] as? String, kind == "audio" {
                     remoteOutbound = RTCRemoteOutboundRTPStreamStats(stats)
                 }
+            case "codec":
+                codecs[stats.statsId] = RTCCodecStats(stats)
+            case "media-source":
+                if let kind = stats.statsValues["kind"] as? String, kind == "audio" {
+                    mediaSources[stats.statsId] = RTCMediaSourceStats(stats)
+                }
             default:
                 break
             }
@@ -522,6 +533,9 @@ public class TelnyxCallReportCollector {
         let remoteCandidate = candidatePair?.remoteCandidateId.flatMap { id in
             statistics[id].map(RTCIceCandidateStats.init)
         }
+        let outboundCodec = outboundAudio?.codecId.flatMap { codecs[$0] }
+        let inboundCodec = inboundAudio?.codecId.flatMap { codecs[$0] }
+        let outboundMediaSource = outboundAudio?.mediaSourceId.flatMap { mediaSources[$0] }
 
         return ParsedStats(
             outbound: outboundAudio,
@@ -532,7 +546,10 @@ public class TelnyxCallReportCollector {
             transport: transport,
             mediaPlayout: mediaPlayout,
             remoteInbound: remoteInbound,
-            remoteOutbound: remoteOutbound
+            remoteOutbound: remoteOutbound,
+            outboundCodec: outboundCodec,
+            inboundCodec: inboundCodec,
+            outboundMediaSource: outboundMediaSource
         )
     }
 
@@ -550,7 +567,9 @@ public class TelnyxCallReportCollector {
             localCandidateProtocol: parsed.localCandidate?.protocolType,
             remoteCandidateType: parsed.remoteCandidate?.candidateType,
             iceState: parsed.transport?.iceState,
-            dtlsState: parsed.transport?.dtlsState
+            dtlsState: parsed.transport?.dtlsState,
+            outboundCodecMimeType: parsed.outboundCodec?.mimeType,
+            outboundMediaSourceAudioLevel: parsed.outboundMediaSource?.audioLevel
         )
     }
 
@@ -611,7 +630,10 @@ public class TelnyxCallReportCollector {
             transport: parsed.transport,
             mediaPlayout: parsed.mediaPlayout,
             remoteInbound: parsed.remoteInbound,
-            remoteOutbound: parsed.remoteOutbound
+            remoteOutbound: parsed.remoteOutbound,
+            outboundCodec: parsed.outboundCodec,
+            inboundCodec: parsed.inboundCodec,
+            outboundMediaSource: parsed.outboundMediaSource
         )
 
         statsBuffer.append(statsEntry)
@@ -646,7 +668,10 @@ public class TelnyxCallReportCollector {
         transport: RTCTransportStats?,
         mediaPlayout: RTCMediaPlayoutStats?,
         remoteInbound: RTCRemoteInboundRTPStreamStats?,
-        remoteOutbound: RTCRemoteOutboundRTPStreamStats?
+        remoteOutbound: RTCRemoteOutboundRTPStreamStats?,
+        outboundCodec: RTCCodecStats?,
+        inboundCodec: RTCCodecStats?,
+        outboundMediaSource: RTCMediaSourceStats?
     ) -> CallReportInterval {
         
         var audioStats: AudioStats?
@@ -665,7 +690,9 @@ public class TelnyxCallReportCollector {
                 nackCount: outbound.nackCount,
                 targetBitrate: outbound.targetBitrate,
                 totalPacketSendDelay: outbound.totalPacketSendDelay,
-                active: outbound.active
+                active: outbound.active,
+                codec: outboundCodec.map(AudioCodecStats.init),
+                mediaSource: outboundMediaSource.map(AudioMediaSourceStats.init)
             )
         }
         
@@ -693,7 +720,8 @@ public class TelnyxCallReportCollector {
                 samplesDecodedWithSilence: inbound.samplesDecodedWithSilence,
                 samplesDecodedWithConcealment: inbound.samplesDecodedWithConcealment,
                 totalAudioEnergy: inbound.totalAudioEnergy,
-                totalSamplesDuration: inbound.totalSamplesDuration
+                totalSamplesDuration: inbound.totalSamplesDuration,
+                codec: inboundCodec.map(AudioCodecStats.init)
             )
         }
         
@@ -883,6 +911,8 @@ internal struct CallReportStatisticsSnapshot {
     internal let remoteCandidateType: String?
     internal let iceState: String?
     internal let dtlsState: String?
+    internal let outboundCodecMimeType: String?
+    internal let outboundMediaSourceAudioLevel: Double?
 }
 
 private struct RTCOutboundRTPStreamStats {
@@ -897,6 +927,8 @@ private struct RTCOutboundRTPStreamStats {
     let targetBitrate: Double?
     let totalPacketSendDelay: Double?
     let active: Bool?
+    let codecId: String?
+    let mediaSourceId: String?
     
     init(_ stats: CallReportStatisticsRecord) {
         self.packetsSent = stats.statsValues["packetsSent"] as? Int ?? 0
@@ -910,6 +942,8 @@ private struct RTCOutboundRTPStreamStats {
         self.targetBitrate = stats.statsValues["targetBitrate"] as? Double
         self.totalPacketSendDelay = stats.statsValues["totalPacketSendDelay"] as? Double
         self.active = stats.statsValues["active"] as? Bool
+        self.codecId = stats.statsValues["codecId"] as? String
+        self.mediaSourceId = stats.statsValues["mediaSourceId"] as? String
     }
 }
 
@@ -937,6 +971,7 @@ private struct RTCInboundRTPStreamStats {
     let samplesDecodedWithConcealment: Int?
     let totalAudioEnergy: Double?
     let totalSamplesDuration: Double?
+    let codecId: String?
     
     init(_ stats: CallReportStatisticsRecord) {
         self.packetsReceived = stats.statsValues["packetsReceived"] as? Int ?? 0
@@ -962,6 +997,72 @@ private struct RTCInboundRTPStreamStats {
         self.samplesDecodedWithConcealment = stats.statsValues["samplesDecodedWithConcealment"] as? Int
         self.totalAudioEnergy = stats.statsValues["totalAudioEnergy"] as? Double
         self.totalSamplesDuration = stats.statsValues["totalSamplesDuration"] as? Double
+        self.codecId = stats.statsValues["codecId"] as? String
+    }
+}
+
+private struct RTCCodecStats {
+    let id: String
+    let mimeType: String?
+    let payloadType: Int?
+    let clockRate: Int?
+    let channels: Int?
+    let sdpFmtpLine: String?
+
+    init(_ stats: CallReportStatisticsRecord) {
+        self.id = stats.statsId
+        self.mimeType = stats.statsValues["mimeType"] as? String
+        self.payloadType = stats.statsValues["payloadType"] as? Int
+        self.clockRate = stats.statsValues["clockRate"] as? Int
+        self.channels = stats.statsValues["channels"] as? Int
+        self.sdpFmtpLine = stats.statsValues["sdpFmtpLine"] as? String
+    }
+}
+
+private extension AudioCodecStats {
+    init(_ stats: RTCCodecStats) {
+        self.init(
+            codecId: stats.id,
+            mimeType: stats.mimeType,
+            payloadType: stats.payloadType,
+            clockRate: stats.clockRate,
+            channels: stats.channels,
+            sdpFmtpLine: stats.sdpFmtpLine
+        )
+    }
+}
+
+private struct RTCMediaSourceStats {
+    let id: String
+    let audioLevel: Double?
+    let totalAudioEnergy: Double?
+    let totalSamplesDuration: Double?
+    let echoReturnLoss: Double?
+    let echoReturnLossEnhancement: Double?
+    let trackIdentifier: String?
+
+    init(_ stats: CallReportStatisticsRecord) {
+        self.id = stats.statsId
+        self.audioLevel = stats.statsValues["audioLevel"] as? Double
+        self.totalAudioEnergy = stats.statsValues["totalAudioEnergy"] as? Double
+        self.totalSamplesDuration = stats.statsValues["totalSamplesDuration"] as? Double
+        self.echoReturnLoss = stats.statsValues["echoReturnLoss"] as? Double
+        self.echoReturnLossEnhancement = stats.statsValues["echoReturnLossEnhancement"] as? Double
+        self.trackIdentifier = stats.statsValues["trackIdentifier"] as? String
+    }
+}
+
+private extension AudioMediaSourceStats {
+    init(_ stats: RTCMediaSourceStats) {
+        self.init(
+            id: stats.id,
+            audioLevel: stats.audioLevel,
+            totalAudioEnergy: stats.totalAudioEnergy,
+            totalSamplesDuration: stats.totalSamplesDuration,
+            echoReturnLoss: stats.echoReturnLoss,
+            echoReturnLossEnhancement: stats.echoReturnLossEnhancement,
+            trackIdentifier: stats.trackIdentifier
+        )
     }
 }
 

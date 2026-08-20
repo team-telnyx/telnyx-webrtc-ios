@@ -25,6 +25,46 @@ public struct LogEntry: Codable {
     }
 }
 
+/// Codec metadata linked from an RTP statistics record.
+public struct AudioCodecStats: Codable {
+    public let codecId: String?
+    public let mimeType: String?
+    public let payloadType: Int?
+    public let clockRate: Int?
+    public let channels: Int?
+    public let sdpFmtpLine: String?
+
+    public init(codecId: String? = nil, mimeType: String? = nil, payloadType: Int? = nil, clockRate: Int? = nil, channels: Int? = nil, sdpFmtpLine: String? = nil) {
+        self.codecId = codecId
+        self.mimeType = mimeType
+        self.payloadType = payloadType
+        self.clockRate = clockRate
+        self.channels = channels
+        self.sdpFmtpLine = sdpFmtpLine
+    }
+}
+
+/// Local audio-source telemetry linked from outbound RTP statistics.
+public struct AudioMediaSourceStats: Codable {
+    public let id: String?
+    public let audioLevel: Double?
+    public let totalAudioEnergy: Double?
+    public let totalSamplesDuration: Double?
+    public let echoReturnLoss: Double?
+    public let echoReturnLossEnhancement: Double?
+    public let trackIdentifier: String?
+
+    public init(id: String? = nil, audioLevel: Double? = nil, totalAudioEnergy: Double? = nil, totalSamplesDuration: Double? = nil, echoReturnLoss: Double? = nil, echoReturnLossEnhancement: Double? = nil, trackIdentifier: String? = nil) {
+        self.id = id
+        self.audioLevel = audioLevel
+        self.totalAudioEnergy = totalAudioEnergy
+        self.totalSamplesDuration = totalSamplesDuration
+        self.echoReturnLoss = echoReturnLoss
+        self.echoReturnLossEnhancement = echoReturnLossEnhancement
+        self.trackIdentifier = trackIdentifier
+    }
+}
+
 /// Statistics for outbound audio stream
 public struct OutboundAudioStats: Codable {
     public let packetsSent: Int?
@@ -38,8 +78,10 @@ public struct OutboundAudioStats: Codable {
     public let targetBitrate: Double?
     public let totalPacketSendDelay: Double?
     public let active: Bool?
+    public let codec: AudioCodecStats?
+    public let mediaSource: AudioMediaSourceStats?
     
-    public init(packetsSent: Int? = nil, bytesSent: Int? = nil, audioLevelAvg: Double? = nil, bitrateAvg: Double? = nil, retransmittedPacketsSent: Int? = nil, retransmittedBytesSent: Int? = nil, headerBytesSent: Int? = nil, nackCount: Int? = nil, targetBitrate: Double? = nil, totalPacketSendDelay: Double? = nil, active: Bool? = nil) {
+    public init(packetsSent: Int? = nil, bytesSent: Int? = nil, audioLevelAvg: Double? = nil, bitrateAvg: Double? = nil, retransmittedPacketsSent: Int? = nil, retransmittedBytesSent: Int? = nil, headerBytesSent: Int? = nil, nackCount: Int? = nil, targetBitrate: Double? = nil, totalPacketSendDelay: Double? = nil, active: Bool? = nil, codec: AudioCodecStats? = nil, mediaSource: AudioMediaSourceStats? = nil) {
         self.packetsSent = packetsSent
         self.bytesSent = bytesSent
         self.audioLevelAvg = audioLevelAvg
@@ -51,6 +93,8 @@ public struct OutboundAudioStats: Codable {
         self.targetBitrate = targetBitrate
         self.totalPacketSendDelay = totalPacketSendDelay
         self.active = active
+        self.codec = codec
+        self.mediaSource = mediaSource
     }
 }
 
@@ -79,6 +123,7 @@ public struct InboundAudioStats: Codable {
     public let samplesDecodedWithConcealment: Int?
     public let totalAudioEnergy: Double?
     public let totalSamplesDuration: Double?
+    public let codec: AudioCodecStats?
     
     public init(
         packetsReceived: Int? = nil,
@@ -103,7 +148,8 @@ public struct InboundAudioStats: Codable {
         samplesDecodedWithSilence: Int? = nil,
         samplesDecodedWithConcealment: Int? = nil,
         totalAudioEnergy: Double? = nil,
-        totalSamplesDuration: Double? = nil
+        totalSamplesDuration: Double? = nil,
+        codec: AudioCodecStats? = nil
     ) {
         self.packetsReceived = packetsReceived
         self.bytesReceived = bytesReceived
@@ -128,6 +174,7 @@ public struct InboundAudioStats: Codable {
         self.samplesDecodedWithConcealment = samplesDecodedWithConcealment
         self.totalAudioEnergy = totalAudioEnergy
         self.totalSamplesDuration = totalSamplesDuration
+        self.codec = codec
     }
 }
 

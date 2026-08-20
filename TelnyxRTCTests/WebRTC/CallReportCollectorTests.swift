@@ -398,6 +398,36 @@ class CallReportCollectorTests: XCTestCase {
                 ]
             ),
             CallReportStatisticsFixture(
+                id: "outbound-audio",
+                type: "outbound-rtp",
+                values: [
+                    "kind": "audio",
+                    "packetsSent": 24,
+                    "bytesSent": 4_096,
+                    "codecId": "opus-codec",
+                    "mediaSourceId": "mic-source"
+                ]
+            ),
+            CallReportStatisticsFixture(
+                id: "opus-codec",
+                type: "codec",
+                values: [
+                    "mimeType": "audio/opus",
+                    "payloadType": 111,
+                    "clockRate": 48_000,
+                    "channels": 2
+                ]
+            ),
+            CallReportStatisticsFixture(
+                id: "mic-source",
+                type: "media-source",
+                values: [
+                    "kind": "audio",
+                    "audioLevel": 0.125,
+                    "totalAudioEnergy": 42.5
+                ]
+            ),
+            CallReportStatisticsFixture(
                 id: "selected-pair",
                 type: "candidate-pair",
                 values: [
@@ -436,6 +466,8 @@ class CallReportCollectorTests: XCTestCase {
         XCTAssertEqual(snapshot.remoteCandidateType, "host")
         XCTAssertEqual(snapshot.iceState, "connected")
         XCTAssertEqual(snapshot.dtlsState, "connected")
+        XCTAssertEqual(snapshot.outboundCodecMimeType, "audio/opus")
+        XCTAssertEqual(snapshot.outboundMediaSourceAudioLevel, 0.125)
     }
     
     func testCollectorHandlesLongCalls() {
