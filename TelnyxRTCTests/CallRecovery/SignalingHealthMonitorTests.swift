@@ -250,17 +250,18 @@ final class SignalingHealthMonitorTests: XCTestCase {
         let call = makeActiveCall()
         let restartExpectation = expectation(description: "inbound RTP stall starts ICE restart")
         let monitor = SignalingHealthMonitor(
-            inboundRtpSteadyStateCheckInterval: 0.01,
-            inboundRtpVerificationCheckInterval: 0.01,
             inboundRtpStallTimeout: 0.02,
             isSignalingAvailable: { true },
             sendSignalingProbe: { "probe-id" },
             startIceRestart: { _ in restartExpectation.fulfill() },
-            readInboundRtpPackets: { _, completion in completion(100) },
             requestReattach: { _ in XCTFail("Should restart ICE before reattaching") }
         )
 
         monitor.callStateDidChange(call)
+        monitor.inboundRtpSampleReceived(100, for: call)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.03) {
+            monitor.inboundRtpSampleReceived(100, for: call)
+        }
 
         wait(for: [restartExpectation], timeout: 1)
     }
@@ -270,13 +271,10 @@ final class SignalingHealthMonitorTests: XCTestCase {
         let restartExpectation = expectation(description: "starts ICE restart")
         let reattachExpectation = expectation(description: "reattaches after media verification timeout")
         let monitor = SignalingHealthMonitor(
-            inboundRtpSteadyStateCheckInterval: 0.01,
-            inboundRtpVerificationCheckInterval: 0.01,
             postIceRestartMediaTimeout: 0.02,
             isSignalingAvailable: { true },
             sendSignalingProbe: { "probe-id" },
             startIceRestart: { _ in restartExpectation.fulfill() },
-            readInboundRtpPackets: { _, completion in completion(100) },
             requestReattach: { _ in reattachExpectation.fulfill() }
         )
 
@@ -290,43 +288,22 @@ final class SignalingHealthMonitorTests: XCTestCase {
 
     func testInboundRtpGrowthAfterRestartAnswerCompletesRecovery() {
         let call = makeActiveCall()
-        let initialSampleExpectation = expectation(description: "captures inbound RTP baseline")
         let restartExpectation = expectation(description: "starts ICE restart")
-        let resumedExpectation = expectation(description: "watchdog observes inbound RTP growth")
-        var packetsReceived = 100
-        var shouldExpectGrowth = false
-        var didCaptureInitialSample = false
         var reattachCount = 0
         let monitor = SignalingHealthMonitor(
-            inboundRtpSteadyStateCheckInterval: 0.01,
-            inboundRtpVerificationCheckInterval: 0.01,
             postIceRestartMediaTimeout: 0.1,
             isSignalingAvailable: { true },
             sendSignalingProbe: { "probe-id" },
             startIceRestart: { _ in restartExpectation.fulfill() },
-            readInboundRtpPackets: { _, completion in
-                if !didCaptureInitialSample {
-                    didCaptureInitialSample = true
-                    initialSampleExpectation.fulfill()
-                }
-                if shouldExpectGrowth && packetsReceived == 101 {
-                    resumedExpectation.fulfill()
-                    shouldExpectGrowth = false
-                }
-                completion(packetsReceived)
-            },
             requestReattach: { _ in reattachCount += 1 }
         )
 
         monitor.callStateDidChange(call)
-        wait(for: [initialSampleExpectation], timeout: 1)
+        monitor.inboundRtpSampleReceived(100, for: call)
         monitor.peerConnectionStateDidChange(call, state: .failed)
         wait(for: [restartExpectation], timeout: 1)
         monitor.iceRestartDidComplete(for: call)
-        packetsReceived = 101
-        shouldExpectGrowth = true
-
-        wait(for: [resumedExpectation], timeout: 1)
+        monitor.inboundRtpSampleReceived(101, for: call)
         let settledExpectation = expectation(description: "media verification window expires")
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { settledExpectation.fulfill() }
         wait(for: [settledExpectation], timeout: 1)

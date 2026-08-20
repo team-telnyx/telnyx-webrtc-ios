@@ -226,6 +226,7 @@ public class Call {
     
     var statsReporter: WebRTCStatsReporter?
     var callReportCollector: TelnyxCallReportCollector?
+    var onInboundRtpSample: ((Call, Int) -> Void)?
     
     /// Flag to track if we're currently performing ICE restart
     internal var isIceRestarting: Bool = false
@@ -1042,7 +1043,12 @@ extension Call {
             maxEntries: callReportMaxLogEntries
         )
         
-        self.callReportCollector = TelnyxCallReportCollector(config: config, logCollectorConfig: logConfig)
+        let collector = TelnyxCallReportCollector(config: config, logCollectorConfig: logConfig)
+        collector.onInboundRtpSample = { [weak self] packetsReceived in
+            guard let self = self else { return }
+            self.onInboundRtpSample?(self, packetsReceived)
+        }
+        self.callReportCollector = collector
     }
     
     /// Sets up Peer callbacks that log signaling, ICE gathering, and ICE connection

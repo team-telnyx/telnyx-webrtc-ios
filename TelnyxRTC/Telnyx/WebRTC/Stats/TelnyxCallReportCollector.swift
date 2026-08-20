@@ -58,6 +58,10 @@ public class TelnyxCallReportCollector {
     private var intervalJitters: [Double] = []
     private var intervalRTTs: [Double] = []
     private var intervalBitrates: (outbound: [Double], inbound: [Double]) = ([], [])
+
+    /// Delivers the audio inbound packet counter from the collector's normal
+    /// WebRTC sample, allowing call recovery to avoid a duplicate stats query.
+    internal var onInboundRtpSample: ((Int) -> Void)?
     
     // Previous values for rate calculations
     private var previousStats = PreviousStats()
@@ -119,7 +123,10 @@ public class TelnyxCallReportCollector {
         // where RunLoop.current is not running, which would prevent the timer from firing.
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            self.timer = Timer.scheduledTimer(withTimeInterval: self.config.interval, repeats: true) { [weak self] _ in
+            // One shared sample per second preserves the three-second media
+            // stall decision while report intervals remain configurable.
+            let sampleInterval = min(self.config.interval, 1.0)
+            self.timer = Timer.scheduledTimer(withTimeInterval: sampleInterval, repeats: true) { [weak self] _ in
                 self?.collectStats()
             }
         }
@@ -415,6 +422,9 @@ public class TelnyxCallReportCollector {
 
             let now = Date()
             let parsed = self.parseStatsReport(report)
+            if let packetsReceived = parsed.inbound?.packetsReceived {
+                self.onInboundRtpSample?(packetsReceived)
+            }
             self.accumulateSamples(parsed: parsed, statistics: report.statistics, now: now)
 
             // Check if interval is complete (end of collection period)

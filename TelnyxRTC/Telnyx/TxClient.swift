@@ -216,9 +216,6 @@ public class TxClient {
                     }
                 }
             },
-            readInboundRtpPackets: { call, completion in
-                call.inboundAudioRtpPackets(completion: completion)
-            },
             shouldForceRelayForRecovery: { call, completion in
                 call.shouldForceRelayForRecovery(completion: completion)
             },
@@ -1643,6 +1640,10 @@ extension TxClient: CallProtocol {
 
     func callStateUpdated(call: Call) {
         Logger.log.i(message: "TxClient:: callStateUpdated()")
+        call.onInboundRtpSample = { [weak self, weak call] packetsReceived in
+            guard let self = self, let call = call else { return }
+            self.signalingHealthMonitor.inboundRtpSampleReceived(packetsReceived, for: call)
+        }
         self.signalingHealthMonitor.callStateDidChange(call)
 
         guard let callId = call.callInfo?.callId else { return }
