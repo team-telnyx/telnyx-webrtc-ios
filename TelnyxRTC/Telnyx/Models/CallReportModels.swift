@@ -366,6 +366,9 @@ public struct CallReportSummary: Codable {
     public let sdkVersion: String?
     public let startTimestamp: String?
     public let endTimestamp: String?
+    /// Sanitized client and call options that were in effect for this call.
+    /// Credentials and ICE usernames are represented only as presence flags.
+    public let clientSummary: CallReportClientSummary?
     
     public init(
         callId: String,
@@ -379,7 +382,8 @@ public struct CallReportSummary: Codable {
         voiceSdkSessionId: String? = nil,
         sdkVersion: String? = nil,
         startTimestamp: String? = nil,
-        endTimestamp: String? = nil
+        endTimestamp: String? = nil,
+        clientSummary: CallReportClientSummary? = nil
     ) {
         self.callId = callId
         self.destinationNumber = destinationNumber
@@ -393,6 +397,88 @@ public struct CallReportSummary: Codable {
         self.sdkVersion = sdkVersion
         self.startTimestamp = startTimestamp
         self.endTimestamp = endTimestamp
+        self.clientSummary = clientSummary
+    }
+}
+
+/// JS-compatible, sanitized runtime configuration included with a call report.
+/// Keep this intentionally narrow: a call report must never contain ICE server
+/// credentials, authentication secrets, or user-provided sensitive values.
+public struct CallReportClientSummary: Codable {
+    public let connection: CallReportConnectionSummary?
+    public let media: CallReportMediaSummary?
+    public let callReports: CallReportSettingsSummary?
+
+    public init(
+        connection: CallReportConnectionSummary? = nil,
+        media: CallReportMediaSummary? = nil,
+        callReports: CallReportSettingsSummary? = nil
+    ) {
+        self.connection = connection
+        self.media = media
+        self.callReports = callReports
+    }
+}
+
+public struct CallReportConnectionSummary: Codable {
+    public let host: String?
+
+    public init(host: String? = nil) {
+        self.host = host
+    }
+}
+
+public struct CallReportMediaSummary: Codable {
+    public let audio: Bool?
+    public let video: Bool?
+    public let mutedMicOnStart: Bool?
+    public let prefetchIceCandidates: Bool?
+    public let forceRelayCandidate: Bool?
+    public let trickleIce: Bool?
+    public let iceServers: [CallReportIceServerSummary]?
+
+    public init(
+        audio: Bool? = nil,
+        video: Bool? = nil,
+        mutedMicOnStart: Bool? = nil,
+        prefetchIceCandidates: Bool? = nil,
+        forceRelayCandidate: Bool? = nil,
+        trickleIce: Bool? = nil,
+        iceServers: [CallReportIceServerSummary]? = nil
+    ) {
+        self.audio = audio
+        self.video = video
+        self.mutedMicOnStart = mutedMicOnStart
+        self.prefetchIceCandidates = prefetchIceCandidates
+        self.forceRelayCandidate = forceRelayCandidate
+        self.trickleIce = trickleIce
+        self.iceServers = iceServers
+    }
+}
+
+public struct CallReportIceServerSummary: Codable {
+    public let urls: [String]
+    public let hasUsername: Bool
+    public let hasCredential: Bool
+
+    public init(urls: [String], hasUsername: Bool, hasCredential: Bool) {
+        self.urls = urls
+        self.hasUsername = hasUsername
+        self.hasCredential = hasCredential
+    }
+}
+
+public struct CallReportSettingsSummary: Codable {
+    public let enabled: Bool
+    public let intervalMs: Int
+    public let debugLogLevel: String
+    public let debugLogMaxEntries: Int
+
+    public init(enabled: Bool, intervalMs: Int, debugLogLevel: String, debugLogMaxEntries: Int) {
+        self.enabled = enabled
+        self.intervalMs = intervalMs
+        self.debugLogLevel = debugLogLevel
+        self.debugLogMaxEntries = debugLogMaxEntries
     }
 }
 

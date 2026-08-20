@@ -58,6 +58,46 @@ class CallReportCollectorTests: XCTestCase {
         disabledCollector.start(peerConnection: mockPeerConnection)
         disabledCollector.stop()
     }
+
+    func testClientSummaryEncodesSanitizedIceServerConfiguration() throws {
+        let summary = CallReportSummary(
+            callId: "call-id",
+            clientSummary: CallReportClientSummary(
+                connection: CallReportConnectionSummary(host: "wss://rtc.telnyx.com"),
+                media: CallReportMediaSummary(
+                    audio: true,
+                    video: false,
+                    forceRelayCandidate: false,
+                    trickleIce: true,
+                    iceServers: [
+                        CallReportIceServerSummary(
+                            urls: ["turns:turn.telnyx.com:443"],
+                            hasUsername: true,
+                            hasCredential: true
+                        )
+                    ]
+                ),
+                callReports: CallReportSettingsSummary(
+                    enabled: true,
+                    intervalMs: 5000,
+                    debugLogLevel: "debug",
+                    debugLogMaxEntries: 1000
+                )
+            )
+        )
+
+        let data = try JSONEncoder().encode(summary)
+        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let clientSummary = try XCTUnwrap(json["clientSummary"] as? [String: Any])
+        let media = try XCTUnwrap(clientSummary["media"] as? [String: Any])
+        let iceServer = try XCTUnwrap((media["iceServers"] as? [[String: Any]])?.first)
+
+        XCTAssertEqual(iceServer["urls"] as? [String], ["turns:turn.telnyx.com:443"])
+        XCTAssertEqual(iceServer["hasUsername"] as? Bool, true)
+        XCTAssertEqual(iceServer["hasCredential"] as? Bool, true)
+        XCTAssertNil(iceServer["username"])
+        XCTAssertNil(iceServer["credential"])
+    }
     
     // MARK: - Start/Stop Tests
     

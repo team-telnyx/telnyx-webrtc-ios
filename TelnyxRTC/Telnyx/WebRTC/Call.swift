@@ -1123,7 +1123,8 @@ extension Call {
             voiceSdkSessionId: self.sessionId,
             sdkVersion: Message.SDK_VERSION,
             startTimestamp: startTimestamp,
-            endTimestamp: endTimestamp
+            endTimestamp: endTimestamp,
+            clientSummary: callReportClientSummary()
         )
         
         // Get call_report_id and host
@@ -1168,7 +1169,8 @@ extension Call {
             telnyxLegId: self.telnyxLegId?.uuidString,
             voiceSdkSessionId: self.sessionId,
             sdkVersion: Message.SDK_VERSION,
-            startTimestamp: startTimestamp
+            startTimestamp: startTimestamp,
+            clientSummary: callReportClientSummary()
         )
 
         guard let payload = collector.flush(summary: summary) else { return }
@@ -1182,6 +1184,39 @@ extension Call {
         )
 
         Logger.log.i(message: "Call:: Flushed intermediate call report segment \(payload.segment ?? -1)")
+    }
+
+    /// Mirrors the JS SDK's call-report `clientSummary` while deliberately
+    /// excluding ICE usernames and credentials.
+    private func callReportClientSummary() -> CallReportClientSummary {
+        let iceServerSummaries = iceServers.map {
+            CallReportIceServerSummary(
+                urls: $0.urlStrings,
+                hasUsername: !($0.username?.isEmpty ?? true),
+                hasCredential: !($0.credential?.isEmpty ?? true)
+            )
+        }
+
+        return CallReportClientSummary(
+            connection: CallReportConnectionSummary(
+                host: socket?.signalingServer?.absoluteString
+            ),
+            media: CallReportMediaSummary(
+                audio: callOptions?.audio ?? true,
+                video: callOptions?.video ?? false,
+                mutedMicOnStart: false,
+                prefetchIceCandidates: false,
+                forceRelayCandidate: forceRelayCandidate,
+                trickleIce: useTrickleIce,
+                iceServers: iceServerSummaries
+            ),
+            callReports: CallReportSettingsSummary(
+                enabled: enableCallReports,
+                intervalMs: Int((callReportInterval * 1000).rounded()),
+                debugLogLevel: callReportLogLevel,
+                debugLogMaxEntries: callReportMaxLogEntries
+            )
+        )
     }
 }
 
