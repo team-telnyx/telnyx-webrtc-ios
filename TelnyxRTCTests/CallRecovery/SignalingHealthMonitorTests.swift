@@ -50,7 +50,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
             isSignalingAvailable: { true },
             sendSignalingProbe: { "probe-id" },
             startIceRestart: { _ in noRestartExpectation.fulfill() },
-            requestReattach: { XCTFail("Should not reattach after peer reconnects") }
+            requestReattach: { _ in XCTFail("Should not reattach after peer reconnects") }
         )
 
         monitor.peerConnectionStateDidChange(call, state: .disconnected)
