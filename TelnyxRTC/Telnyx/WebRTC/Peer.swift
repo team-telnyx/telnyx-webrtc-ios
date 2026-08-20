@@ -142,6 +142,10 @@ class Peer : NSObject, WebRTCEventHandler {
     /// This is used for automatic recovery and audio buffer management
     var onIceConnectionStateChange: ((RTCIceConnectionState) -> Void)?
 
+    /// Callback for overall peer connection state monitoring.
+    /// This includes failures outside the ICE transport itself, such as DTLS.
+    var onPeerConnectionStateChange: ((RTCPeerConnectionState) -> Void)?
+
     // Call-report logging closures (separate from WebRTCStatsReporter callbacks)
     var onSignalingStateChangeForLog: ((RTCSignalingState) -> Void)?
     var onIceGatheringStateChangeForLog: ((RTCIceGatheringState) -> Void)?
@@ -581,6 +585,7 @@ class Peer : NSObject, WebRTCEventHandler {
         self.onIceConnectionChange = nil
         self.onIceGatheringChange = nil
         self.onIceConnectionStateChange = nil
+        self.onPeerConnectionStateChange = nil
         self.onSignalingStateChangeForLog = nil
         self.onIceGatheringStateChangeForLog = nil
         self.onIceCandidate = nil
@@ -916,6 +921,7 @@ extension Peer : RTCPeerConnectionDelegate {
     }
     
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCPeerConnectionState) {
+        onPeerConnectionStateChange?(newState)
         Logger.log.i(message: "Peer:: connection didChange peer connection state: [\(newState.telnyx_to_string().uppercased())]")
         
         // Track peer connection state changes for benchmarking
@@ -1233,4 +1239,3 @@ extension Peer : RTCPeerConnectionDelegate {
         Logger.log.i(message: "Peer:: connection didOpen RTCDataChannel: \(dataChannel)")
     }
 }
-

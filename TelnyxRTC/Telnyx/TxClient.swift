@@ -177,6 +177,33 @@ public class TxClient {
     /// AI Assistant Manager for handling AI-related functionality
     public let aiAssistantManager = AIAssistantManager()
 
+    /// Decides whether an active call should restart ICE or use the existing
+    /// reconnect/reattach path. It is intentionally client-owned because
+    /// signaling health and reattach are client responsibilities.
+    private lazy var signalingHealthMonitor: SignalingHealthMonitor = {
+        SignalingHealthMonitor(
+            isSignalingAvailable: { [weak self] in
+                self?.socket?.isConnected == true
+            },
+            startIceRestart: { [weak self] call in
+                call.iceRestart { success, error in
+                    guard !success else { return }
+                    self?.signalingHealthMonitor.iceRestartRequestDidFail(
+                        for: call,
+                        error: error ?? NSError(
+                            domain: "SignalingHealthMonitor",
+                            code: -1,
+                            userInfo: [NSLocalizedDescriptionKey: "ICE restart request failed"]
+                        )
+                    )
+                }
+            },
+            requestReattach: { [weak self] in
+                self?.reconnectClient()
+            }
+        )
+    }()
+
     
     // New properties for improved push flow
     private var storedTxConfig: TxConfig?
@@ -304,9 +331,15 @@ public class TxClient {
                 switch state {
                 case .wifi:
                     Logger.log.i(message: "Connected to Wi-Fi")
+                    if self.isCallsActive {
+                        self.signalingHealthMonitor.networkPathDidChange()
+                    }
                     self.reconnectClient()
                 case .cellular, .vpn:
                     Logger.log.i(message: "Connected to Cellular")
+                    if self.isCallsActive {
+                        self.signalingHealthMonitor.networkPathDidChange()
+                    }
                     self.reconnectClient()
                 case .noConnection:
                     if(!self.isCallsActive){
@@ -1578,6 +1611,7 @@ extension TxClient: CallProtocol {
 
     func callStateUpdated(call: Call) {
         Logger.log.i(message: "TxClient:: callStateUpdated()")
+        self.signalingHealthMonitor.callStateDidChange(call)
 
         guard let callId = call.callInfo?.callId else { return }
         
@@ -2112,6 +2146,22 @@ extension TxClient : SocketDelegate {
                     break
             }
         }
+    }
+
+    func callIceConnectionStateUpdated(call: Call, state: RTCIceConnectionState) {
+        self.signalingHealthMonitor.iceConnectionStateDidChange(call, state: state)
+    }
+
+    func callPeerConnectionStateUpdated(call: Call, state: RTCPeerConnectionState) {
+        self.signalingHealthMonitor.peerConnectionStateDidChange(call, state: state)
+    }
+
+    func callIceRestartCompleted(call: Call) {
+        self.signalingHealthMonitor.iceRestartDidComplete(for: call)
+    }
+
+    func callIceRestartFailed(call: Call, error: Error) {
+        self.signalingHealthMonitor.iceRestartRequestDidFail(for: call, error: error)
     }
 }
 

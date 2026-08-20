@@ -622,17 +622,26 @@ extension HomeViewController {
     }
     
     func onIceRestart() {
-        guard let call = appDelegate.currentCall else {
+        guard let retainedCall = appDelegate.currentCall else {
             print("[ICE-RESTART] HomeViewController:: No active call for ICE restart")
             return
+        }
+
+        // Reattach replaces the SDK's Call instance. Resolve it again by ID
+        // so this diagnostic button never restarts a disposed pre-reattach peer.
+        var call = retainedCall
+        if let callId = retainedCall.callInfo?.callId,
+           let currentCall = telnyxClient?.getCall(callId: callId) {
+            call = currentCall
+            appDelegate.currentCall = currentCall
         }
         
         print("[ICE-RESTART] HomeViewController:: Starting ICE restart")
         call.iceRestart { [weak self] (success, error) in
             DispatchQueue.main.async {
                 if success {
-                    print("[ICE-RESTART] HomeViewController:: ICE restart completed successfully")
-                    // You could show a success message to the user here if needed
+                    print("[ICE-RESTART] HomeViewController:: ICE restart request sent; awaiting media recovery")
+                    // The request was sent. Inbound RTP confirms actual recovery.
                 } else {
                     print("[ICE-RESTART] HomeViewController:: ICE restart failed: \(error?.localizedDescription ?? "Unknown error")")
                     // You could show an error message to the user here if needed
