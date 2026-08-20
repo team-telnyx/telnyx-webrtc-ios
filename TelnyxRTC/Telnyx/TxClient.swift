@@ -183,22 +183,16 @@ public class TxClient {
     private lazy var signalingHealthMonitor: SignalingHealthMonitor = {
         SignalingHealthMonitor(
             isSignalingAvailable: { [weak self] in
-                guard let self = self else { return false }
-                return DispatchQueue.main.sync {
-                    self.socket?.isConnected == true
-                }
+                self?.socket?.isConnected == true
             },
             sendSignalingProbe: { [weak self] in
                 guard let self = self else { return nil }
-                let sendProbe: () -> String? = {
-                    guard self.socket?.isConnected == true else { return nil }
-                    let ping = Message([:], method: .PING)
-                    ping.jsonMessage["voice_sdk_id"] = self.voiceSdkId
-                    guard let encodedPing = ping.encode() else { return nil }
-                    self.socket?.sendMessage(message: encodedPing)
-                    return ping.id
-                }
-                return DispatchQueue.main.sync(execute: sendProbe)
+                guard self.socket?.isConnected == true else { return nil }
+                let ping = Message([:], method: .PING)
+                ping.jsonMessage["voice_sdk_id"] = self.voiceSdkId
+                guard let encodedPing = ping.encode() else { return nil }
+                self.socket?.sendMessage(message: encodedPing)
+                return ping.id
             },
             startIceRestart: { [weak self] call in
                 DispatchQueue.main.async {
