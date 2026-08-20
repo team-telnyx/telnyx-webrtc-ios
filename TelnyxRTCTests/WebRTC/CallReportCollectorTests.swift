@@ -383,6 +383,60 @@ class CallReportCollectorTests: XCTestCase {
         XCTAssertEqual(encodedTransport["selectedCandidatePairId"] as? String, "candidate-pair")
         XCTAssertEqual(encodedTransport["iceState"] as? String, "connected")
     }
+
+    func testParserMapsRepresentativeRTCStatisticsFixture() {
+        let snapshot = collector.parsedStatisticsSnapshot([
+            CallReportStatisticsFixture(
+                id: "inbound-audio",
+                type: "inbound-rtp",
+                timestampMs: 5_000,
+                values: [
+                    "kind": "audio",
+                    "packetsReceived": 42,
+                    "bytesReceived": 8_192,
+                    "jitter": 0.012
+                ]
+            ),
+            CallReportStatisticsFixture(
+                id: "selected-pair",
+                type: "candidate-pair",
+                values: [
+                    "state": "succeeded",
+                    "nominated": true,
+                    "localCandidateId": "local-relay",
+                    "remoteCandidateId": "remote-host"
+                ]
+            ),
+            CallReportStatisticsFixture(
+                id: "local-relay",
+                type: "local-candidate",
+                values: ["candidateType": "relay", "protocol": "tcp"]
+            ),
+            CallReportStatisticsFixture(
+                id: "remote-host",
+                type: "remote-candidate",
+                values: ["candidateType": "host"]
+            ),
+            CallReportStatisticsFixture(
+                id: "transport",
+                type: "transport",
+                values: [
+                    "selectedCandidatePairId": "selected-pair",
+                    "iceState": "connected",
+                    "dtlsState": "connected"
+                ]
+            )
+        ])
+
+        XCTAssertEqual(snapshot.inboundPacketsReceived, 42)
+        XCTAssertEqual(snapshot.inboundBytesReceived, 8_192)
+        XCTAssertEqual(snapshot.selectedCandidatePairId, "selected-pair")
+        XCTAssertEqual(snapshot.localCandidateType, "relay")
+        XCTAssertEqual(snapshot.localCandidateProtocol, "tcp")
+        XCTAssertEqual(snapshot.remoteCandidateType, "host")
+        XCTAssertEqual(snapshot.iceState, "connected")
+        XCTAssertEqual(snapshot.dtlsState, "connected")
+    }
     
     func testCollectorHandlesLongCalls() {
         // Simulate a scenario where stats buffer could grow large

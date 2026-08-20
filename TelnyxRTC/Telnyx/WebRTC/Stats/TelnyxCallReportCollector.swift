@@ -460,6 +460,16 @@ public class TelnyxCallReportCollector {
     }
 
     private func parseStatsReport(_ report: RTCStatisticsReport) -> ParsedStats {
+        parseStatistics(
+            Dictionary(uniqueKeysWithValues: report.statistics.map { ($0.key, $0.value as CallReportStatisticsRecord) })
+        )
+    }
+
+    /// Parses the native WebRTC report after it has been normalized into the
+    /// small record type below. Keeping the selection/linking here makes the
+    /// production parser testable without fabricating unavailable RTCStatistics
+    /// Objective-C instances in unit tests.
+    private func parseStatistics(_ statistics: [String: CallReportStatisticsRecord]) -> ParsedStats {
         var outboundAudio: RTCOutboundRTPStreamStats?
         var inboundAudio: RTCInboundRTPStreamStats?
         var candidatePairs: [RTCIceCandidatePairStats] = []
@@ -468,34 +478,34 @@ public class TelnyxCallReportCollector {
         var remoteInbound: RTCRemoteInboundRTPStreamStats?
         var remoteOutbound: RTCRemoteOutboundRTPStreamStats?
 
-        for stats in report.statistics.values {
-            switch stats.type {
+        for stats in statistics.values {
+            switch stats.statsType {
             case "outbound-rtp":
-                if let kind = stats.values["kind"] as? String, kind == "audio" {
+                if let kind = stats.statsValues["kind"] as? String, kind == "audio" {
                     outboundAudio = RTCOutboundRTPStreamStats(stats)
                 }
             case "inbound-rtp":
-                if let kind = stats.values["kind"] as? String, kind == "audio" {
+                if let kind = stats.statsValues["kind"] as? String, kind == "audio" {
                     inboundAudio = RTCInboundRTPStreamStats(stats)
                 }
             case "candidate-pair":
-                let nominated = stats.values["nominated"] as? Bool ?? false
-                let state = stats.values["state"] as? String ?? ""
+                let nominated = stats.statsValues["nominated"] as? Bool ?? false
+                let state = stats.statsValues["state"] as? String ?? ""
                 if nominated || state == "succeeded" {
                     candidatePairs.append(RTCIceCandidatePairStats(stats))
                 }
             case "transport":
                 transport = RTCTransportStats(stats)
             case "media-playout":
-                if let kind = stats.values["kind"] as? String, kind == "audio" {
+                if let kind = stats.statsValues["kind"] as? String, kind == "audio" {
                     mediaPlayout = RTCMediaPlayoutStats(stats)
                 }
             case "remote-inbound-rtp":
-                if let kind = stats.values["kind"] as? String, kind == "audio" {
+                if let kind = stats.statsValues["kind"] as? String, kind == "audio" {
                     remoteInbound = RTCRemoteInboundRTPStreamStats(stats)
                 }
             case "remote-outbound-rtp":
-                if let kind = stats.values["kind"] as? String, kind == "audio" {
+                if let kind = stats.statsValues["kind"] as? String, kind == "audio" {
                     remoteOutbound = RTCRemoteOutboundRTPStreamStats(stats)
                 }
             default:
@@ -507,10 +517,10 @@ public class TelnyxCallReportCollector {
             candidatePairs.first { $0.id == selectedId }
         } ?? candidatePairs.last
         let localCandidate = candidatePair?.localCandidateId.flatMap { id in
-            report.statistics[id].map(RTCIceCandidateStats.init)
+            statistics[id].map(RTCIceCandidateStats.init)
         }
         let remoteCandidate = candidatePair?.remoteCandidateId.flatMap { id in
-            report.statistics[id].map(RTCIceCandidateStats.init)
+            statistics[id].map(RTCIceCandidateStats.init)
         }
 
         return ParsedStats(
@@ -523,6 +533,24 @@ public class TelnyxCallReportCollector {
             mediaPlayout: mediaPlayout,
             remoteInbound: remoteInbound,
             remoteOutbound: remoteOutbound
+        )
+    }
+
+    /// Exposes the production report-selection path to the module test target.
+    /// It deliberately returns only stable, externally meaningful fields.
+    internal func parsedStatisticsSnapshot(
+        _ records: [CallReportStatisticsRecord]
+    ) -> CallReportStatisticsSnapshot {
+        let parsed = parseStatistics(Dictionary(uniqueKeysWithValues: records.map { ($0.statsId, $0) }))
+        return CallReportStatisticsSnapshot(
+            inboundPacketsReceived: parsed.inbound?.packetsReceived,
+            inboundBytesReceived: parsed.inbound?.bytesReceived,
+            selectedCandidatePairId: parsed.candidate?.id,
+            localCandidateType: parsed.localCandidate?.candidateType,
+            localCandidateProtocol: parsed.localCandidate?.protocolType,
+            remoteCandidateType: parsed.remoteCandidate?.candidateType,
+            iceState: parsed.transport?.iceState,
+            dtlsState: parsed.transport?.dtlsState
         )
     }
 
@@ -808,6 +836,55 @@ public class TelnyxCallReportCollector {
 
 // MARK: - Helper Structs for RTCStatistics Parsing
 
+/// A normalized WebRTC statistics record used by the collector parser.
+///
+/// `RTCStatistics` cannot be constructed by Swift tests, so this type lets
+/// representative native report data exercise the same parser used in calls.
+internal protocol CallReportStatisticsRecord {
+    var statsId: String { get }
+    var statsType: String { get }
+    var statsTimestampMs: Double { get }
+    var statsValues: [String: Any] { get }
+}
+
+extension RTCStatistics: CallReportStatisticsRecord {
+    internal var statsId: String { id }
+    internal var statsType: String { type }
+    internal var statsTimestampMs: Double { timestamp_us / 1000.0 }
+    internal var statsValues: [String: Any] { values }
+}
+
+/// Fixture representation of one native `RTCStatistics` record.
+internal struct CallReportStatisticsFixture: CallReportStatisticsRecord {
+    internal let statsId: String
+    internal let statsType: String
+    internal let statsTimestampMs: Double
+    internal let statsValues: [String: Any]
+
+    internal init(
+        id: String,
+        type: String,
+        timestampMs: Double = 0,
+        values: [String: Any]
+    ) {
+        self.statsId = id
+        self.statsType = type
+        self.statsTimestampMs = timestampMs
+        self.statsValues = values
+    }
+}
+
+internal struct CallReportStatisticsSnapshot {
+    internal let inboundPacketsReceived: Int?
+    internal let inboundBytesReceived: Int?
+    internal let selectedCandidatePairId: String?
+    internal let localCandidateType: String?
+    internal let localCandidateProtocol: String?
+    internal let remoteCandidateType: String?
+    internal let iceState: String?
+    internal let dtlsState: String?
+}
+
 private struct RTCOutboundRTPStreamStats {
     let packetsSent: Int
     let bytesSent: Int
@@ -821,18 +898,18 @@ private struct RTCOutboundRTPStreamStats {
     let totalPacketSendDelay: Double?
     let active: Bool?
     
-    init(_ stats: RTCStatistics) {
-        self.packetsSent = stats.values["packetsSent"] as? Int ?? 0
-        self.bytesSent = stats.values["bytesSent"] as? Int ?? 0
-        self.trackId = stats.values["trackId"] as? String
-        self.timestamp = stats.timestamp_us / 1000.0
-        self.retransmittedPacketsSent = stats.values["retransmittedPacketsSent"] as? Int
-        self.retransmittedBytesSent = stats.values["retransmittedBytesSent"] as? Int
-        self.headerBytesSent = stats.values["headerBytesSent"] as? Int
-        self.nackCount = stats.values["nackCount"] as? Int
-        self.targetBitrate = stats.values["targetBitrate"] as? Double
-        self.totalPacketSendDelay = stats.values["totalPacketSendDelay"] as? Double
-        self.active = stats.values["active"] as? Bool
+    init(_ stats: CallReportStatisticsRecord) {
+        self.packetsSent = stats.statsValues["packetsSent"] as? Int ?? 0
+        self.bytesSent = stats.statsValues["bytesSent"] as? Int ?? 0
+        self.trackId = stats.statsValues["trackId"] as? String
+        self.timestamp = stats.statsTimestampMs
+        self.retransmittedPacketsSent = stats.statsValues["retransmittedPacketsSent"] as? Int
+        self.retransmittedBytesSent = stats.statsValues["retransmittedBytesSent"] as? Int
+        self.headerBytesSent = stats.statsValues["headerBytesSent"] as? Int
+        self.nackCount = stats.statsValues["nackCount"] as? Int
+        self.targetBitrate = stats.statsValues["targetBitrate"] as? Double
+        self.totalPacketSendDelay = stats.statsValues["totalPacketSendDelay"] as? Double
+        self.active = stats.statsValues["active"] as? Bool
     }
 }
 
@@ -861,30 +938,30 @@ private struct RTCInboundRTPStreamStats {
     let totalAudioEnergy: Double?
     let totalSamplesDuration: Double?
     
-    init(_ stats: RTCStatistics) {
-        self.packetsReceived = stats.values["packetsReceived"] as? Int ?? 0
-        self.bytesReceived = stats.values["bytesReceived"] as? Int ?? 0
-        self.packetsLost = stats.values["packetsLost"] as? Int ?? 0
-        self.packetsDiscarded = stats.values["packetsDiscarded"] as? Int
-        self.jitter = stats.values["jitter"] as? Double ?? 0
-        self.jitterBufferDelay = stats.values["jitterBufferDelay"] as? Double
-        self.jitterBufferEmittedCount = stats.values["jitterBufferEmittedCount"] as? Int
-        self.totalSamplesReceived = stats.values["totalSamplesReceived"] as? Int
-        self.concealedSamples = stats.values["concealedSamples"] as? Int
-        self.concealmentEvents = stats.values["concealmentEvents"] as? Int
-        self.trackId = stats.values["trackId"] as? String
-        self.timestamp = stats.timestamp_us / 1000.0
-        self.nackCount = stats.values["nackCount"] as? Int
-        self.headerBytesReceived = stats.values["headerBytesReceived"] as? Int
-        self.fecPacketsReceived = stats.values["fecPacketsReceived"] as? Int
-        self.fecPacketsDiscarded = stats.values["fecPacketsDiscarded"] as? Int
-        self.jitterBufferTargetDelay = stats.values["jitterBufferTargetDelay"] as? Double
-        self.jitterBufferMinimumDelay = stats.values["jitterBufferMinimumDelay"] as? Double
-        self.totalSamplesDecoded = stats.values["totalSamplesDecoded"] as? Int
-        self.samplesDecodedWithSilence = stats.values["samplesDecodedWithSilence"] as? Int
-        self.samplesDecodedWithConcealment = stats.values["samplesDecodedWithConcealment"] as? Int
-        self.totalAudioEnergy = stats.values["totalAudioEnergy"] as? Double
-        self.totalSamplesDuration = stats.values["totalSamplesDuration"] as? Double
+    init(_ stats: CallReportStatisticsRecord) {
+        self.packetsReceived = stats.statsValues["packetsReceived"] as? Int ?? 0
+        self.bytesReceived = stats.statsValues["bytesReceived"] as? Int ?? 0
+        self.packetsLost = stats.statsValues["packetsLost"] as? Int ?? 0
+        self.packetsDiscarded = stats.statsValues["packetsDiscarded"] as? Int
+        self.jitter = stats.statsValues["jitter"] as? Double ?? 0
+        self.jitterBufferDelay = stats.statsValues["jitterBufferDelay"] as? Double
+        self.jitterBufferEmittedCount = stats.statsValues["jitterBufferEmittedCount"] as? Int
+        self.totalSamplesReceived = stats.statsValues["totalSamplesReceived"] as? Int
+        self.concealedSamples = stats.statsValues["concealedSamples"] as? Int
+        self.concealmentEvents = stats.statsValues["concealmentEvents"] as? Int
+        self.trackId = stats.statsValues["trackId"] as? String
+        self.timestamp = stats.statsTimestampMs
+        self.nackCount = stats.statsValues["nackCount"] as? Int
+        self.headerBytesReceived = stats.statsValues["headerBytesReceived"] as? Int
+        self.fecPacketsReceived = stats.statsValues["fecPacketsReceived"] as? Int
+        self.fecPacketsDiscarded = stats.statsValues["fecPacketsDiscarded"] as? Int
+        self.jitterBufferTargetDelay = stats.statsValues["jitterBufferTargetDelay"] as? Double
+        self.jitterBufferMinimumDelay = stats.statsValues["jitterBufferMinimumDelay"] as? Double
+        self.totalSamplesDecoded = stats.statsValues["totalSamplesDecoded"] as? Int
+        self.samplesDecodedWithSilence = stats.statsValues["samplesDecodedWithSilence"] as? Int
+        self.samplesDecodedWithConcealment = stats.statsValues["samplesDecodedWithConcealment"] as? Int
+        self.totalAudioEnergy = stats.statsValues["totalAudioEnergy"] as? Double
+        self.totalSamplesDuration = stats.statsValues["totalSamplesDuration"] as? Double
     }
 }
 
@@ -903,20 +980,20 @@ private struct RTCIceCandidatePairStats {
     let requestsSent: Int?
     let responsesReceived: Int?
     
-    init(_ stats: RTCStatistics) {
-        self.id = stats.id
-        self.localCandidateId = stats.values["localCandidateId"] as? String
-        self.remoteCandidateId = stats.values["remoteCandidateId"] as? String
-        self.state = stats.values["state"] as? String
-        self.nominated = stats.values["nominated"] as? Bool
-        self.writable = stats.values["writable"] as? Bool
-        self.packetsSent = stats.values["packetsSent"] as? Int
-        self.packetsReceived = stats.values["packetsReceived"] as? Int
-        self.bytesSent = stats.values["bytesSent"] as? Int
-        self.bytesReceived = stats.values["bytesReceived"] as? Int
-        self.currentRoundTripTime = stats.values["currentRoundTripTime"] as? Double
-        self.requestsSent = stats.values["requestsSent"] as? Int
-        self.responsesReceived = stats.values["responsesReceived"] as? Int
+    init(_ stats: CallReportStatisticsRecord) {
+        self.id = stats.statsId
+        self.localCandidateId = stats.statsValues["localCandidateId"] as? String
+        self.remoteCandidateId = stats.statsValues["remoteCandidateId"] as? String
+        self.state = stats.statsValues["state"] as? String
+        self.nominated = stats.statsValues["nominated"] as? Bool
+        self.writable = stats.statsValues["writable"] as? Bool
+        self.packetsSent = stats.statsValues["packetsSent"] as? Int
+        self.packetsReceived = stats.statsValues["packetsReceived"] as? Int
+        self.bytesSent = stats.statsValues["bytesSent"] as? Int
+        self.bytesReceived = stats.statsValues["bytesReceived"] as? Int
+        self.currentRoundTripTime = stats.statsValues["currentRoundTripTime"] as? Double
+        self.requestsSent = stats.statsValues["requestsSent"] as? Int
+        self.responsesReceived = stats.statsValues["responsesReceived"] as? Int
     }
 }
 
@@ -930,15 +1007,15 @@ private struct RTCIceCandidateStats {
     let url: String?
     let relayProtocol: String?
 
-    init(_ stats: RTCStatistics) {
-        self.id = stats.id
-        self.address = (stats.values["address"] as? String) ?? (stats.values["ip"] as? String)
-        self.port = stats.values["port"] as? Int
-        self.candidateType = stats.values["candidateType"] as? String
-        self.protocolType = stats.values["protocol"] as? String
-        self.networkType = stats.values["networkType"] as? String
-        self.url = stats.values["url"] as? String
-        self.relayProtocol = stats.values["relayProtocol"] as? String
+    init(_ stats: CallReportStatisticsRecord) {
+        self.id = stats.statsId
+        self.address = (stats.statsValues["address"] as? String) ?? (stats.statsValues["ip"] as? String)
+        self.port = stats.statsValues["port"] as? Int
+        self.candidateType = stats.statsValues["candidateType"] as? String
+        self.protocolType = stats.statsValues["protocol"] as? String
+        self.networkType = stats.statsValues["networkType"] as? String
+        self.url = stats.statsValues["url"] as? String
+        self.relayProtocol = stats.statsValues["relayProtocol"] as? String
     }
 }
 
@@ -956,13 +1033,13 @@ private struct RTCTransportStats {
     let selectedCandidatePairChanges: Int?
     let selectedCandidatePairId: String?
 
-    init(_ stats: RTCStatistics) {
-        self.iceState = stats.values["iceState"] as? String
-        self.dtlsState = stats.values["dtlsState"] as? String
-        self.srtpCipher = stats.values["srtpCipher"] as? String
-        self.tlsVersion = stats.values["tlsVersion"] as? String
-        self.selectedCandidatePairChanges = stats.values["selectedCandidatePairChanges"] as? Int
-        self.selectedCandidatePairId = stats.values["selectedCandidatePairId"] as? String
+    init(_ stats: CallReportStatisticsRecord) {
+        self.iceState = stats.statsValues["iceState"] as? String
+        self.dtlsState = stats.statsValues["dtlsState"] as? String
+        self.srtpCipher = stats.statsValues["srtpCipher"] as? String
+        self.tlsVersion = stats.statsValues["tlsVersion"] as? String
+        self.selectedCandidatePairChanges = stats.statsValues["selectedCandidatePairChanges"] as? Int
+        self.selectedCandidatePairId = stats.statsValues["selectedCandidatePairId"] as? String
     }
 }
 
@@ -973,12 +1050,12 @@ private struct RTCMediaPlayoutStats {
     let totalSamplesCount: Int?
     let totalSamplesDuration: Double?
 
-    init(_ stats: RTCStatistics) {
-        self.synthesizedSamplesEvents = stats.values["synthesizedSamplesEvents"] as? Int
-        self.synthesizedSamplesDuration = stats.values["synthesizedSamplesDuration"] as? Double
-        self.totalPlayoutDelay = stats.values["totalPlayoutDelay"] as? Double
-        self.totalSamplesCount = stats.values["totalSamplesCount"] as? Int
-        self.totalSamplesDuration = stats.values["totalSamplesDuration"] as? Double
+    init(_ stats: CallReportStatisticsRecord) {
+        self.synthesizedSamplesEvents = stats.statsValues["synthesizedSamplesEvents"] as? Int
+        self.synthesizedSamplesDuration = stats.statsValues["synthesizedSamplesDuration"] as? Double
+        self.totalPlayoutDelay = stats.statsValues["totalPlayoutDelay"] as? Double
+        self.totalSamplesCount = stats.statsValues["totalSamplesCount"] as? Int
+        self.totalSamplesDuration = stats.statsValues["totalSamplesDuration"] as? Double
     }
 }
 
@@ -994,17 +1071,17 @@ private struct RTCRemoteInboundRTPStreamStats {
     let reportsReceived: Int?
     let packetsDiscarded: Int?
 
-    init(_ stats: RTCStatistics) {
-        self.packetsReceived = stats.values["packetsReceived"] as? Int
-        self.packetsLost = stats.values["packetsLost"] as? Int
-        self.fractionLost = stats.values["fractionLost"] as? Double
-        self.jitter = stats.values["jitter"] as? Double
-        self.roundTripTime = stats.values["roundTripTime"] as? Double
-        self.totalRoundTripTime = stats.values["totalRoundTripTime"] as? Double
-        self.roundTripTimeMeasurements = stats.values["roundTripTimeMeasurements"] as? Int
-        self.nackCount = stats.values["nackCount"] as? Int
-        self.reportsReceived = stats.values["reportsReceived"] as? Int
-        self.packetsDiscarded = stats.values["packetsDiscarded"] as? Int
+    init(_ stats: CallReportStatisticsRecord) {
+        self.packetsReceived = stats.statsValues["packetsReceived"] as? Int
+        self.packetsLost = stats.statsValues["packetsLost"] as? Int
+        self.fractionLost = stats.statsValues["fractionLost"] as? Double
+        self.jitter = stats.statsValues["jitter"] as? Double
+        self.roundTripTime = stats.statsValues["roundTripTime"] as? Double
+        self.totalRoundTripTime = stats.statsValues["totalRoundTripTime"] as? Double
+        self.roundTripTimeMeasurements = stats.statsValues["roundTripTimeMeasurements"] as? Int
+        self.nackCount = stats.statsValues["nackCount"] as? Int
+        self.reportsReceived = stats.statsValues["reportsReceived"] as? Int
+        self.packetsDiscarded = stats.statsValues["packetsDiscarded"] as? Int
     }
 }
 
@@ -1015,11 +1092,11 @@ private struct RTCRemoteOutboundRTPStreamStats {
     let roundTripTime: Double?
     let totalPacketSendDelay: Double?
 
-    init(_ stats: RTCStatistics) {
-        self.packetsSent = stats.values["packetsSent"] as? Int
-        self.bytesSent = stats.values["bytesSent"] as? Int
-        self.reportsCount = stats.values["reportsCount"] as? Int
-        self.roundTripTime = stats.values["roundTripTime"] as? Double
-        self.totalPacketSendDelay = stats.values["totalPacketSendDelay"] as? Double
+    init(_ stats: CallReportStatisticsRecord) {
+        self.packetsSent = stats.statsValues["packetsSent"] as? Int
+        self.bytesSent = stats.statsValues["bytesSent"] as? Int
+        self.reportsCount = stats.statsValues["reportsCount"] as? Int
+        self.roundTripTime = stats.statsValues["roundTripTime"] as? Double
+        self.totalPacketSendDelay = stats.statsValues["totalPacketSendDelay"] as? Double
     }
 }
