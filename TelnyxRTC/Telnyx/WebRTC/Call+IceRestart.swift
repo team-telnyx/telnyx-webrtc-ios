@@ -161,6 +161,11 @@ extension Call {
         }
 
         guard let sdp = result["sdp"] as? String else {
+            let error = NSError(
+                domain: "Call",
+                code: -3,
+                userInfo: [NSLocalizedDescriptionKey: "ICE restart Modify response missing SDP"]
+            )
             Logger.log.e(message: "[ICE-RESTART] Call:: ICE restart Modify response missing SDP")
             recordIceRestartEvent(
                 level: "error",
@@ -168,6 +173,7 @@ extension Call {
             )
             isIceRestarting = false
             shouldResetAudioAfterIceRestart = false
+            delegate?.callIceRestartFailed(call: self, error: error)
             return
         }
         
