@@ -119,6 +119,11 @@ class Peer : NSObject, WebRTCEventHandler {
     /// Prevents sending duplicate endOfCandidates messages during trickle ICE
     private var endOfCandidatesSent: Bool = false
 
+    /// A delayed candidate-gathering callback can outlive call teardown because it
+    /// is scheduled on the main run loop. Keep an explicit lifecycle guard so it
+    /// cannot signal an already-ended server session.
+    private var isDisposed: Bool = false
+
     /// Queued candidates for answering side (until ANSWER is sent)
     /// When answering a call, we queue local ICE candidates until the ANSWER is sent
     /// to avoid race conditions where candidates arrive before the ANSWER
@@ -513,6 +518,11 @@ class Peer : NSObject, WebRTCEventHandler {
      - Sends SDP with all candidates included after timeout
      */
     fileprivate func startNegotiation(peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
+        guard !isDisposed else {
+            Logger.log.i(message: "[TRICKLE-ICE] Peer:: Skipping negotiation timer - peer is disposed")
+            return
+        }
+
         Logger.log.i(message: "[TRICKLE-ICE] Peer:: startNegotiation called (useTrickleIce: \(useTrickleIce))")
 
         // For Trickle ICE: restart timer to send endOfCandidates when no more candidates arrive
@@ -524,8 +534,17 @@ class Peer : NSObject, WebRTCEventHandler {
             self.negotiationTimer?.invalidate()
             self.negotiationTimer = nil
             DispatchQueue.main.async {
+                guard !self.isDisposed else {
+                    Logger.log.i(message: "[TRICKLE-ICE] Peer:: Skipping negotiation timer scheduling - peer is disposed")
+                    return
+                }
                 self.negotiationTimer = Timer.scheduledTimer(withTimeInterval: self.TRICKLE_ICE_TIMEOUT, repeats: false) { timer in
                     self.negotiationTimer?.invalidate()
+
+                    guard !self.isDisposed else {
+                        Logger.log.i(message: "[TRICKLE-ICE] Peer:: Skipping end of candidates - peer is disposed")
+                        return
+                    }
 
                     Logger.log.i(message: "[TRICKLE-ICE] Peer:: No more candidates for \(self.TRICKLE_ICE_TIMEOUT)s - sending endOfCandidates")
                     self.sendEndOfCandidates()
@@ -568,6 +587,12 @@ class Peer : NSObject, WebRTCEventHandler {
     func dispose() {
         Logger.log.i(message: "Peer:: dispose()")
 
+        // Invalidate before closing the connection. A timer block that was already
+        // queued on the main run loop also checks this flag before it can signal.
+        self.isDisposed = true
+        self.negotiationTimer?.invalidate()
+        self.negotiationTimer = nil
+
         self.connection?.close()
         self.delegate = nil
 
@@ -594,8 +619,6 @@ class Peer : NSObject, WebRTCEventHandler {
 
         // Reset trickle ICE state
         self.endOfCandidatesSent = false
-        self.negotiationTimer?.invalidate()
-        self.negotiationTimer = nil
 
         // Clear queued candidates and reset answering flags
         self.queuedCandidates.removeAll()
@@ -1160,6 +1183,11 @@ extension Peer : RTCPeerConnectionDelegate {
     
     /// Sends end of candidates signal for trickle ICE
     private func sendEndOfCandidates() {
+        guard !isDisposed else {
+            Logger.log.i(message: "[TRICKLE-ICE] Peer:: Skipping end of candidates - peer is disposed")
+            return
+        }
+
         guard let socket = socket, useTrickleIce else {
             Logger.log.i(message: "[TRICKLE-ICE] Peer:: Skipping end of candidates - socket: \(socket != nil), useTrickleIce: \(useTrickleIce)")
             return
