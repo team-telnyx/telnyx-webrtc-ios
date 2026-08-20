@@ -14,7 +14,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
                 restartCount += 1
                 restartExpectation.fulfill()
             },
-            requestReattach: { reattachCount += 1 }
+            requestReattach: { _ in reattachCount += 1 }
         )
 
         monitor.iceConnectionStateDidChange(call, state: .failed)
@@ -33,7 +33,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
             isSignalingAvailable: { true },
             sendSignalingProbe: { "probe-id" },
             startIceRestart: { _ in restartExpectation.fulfill() },
-            requestReattach: { XCTFail("Should not reattach while signaling is healthy") }
+            requestReattach: { _ in XCTFail("Should not reattach while signaling is healthy") }
         )
 
         monitor.peerConnectionStateDidChange(call, state: .disconnected)
@@ -50,7 +50,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
             isSignalingAvailable: { true },
             sendSignalingProbe: { "probe-id" },
             startIceRestart: { _ in noRestartExpectation.fulfill() },
-            requestReattach: { XCTFail("Should not reattach after peer reconnects") }
+            requestReattach: { _ in XCTFail("Should not reattach after peer reconnects") }
         )
 
         monitor.peerConnectionStateDidChange(call, state: .disconnected)
@@ -68,7 +68,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
             isSignalingAvailable: { false },
             sendSignalingProbe: { "probe-id" },
             startIceRestart: { _ in restartCount += 1 },
-            requestReattach: {
+            requestReattach: { _ in
                 reattachCount += 1
                 reattachExpectation.fulfill()
             }
@@ -81,6 +81,27 @@ final class SignalingHealthMonitorTests: XCTestCase {
         XCTAssertEqual(reattachCount, 1)
     }
 
+    func testPeerFailureForProvenVPNDirectPathForcesRelayOnReattach() {
+        let call = makeActiveCall()
+        var reattachForceRelay: Bool?
+        let reattachExpectation = expectation(description: "reattaches with forced relay")
+        let monitor = SignalingHealthMonitor(
+            isSignalingAvailable: { false },
+            sendSignalingProbe: { "probe-id" },
+            startIceRestart: { _ in XCTFail("Should not restart ICE") },
+            shouldForceRelayForRecovery: { _, completion in completion(true) },
+            requestReattach: { forceRelay in
+                reattachForceRelay = forceRelay
+                reattachExpectation.fulfill()
+            }
+        )
+
+        monitor.peerConnectionStateDidChange(call, state: .failed)
+
+        wait(for: [reattachExpectation], timeout: 1)
+        XCTAssertEqual(reattachForceRelay, true)
+    }
+
     func testIceRestartTimeoutFallsBackToReattach() {
         let call = makeActiveCall()
         let reattachExpectation = expectation(description: "ICE restart timeout requests reattach")
@@ -89,7 +110,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
             isSignalingAvailable: { true },
             sendSignalingProbe: { "probe-id" },
             startIceRestart: { _ in },
-            requestReattach: { reattachExpectation.fulfill() }
+            requestReattach: { _ in reattachExpectation.fulfill() }
         )
 
         monitor.peerConnectionStateDidChange(call, state: .failed)
@@ -116,7 +137,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
                 restartCount += 1
                 restartExpectation.fulfill()
             },
-            requestReattach: { XCTFail("Should not reattach") }
+            requestReattach: { _ in XCTFail("Should not reattach") }
         )
 
         // Let the initial freshness window expire before the failure.
@@ -144,7 +165,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
             isSignalingAvailable: { true },
             sendSignalingProbe: { "probe-id" },
             startIceRestart: { _ in XCTFail("Should not restart ICE") },
-            requestReattach: { reattachExpectation.fulfill() }
+            requestReattach: { _ in reattachExpectation.fulfill() }
         )
 
         let staleExpectation = expectation(description: "signaling becomes stale")
@@ -169,7 +190,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
                 return "probe-id"
             },
             startIceRestart: { _ in XCTFail("Should not restart ICE") },
-            requestReattach: { XCTFail("Should not reattach before probe timeout") }
+            requestReattach: { _ in XCTFail("Should not reattach before probe timeout") }
         )
 
         monitor.callStateDidChange(call)
@@ -193,7 +214,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
                 return "health-probe-id"
             },
             startIceRestart: { _ in restartCount += 1 },
-            requestReattach: { reattachCount += 1 }
+            requestReattach: { _ in reattachCount += 1 }
         )
 
         monitor.callStateDidChange(call)
@@ -217,12 +238,79 @@ final class SignalingHealthMonitorTests: XCTestCase {
             isSignalingAvailable: { true },
             sendSignalingProbe: { "probe-id" },
             startIceRestart: { _ in XCTFail("Should not restart ICE") },
-            requestReattach: { reattachExpectation.fulfill() }
+            requestReattach: { _ in reattachExpectation.fulfill() }
         )
 
         monitor.callStateDidChange(call)
 
         wait(for: [reattachExpectation], timeout: 1)
+    }
+
+    func testInboundRtpStallDoesNotRestartDuringHealthySteadyStateSampling() {
+        let call = makeActiveCall()
+        var restartCount = 0
+        let monitor = SignalingHealthMonitor(
+            isSignalingAvailable: { true },
+            sendSignalingProbe: { "probe-id" },
+            startIceRestart: { _ in restartCount += 1 },
+            requestReattach: { _ in XCTFail("Should not reattach") }
+        )
+
+        monitor.callStateDidChange(call)
+        monitor.inboundRtpSampleReceived(100, for: call)
+        let settledExpectation = expectation(description: "processes unchanged steady-state sample")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.03) {
+            monitor.inboundRtpSampleReceived(100, for: call)
+            settledExpectation.fulfill()
+        }
+
+        wait(for: [settledExpectation], timeout: 1)
+        XCTAssertEqual(restartCount, 0)
+    }
+
+    func testRestartAnswerWithoutInboundRtpFallsBackToReattach() {
+        let call = makeActiveCall()
+        let restartExpectation = expectation(description: "starts ICE restart")
+        let reattachExpectation = expectation(description: "reattaches after media verification timeout")
+        let monitor = SignalingHealthMonitor(
+            postIceRestartMediaTimeout: 0.02,
+            isSignalingAvailable: { true },
+            sendSignalingProbe: { "probe-id" },
+            startIceRestart: { _ in restartExpectation.fulfill() },
+            requestReattach: { _ in reattachExpectation.fulfill() }
+        )
+
+        monitor.callStateDidChange(call)
+        monitor.peerConnectionStateDidChange(call, state: .failed)
+        wait(for: [restartExpectation], timeout: 1)
+        monitor.iceRestartDidComplete(for: call)
+
+        wait(for: [reattachExpectation], timeout: 1)
+    }
+
+    func testInboundRtpGrowthAfterRestartAnswerCompletesRecovery() {
+        let call = makeActiveCall()
+        let restartExpectation = expectation(description: "starts ICE restart")
+        var reattachCount = 0
+        let monitor = SignalingHealthMonitor(
+            postIceRestartMediaTimeout: 0.1,
+            isSignalingAvailable: { true },
+            sendSignalingProbe: { "probe-id" },
+            startIceRestart: { _ in restartExpectation.fulfill() },
+            requestReattach: { _ in reattachCount += 1 }
+        )
+
+        monitor.callStateDidChange(call)
+        monitor.inboundRtpSampleReceived(100, for: call)
+        monitor.peerConnectionStateDidChange(call, state: .failed)
+        wait(for: [restartExpectation], timeout: 1)
+        monitor.iceRestartDidComplete(for: call)
+        monitor.inboundRtpSampleReceived(101, for: call)
+        monitor.inboundRtpSampleReceived(102, for: call)
+        let settledExpectation = expectation(description: "media verification window expires")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { settledExpectation.fulfill() }
+        wait(for: [settledExpectation], timeout: 1)
+        XCTAssertEqual(reattachCount, 0)
     }
 
     private func makeResponse(id: String) -> Message {

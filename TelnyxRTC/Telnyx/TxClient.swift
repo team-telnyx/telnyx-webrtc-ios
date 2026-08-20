@@ -173,6 +173,8 @@ public class TxClient {
     private var enableQualityMetrics: Bool = false
     private var isACMResetInProgress: Bool = false
     private var pendingAnonymousLoginMessage: AnonymousLoginMessage?
+    private var forceRelayForNextRecoveredCall = false
+    private let forceRelayForNextRecoveredCallLock = NSLock()
     
     /// AI Assistant Manager for handling AI-related functionality
     public let aiAssistantManager = AIAssistantManager()
@@ -209,9 +211,12 @@ public class TxClient {
                     }
                 }
             },
-            requestReattach: { [weak self] in
+            shouldForceRelayForRecovery: { call, completion in
+                call.shouldForceRelayForRecovery(completion: completion)
+            },
+            requestReattach: { [weak self] forceRelay in
                 DispatchQueue.main.async {
-                    self?.reconnectClient()
+                    self?.reconnectClient(forceRelayCandidateForRecovery: forceRelay)
                 }
             }
         )
@@ -1428,6 +1433,9 @@ extension TxClient {
             socketToAppCallId[signalingCallId] = appFacingCallId
         }
 
+        let forceRelayCandidate = (self.txConfig?.forceRelayCandidate ?? false)
+            || (isAttach && takeForceRelayForNextRecoveredCall())
+
         let call = Call(callId: appFacingCallId,
                         signalingCallId: signalingCallId,
                         remoteSdp: remoteSdp,
@@ -1441,7 +1449,7 @@ extension TxClient {
                         iceServers: self.serverConfiguration.webRTCIceServers,
                         isAttach: isAttach,
                         debug: self.txConfig?.debug ?? false,
-                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
+                        forceRelayCandidate: forceRelayCandidate,
                         sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
                         useTrickleIce: self.txConfig?.useTrickleIce ?? false,
                         enableMissedCallNotifications: self.txConfig?.enableMissedCallNotifications ?? false,
@@ -1624,6 +1632,10 @@ extension TxClient: CallProtocol {
 
     func callStateUpdated(call: Call) {
         Logger.log.i(message: "TxClient:: callStateUpdated()")
+        call.onInboundRtpSample = { [weak self, weak call] _, packetsReceived in
+            guard let self = self, let call = call else { return }
+            self.signalingHealthMonitor.inboundRtpSampleReceived(packetsReceived, for: call)
+        }
         self.signalingHealthMonitor.callStateDidChange(call)
 
         guard let callId = call.callInfo?.callId else { return }
@@ -1740,7 +1752,10 @@ extension TxClient : SocketDelegate {
         }
     }
    
-    func reconnectClient() {
+    func reconnectClient(forceRelayCandidateForRecovery: Bool = false) {
+        forceRelayForNextRecoveredCallLock.lock()
+        forceRelayForNextRecoveredCall = forceRelayCandidateForRecovery
+        forceRelayForNextRecoveredCallLock.unlock()
         if self.isCallsActive {
             updateActiveCallsState(callState: CallState.RECONNECTING(reason: .networkSwitch))
             startReconnectTimeout()
@@ -1763,6 +1778,17 @@ extension TxClient : SocketDelegate {
         }else {
             Logger.log.e(message:"TxClient:: Not Reconnecting")
         }
+    }
+
+    /// Consumes the one-shot relay override on the socket callback thread.
+    /// A lock keeps this handoff race-free with reconnectClient on the main
+    /// thread without moving all socket work onto the main queue.
+    private func takeForceRelayForNextRecoveredCall() -> Bool {
+        forceRelayForNextRecoveredCallLock.lock()
+        defer { forceRelayForNextRecoveredCallLock.unlock() }
+        let shouldForceRelay = forceRelayForNextRecoveredCall
+        forceRelayForNextRecoveredCall = false
+        return shouldForceRelay
     }
     
     func updateActiveCallsState(callState: CallState) {

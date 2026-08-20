@@ -47,6 +47,7 @@ public class TelnyxCallReportCollector {
     private let logCollectorConfig: LogCollectorConfig
     private weak var peerConnection: RTCPeerConnection?
     private var timer: Timer?
+    private var isMediaVerificationSamplingEnabled = false
     private var statsBuffer: [CallReportInterval] = []
     private var intervalStartTime: Date?
     private(set) var callStartTime: Date
@@ -58,6 +59,10 @@ public class TelnyxCallReportCollector {
     private var intervalJitters: [Double] = []
     private var intervalRTTs: [Double] = []
     private var intervalBitrates: (outbound: [Double], inbound: [Double]) = ([], [])
+
+    /// Delivers the audio inbound packet counter from the collector's normal
+    /// WebRTC sample, allowing call recovery to avoid a duplicate stats query.
+    internal var onInboundRtpSample: ((Int) -> Void)?
     
     // Previous values for rate calculations
     private var previousStats = PreviousStats()
@@ -119,12 +124,22 @@ public class TelnyxCallReportCollector {
         // where RunLoop.current is not running, which would prevent the timer from firing.
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            self.timer = Timer.scheduledTimer(withTimeInterval: self.config.interval, repeats: true) { [weak self] _ in
-                self?.collectStats()
-            }
+            self.scheduleStatsTimer()
         }
     }
-    
+
+    /// Temporarily increases the existing collector cadence while an ICE
+    /// restart is verifying media. Normal reporting remains at the configured
+    /// interval; this does not introduce a second stats query.
+    internal func setMediaVerificationSamplingEnabled(_ enabled: Bool) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self,
+                  self.isMediaVerificationSamplingEnabled != enabled else { return }
+            self.isMediaVerificationSamplingEnabled = enabled
+            self.scheduleStatsTimer()
+        }
+    }
+
     /// Stop collecting stats and prepare for final report
     public func stop() {
         // Timer was scheduled on main RunLoop, must invalidate there
@@ -415,6 +430,9 @@ public class TelnyxCallReportCollector {
 
             let now = Date()
             let parsed = self.parseStatsReport(report)
+            if let packetsReceived = parsed.inbound?.packetsReceived {
+                self.onInboundRtpSample?(packetsReceived)
+            }
             self.accumulateSamples(parsed: parsed, statistics: report.statistics, now: now)
 
             // Check if interval is complete (end of collection period)
@@ -422,6 +440,16 @@ public class TelnyxCallReportCollector {
             if intervalDuration >= self.config.interval {
                 self.finalizeInterval(start: intervalStartTime, end: now, parsed: parsed)
             }
+        }
+    }
+
+    private func scheduleStatsTimer() {
+        timer?.invalidate()
+        let interval = isMediaVerificationSamplingEnabled
+            ? min(config.interval, 1.0)
+            : config.interval
+        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+            self?.collectStats()
         }
     }
 
