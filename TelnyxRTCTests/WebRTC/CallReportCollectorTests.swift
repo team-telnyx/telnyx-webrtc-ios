@@ -331,14 +331,6 @@ class CallReportCollectorTests: XCTestCase {
     
     func testCallReportPayloadStructure() {
         collector.start(peerConnection: mockPeerConnection)
-        
-        // Wait for stats
-        let statsExpectation = expectation(description: "Stats")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            statsExpectation.fulfill()
-        }
-        wait(for: [statsExpectation], timeout: 1.0)
-        
         collector.stop()
         
         let summary = CallReportSummary(
