@@ -38,14 +38,16 @@ class CallTests: XCTestCase {
      - NOTE: Due that we are not sending a valid sessionID we are going to get an "Authentication error" from the server.
      */
     func testNewCall() {
+        let timeout: TimeInterval = ProcessInfo.processInfo.environment["CI"] != nil ? 30.0 : 10.0
+
         //Wait for socket connection
         expectation = expectation(description: "socket")
-        waitForExpectations(timeout: 10)
+        waitForExpectations(timeout: timeout)
 
         //Wait to send invite message.
         expectation = expectation(description: "newCall")
         self.call?.newCall(callerName: "callerName", callerNumber: "callerNumber", destinationNumber: "destinationNumber")
-        waitForExpectations(timeout: 10)
+        waitForExpectations(timeout: timeout)
     }
     
     /**
