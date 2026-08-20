@@ -306,6 +306,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
         wait(for: [restartExpectation], timeout: 1)
         monitor.iceRestartDidComplete(for: call)
         monitor.inboundRtpSampleReceived(101, for: call)
+        monitor.inboundRtpSampleReceived(102, for: call)
         let settledExpectation = expectation(description: "media verification window expires")
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { settledExpectation.fulfill() }
         wait(for: [settledExpectation], timeout: 1)

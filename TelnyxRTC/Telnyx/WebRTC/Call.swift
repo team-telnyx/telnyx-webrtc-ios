@@ -755,32 +755,6 @@ public class Call {
         }
     }
 
-    /// Reads the cumulative inbound audio RTP packet counter used by the
-    /// recovery watchdog. A growing counter proves media is arriving even
-    /// when the remote speaker is silent.
-    internal func inboundAudioRtpPackets(completion: @escaping (Int?) -> Void) {
-        guard let connection = peer?.connection else {
-            completion(nil)
-            return
-        }
-
-        connection.statistics { report in
-            let inboundAudio = report.statistics.values.first { statistic in
-                guard statistic.type == "inbound-rtp" else { return false }
-                return (statistic.values["kind"] as? String) == "audio"
-                    || (statistic.values["mediaType"] as? String) == "audio"
-            }
-
-            if let packets = inboundAudio?.values["packetsReceived"] as? NSNumber {
-                completion(packets.intValue)
-            } else if let packets = inboundAudio?.values["packetsReceived"] as? Int {
-                completion(packets)
-            } else {
-                completion(nil)
-            }
-        }
-    }
-
     internal static func selectedCandidateUsesDirectVPN(_ statistics: [String: [String: Any]]) -> Bool {
         guard let transport = statistics.values.first(where: { $0["type"] as? String == "transport" }),
               let candidatePairId = transport["selectedCandidatePairId"] as? String,

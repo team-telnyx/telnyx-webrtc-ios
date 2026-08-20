@@ -62,7 +62,7 @@ internal final class SignalingHealthMonitor {
         confirmedOutboundActivityThreshold: TimeInterval = 45,
         staleInboundActivityThreshold: TimeInterval = 20,
         signalingHealthCheckInterval: TimeInterval = 3,
-        postIceRestartMediaTimeout: TimeInterval = 3,
+        postIceRestartMediaTimeout: TimeInterval = 5,
         peerDisconnectedRecoveryDelay: TimeInterval = 3,
         isSignalingAvailable: @escaping () -> Bool,
         sendSignalingProbe: @escaping () -> String?,
@@ -158,16 +158,11 @@ internal final class SignalingHealthMonitor {
             Logger.log.i(message: "[CALL-RECOVERY] ICE restart answer applied")
             self.cancelIceRestartTimeout()
 
-            // An SDP response only proves signaling succeeded. Media recovery is
-            // complete only after the restarted transport receives RTP again.
-            if let restartStartedAt = self.iceRestartStartedAt,
-               let lastProgressAt = self.lastInboundRtpProgressAt,
-               lastProgressAt >= restartStartedAt {
-                Logger.log.i(message: "[CALL-RECOVERY] Inbound RTP resumed during ICE restart")
-                self.finishRecovery()
-                return
-            }
-
+            // An SDP response only proves signaling succeeded. Discard the
+            // old transport's RTP baseline so recovery requires packet growth
+            // sampled after the answer is applied.
+            self.lastInboundRtpPacketCount = nil
+            self.lastInboundRtpProgressAt = nil
             self.recoveryMode = .verifyingMedia
             self.mediaVerificationStartedAt = Date()
             call.setCallReportMediaVerificationSamplingEnabled(true)
