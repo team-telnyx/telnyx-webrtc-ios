@@ -47,6 +47,7 @@ public class TelnyxCallReportCollector {
     private let logCollectorConfig: LogCollectorConfig
     private weak var peerConnection: RTCPeerConnection?
     private var timer: Timer?
+    private var isMediaVerificationSamplingEnabled = false
     private var statsBuffer: [CallReportInterval] = []
     private var intervalStartTime: Date?
     private(set) var callStartTime: Date
@@ -123,12 +124,19 @@ public class TelnyxCallReportCollector {
         // where RunLoop.current is not running, which would prevent the timer from firing.
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            // One shared sample per second preserves the three-second media
-            // stall decision while report intervals remain configurable.
-            let sampleInterval = min(self.config.interval, 1.0)
-            self.timer = Timer.scheduledTimer(withTimeInterval: sampleInterval, repeats: true) { [weak self] _ in
-                self?.collectStats()
-            }
+            self.scheduleStatsTimer()
+        }
+    }
+
+    /// Temporarily increases the existing collector cadence while an ICE
+    /// restart is verifying media. Normal reporting remains at the configured
+    /// interval; this does not introduce a second stats query.
+    internal func setMediaVerificationSamplingEnabled(_ enabled: Bool) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self,
+                  self.isMediaVerificationSamplingEnabled != enabled else { return }
+            self.isMediaVerificationSamplingEnabled = enabled
+            self.scheduleStatsTimer()
         }
     }
     
@@ -432,6 +440,16 @@ public class TelnyxCallReportCollector {
             if intervalDuration >= self.config.interval {
                 self.finalizeInterval(start: intervalStartTime, end: now, parsed: parsed)
             }
+        }
+    }
+
+    private func scheduleStatsTimer() {
+        timer?.invalidate()
+        let interval = isMediaVerificationSamplingEnabled
+            ? min(config.interval, 1.0)
+            : config.interval
+        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+            self?.collectStats()
         }
     }
 

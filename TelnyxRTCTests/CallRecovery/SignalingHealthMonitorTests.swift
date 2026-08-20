@@ -246,15 +246,15 @@ final class SignalingHealthMonitorTests: XCTestCase {
         wait(for: [reattachExpectation], timeout: 1)
     }
 
-    func testInboundRtpStallStartsIceRestartAfterThreeSecondThreshold() {
+    func testSteadyStateInboundRtpSamplesDoNotTriggerStatsDrivenRecovery() {
         let call = makeActiveCall()
-        let restartExpectation = expectation(description: "inbound RTP stall starts ICE restart")
+        let noRestartExpectation = expectation(description: "allows steady-state sampling")
+        noRestartExpectation.isInverted = true
         let monitor = SignalingHealthMonitor(
-            inboundRtpStallTimeout: 0.02,
             isSignalingAvailable: { true },
             sendSignalingProbe: { "probe-id" },
-            startIceRestart: { _ in restartExpectation.fulfill() },
-            requestReattach: { _ in XCTFail("Should restart ICE before reattaching") }
+            startIceRestart: { _ in noRestartExpectation.fulfill() },
+            requestReattach: { _ in XCTFail("Should not reattach") }
         )
 
         monitor.callStateDidChange(call)
@@ -263,7 +263,7 @@ final class SignalingHealthMonitorTests: XCTestCase {
             monitor.inboundRtpSampleReceived(100, for: call)
         }
 
-        wait(for: [restartExpectation], timeout: 1)
+        wait(for: [noRestartExpectation], timeout: 0.1)
     }
 
     func testRestartAnswerWithoutInboundRtpFallsBackToReattach() {

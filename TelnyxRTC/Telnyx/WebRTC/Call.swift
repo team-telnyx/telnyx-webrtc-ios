@@ -1050,6 +1050,10 @@ extension Call {
         }
         self.callReportCollector = collector
     }
+
+    func setCallReportMediaVerificationSamplingEnabled(_ enabled: Bool) {
+        callReportCollector?.setMediaVerificationSamplingEnabled(enabled)
+    }
     
     /// Sets up Peer callbacks that log signaling, ICE gathering, and ICE connection
     /// state changes into the call report collector. Called after peer creation.

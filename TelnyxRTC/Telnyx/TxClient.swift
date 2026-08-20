@@ -1640,7 +1640,7 @@ extension TxClient: CallProtocol {
 
     func callStateUpdated(call: Call) {
         Logger.log.i(message: "TxClient:: callStateUpdated()")
-        call.onInboundRtpSample = { [weak self, weak call] packetsReceived in
+        call.onInboundRtpSample = { [weak self, weak call] _, packetsReceived in
             guard let self = self, let call = call else { return }
             self.signalingHealthMonitor.inboundRtpSampleReceived(packetsReceived, for: call)
         }
