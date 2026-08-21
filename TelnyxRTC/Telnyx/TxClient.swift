@@ -165,6 +165,7 @@ public class TxClient {
     private var pendingAnswerHeaders = [String:String]()
     internal var sendFileLogs: Bool = false
     private var attachCallId: String?
+    internal var pendingAttachCallIdForTesting: String? { attachCallId }
     private var pushMetaData: [String:Any]?
     private let AUTH_ERROR_CODE = "-32001"
     private var reconnectTimeoutTimer: DispatchSourceTimer?
@@ -891,7 +892,7 @@ public class TxClient {
     
     /// Handles the timeout when no INVITE is received after accepting a VoIP push call
     private func handleInviteTimeout() {
-        Logger.log.w(message: "TxClient:: INVITE timeout - No INVITE received within \(inviteTimeoutInterval) seconds after accepting VoIP push call")
+        Logger.log.w(message: "TxClient:: INVITE timeout - No INVITE received within \(inviteTimeoutInterval) seconds after attachCalls")
         let timedOutCallId = currentCallId
         let pendingAnswerAction = answerCallAction
         
@@ -1172,9 +1173,12 @@ public class TxClient {
                 if (self.isCallFromPush == true){
                     self.sendAttachCall()
                     
-                    // Start INVITE timeout for VoIP push calls that are being answered (not declined)
-                    if answerCallAction != nil && !pendingCallDecline && pushCallState != .inviteReceived {
-                        Logger.log.i(message: "TxClient:: updateGatewayState() Starting INVITE timeout for VoIP push call")
+                    // Every push-originated ringing call needs a terminal path. Start the watchdog
+                    // after registration + attachCalls even when the user has not pressed Answer;
+                    // otherwise a secondary device can remain in CallKit until its system timeout
+                    // when the backend never replays INVITE or terminal cleanup.
+                    if !pendingCallDecline && pushCallState != .inviteReceived {
+                        Logger.log.i(message: "TxClient:: updateGatewayState() Starting post-attach INVITE timeout for VoIP push call")
                         startInviteTimeout()
                     }
                 }
@@ -1664,6 +1668,13 @@ extension TxClient: CallProtocol {
                 self.delegate?.onRemoteCallEnded(callId: callId, reason: nil)
             }
             self._isSpeakerEnabled = false
+
+            // A terminal event can arrive for the placeholder call before the
+            // replayed INVITE. Cancel the post-attach watchdog so it cannot emit
+            // a second DONE/onRemoteCallEnded callback for the same push call.
+            if isCallFromPush && callId == currentCallId {
+                resetPushVariables()
+            }
         }
     }
 
@@ -1963,6 +1974,7 @@ extension TxClient : SocketDelegate {
         //Check if server is sending an error code
         if let error = vertoMessage.serverError {
             if attachCallId == vertoMessage.id {
+                stopInviteTimeout()
                 // Call failed from remote end
               if let callId = pushMetaData?["call_id"] as? String,
                 let callUUID = UUID(uuidString: callId) {
@@ -1973,6 +1985,7 @@ extension TxClient : SocketDelegate {
                   self.delegate?.onRemoteCallEnded(callId: callUUID, reason: terminationReason)
                   self.delegate?.onCallStateUpdated(callState: .DONE(reason: terminationReason), callId: callUUID)
                 }
+                resetPushVariables()
                 return
             }
             let message: String = error["message"] as? String ?? "Unknown"
@@ -2061,20 +2074,21 @@ extension TxClient : SocketDelegate {
                     break
 
                 case .INVITE:
-                    //invite received
-                    if isCallFromPush {
-                        pushCallState = .inviteReceived
-                    }
-                    if isWaitingForInviteAfterPush {
-                        Logger.log.i(message: "TxClient:: INVITE received - stopping timeout timer for VoIP push call")
-                        stopInviteTimeout()
-                    }
-                    
                     if let params = vertoMessage.params {
                         guard let sdp = params["sdp"] as? String,
                               let callId = params["callID"] as? String,
                               let uuid = UUID(uuidString: callId) else {
                             return
+                        }
+
+                        // Only a usable INVITE resolves the pending push flow.
+                        // Malformed messages must leave the watchdog armed.
+                        if isCallFromPush {
+                            pushCallState = .inviteReceived
+                        }
+                        if isWaitingForInviteAfterPush {
+                            Logger.log.i(message: "TxClient:: INVITE received - stopping timeout timer for VoIP push call")
+                            stopInviteTimeout()
                         }
                         
                         self.voiceSdkId = vertoMessage.voiceSdkId
@@ -2128,6 +2142,10 @@ extension TxClient : SocketDelegate {
                           let uuid = UUID(uuidString: callId) else {
                         return
                     }
+
+                    // ATTACH is a successful terminal outcome for the pending
+                    // replay wait. Do not let the INVITE watchdog end this call.
+                    stopInviteTimeout()
                     
                     self.voiceSdkId = vertoMessage.voiceSdkId
 
@@ -2165,6 +2183,7 @@ extension TxClient : SocketDelegate {
                                             customHeaders: customHeaders,
                                             isAttach: true
                     )
+                    resetPushVariables()
                     
                 }
                  break;
