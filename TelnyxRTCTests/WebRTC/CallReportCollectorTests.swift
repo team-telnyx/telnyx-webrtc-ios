@@ -367,6 +367,33 @@ class CallReportCollectorTests: XCTestCase {
         }
     }
 
+    func testLargePayloadSplitsStatsIntoSafeChunks() throws {
+        let summary = CallReportSummary(callId: "call-id")
+        let largeCandidateAddress = String(repeating: "a", count: 50_000)
+        let localCandidate = ICECandidateStats(address: largeCandidateAddress)
+        let stats = (0..<50).map { index in
+            CallReportInterval(
+                intervalStartUtc: "2026-08-23T10:00:\(index).000Z",
+                intervalEndUtc: "2026-08-23T10:00:\(index + 1).000Z",
+                ice: ICECandidatePairStats(local: localCandidate)
+            )
+        }
+        let payload = CallReportPayload(summary: summary, stats: stats)
+
+        let chunks = try TelnyxCallReportCollector.chunkedPayloadData(for: payload)
+
+        XCTAssertGreaterThan(chunks.count, 1)
+        XCTAssertTrue(chunks.allSatisfy {
+            $0.count <= TelnyxCallReportCollector.safePayloadSizeBytes
+        })
+
+        let decodedStats = try chunks.flatMap {
+            try JSONDecoder().decode(CallReportPayload.self, from: $0).stats
+        }
+        XCTAssertEqual(decodedStats.count, stats.count)
+        XCTAssertEqual(decodedStats.map(\.intervalStartUtc), stats.map(\.intervalStartUtc))
+    }
+
     func testIntervalEncodesJSCompatibleIceAndTransportStats() throws {
         let local = ICECandidateStats(
             id: "local-candidate",

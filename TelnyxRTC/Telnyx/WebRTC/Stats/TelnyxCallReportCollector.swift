@@ -85,6 +85,9 @@ public class TelnyxCallReportCollector {
     // Retry configuration for HTTP POST (aligned with Android)
     private let maxRetryAttempts = 3
     private let retryBaseDelay: TimeInterval = 1.0
+
+    internal static let maxPayloadSizeBytes = 2 * 1024 * 1024
+    internal static let safePayloadSizeBytes = Int(1.9 * 1024 * 1024)
     
     // MARK: - Initialization
     
@@ -259,25 +262,66 @@ public class TelnyxCallReportCollector {
             request.setValue(voiceSdkId, forHTTPHeaderField: "x-voice-sdk-id")
         }
 
-        // Encode payload
-        let jsonData: Data
+        let payloads: [Data]
         do {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted
-            jsonData = try encoder.encode(payload)
-            request.httpBody = jsonData
+            payloads = try Self.chunkedPayloadData(for: payload)
         } catch {
             Logger.log.e(message: "TelnyxCallReportCollector: Failed to encode payload: \(error)")
             return
         }
 
-        // Log the payload for debugging
-        if let jsonString = String(data: jsonData, encoding: .utf8) {
-            Logger.log.i(message: "TelnyxCallReportCollector: Payload:\n\(jsonString)")
+        if payloads.count > 1 {
+            Logger.log.i(message: "TelnyxCallReportCollector: Split report into \(payloads.count) chunks")
         }
 
-        // Post with retry logic (aligned with Android: 3 attempts, exponential backoff, 5xx only)
-        executeUpload(request: request, attempt: 1)
+        uploadPayloads(payloads, index: 0, request: request)
+    }
+
+    internal static func chunkedPayloadData(for payload: CallReportPayload) throws -> [Data] {
+        let encoder = JSONEncoder()
+        let encodedPayload = try encoder.encode(payload)
+        guard encodedPayload.count > maxPayloadSizeBytes, !payload.stats.isEmpty else {
+            return [encodedPayload]
+        }
+
+        var chunks: [Data] = []
+        var currentStats: [CallReportInterval] = []
+
+        for stat in payload.stats {
+            let candidateStats = currentStats + [stat]
+            let candidate = CallReportPayload(
+                summary: payload.summary,
+                stats: candidateStats,
+                logs: payload.logs,
+                segment: payload.segment
+            )
+            let candidateData = try encoder.encode(candidate)
+
+            if candidateData.count > safePayloadSizeBytes, !currentStats.isEmpty {
+                let chunk = CallReportPayload(
+                    summary: payload.summary,
+                    stats: currentStats,
+                    logs: payload.logs,
+                    segment: payload.segment
+                )
+                chunks.append(try encoder.encode(chunk))
+                currentStats = [stat]
+            } else {
+                currentStats = candidateStats
+            }
+        }
+
+        if !currentStats.isEmpty {
+            let chunk = CallReportPayload(
+                summary: payload.summary,
+                stats: currentStats,
+                logs: payload.logs,
+                segment: payload.segment
+            )
+            chunks.append(try encoder.encode(chunk))
+        }
+
+        return chunks
     }
 
     #if DEBUG
@@ -323,49 +367,71 @@ public class TelnyxCallReportCollector {
         #endif
     }
 
-    private func executeUpload(request: URLRequest, attempt: Int) {
+    private func uploadPayloads(_ payloads: [Data], index: Int, request: URLRequest) {
+        guard index < payloads.count else {
+            cleanup()
+            return
+        }
+
+        var chunkRequest = request
+        chunkRequest.httpBody = payloads[index]
+        executeUpload(request: chunkRequest, attempt: 1) { [weak self] success in
+            guard let self = self else { return }
+            guard success else {
+                self.cleanup()
+                return
+            }
+            self.uploadPayloads(payloads, index: index + 1, request: request)
+        }
+    }
+
+    private func executeUpload(request: URLRequest, attempt: Int, completion: @escaping (Bool) -> Void) {
         guard let requestUrl = request.url else {
             Logger.log.e(message: "TelnyxCallReportCollector: Request has no URL, skipping upload")
+            completion(false)
             return
         }
         let session = urlSession(for: requestUrl)
         let task = session.dataTask(with: request) { [weak self] data, response, error in
-            guard let self = self else { return }
+            guard let self = self else {
+                completion(false)
+                return
+            }
 
             if let error = error {
                 Logger.log.e(message: "TelnyxCallReportCollector: Error posting report (attempt \(attempt)): \(error)")
-                self.retryIfNeeded(request: request, attempt: attempt, statusCode: nil)
+                self.retryIfNeeded(request: request, attempt: attempt, statusCode: nil, completion: completion)
                 return
             }
 
             guard let httpResponse = response as? HTTPURLResponse else {
-                self.cleanup()
+                completion(false)
                 return
             }
 
             if httpResponse.statusCode >= 200 && httpResponse.statusCode < 300 {
                 Logger.log.i(message: "TelnyxCallReportCollector: Successfully posted report (status: \(httpResponse.statusCode))")
-                self.cleanup()
+                completion(true)
             } else {
                 let errorText = data.flatMap { String(data: $0, encoding: .utf8) } ?? "No response body"
                 Logger.log.e(message: "TelnyxCallReportCollector: Failed to post report (attempt \(attempt), status: \(httpResponse.statusCode), error: \(errorText))")
-                self.retryIfNeeded(request: request, attempt: attempt, statusCode: httpResponse.statusCode)
+                self.retryIfNeeded(request: request, attempt: attempt, statusCode: httpResponse.statusCode, completion: completion)
             }
         }
         task.resume()
     }
 
-    private func retryIfNeeded(request: URLRequest, attempt: Int, statusCode: Int?) {
+    private func retryIfNeeded(request: URLRequest, attempt: Int, statusCode: Int?, completion: @escaping (Bool) -> Void) {
         // Only retry on 5xx or network errors, not on 4xx
         if let code = statusCode, code >= 400 && code < 500 {
             Logger.log.e(message: "TelnyxCallReportCollector: Not retrying (client error \(code))")
-            cleanup()
+            completion(false)
             return
         }
 
         guard attempt < maxRetryAttempts else {
             Logger.log.e(message: "TelnyxCallReportCollector: All \(maxRetryAttempts) upload attempts failed")
-            cleanup()
+            completion(false)
             return
         }
 
@@ -373,7 +439,11 @@ public class TelnyxCallReportCollector {
         Logger.log.w(message: "TelnyxCallReportCollector: Retrying in \(delay)s (attempt \(attempt + 1)/\(maxRetryAttempts))")
 
         DispatchQueue.global().asyncAfter(deadline: .now() + delay) { [weak self] in
-            self?.executeUpload(request: request, attempt: attempt + 1)
+            guard let self = self else {
+                completion(false)
+                return
+            }
+            self.executeUpload(request: request, attempt: attempt + 1, completion: completion)
         }
     }
     
