@@ -394,6 +394,11 @@ class CallReportCollectorTests: XCTestCase {
         XCTAssertEqual(decodedStats.map(\.intervalStartUtc), stats.map(\.intervalStartUtc))
     }
 
+    func testIntermediateFlushIsDueAfterThreeMinutes() {
+        XCTAssertFalse(collector.isIntermediateFlushDue(at: collector.callStartTime.addingTimeInterval(179)))
+        XCTAssertTrue(collector.isIntermediateFlushDue(at: collector.callStartTime.addingTimeInterval(180)))
+    }
+
     func testIntervalEncodesJSCompatibleIceAndTransportStats() throws {
         let local = ICECandidateStats(
             id: "local-candidate",
