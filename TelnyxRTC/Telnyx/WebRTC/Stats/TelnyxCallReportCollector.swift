@@ -526,6 +526,11 @@ public class TelnyxCallReportCollector {
             return
         }
         let session = urlSession(for: requestUrl)
+        let callId = request.value(forHTTPHeaderField: "x-call-id") ?? "nil"
+        let callReportId = request.value(forHTTPHeaderField: "x-call-report-id") ?? "nil"
+        let voiceSdkId = request.value(forHTTPHeaderField: "x-voice-sdk-id") ?? "nil"
+        let bodyBytes = request.httpBody?.count ?? 0
+        Logger.log.i(message: "TelnyxCallReportCollector: Uploading pending report chunk (attempt \(attempt)/\(maxRetryAttempts), bytes: \(bodyBytes), callId: \(callId), callReportId: \(callReportId), voiceSdkId: \(voiceSdkId))")
         let task = session.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self else {
                 completion(.retryLater)
