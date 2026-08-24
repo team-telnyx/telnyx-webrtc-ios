@@ -378,7 +378,11 @@ class CallReportCollectorTests: XCTestCase {
                 message: "RTC config",
                 context: [
                     "iceServers": AnyCodable([
-                        ["urls": "turn:turn.telnyx.com:3478?transport=udp", "username": "user", "credential": "credential"]
+                        [
+                            "urls": "turn:turn.telnyx.com:3478?transport=udp",
+                            "hasUsername": true,
+                            "hasCredential": true
+                        ]
                     ] as [Any])
                 ]
             ),
@@ -415,6 +419,14 @@ class CallReportCollectorTests: XCTestCase {
         let payload = try JSONSerialization.jsonObject(with: data) as? [String: Any]
         let encodedLogs = try XCTUnwrap(payload?["logs"] as? [[String: Any]])
 
+        let iceServer = try XCTUnwrap(
+            ((encodedLogs[0]["context"] as? [String: Any])?["iceServers"] as? [[String: Any]])?.first
+        )
+        XCTAssertEqual(iceServer["urls"] as? String, "turn:turn.telnyx.com:3478?transport=udp")
+        XCTAssertEqual(iceServer["hasUsername"] as? Bool, true)
+        XCTAssertEqual(iceServer["hasCredential"] as? Bool, true)
+        XCTAssertNil(iceServer["username"])
+        XCTAssertNil(iceServer["credential"])
         XCTAssertEqual(encodedLogs[1]["message"] as? String, "RTCPeer Candidate:")
         XCTAssertEqual((encodedLogs[1]["context"] as? [String: Any])?["candidate"] as? String, candidate)
         XCTAssertEqual((encodedLogs[1]["context"] as? [String: Any])?["sdpMLineIndex"] as? Int, 1)

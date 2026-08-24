@@ -1127,19 +1127,17 @@ extension Call {
         "[\(ISO8601DateFormatter().string(from: Date()))] \(message)"
     }
 
-    /// This mirrors the Web SDK's RTC config event so the call-report ICE UI
-    /// can render the exact servers used to gather candidates.
+    /// Records the ICE-server URLs used for gathering without uploading TURN
+    /// authentication material. The presence flags retain diagnostics parity
+    /// with the sanitized client summary.
     private func callReportIceServersForLogs() -> [[String: Any]] {
         iceServers.flatMap { server in
             server.urlStrings.map { url in
-                var entry: [String: Any] = ["urls": url]
-                if let username = server.username, !username.isEmpty {
-                    entry["username"] = username
-                }
-                if let credential = server.credential, !credential.isEmpty {
-                    entry["credential"] = credential
-                }
-                return entry
+                [
+                    "urls": url,
+                    "hasUsername": !(server.username?.isEmpty ?? true),
+                    "hasCredential": !(server.credential?.isEmpty ?? true)
+                ]
             }
         }
     }
