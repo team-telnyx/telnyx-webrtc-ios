@@ -369,6 +369,71 @@ class CallReportCollectorTests: XCTestCase {
         }
     }
 
+    func testCallReportEncodesJSCompatibleIceLifecycleLogs() throws {
+        let candidate = "candidate:4279963309 1 udp 41820415 64.16.248.202 54368 typ relay generation 0 ufrag GhhH"
+        let logs = [
+            LogEntry(
+                timestamp: "2026-08-24T19:19:38.200Z",
+                level: "info",
+                message: "RTC config",
+                context: [
+                    "iceServers": AnyCodable([
+                        [
+                            "urls": "turn:turn.telnyx.com:3478?transport=udp",
+                            "hasUsername": true,
+                            "hasCredential": true
+                        ]
+                    ] as [Any])
+                ]
+            ),
+            LogEntry(
+                timestamp: "2026-08-24T19:19:38.800Z",
+                level: "info",
+                message: "RTCPeer Candidate:",
+                context: [
+                    "candidate": AnyCodable(candidate),
+                    "sdpMLineIndex": AnyCodable(1),
+                    "sdpMid": AnyCodable("video"),
+                    "usernameFragment": AnyCodable("GhhH")
+                ]
+            ),
+            LogEntry(
+                timestamp: "2026-08-24T19:19:39.000Z",
+                level: "warn",
+                message: "ICE candidate error:",
+                context: [
+                    "address": AnyCodable("192.168.1.38"),
+                    "port": AnyCodable(55286),
+                    "errorCode": AnyCodable(701),
+                    "errorText": AnyCodable("TURN allocate request timed out."),
+                    "url": AnyCodable("turn:turn.telnyx.com:3478?transport=udp")
+                ]
+            )
+        ]
+
+        let data = try JSONEncoder().encode(CallReportPayload(
+            summary: CallReportSummary(callId: "call-id"),
+            stats: [],
+            logs: logs
+        ))
+        let payload = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let encodedLogs = try XCTUnwrap(payload?["logs"] as? [[String: Any]])
+
+        let iceServer = try XCTUnwrap(
+            ((encodedLogs[0]["context"] as? [String: Any])?["iceServers"] as? [[String: Any]])?.first
+        )
+        XCTAssertEqual(iceServer["urls"] as? String, "turn:turn.telnyx.com:3478?transport=udp")
+        XCTAssertEqual(iceServer["hasUsername"] as? Bool, true)
+        XCTAssertEqual(iceServer["hasCredential"] as? Bool, true)
+        XCTAssertNil(iceServer["username"])
+        XCTAssertNil(iceServer["credential"])
+        XCTAssertEqual(encodedLogs[1]["message"] as? String, "RTCPeer Candidate:")
+        XCTAssertEqual((encodedLogs[1]["context"] as? [String: Any])?["candidate"] as? String, candidate)
+        XCTAssertEqual((encodedLogs[1]["context"] as? [String: Any])?["sdpMLineIndex"] as? Int, 1)
+        XCTAssertEqual(encodedLogs[2]["message"] as? String, "ICE candidate error:")
+        XCTAssertEqual((encodedLogs[2]["context"] as? [String: Any])?["errorCode"] as? Int, 701)
+    }
+
     func testLargePayloadSplitsStatsIntoSafeChunks() throws {
         let summary = CallReportSummary(callId: "call-id")
         let largeCandidateAddress = String(repeating: "a", count: 50_000)
