@@ -92,7 +92,14 @@ class TxClientPingAuthTests: XCTestCase {
             txClient.serverConfiguration.pushMetaData?["voice_sdk_id"] as? String,
             "fresh-push-sdk-id"
         )
-        XCTAssertTrue(txClient.serverConfiguration.signalingServer.absoluteString.contains("fresh-push-sdk-id"))
+        let queryItems = URLComponents(
+            url: txClient.serverConfiguration.signalingServer,
+            resolvingAgainstBaseURL: false
+        )?.queryItems
+        XCTAssertEqual(
+            queryItems?.first(where: { $0.name == "voice_sdk_id" })?.value,
+            "fresh-push-sdk-id"
+        )
     }
 
     func testDeclinePushDoneUsesEndActionUUIDWhenCallIdIsNotProvided() throws {
