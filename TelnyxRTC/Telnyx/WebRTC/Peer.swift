@@ -1018,6 +1018,10 @@ extension Peer : RTCPeerConnectionDelegate {
         // Mark first ICE candidate for benchmarking
         CallTimingBenchmark.markFirstCandidate()
 
+        // Record every gathered candidate for the call report, including
+        // candidates that legacy non-trickle handling later declines to send.
+        onIceCandidateForLog?(candidate)
+
         // For Trickle ICE, we always send candidates - don't skip based on negotiationEnded
         if !useTrickleIce {
             // Traditional mode: check if negotiation has ended or connection is established
@@ -1050,7 +1054,6 @@ extension Peer : RTCPeerConnectionDelegate {
 
         // We call the callback when the iceCandidate is added
         onIceCandidate?(candidate)
-        onIceCandidateForLog?(candidate)
 
         // Handle trickle ICE - send candidates individually as they are discovered
         if useTrickleIce {
