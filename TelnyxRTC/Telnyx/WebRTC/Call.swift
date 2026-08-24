@@ -1202,14 +1202,14 @@ extension Call {
 
         // Build call summary
         let summary = CallReportSummary(
-            callId: callId.uuidString,
+            callId: callId.uuidString.lowercased(),
             destinationNumber: self.callOptions?.destinationNumber,
             callerNumber: self.callInfo?.callerNumber,
             direction: self.direction.rawValue,
             state: self.callState.value.lowercased(),
             durationSeconds: durationSeconds,
-            telnyxSessionId: self.telnyxSessionId?.uuidString,
-            telnyxLegId: self.telnyxLegId?.uuidString,
+            telnyxSessionId: self.telnyxSessionId?.uuidString.lowercased(),
+            telnyxLegId: self.telnyxLegId?.uuidString.lowercased(),
             voiceSdkSessionId: self.sessionId,
             sdkVersion: Message.SDK_VERSION,
             startTimestamp: startTimestamp,
@@ -1250,13 +1250,13 @@ extension Call {
         flushIso8601.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         let startTimestamp = flushIso8601.string(from: collector.callStartTime)
         let summary = CallReportSummary(
-            callId: callId.uuidString,
+            callId: callId.uuidString.lowercased(),
             destinationNumber: self.callOptions?.destinationNumber,
             callerNumber: self.callInfo?.callerNumber,
             direction: self.direction.rawValue,
             state: self.callState.value.lowercased(),
-            telnyxSessionId: self.telnyxSessionId?.uuidString,
-            telnyxLegId: self.telnyxLegId?.uuidString,
+            telnyxSessionId: self.telnyxSessionId?.uuidString.lowercased(),
+            telnyxLegId: self.telnyxLegId?.uuidString.lowercased(),
             voiceSdkSessionId: self.sessionId,
             sdkVersion: Message.SDK_VERSION,
             startTimestamp: startTimestamp,
