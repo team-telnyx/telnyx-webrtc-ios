@@ -48,6 +48,10 @@ public class TelnyxCallReportCollector {
     private weak var peerConnection: RTCPeerConnection?
     private var timer: Timer?
     private var isMediaVerificationSamplingEnabled = false
+    /// Native WebRTC statistics complete asynchronously. Keep one request in
+    /// flight so timer ticks cannot process the same interval twice.
+    private let statsCollectionLock = NSLock()
+    private var isStatsCollectionInFlight = false
     private var statsBuffer: [CallReportInterval] = []
     private var intervalStartTime: Date?
     private(set) var callStartTime: Date
@@ -73,6 +77,8 @@ public class TelnyxCallReportCollector {
     // Flush thresholds for intermediate segment reporting (matches JS SDK)
     let statsFlushThreshold = 300  // ~25 min at 5s intervals
     let logsFlushThreshold = 800
+    private let intermediateFlushInterval: TimeInterval = 180
+    private var lastIntermediateFlushTime: Date?
 
     // Segment tracking for intermediate flushes
     private var segmentIndex: Int = 0
@@ -85,6 +91,12 @@ public class TelnyxCallReportCollector {
     // Retry configuration for HTTP POST (aligned with Android)
     private let maxRetryAttempts = 3
     private let retryBaseDelay: TimeInterval = 1.0
+
+    internal static let maxPayloadSizeBytes = 2 * 1024 * 1024
+    internal static let safePayloadSizeBytes = Int(1.9 * 1024 * 1024)
+
+    private let uploadQueue = DispatchQueue(label: "com.telnyx.call-report-upload")
+    private var isUploadingPendingReports = false
     
     // MARK: - Initialization
     
@@ -100,6 +112,8 @@ public class TelnyxCallReportCollector {
         } else {
             self.logCollector = nil
         }
+
+        replayPendingUploads()
     }
     
     // MARK: - Public Methods
@@ -111,6 +125,7 @@ public class TelnyxCallReportCollector {
         
         self.peerConnection = peerConnection
         self.intervalStartTime = Date()
+        self.lastIntermediateFlushTime = self.intervalStartTime
         
         Logger.log.i(message: "TelnyxCallReportCollector: Starting stats collection (interval: \(config.interval)s, logCollectorActive: \(logCollector?.isActive() ?? false))")
 
@@ -204,6 +219,7 @@ public class TelnyxCallReportCollector {
 
         let currentSegment = segmentIndex
         segmentIndex += 1
+        lastIntermediateFlushTime = Date()
 
         // Snapshot and clear stats buffer
         let stats = statsBuffer
@@ -242,42 +258,94 @@ public class TelnyxCallReportCollector {
         let urlHost = rawHost.contains(":") ? "[\(rawHost)]" : rawHost
         let endpoint = "\(scheme)://\(urlHost)\(wsUrl.port.map { ":\($0)" } ?? "")/call_report"
 
-        guard let endpointUrl = URL(string: endpoint) else {
+        guard URL(string: endpoint) != nil else {
             Logger.log.e(message: "TelnyxCallReportCollector: Failed to construct endpoint URL from: \(endpoint)")
             return
         }
 
         Logger.log.i(message: "TelnyxCallReportCollector: Sending payload (host: \(host), endpoint: \(endpoint), callReportId: \(callReportId), voiceSdkId: \(voiceSdkId ?? "nil"), intervals: \(payload.stats.count), logEntries: \(payload.logs?.count ?? 0), segment: \(payload.segment.map { "\($0)" } ?? "nil"), callId: \(payload.summary.callId))")
 
-        // Build request
-        var request = URLRequest(url: endpointUrl)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(callReportId, forHTTPHeaderField: "x-call-report-id")
-        request.setValue(payload.summary.callId, forHTTPHeaderField: "x-call-id")
-        if let voiceSdkId = voiceSdkId {
-            request.setValue(voiceSdkId, forHTTPHeaderField: "x-voice-sdk-id")
-        }
-
-        // Encode payload
-        let jsonData: Data
+        let payloads: [Data]
         do {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted
-            jsonData = try encoder.encode(payload)
-            request.httpBody = jsonData
+            payloads = try Self.chunkedPayloadData(for: payload)
         } catch {
             Logger.log.e(message: "TelnyxCallReportCollector: Failed to encode payload: \(error)")
             return
         }
 
-        // Log the payload for debugging
-        if let jsonString = String(data: jsonData, encoding: .utf8) {
-            Logger.log.i(message: "TelnyxCallReportCollector: Payload:\n\(jsonString)")
+        if payloads.count > 1 {
+            Logger.log.i(message: "TelnyxCallReportCollector: Split report into \(payloads.count) chunks")
         }
 
-        // Post with retry logic (aligned with Android: 3 attempts, exponential backoff, 5xx only)
-        executeUpload(request: request, attempt: 1)
+        let uploads = payloads.enumerated().map { index, data in
+            PendingCallReportUpload(
+                endpoint: endpoint,
+                callReportId: callReportId,
+                callId: payload.summary.callId,
+                voiceSdkId: voiceSdkId,
+                segment: payload.segment,
+                chunkIndex: index,
+                body: data
+            )
+        }
+
+        uploadQueue.async { [weak self] in
+            guard let self = self else { return }
+            guard self.persist(uploads) else { return }
+            self.cleanup()
+            self.processPendingUploads()
+        }
+    }
+
+    internal static func chunkedPayloadData(for payload: CallReportPayload) throws -> [Data] {
+        let encoder = JSONEncoder()
+        let encodedPayload = try encoder.encode(payload)
+        guard encodedPayload.count > maxPayloadSizeBytes, !payload.stats.isEmpty else {
+            return [encodedPayload]
+        }
+
+        var chunks: [Data] = []
+        var currentStats: [CallReportInterval] = []
+
+        for stat in payload.stats {
+            let candidateStats = currentStats + [stat]
+            let candidate = CallReportPayload(
+                summary: payload.summary,
+                stats: candidateStats,
+                logs: payload.logs,
+                segment: payload.segment
+            )
+            let candidateData = try encoder.encode(candidate)
+
+            if candidateData.count > safePayloadSizeBytes, !currentStats.isEmpty {
+                let chunk = CallReportPayload(
+                    summary: payload.summary,
+                    stats: currentStats,
+                    logs: payload.logs,
+                    segment: payload.segment
+                )
+                chunks.append(try encoder.encode(chunk))
+                currentStats = [stat]
+            } else {
+                currentStats = candidateStats
+            }
+        }
+
+        if !currentStats.isEmpty {
+            let chunk = CallReportPayload(
+                summary: payload.summary,
+                stats: currentStats,
+                logs: payload.logs,
+                segment: payload.segment
+            )
+            chunks.append(try encoder.encode(chunk))
+        }
+
+        return chunks
+    }
+
+    internal func isIntermediateFlushDue(at date: Date = Date()) -> Bool {
+        date.timeIntervalSince(lastIntermediateFlushTime ?? callStartTime) >= intermediateFlushInterval
     }
 
     #if DEBUG
@@ -323,49 +391,190 @@ public class TelnyxCallReportCollector {
         #endif
     }
 
-    private func executeUpload(request: URLRequest, attempt: Int) {
+    private struct PendingCallReportUpload: Codable {
+        let endpoint: String
+        let callReportId: String
+        let callId: String
+        let voiceSdkId: String?
+        let segment: Int?
+        let chunkIndex: Int
+        let body: Data
+    }
+
+    private enum UploadResult {
+        case delivered
+        case retryLater
+        case discard
+    }
+
+    private func replayPendingUploads() {
+        uploadQueue.async { [weak self] in
+            self?.processPendingUploads()
+        }
+    }
+
+    private func persist(_ uploads: [PendingCallReportUpload]) -> Bool {
+        do {
+            let directory = try pendingUploadsDirectory()
+            let encoder = JSONEncoder()
+            for upload in uploads {
+                let filename = pendingFilename(for: upload)
+                let url = directory.appendingPathComponent(filename)
+                try encoder.encode(upload).write(to: url, options: .atomic)
+                try? (url as NSURL).setResourceValue(true, forKey: .isExcludedFromBackupKey)
+                try? FileManager.default.setAttributes(
+                    [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
+                    ofItemAtPath: url.path
+                )
+            }
+            Logger.log.i(message: "TelnyxCallReportCollector: Persisted \(uploads.count) pending report chunk(s)")
+            return true
+        } catch {
+            Logger.log.e(message: "TelnyxCallReportCollector: Failed to persist pending report: \(error)")
+            return false
+        }
+    }
+
+    private func processPendingUploads() {
+        guard !isUploadingPendingReports else { return }
+        guard let url = nextPendingUploadURL() else { return }
+
+        let upload: PendingCallReportUpload
+        do {
+            upload = try JSONDecoder().decode(PendingCallReportUpload.self, from: Data(contentsOf: url))
+        } catch {
+            Logger.log.e(message: "TelnyxCallReportCollector: Discarding unreadable pending report: \(error)")
+            try? FileManager.default.removeItem(at: url)
+            processPendingUploads()
+            return
+        }
+
+        guard var request = request(for: upload) else {
+            Logger.log.e(message: "TelnyxCallReportCollector: Discarding pending report with invalid endpoint")
+            try? FileManager.default.removeItem(at: url)
+            processPendingUploads()
+            return
+        }
+        request.httpBody = upload.body
+        isUploadingPendingReports = true
+
+        executeUpload(request: request, attempt: 1) { [weak self] result in
+            guard let self = self else { return }
+            self.uploadQueue.async {
+                self.isUploadingPendingReports = false
+                switch result {
+                case .delivered:
+                    try? FileManager.default.removeItem(at: url)
+                    Logger.log.i(message: "TelnyxCallReportCollector: Removed delivered pending report chunk")
+                    self.processPendingUploads()
+                case .discard:
+                    try? FileManager.default.removeItem(at: url)
+                    Logger.log.e(message: "TelnyxCallReportCollector: Discarded pending report after a non-retryable response")
+                    self.processPendingUploads()
+                case .retryLater:
+                    Logger.log.w(message: "TelnyxCallReportCollector: Keeping pending report chunk for a future replay")
+                }
+            }
+        }
+    }
+
+    private func request(for upload: PendingCallReportUpload) -> URLRequest? {
+        guard let endpoint = URL(string: upload.endpoint) else { return nil }
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(upload.callReportId, forHTTPHeaderField: "x-call-report-id")
+        request.setValue(upload.callId, forHTTPHeaderField: "x-call-id")
+        if let voiceSdkId = upload.voiceSdkId {
+            request.setValue(voiceSdkId, forHTTPHeaderField: "x-voice-sdk-id")
+        }
+        return request
+    }
+
+    private func pendingUploadsDirectory() throws -> URL {
+        let fileManager = FileManager.default
+        let base = try fileManager.url(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        )
+        let directory = base.appendingPathComponent("TelnyxCallReports", isDirectory: true)
+        try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+        return directory
+    }
+
+    private func nextPendingUploadURL() -> URL? {
+        guard let directory = try? pendingUploadsDirectory() else { return nil }
+        return (try? FileManager.default.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: nil,
+            options: [.skipsHiddenFiles]
+        ))?
+            .filter { $0.pathExtension == "json" }
+            .sorted { $0.lastPathComponent < $1.lastPathComponent }
+            .first
+    }
+
+    private func pendingFilename(for upload: PendingCallReportUpload) -> String {
+        let callId = upload.callId.replacingOccurrences(of: "[^A-Za-z0-9-]", with: "-", options: .regularExpression)
+        let segment = upload.segment.map(String.init) ?? "final"
+        let timestamp = String(format: "%020.0f", Date().timeIntervalSince1970 * 1_000)
+        return "\(timestamp)-\(callId)-\(segment)-\(upload.chunkIndex)-\(UUID().uuidString).json"
+    }
+
+    private func executeUpload(request: URLRequest, attempt: Int, completion: @escaping (UploadResult) -> Void) {
         guard let requestUrl = request.url else {
             Logger.log.e(message: "TelnyxCallReportCollector: Request has no URL, skipping upload")
+            completion(.discard)
             return
         }
         let session = urlSession(for: requestUrl)
+        let callId = request.value(forHTTPHeaderField: "x-call-id") ?? "nil"
+        let callReportId = request.value(forHTTPHeaderField: "x-call-report-id") ?? "nil"
+        let voiceSdkId = request.value(forHTTPHeaderField: "x-voice-sdk-id") ?? "nil"
+        let bodyBytes = request.httpBody?.count ?? 0
+        Logger.log.i(message: "TelnyxCallReportCollector: Uploading pending report chunk (attempt \(attempt)/\(maxRetryAttempts), bytes: \(bodyBytes), callId: \(callId), callReportId: \(callReportId), voiceSdkId: \(voiceSdkId))")
         let task = session.dataTask(with: request) { [weak self] data, response, error in
-            guard let self = self else { return }
+            guard let self = self else {
+                completion(.retryLater)
+                return
+            }
 
             if let error = error {
                 Logger.log.e(message: "TelnyxCallReportCollector: Error posting report (attempt \(attempt)): \(error)")
-                self.retryIfNeeded(request: request, attempt: attempt, statusCode: nil)
+                self.retryIfNeeded(request: request, attempt: attempt, statusCode: nil, completion: completion)
                 return
             }
 
             guard let httpResponse = response as? HTTPURLResponse else {
-                self.cleanup()
+                completion(.retryLater)
                 return
             }
 
             if httpResponse.statusCode >= 200 && httpResponse.statusCode < 300 {
                 Logger.log.i(message: "TelnyxCallReportCollector: Successfully posted report (status: \(httpResponse.statusCode))")
-                self.cleanup()
+                completion(.delivered)
             } else {
                 let errorText = data.flatMap { String(data: $0, encoding: .utf8) } ?? "No response body"
                 Logger.log.e(message: "TelnyxCallReportCollector: Failed to post report (attempt \(attempt), status: \(httpResponse.statusCode), error: \(errorText))")
-                self.retryIfNeeded(request: request, attempt: attempt, statusCode: httpResponse.statusCode)
+                self.retryIfNeeded(request: request, attempt: attempt, statusCode: httpResponse.statusCode, completion: completion)
             }
         }
         task.resume()
     }
 
-    private func retryIfNeeded(request: URLRequest, attempt: Int, statusCode: Int?) {
+    private func retryIfNeeded(request: URLRequest, attempt: Int, statusCode: Int?, completion: @escaping (UploadResult) -> Void) {
         // Only retry on 5xx or network errors, not on 4xx
         if let code = statusCode, code >= 400 && code < 500 {
             Logger.log.e(message: "TelnyxCallReportCollector: Not retrying (client error \(code))")
-            cleanup()
+            completion(.discard)
             return
         }
 
         guard attempt < maxRetryAttempts else {
             Logger.log.e(message: "TelnyxCallReportCollector: All \(maxRetryAttempts) upload attempts failed")
-            cleanup()
+            completion(.retryLater)
             return
         }
 
@@ -373,7 +582,11 @@ public class TelnyxCallReportCollector {
         Logger.log.w(message: "TelnyxCallReportCollector: Retrying in \(delay)s (attempt \(attempt + 1)/\(maxRetryAttempts))")
 
         DispatchQueue.global().asyncAfter(deadline: .now() + delay) { [weak self] in
-            self?.executeUpload(request: request, attempt: attempt + 1)
+            guard let self = self else {
+                completion(.retryLater)
+                return
+            }
+            self.executeUpload(request: request, attempt: attempt + 1, completion: completion)
         }
     }
     
@@ -430,12 +643,23 @@ public class TelnyxCallReportCollector {
 
     /// Collect stats from the peer connection and aggregate them
     private func collectStats() {
-        guard let peerConnection = peerConnection, let intervalStartTime = intervalStartTime else {
+        statsCollectionLock.lock()
+        guard !isStatsCollectionInFlight,
+              let peerConnection = peerConnection,
+              let intervalStartTime = intervalStartTime else {
+            statsCollectionLock.unlock()
             return
         }
+        isStatsCollectionInFlight = true
+        statsCollectionLock.unlock()
 
         peerConnection.statistics { [weak self] report in
             guard let self = self else { return }
+            defer {
+                self.statsCollectionLock.lock()
+                self.isStatsCollectionInFlight = false
+                self.statsCollectionLock.unlock()
+            }
 
             let now = Date()
             let parsed = self.parseStatsReport(report)
@@ -579,7 +803,11 @@ public class TelnyxCallReportCollector {
         now: Date
     ) {
         if let outbound = parsed.outbound {
-            if let audioLevel = getAudioLevel(from: statistics, trackId: outbound.trackId) {
+            // iOS exposes the local capture level on media-source. Older
+            // WebRTC builds exposed it on the track record, so keep that as a
+            // fallback for compatibility.
+            if let audioLevel = parsed.outboundMediaSource?.audioLevel ??
+                getAudioLevel(from: statistics, trackId: outbound.trackId) {
                 intervalAudioLevels.outbound.append(audioLevel)
             }
             if let prevBytes = previousStats.outboundBytes, let prevTimestamp = previousStats.timestamp {
@@ -847,8 +1075,11 @@ public class TelnyxCallReportCollector {
     /// and notify the caller via `onFlushNeeded` if so.
     private func checkFlushThresholds() {
         let logCount = logCollector?.getLogCount() ?? 0
-        if statsBuffer.count >= statsFlushThreshold || logCount >= logsFlushThreshold {
-            Logger.log.i(message: "TelnyxCallReportCollector: Flush threshold reached (stats: \(statsBuffer.count)/\(statsFlushThreshold), logs: \(logCount)/\(logsFlushThreshold))")
+        let secondsSinceLastFlush = Date().timeIntervalSince(lastIntermediateFlushTime ?? callStartTime)
+        if statsBuffer.count >= statsFlushThreshold ||
+            logCount >= logsFlushThreshold ||
+            isIntermediateFlushDue() {
+            Logger.log.i(message: "TelnyxCallReportCollector: Flush threshold reached (stats: \(statsBuffer.count)/\(statsFlushThreshold), logs: \(logCount)/\(logsFlushThreshold), elapsed: \(Int(secondsSinceLastFlush))/\(Int(intermediateFlushInterval))s)")
             onFlushNeeded?()
         }
     }

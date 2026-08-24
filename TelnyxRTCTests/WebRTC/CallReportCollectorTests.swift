@@ -89,6 +89,7 @@ class CallReportCollectorTests: XCTestCase {
         let data = try JSONEncoder().encode(summary)
         let json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
         let clientSummary = try XCTUnwrap(json["clientSummary"] as? [String: Any])
+        let callReports = try XCTUnwrap(clientSummary["callReports"] as? [String: Any])
         let media = try XCTUnwrap(clientSummary["media"] as? [String: Any])
         let iceServer = try XCTUnwrap((media["iceServers"] as? [[String: Any]])?.first)
 
@@ -97,6 +98,7 @@ class CallReportCollectorTests: XCTestCase {
         XCTAssertEqual(iceServer["hasCredential"] as? Bool, true)
         XCTAssertNil(iceServer["username"])
         XCTAssertNil(iceServer["credential"])
+        XCTAssertEqual(callReports["flushIntervalMs"] as? Int, 180_000)
     }
     
     // MARK: - Start/Stop Tests
@@ -365,6 +367,38 @@ class CallReportCollectorTests: XCTestCase {
         } catch {
             XCTFail("Failed to encode payload: \(error)")
         }
+    }
+
+    func testLargePayloadSplitsStatsIntoSafeChunks() throws {
+        let summary = CallReportSummary(callId: "call-id")
+        let largeCandidateAddress = String(repeating: "a", count: 50_000)
+        let localCandidate = ICECandidateStats(address: largeCandidateAddress)
+        let stats = (0..<50).map { index in
+            CallReportInterval(
+                intervalStartUtc: "2026-08-23T10:00:\(index).000Z",
+                intervalEndUtc: "2026-08-23T10:00:\(index + 1).000Z",
+                ice: ICECandidatePairStats(local: localCandidate)
+            )
+        }
+        let payload = CallReportPayload(summary: summary, stats: stats)
+
+        let chunks = try TelnyxCallReportCollector.chunkedPayloadData(for: payload)
+
+        XCTAssertGreaterThan(chunks.count, 1)
+        XCTAssertTrue(chunks.allSatisfy {
+            $0.count <= TelnyxCallReportCollector.safePayloadSizeBytes
+        })
+
+        let decodedStats = try chunks.flatMap {
+            try JSONDecoder().decode(CallReportPayload.self, from: $0).stats
+        }
+        XCTAssertEqual(decodedStats.count, stats.count)
+        XCTAssertEqual(decodedStats.map(\.intervalStartUtc), stats.map(\.intervalStartUtc))
+    }
+
+    func testIntermediateFlushIsDueAfterThreeMinutes() {
+        XCTAssertFalse(collector.isIntermediateFlushDue(at: collector.callStartTime.addingTimeInterval(179)))
+        XCTAssertTrue(collector.isIntermediateFlushDue(at: collector.callStartTime.addingTimeInterval(180)))
     }
 
     func testIntervalEncodesJSCompatibleIceAndTransportStats() throws {

@@ -1049,6 +1049,56 @@ extension Call {
                 context: ["state": state.telnyx_to_string()]
             )
         }
+
+        peer.onIceConnectionStateChangeForLog = { [weak self] state in
+            self?.callReportCollector?.addLogEntry(
+                level: "info",
+                message: "ICE connection state changed",
+                context: ["state": state.telnyx_to_string()]
+            )
+        }
+
+        peer.onNegotiationNeededForLog = { [weak self] in
+            self?.callReportCollector?.addLogEntry(
+                level: "info",
+                message: "Peer negotiation needed"
+            )
+        }
+
+        peer.onIceCandidateForLog = { [weak self] candidate in
+            guard let self = self else { return }
+            self.callReportCollector?.addLogEntry(
+                level: "info",
+                message: "Local ICE candidate gathered",
+                context: self.sanitizedCandidateContext(
+                    candidate.sdp,
+                    sdpMid: candidate.sdpMid,
+                    sdpMLineIndex: Int(candidate.sdpMLineIndex)
+                )
+            )
+        }
+    }
+
+    /// Candidate SDP contains local/public addresses. Reports keep only safe
+    /// transport metadata needed for diagnostics.
+    private func sanitizedCandidateContext(
+        _ candidate: String,
+        sdpMid: String? = nil,
+        sdpMLineIndex: Int? = nil
+    ) -> [String: Any] {
+        let fields = candidate
+            .replacingOccurrences(of: "a=", with: "")
+            .split(separator: " ")
+            .map(String.init)
+        let typeIndex = fields.firstIndex(of: "typ")
+        var context: [String: Any] = [:]
+        if fields.count > 2 { context["protocol"] = fields[2].lowercased() }
+        if let typeIndex, fields.indices.contains(typeIndex + 1) {
+            context["candidateType"] = fields[typeIndex + 1]
+        }
+        if let sdpMid { context["sdpMid"] = sdpMid }
+        if let sdpMLineIndex { context["sdpMLineIndex"] = sdpMLineIndex }
+        return context
     }
 
     private func startCallReportCollector() {
@@ -1187,6 +1237,7 @@ extension Call {
             callReports: CallReportSettingsSummary(
                 enabled: enableCallReports,
                 intervalMs: Int((callReportInterval * 1000).rounded()),
+                flushIntervalMs: 180_000,
                 debugLogLevel: callReportLogLevel,
                 debugLogMaxEntries: callReportMaxLogEntries
             )
@@ -1563,6 +1614,15 @@ extension Call {
                 let sdpMLineIndex = params["sdpMLineIndex"] as? Int32 ?? 0
 
                 Logger.log.i(message: "[TRICKLE-ICE] Call:: Received remote candidate - forwarding to peer")
+                callReportCollector?.addLogEntry(
+                    level: "info",
+                    message: "Remote ICE candidate received",
+                    context: sanitizedCandidateContext(
+                        candidateString,
+                        sdpMid: sdpMid,
+                        sdpMLineIndex: Int(sdpMLineIndex)
+                    )
+                )
                 self.peer?.handleRemoteCandidate(candidateString: candidateString, sdpMid: sdpMid, sdpMLineIndex: sdpMLineIndex)
             }
             break
@@ -1570,6 +1630,7 @@ extension Call {
         case .END_OF_CANDIDATES:
             // Handle end of remote candidates signal for trickle ICE
             Logger.log.i(message: "[TRICKLE-ICE] Call:: Received END_OF_CANDIDATES - forwarding to peer")
+            callReportCollector?.addLogEntry(level: "info", message: "Remote ICE gathering complete")
             self.peer?.handleEndOfRemoteCandidates()
             break
 
