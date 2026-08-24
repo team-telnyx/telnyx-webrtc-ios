@@ -73,6 +73,28 @@ class TxClientPingAuthTests: XCTestCase {
                        "No error should occur — ping should be silently ignored on unauthenticated socket")
     }
 
+    func testFreshPushVoiceSdkIdTakesPrecedenceOverCachedIdOnConnect() throws {
+        txClient.onMessageReceived(message: """
+        {"jsonrpc":"2.0","voice_sdk_id":"stale-sdk-id","result":{"params":{"state":"REGED"}}}
+        """)
+
+        let txConfig = TxConfig(sipUser: "test_user", password: "test_password")
+        let serverConfiguration = TxServerConfiguration(
+            pushMetaData: [
+                "voice_sdk_id": "fresh-push-sdk-id",
+                "call_id": UUID().uuidString
+            ]
+        )
+
+        try txClient.connect(txConfig: txConfig, serverConfiguration: serverConfiguration)
+
+        XCTAssertEqual(
+            txClient.serverConfiguration.pushMetaData?["voice_sdk_id"] as? String,
+            "fresh-push-sdk-id"
+        )
+        XCTAssertTrue(txClient.serverConfiguration.signalingServer.absoluteString.contains("fresh-push-sdk-id"))
+    }
+
     func testDeclinePushDoneUsesEndActionUUIDWhenCallIdIsNotProvided() throws {
         let callUUID = UUID()
         try startPushFlow(callId: callUUID)

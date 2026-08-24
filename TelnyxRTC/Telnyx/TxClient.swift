@@ -578,17 +578,7 @@ public class TxClient {
         self.gatewayState = .NOREG
         self.txConfig = txConfig
 
-        if(self.voiceSdkId != nil){
-            Logger.log.i(message: "with_id")
-            self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,
-                                                             webRTCIceServers: serverConfiguration.webRTCIceServers,
-                                                             environment: serverConfiguration.environment,
-                                                             pushMetaData: [
-                                                                "voice_sdk_id":self.voiceSdkId!
-                                                             ])
-        } else {
-            self.serverConfiguration = serverConfiguration
-        }
+        self.serverConfiguration = serverConfigurationForConnection(serverConfiguration)
         self.socket = Socket()
         self.socket?.delegate = self
         self.aiAssistantManager.setSocket(self.socket)
@@ -616,6 +606,29 @@ public class TxClient {
         self.socket?.delegate = self
         self.aiAssistantManager.setSocket(self.socket)
         self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
+    }
+
+    /// Builds a connection configuration without allowing a voice SDK ID from
+    /// an earlier session to overwrite newer push metadata. Preserve all push
+    /// metadata as it can contain the CallKit correlation fields as well.
+    private func serverConfigurationForConnection(
+        _ configuration: TxServerConfiguration
+    ) -> TxServerConfiguration {
+        var pushMetaData = configuration.pushMetaData ?? [:]
+        if let pushedVoiceSdkId = pushMetaData["voice_sdk_id"] as? String,
+           !pushedVoiceSdkId.isEmpty {
+            voiceSdkId = pushedVoiceSdkId
+        } else if let voiceSdkId {
+            pushMetaData["voice_sdk_id"] = voiceSdkId
+        }
+
+        return TxServerConfiguration(
+            signalingServer: configuration.signalingServer,
+            webRTCIceServers: configuration.webRTCIceServers,
+            environment: configuration.environment,
+            pushMetaData: pushMetaData.isEmpty ? nil : pushMetaData,
+            region: configuration.region
+        )
     }
     
     /// Connects only the socket without performing login - used for improved push flow
@@ -1074,19 +1087,7 @@ public class TxClient {
             Logger.log.i(message: "TxClient:: anonymousLogin() socket not connected, starting connection process")
             self.pendingAnonymousLoginMessage = anonymousLoginMessage
             
-            // Set up server configuration
-            if self.voiceSdkId != nil {
-                Logger.log.i(message: "TxClient:: anonymousLogin() with voice_sdk_id")
-                self.serverConfiguration = TxServerConfiguration(
-                    signalingServer: serverConfiguration.signalingServer,
-                    webRTCIceServers: serverConfiguration.webRTCIceServers,
-                    environment: serverConfiguration.environment,
-                    pushMetaData: ["voice_sdk_id": self.voiceSdkId!]
-                )
-            } else {
-                Logger.log.i(message: "TxClient:: anonymousLogin() without voice_sdk_id")
-                self.serverConfiguration = serverConfiguration
-            }
+            self.serverConfiguration = serverConfigurationForConnection(serverConfiguration)
             
             Logger.log.i(message: "TxClient:: anonymousLogin() serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
             
@@ -1525,6 +1526,9 @@ extension TxClient {
         }
         
         self.pushMetaData = pushMetaData
+        // A VoIP push is authoritative for this incoming call. Update the
+        // cached ID before any reconnect path can call the normal connect API.
+        self.voiceSdkId = rtc_id
         self.pushCallState = .idle
         
         // Store config objects for later use (don't login immediately)
