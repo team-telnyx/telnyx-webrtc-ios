@@ -45,11 +45,6 @@ jobs:
         ruby-version: 3.3.0
         bundler-cache: true
 
-    - name: 📦 Install Fastlane and Jazzy
-      run: |
-        gem install fastlane
-        gem install jazzy
-
     - name: 📦 Install SourceDocs
       run: |
         brew install sourcedocs
@@ -60,7 +55,7 @@ jobs:
 
     - name: 📝 Run Fastlane to generate full documentation
       run: |
-        fastlane generate_full_docs
+        bundle exec fastlane generate_full_docs
 
     - name: 👤 Setup Git user
       run: |
