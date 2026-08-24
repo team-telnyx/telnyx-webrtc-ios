@@ -155,8 +155,10 @@ class Peer : NSObject, WebRTCEventHandler {
     var onSignalingStateChangeForLog: ((RTCSignalingState) -> Void)?
     var onIceGatheringStateChangeForLog: ((RTCIceGatheringState) -> Void)?
     var onIceConnectionStateChangeForLog: ((RTCIceConnectionState) -> Void)?
+    var onPeerConnectionStateChangeForLog: ((RTCPeerConnectionState) -> Void)?
     var onNegotiationNeededForLog: (() -> Void)?
     var onIceCandidateForLog: ((RTCIceCandidate) -> Void)?
+    var onIceCandidateErrorForLog: ((RTCIceCandidateErrorEvent) -> Void)?
     var onIceCandidate: ((RTCIceCandidate) -> Void)?
     var onRemoveIceCandidates: (([RTCIceCandidate]) -> Void)?
     var onDataChannel: ((RTCDataChannel) -> Void)?
@@ -617,8 +619,10 @@ class Peer : NSObject, WebRTCEventHandler {
         self.onSignalingStateChangeForLog = nil
         self.onIceGatheringStateChangeForLog = nil
         self.onIceConnectionStateChangeForLog = nil
+        self.onPeerConnectionStateChangeForLog = nil
         self.onNegotiationNeededForLog = nil
         self.onIceCandidateForLog = nil
+        self.onIceCandidateErrorForLog = nil
         self.onIceCandidate = nil
         self.onRemoveIceCandidates = nil
         self.onDataChannel = nil
@@ -953,6 +957,7 @@ extension Peer : RTCPeerConnectionDelegate {
     
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCPeerConnectionState) {
         onPeerConnectionStateChange?(newState)
+        onPeerConnectionStateChangeForLog?(newState)
         Logger.log.i(message: "Peer:: connection didChange peer connection state: [\(newState.telnyx_to_string().uppercased())]")
         
         // Track peer connection state changes for benchmarking
@@ -1104,6 +1109,11 @@ extension Peer : RTCPeerConnectionDelegate {
             }
         }
       
+    }
+
+    func peerConnection(_ peerConnection: RTCPeerConnection, didFailToGatherIceCandidate event: RTCIceCandidateErrorEvent) {
+        onIceCandidateErrorForLog?(event)
+        Logger.log.w(message: "Peer:: failed to gather ICE candidate (code: \(event.errorCode), url: \(event.url))")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didRemove candidates: [RTCIceCandidate]) {

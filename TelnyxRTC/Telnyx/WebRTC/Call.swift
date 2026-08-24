@@ -243,6 +243,9 @@ public class Call {
     /// Previous overall peer connection state for recovery monitoring.
     private var previousPeerConnectionState: RTCPeerConnectionState = .new
 
+    /// Previous connection state used only to mirror the Web SDK call-report log.
+    private var previousPeerConnectionStateForCallReport = "new"
+
     /// Flag to track if ICE connection has been successfully established at least once
     private var hasBeenConnectedBefore: Bool = false
 
@@ -1034,6 +1037,14 @@ extension Call {
     private func setupPeerEventLogging() {
         guard let peer = self.peer else { return }
 
+        previousPeerConnectionStateForCallReport = "new"
+
+        callReportCollector?.addLogEntry(
+            level: "info",
+            message: "RTC config",
+            context: ["iceServers": callReportIceServersForLogs() as [Any]]
+        )
+
         peer.onSignalingStateChangeForLog = { [weak self] state in
             self?.callReportCollector?.addLogEntry(
                 level: "info",
@@ -1045,17 +1056,27 @@ extension Call {
         peer.onIceGatheringStateChangeForLog = { [weak self] state in
             self?.callReportCollector?.addLogEntry(
                 level: "info",
-                message: "ICE gathering state changed",
-                context: ["state": state.telnyx_to_string()]
+                message: Self.callReportTimestampedMessage("ICE Gathering State"),
+                context: ["args": [state.telnyx_to_string()]]
             )
         }
 
         peer.onIceConnectionStateChangeForLog = { [weak self] state in
             self?.callReportCollector?.addLogEntry(
                 level: "info",
-                message: "ICE connection state changed",
-                context: ["state": state.telnyx_to_string()]
+                message: Self.callReportTimestampedMessage("ICE Connection State"),
+                context: ["args": [state.telnyx_to_string()]]
             )
+        }
+
+        peer.onPeerConnectionStateChangeForLog = { [weak self] state in
+            guard let self = self else { return }
+            let currentState = state.telnyx_to_string()
+            self.callReportCollector?.addLogEntry(
+                level: "info",
+                message: "Connection State changed: \(self.previousPeerConnectionStateForCallReport) -> \(currentState)"
+            )
+            self.previousPeerConnectionStateForCallReport = currentState
         }
 
         peer.onNegotiationNeededForLog = { [weak self] in
@@ -1067,20 +1088,65 @@ extension Call {
 
         peer.onIceCandidateForLog = { [weak self] candidate in
             guard let self = self else { return }
+            var context: [String: Any] = [
+                "candidate": candidate.sdp,
+                "sdpMLineIndex": Int(candidate.sdpMLineIndex)
+            ]
+            if let sdpMid = candidate.sdpMid {
+                context["sdpMid"] = sdpMid
+            }
+            if let usernameFragment = candidate.telnyx_stats_extractUfrag() {
+                context["usernameFragment"] = usernameFragment
+            }
             self.callReportCollector?.addLogEntry(
                 level: "info",
-                message: "Local ICE candidate gathered",
-                context: self.sanitizedCandidateContext(
-                    candidate.sdp,
-                    sdpMid: candidate.sdpMid,
-                    sdpMLineIndex: Int(candidate.sdpMLineIndex)
-                )
+                message: "RTCPeer Candidate:",
+                context: context
+            )
+        }
+
+        peer.onIceCandidateErrorForLog = { [weak self] event in
+            let address = event.address
+            let port = Int(event.port)
+            self?.callReportCollector?.addLogEntry(
+                level: "warn",
+                message: "ICE candidate error:",
+                context: [
+                    "address": address,
+                    "port": port,
+                    "errorCode": Int(event.errorCode),
+                    "errorText": event.errorText,
+                    "url": event.url,
+                    "hostCandidate": "\(address):\(port)"
+                ]
             )
         }
     }
 
-    /// Candidate SDP contains local/public addresses. Reports keep only safe
-    /// transport metadata needed for diagnostics.
+    private static func callReportTimestampedMessage(_ message: String) -> String {
+        "[\(ISO8601DateFormatter().string(from: Date()))] \(message)"
+    }
+
+    /// This mirrors the Web SDK's RTC config event so the call-report ICE UI
+    /// can render the exact servers used to gather candidates.
+    private func callReportIceServersForLogs() -> [[String: Any]] {
+        iceServers.flatMap { server in
+            server.urlStrings.map { url in
+                var entry: [String: Any] = ["urls": url]
+                if let username = server.username, !username.isEmpty {
+                    entry["username"] = username
+                }
+                if let credential = server.credential, !credential.isEmpty {
+                    entry["credential"] = credential
+                }
+                return entry
+            }
+        }
+    }
+
+    /// Remote candidates arrive through signaling. Keep this supplemental log
+    /// free of the peer address and SDP credentials; gathered local candidates
+    /// above intentionally use the JS-compatible raw event consumed by the UI.
     private func sanitizedCandidateContext(
         _ candidate: String,
         sdpMid: String? = nil,
