@@ -48,6 +48,10 @@ public class TelnyxCallReportCollector {
     private weak var peerConnection: RTCPeerConnection?
     private var timer: Timer?
     private var isMediaVerificationSamplingEnabled = false
+    /// Native WebRTC statistics complete asynchronously. Keep one request in
+    /// flight so timer ticks cannot process the same interval twice.
+    private let statsCollectionLock = NSLock()
+    private var isStatsCollectionInFlight = false
     private var statsBuffer: [CallReportInterval] = []
     private var intervalStartTime: Date?
     private(set) var callStartTime: Date
@@ -639,12 +643,23 @@ public class TelnyxCallReportCollector {
 
     /// Collect stats from the peer connection and aggregate them
     private func collectStats() {
-        guard let peerConnection = peerConnection, let intervalStartTime = intervalStartTime else {
+        statsCollectionLock.lock()
+        guard !isStatsCollectionInFlight,
+              let peerConnection = peerConnection,
+              let intervalStartTime = intervalStartTime else {
+            statsCollectionLock.unlock()
             return
         }
+        isStatsCollectionInFlight = true
+        statsCollectionLock.unlock()
 
         peerConnection.statistics { [weak self] report in
             guard let self = self else { return }
+            defer {
+                self.statsCollectionLock.lock()
+                self.isStatsCollectionInFlight = false
+                self.statsCollectionLock.unlock()
+            }
 
             let now = Date()
             let parsed = self.parseStatsReport(report)
@@ -788,7 +803,11 @@ public class TelnyxCallReportCollector {
         now: Date
     ) {
         if let outbound = parsed.outbound {
-            if let audioLevel = getAudioLevel(from: statistics, trackId: outbound.trackId) {
+            // iOS exposes the local capture level on media-source. Older
+            // WebRTC builds exposed it on the track record, so keep that as a
+            // fallback for compatibility.
+            if let audioLevel = parsed.outboundMediaSource?.audioLevel ??
+                getAudioLevel(from: statistics, trackId: outbound.trackId) {
                 intervalAudioLevels.outbound.append(audioLevel)
             }
             if let prevBytes = previousStats.outboundBytes, let prevTimestamp = previousStats.timestamp {

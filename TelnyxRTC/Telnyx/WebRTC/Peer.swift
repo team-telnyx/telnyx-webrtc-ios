@@ -154,6 +154,9 @@ class Peer : NSObject, WebRTCEventHandler {
     // Call-report logging closures (separate from WebRTCStatsReporter callbacks)
     var onSignalingStateChangeForLog: ((RTCSignalingState) -> Void)?
     var onIceGatheringStateChangeForLog: ((RTCIceGatheringState) -> Void)?
+    var onIceConnectionStateChangeForLog: ((RTCIceConnectionState) -> Void)?
+    var onNegotiationNeededForLog: (() -> Void)?
+    var onIceCandidateForLog: ((RTCIceCandidate) -> Void)?
     var onIceCandidate: ((RTCIceCandidate) -> Void)?
     var onRemoveIceCandidates: (([RTCIceCandidate]) -> Void)?
     var onDataChannel: ((RTCDataChannel) -> Void)?
@@ -613,6 +616,9 @@ class Peer : NSObject, WebRTCEventHandler {
         self.onPeerConnectionStateChange = nil
         self.onSignalingStateChangeForLog = nil
         self.onIceGatheringStateChangeForLog = nil
+        self.onIceConnectionStateChangeForLog = nil
+        self.onNegotiationNeededForLog = nil
+        self.onIceCandidateForLog = nil
         self.onIceCandidate = nil
         self.onRemoveIceCandidates = nil
         self.onDataChannel = nil
@@ -914,12 +920,14 @@ extension Peer : RTCPeerConnectionDelegate {
 
     func peerConnectionShouldNegotiate(_ peerConnection: RTCPeerConnection) {
         onNegotiationNeeded?()
+        onNegotiationNeededForLog?()
         Logger.log.i(message: "Peer:: connection should negotiate")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceConnectionState) {
         onIceConnectionChange?(newState)
         onIceConnectionStateChange?(newState)
+        onIceConnectionStateChangeForLog?(newState)
         Logger.log.i(message: "Peer:: connection didChange ICE connection state: [\(newState.telnyx_to_string().uppercased())]")
         
         // Track ICE connection state changes for benchmarking
@@ -1042,6 +1050,7 @@ extension Peer : RTCPeerConnectionDelegate {
 
         // We call the callback when the iceCandidate is added
         onIceCandidate?(candidate)
+        onIceCandidateForLog?(candidate)
 
         // Handle trickle ICE - send candidates individually as they are discovered
         if useTrickleIce {

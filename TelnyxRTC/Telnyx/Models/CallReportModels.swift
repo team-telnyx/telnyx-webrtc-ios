@@ -471,12 +471,14 @@ public struct CallReportIceServerSummary: Codable {
 public struct CallReportSettingsSummary: Codable {
     public let enabled: Bool
     public let intervalMs: Int
+    public let flushIntervalMs: Int
     public let debugLogLevel: String
     public let debugLogMaxEntries: Int
 
-    public init(enabled: Bool, intervalMs: Int, debugLogLevel: String, debugLogMaxEntries: Int) {
+    public init(enabled: Bool, intervalMs: Int, flushIntervalMs: Int = 180_000, debugLogLevel: String, debugLogMaxEntries: Int) {
         self.enabled = enabled
         self.intervalMs = intervalMs
+        self.flushIntervalMs = flushIntervalMs
         self.debugLogLevel = debugLogLevel
         self.debugLogMaxEntries = debugLogMaxEntries
     }

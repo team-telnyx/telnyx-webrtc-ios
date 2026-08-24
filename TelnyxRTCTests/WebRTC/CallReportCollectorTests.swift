@@ -89,6 +89,7 @@ class CallReportCollectorTests: XCTestCase {
         let data = try JSONEncoder().encode(summary)
         let json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
         let clientSummary = try XCTUnwrap(json["clientSummary"] as? [String: Any])
+        let callReports = try XCTUnwrap(clientSummary["callReports"] as? [String: Any])
         let media = try XCTUnwrap(clientSummary["media"] as? [String: Any])
         let iceServer = try XCTUnwrap((media["iceServers"] as? [[String: Any]])?.first)
 
@@ -97,6 +98,7 @@ class CallReportCollectorTests: XCTestCase {
         XCTAssertEqual(iceServer["hasCredential"] as? Bool, true)
         XCTAssertNil(iceServer["username"])
         XCTAssertNil(iceServer["credential"])
+        XCTAssertEqual(callReports["flushIntervalMs"] as? Int, 180_000)
     }
     
     // MARK: - Start/Stop Tests
