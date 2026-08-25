@@ -53,8 +53,13 @@ public struct TxServerConfiguration {
         // Determine the base URL or host based on the environment or signalingServer
         if let signalingServer = signalingServer {
             if let rtc_id = rtc_id {
-                // Use only the host of signalingServer if it already has queries
-                let host = "wss://\(regionPrefix)\(signalingServer.host ?? "")"
+                // A reconnect can pass an already region-resolved endpoint back
+                // into this initializer. Do not prefix that host a second time.
+                let existingHost = signalingServer.host ?? ""
+                let resolvedHost = regionPrefix.isEmpty || existingHost.hasPrefix(regionPrefix)
+                    ? existingHost
+                    : "\(regionPrefix)\(existingHost)"
+                let host = "wss://\(resolvedHost)"
                 let query = createQuery(with: rtc_id)
                 let pushRtcServer = "\(host)\(query)"
                 self.signalingServer = URL(string: pushRtcServer) ?? signalingServer
