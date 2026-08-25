@@ -21,7 +21,9 @@ Calculates the Mean Opinion Score (MOS) based on WebRTC statistics
   - rtt: Round-trip time in milliseconds
   - packetsReceived: Number of packets received
   - packetsLost: Number of packets lost
-- Returns: MOS score between 1.0 and 5.0
+- Returns: MOS score in the inclusive range `1.0...5.0`, or `NaN` when the
+  inputs are non-finite or the computation overflows. Callers should pair
+  the result with `getQuality(mos:)`, which maps `NaN` to `.unknown`.
 
 #### Parameters
 
@@ -38,7 +40,11 @@ Calculates the Mean Opinion Score (MOS) based on WebRTC statistics
 public static func getQuality(mos: Double) -> CallQuality
 ```
 
-Determines call quality based on MOS score
+Determines call quality based on MOS score.
+
+Non-finite inputs (`NaN`, `±infinity`) are reported as `.unknown`. For
+finite values the bands are continuous — every non-negative MOS value
+maps to exactly one rating, with no gaps between bands.
 - Parameter mos: Mean Opinion Score
 - Returns: Call quality rating
 

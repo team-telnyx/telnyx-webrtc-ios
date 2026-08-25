@@ -17,7 +17,7 @@
     <a title="MOSCalculator Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">TelnyxRTC 4.0.0 Docs</a> (62% documented)</p>
+        <p><a href="../index.html">TelnyxRTC 4.2.0 Docs</a> (50% documented)</p>
         <div class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -154,6 +154,12 @@
                 <a href="../Structs/AnyCodable.html">AnyCodable</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Structs/AudioCodecStats.html">AudioCodecStats</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/AudioMediaSourceStats.html">AudioMediaSourceStats</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/AudioStats.html">AudioStats</a>
               </li>
               <li class="nav-group-task">
@@ -163,13 +169,28 @@
                 <a href="../Structs/CallQualityMetrics.html">CallQualityMetrics</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Structs/CallReportClientSummary.html">CallReportClientSummary</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/CallReportConfig.html">CallReportConfig</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/CallReportConnectionSummary.html">CallReportConnectionSummary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/CallReportIceServerSummary.html">CallReportIceServerSummary</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/CallReportInterval.html">CallReportInterval</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Structs/CallReportMediaSummary.html">CallReportMediaSummary</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/CallReportPayload.html">CallReportPayload</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/CallReportSettingsSummary.html">CallReportSettingsSummary</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/CallReportSummary.html">CallReportSummary</a>
@@ -187,6 +208,12 @@
                 <a href="../Structs/ConversationItem.html">ConversationItem</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Structs/ICECandidatePairStats.html">ICECandidatePairStats</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ICECandidateStats.html">ICECandidateStats</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/ImageURL.html">ImageURL</a>
               </li>
               <li class="nav-group-task">
@@ -199,10 +226,25 @@
                 <a href="../Structs/LogEntry.html">LogEntry</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Structs/MediaPlayoutStats.html">MediaPlayoutStats</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/OutboundAudioStats.html">OutboundAudioStats</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Structs/RemoteInboundRTCPStats.html">RemoteInboundRTCPStats</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/RemoteOutboundRTCPStats.html">RemoteOutboundRTCPStats</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/RemoteRTCPStats.html">RemoteRTCPStats</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/TranscriptionItem.html">TranscriptionItem</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TransportStats.html">TransportStats</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/TxCallInfo.html">TxCallInfo</a>
@@ -327,7 +369,9 @@
                       </div>
                       <div>
                         <h4>Return Value</h4>
-                        <p>MOS score between 1.0 and 5.0</p>
+                        <p>MOS score in the inclusive range <code>1.0...5.0</code>, or <code>NaN</code> when the
+inputs are non-finite or the computation overflows. Callers should pair
+the result with <code><a href="../Classes/MOSCalculator.html#/s:9TelnyxRTC13MOSCalculatorC10getQuality3mosAA04CallE0OSd_tFZ">getQuality(mos:)</a></code>, which maps <code>NaN</code> to <code>.unknown</code>.</p>
                       </div>
                     </section>
                   </div>
@@ -345,7 +389,11 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Determines call quality based on MOS score</p>
+                        <p>Determines call quality based on MOS score.</p>
+
+<p>Non-finite inputs (<code>NaN</code>, <code>±infinity</code>) are reported as <code>.unknown</code>. For
+finite values the bands are continuous — every non-negative MOS value
+maps to exactly one rating, with no gaps between bands.</p>
 
                       </div>
                       <div class="declaration">
@@ -387,7 +435,7 @@
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2026 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2026-05-05)</p>
+          <p>&copy; 2026 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2026-08-25)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.4</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>
