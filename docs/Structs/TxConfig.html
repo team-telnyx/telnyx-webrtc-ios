@@ -17,7 +17,7 @@
     <a title="TxConfig Structure Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">TelnyxRTC 4.0.0 Docs</a> (62% documented)</p>
+        <p><a href="../index.html">TelnyxRTC 4.2.0 Docs</a> (50% documented)</p>
         <div class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -154,6 +154,12 @@
                 <a href="../Structs/AnyCodable.html">AnyCodable</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Structs/AudioCodecStats.html">AudioCodecStats</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/AudioMediaSourceStats.html">AudioMediaSourceStats</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/AudioStats.html">AudioStats</a>
               </li>
               <li class="nav-group-task">
@@ -163,13 +169,28 @@
                 <a href="../Structs/CallQualityMetrics.html">CallQualityMetrics</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Structs/CallReportClientSummary.html">CallReportClientSummary</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/CallReportConfig.html">CallReportConfig</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/CallReportConnectionSummary.html">CallReportConnectionSummary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/CallReportIceServerSummary.html">CallReportIceServerSummary</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/CallReportInterval.html">CallReportInterval</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Structs/CallReportMediaSummary.html">CallReportMediaSummary</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/CallReportPayload.html">CallReportPayload</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/CallReportSettingsSummary.html">CallReportSettingsSummary</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/CallReportSummary.html">CallReportSummary</a>
@@ -187,6 +208,12 @@
                 <a href="../Structs/ConversationItem.html">ConversationItem</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Structs/ICECandidatePairStats.html">ICECandidatePairStats</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ICECandidateStats.html">ICECandidateStats</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/ImageURL.html">ImageURL</a>
               </li>
               <li class="nav-group-task">
@@ -199,10 +226,25 @@
                 <a href="../Structs/LogEntry.html">LogEntry</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Structs/MediaPlayoutStats.html">MediaPlayoutStats</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/OutboundAudioStats.html">OutboundAudioStats</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Structs/RemoteInboundRTCPStats.html">RemoteInboundRTCPStats</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/RemoteOutboundRTCPStats.html">RemoteOutboundRTCPStats</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/RemoteRTCPStats.html">RemoteRTCPStats</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/TranscriptionItem.html">TranscriptionItem</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TransportStats.html">TransportStats</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/TxCallInfo.html">TxCallInfo</a>
@@ -911,6 +953,48 @@ Stats are aggregated over each interval and stored locally until call end.</p>
                     </section>
                   </div>
                 </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC8TxConfigV14pushWhenActiveSbvp"></a>
+                    <a name="//apple_ref/swift/Property/pushWhenActive" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV14pushWhenActiveSbvp">pushWhenActive</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Opt-in flag for push-when-active multi-device flows.</p>
+
+<p>When <code>true</code>, the SDK signals to the Telnyx backend during login that this
+device should be considered active for the purposes of incoming push
+notifications, and includes the configured VoIP push token in the
+<code>telnyx_rtc.answer</code> payload as <code>answered_device_token</code>. The backend uses
+that token to exclude the answering device from the answered-elsewhere /
+picked-off notification that is delivered to the remaining devices.</p>
+
+<p>The token is sourced internally from <code>pushNotificationConfig.pushDeviceToken</code>,
+so apps do not need to pass it again when calling <code>call.answer()</code>.</p>
+<div class="aside aside-important">
+    <p class="aside-title">Important</p>
+    Default is <code>false</code> to preserve existing single-device behaviour.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">internal(set)</span> <span class="k">var</span> <span class="nv">pushWhenActive</span><span class="p">:</span> <span class="kt">Bool</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
               </ul>
             </div>
             <div class="task-group">
@@ -927,9 +1011,9 @@ Stats are aggregated over each interval and stored locally until call end.</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone0H11Environment29enableMissedCallNotifications8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate0P14QualityMetrics24sendWebRTCStatsViaSocket0X7TimeOut13useTrickleIce0pR7Reports18callReportInterval013callReportLogU023callReportMaxLogEntriesACSS_S2SSgA2xA04PushO0OSgSbAA03LogU0OAA0cW0_pSgS5bSdS2bSdSSSitcfc"></a>
-                    <a name="//apple_ref/swift/Method/init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:enableMissedCallNotifications:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:useTrickleIce:enableCallReports:callReportInterval:callReportLogLevel:callReportMaxLogEntries:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone0H11Environment29enableMissedCallNotifications8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate0P14QualityMetrics24sendWebRTCStatsViaSocket0X7TimeOut13useTrickleIce0pR7Reports18callReportInterval013callReportLogU023callReportMaxLogEntriesACSS_S2SSgA2xA04PushO0OSgSbAA03LogU0OAA0cW0_pSgS5bSdS2bSdSSSitcfc">init(sipUser:<wbr>password:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>pushEnvironment:<wbr>enableMissedCallNotifications:<wbr>logLevel:<wbr>customLogger:<wbr>reconnectClient:<wbr>debug:<wbr>forceRelayCandidate:<wbr>enableQualityMetrics:<wbr>sendWebRTCStatsViaSocket:<wbr>reconnectTimeOut:<wbr>useTrickleIce:<wbr>enableCallReports:<wbr>callReportInterval:<wbr>callReportLogLevel:<wbr>callReportMaxLogEntries:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone0H11Environment29enableMissedCallNotifications8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate0P14QualityMetrics24sendWebRTCStatsViaSocket0X7TimeOut13useTrickleIce0pR7Reports18callReportInterval013callReportLogU023callReportMaxLogEntries0H10WhenActiveACSS_S2SSgA2yA04PushO0OSgSbAA03LogU0OAA0cW0_pSgS5bSdS2bSdSSSiSbtcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:enableMissedCallNotifications:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:useTrickleIce:enableCallReports:callReportInterval:callReportLogLevel:callReportMaxLogEntries:pushWhenActive:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV7sipUser8password15pushDeviceToken8ringtone12ringBackTone0H11Environment29enableMissedCallNotifications8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate0P14QualityMetrics24sendWebRTCStatsViaSocket0X7TimeOut13useTrickleIce0pR7Reports18callReportInterval013callReportLogU023callReportMaxLogEntries0H10WhenActiveACSS_S2SSgA2yA04PushO0OSgSbAA03LogU0OAA0cW0_pSgS5bSdS2bSdSSSiSbtcfc">init(sipUser:<wbr>password:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>pushEnvironment:<wbr>enableMissedCallNotifications:<wbr>logLevel:<wbr>customLogger:<wbr>reconnectClient:<wbr>debug:<wbr>forceRelayCandidate:<wbr>enableQualityMetrics:<wbr>sendWebRTCStatsViaSocket:<wbr>reconnectTimeOut:<wbr>useTrickleIce:<wbr>enableCallReports:<wbr>callReportInterval:<wbr>callReportLogLevel:<wbr>callReportMaxLogEntries:<wbr>pushWhenActive:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -962,7 +1046,8 @@ Stats are aggregated over each interval and stored locally until call end.</p>
             <span class="nv">enableCallReports</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">true</span><span class="p">,</span>
             <span class="nv">callReportInterval</span><span class="p">:</span> <span class="kt">TimeInterval</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">,</span>
             <span class="nv">callReportLogLevel</span><span class="p">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">"debug"</span><span class="p">,</span>
-            <span class="nv">callReportMaxLogEntries</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1000</span>
+            <span class="nv">callReportMaxLogEntries</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+            <span class="nv">pushWhenActive</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span>
 <span class="p">)</span></code></pre>
 
                         </div>
@@ -1211,6 +1296,18 @@ Stats are aggregated over each interval and stored locally until call end.</p>
                                 </div>
                               </td>
                             </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>pushWhenActive</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) Opt-in flag for push-when-active multi-device flows. When true, the SDK includes the configured VoIP push token in the <code>telnyx_rtc.answer</code> payload as <code>answered_device_token</code> and signals <code>push_when_active = &quot;true&quot;</code> during login. Default is false.</p>
+                                </div>
+                              </td>
+                            </tr>
                           </tbody>
                         </table>
                       </div>
@@ -1220,9 +1317,9 @@ Stats are aggregated over each interval and stored locally until call end.</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone0F11Environment29enableMissedCallNotifications8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate0N14QualityMetrics24sendWebRTCStatsViaSocket0V7TimeOut13useTrickleIce0nP7Reports18callReportInterval013callReportLogS023callReportMaxLogEntriesACSS_SSSgA2wA04PushM0OSgSbAA03LogS0OAA0cU0_pSgS5bSdS2bSdSSSitcfc"></a>
-                    <a name="//apple_ref/swift/Method/init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:enableMissedCallNotifications:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:useTrickleIce:enableCallReports:callReportInterval:callReportLogLevel:callReportMaxLogEntries:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone0F11Environment29enableMissedCallNotifications8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate0N14QualityMetrics24sendWebRTCStatsViaSocket0V7TimeOut13useTrickleIce0nP7Reports18callReportInterval013callReportLogS023callReportMaxLogEntriesACSS_SSSgA2wA04PushM0OSgSbAA03LogS0OAA0cU0_pSgS5bSdS2bSdSSSitcfc">init(token:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>pushEnvironment:<wbr>enableMissedCallNotifications:<wbr>logLevel:<wbr>customLogger:<wbr>reconnectClient:<wbr>debug:<wbr>forceRelayCandidate:<wbr>enableQualityMetrics:<wbr>sendWebRTCStatsViaSocket:<wbr>reconnectTimeOut:<wbr>useTrickleIce:<wbr>enableCallReports:<wbr>callReportInterval:<wbr>callReportLogLevel:<wbr>callReportMaxLogEntries:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone0F11Environment29enableMissedCallNotifications8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate0N14QualityMetrics24sendWebRTCStatsViaSocket0V7TimeOut13useTrickleIce0nP7Reports18callReportInterval013callReportLogS023callReportMaxLogEntries0F10WhenActiveACSS_SSSgA2xA04PushM0OSgSbAA03LogS0OAA0cU0_pSgS5bSdS2bSdSSSiSbtcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:enableMissedCallNotifications:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:useTrickleIce:enableCallReports:callReportInterval:callReportLogLevel:callReportMaxLogEntries:pushWhenActive:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC8TxConfigV5token15pushDeviceToken8ringtone12ringBackTone0F11Environment29enableMissedCallNotifications8logLevel12customLogger15reconnectClient5debug19forceRelayCandidate0N14QualityMetrics24sendWebRTCStatsViaSocket0V7TimeOut13useTrickleIce0nP7Reports18callReportInterval013callReportLogS023callReportMaxLogEntries0F10WhenActiveACSS_SSSgA2xA04PushM0OSgSbAA03LogS0OAA0cU0_pSgS5bSdS2bSdSSSiSbtcfc">init(token:<wbr>pushDeviceToken:<wbr>ringtone:<wbr>ringBackTone:<wbr>pushEnvironment:<wbr>enableMissedCallNotifications:<wbr>logLevel:<wbr>customLogger:<wbr>reconnectClient:<wbr>debug:<wbr>forceRelayCandidate:<wbr>enableQualityMetrics:<wbr>sendWebRTCStatsViaSocket:<wbr>reconnectTimeOut:<wbr>useTrickleIce:<wbr>enableCallReports:<wbr>callReportInterval:<wbr>callReportLogLevel:<wbr>callReportMaxLogEntries:<wbr>pushWhenActive:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1255,7 +1352,8 @@ Stats are aggregated over each interval and stored locally until call end.</p>
             <span class="nv">enableCallReports</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">true</span><span class="p">,</span>
             <span class="nv">callReportInterval</span><span class="p">:</span> <span class="kt">TimeInterval</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">,</span>
             <span class="nv">callReportLogLevel</span><span class="p">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">"debug"</span><span class="p">,</span>
-            <span class="nv">callReportMaxLogEntries</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1000</span>
+            <span class="nv">callReportMaxLogEntries</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+            <span class="nv">pushWhenActive</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span>
 <span class="p">)</span></code></pre>
 
                         </div>
@@ -1492,6 +1590,18 @@ Stats are aggregated over each interval and stored locally until call end.</p>
                                 </div>
                               </td>
                             </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>pushWhenActive</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>(Optional) Opt-in flag for push-when-active multi-device flows. When true, the SDK includes the configured VoIP push token in the <code>telnyx_rtc.answer</code> payload as <code>answered_device_token</code> and signals <code>push_when_active = &quot;true&quot;</code> during login. Default is false.</p>
+                                </div>
+                              </td>
+                            </tr>
                           </tbody>
                         </table>
                       </div>
@@ -1548,7 +1658,7 @@ Stats are aggregated over each interval and stored locally until call end.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2026 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2026-05-05)</p>
+          <p>&copy; 2026 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2026-08-25)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.4</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>

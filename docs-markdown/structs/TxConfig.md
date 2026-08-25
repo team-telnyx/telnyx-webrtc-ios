@@ -193,8 +193,27 @@ public internal(set) var callReportMaxLogEntries: Int = 1000
 Maximum number of log entries to buffer per call.
 - Important: Default is 1000 entries to prevent memory issues on long calls.
 
+### `pushWhenActive`
+
+```swift
+public internal(set) var pushWhenActive: Bool = false
+```
+
+Opt-in flag for push-when-active multi-device flows.
+
+When `true`, the SDK signals to the Telnyx backend during login that this
+device should be considered active for the purposes of incoming push
+notifications, and includes the configured VoIP push token in the
+`telnyx_rtc.answer` payload as `answered_device_token`. The backend uses
+that token to exclude the answering device from the answered-elsewhere /
+picked-off notification that is delivered to the remaining devices.
+
+The token is sourced internally from `pushNotificationConfig.pushDeviceToken`,
+so apps do not need to pass it again when calling `call.answer()`.
+- Important: Default is `false` to preserve existing single-device behaviour.
+
 ## Methods
-### `init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:enableMissedCallNotifications:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:useTrickleIce:enableCallReports:callReportInterval:callReportLogLevel:callReportMaxLogEntries:)`
+### `init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:enableMissedCallNotifications:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:useTrickleIce:enableCallReports:callReportInterval:callReportLogLevel:callReportMaxLogEntries:pushWhenActive:)`
 
 ```swift
 public init(sipUser: String, password: String,
@@ -215,7 +234,8 @@ public init(sipUser: String, password: String,
             enableCallReports: Bool = true,
             callReportInterval: TimeInterval = 5.0,
             callReportLogLevel: String = "debug",
-            callReportMaxLogEntries: Int = 1000
+            callReportMaxLogEntries: Int = 1000,
+            pushWhenActive: Bool = false
 )
 ```
 
@@ -241,6 +261,7 @@ Constructor for the Telnyx SDK configuration using SIP credentials.
   - callReportLogLevel: (Optional) Minimum log level to capture for call reports. Default is "debug".
   - enableMissedCallNotifications: (Optional) Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`. Default is false.
   - callReportMaxLogEntries: (Optional) Maximum number of log entries to buffer per call. Default is 1000.
+  - pushWhenActive: (Optional) Opt-in flag for push-when-active multi-device flows. When true, the SDK includes the configured VoIP push token in the `telnyx_rtc.answer` payload as `answered_device_token` and signals `push_when_active = "true"` during login. Default is false.
 
 #### Parameters
 
@@ -266,8 +287,9 @@ Constructor for the Telnyx SDK configuration using SIP credentials.
 | callReportLogLevel | (Optional) Minimum log level to capture for call reports. Default is “debug”. |
 | enableMissedCallNotifications | (Optional) Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`. Default is false. |
 | callReportMaxLogEntries | (Optional) Maximum number of log entries to buffer per call. Default is 1000. |
+| pushWhenActive | (Optional) Opt-in flag for push-when-active multi-device flows. When true, the SDK includes the configured VoIP push token in the `telnyx_rtc.answer` payload as `answered_device_token` and signals `push_when_active = "true"` during login. Default is false. |
 
-### `init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:enableMissedCallNotifications:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:useTrickleIce:enableCallReports:callReportInterval:callReportLogLevel:callReportMaxLogEntries:)`
+### `init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:enableMissedCallNotifications:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:useTrickleIce:enableCallReports:callReportInterval:callReportLogLevel:callReportMaxLogEntries:pushWhenActive:)`
 
 ```swift
 public init(token: String,
@@ -288,7 +310,8 @@ public init(token: String,
             enableCallReports: Bool = true,
             callReportInterval: TimeInterval = 5.0,
             callReportLogLevel: String = "debug",
-            callReportMaxLogEntries: Int = 1000
+            callReportMaxLogEntries: Int = 1000,
+            pushWhenActive: Bool = false
 )
 ```
 
@@ -313,6 +336,7 @@ Constructor for the Telnyx SDK configuration using JWT token authentication.
   - callReportLogLevel: (Optional) Minimum log level to capture for call reports. Default is "debug".
   - enableMissedCallNotifications: (Optional) Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`. Default is false.
   - callReportMaxLogEntries: (Optional) Maximum number of log entries to buffer per call. Default is 1000.
+  - pushWhenActive: (Optional) Opt-in flag for push-when-active multi-device flows. When true, the SDK includes the configured VoIP push token in the `telnyx_rtc.answer` payload as `answered_device_token` and signals `push_when_active = "true"` during login. Default is false.
 
 #### Parameters
 
@@ -337,6 +361,7 @@ Constructor for the Telnyx SDK configuration using JWT token authentication.
 | callReportLogLevel | (Optional) Minimum log level to capture for call reports. Default is “debug”. |
 | enableMissedCallNotifications | (Optional) Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`. Default is false. |
 | callReportMaxLogEntries | (Optional) Maximum number of log entries to buffer per call. Default is 1000. |
+| pushWhenActive | (Optional) Opt-in flag for push-when-active multi-device flows. When true, the SDK includes the configured VoIP push token in the `telnyx_rtc.answer` payload as `answered_device_token` and signals `push_when_active = "true"` during login. Default is false. |
 
 ### `validateParams()`
 

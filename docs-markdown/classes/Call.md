@@ -226,6 +226,28 @@ Maximum number of log entries to buffer per call.
 public internal(set) var enableMissedCallNotifications: Bool = false
 ```
 
+### `pushWhenActive`
+
+```swift
+public internal(set) var pushWhenActive: Bool = false
+```
+
+Opt-in flag for push-when-active multi-device flows. When `true` and a
+non-empty `pushDeviceToken` is configured, the SDK includes the token in
+the `telnyx_rtc.answer` payload as `answered_device_token`. The flag and
+token are propagated from `TxConfig` at construction time so the public
+`call.answer()` API stays unchanged.
+
+### `pushDeviceToken`
+
+```swift
+public internal(set) var pushDeviceToken: String? = nil
+```
+
+The PushKit VoIP token captured from `TxConfig(pushDeviceToken:)`. Used
+internally to populate `answered_device_token` on `telnyx_rtc.answer`
+when `pushWhenActive` is enabled. Never sent when nil or empty.
+
 ### `callInfo`
 
 ```swift

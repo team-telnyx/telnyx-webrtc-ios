@@ -33,9 +33,33 @@ public let audio: AudioStats?
 public let connection: ConnectionStats?
 ```
 
-## Methods
-### `init(intervalStartUtc:intervalEndUtc:audio:connection:)`
+### `ice`
 
 ```swift
-public init(intervalStartUtc: String, intervalEndUtc: String, audio: AudioStats? = nil, connection: ConnectionStats? = nil)
+public let ice: ICECandidatePairStats?
+```
+
+### `transport`
+
+```swift
+public let transport: TransportStats?
+```
+
+### `mediaPlayout`
+
+```swift
+public let mediaPlayout: MediaPlayoutStats?
+```
+
+### `remoteRtcp`
+
+```swift
+public let remoteRtcp: RemoteRTCPStats?
+```
+
+## Methods
+### `init(intervalStartUtc:intervalEndUtc:audio:connection:ice:transport:mediaPlayout:remoteRtcp:)`
+
+```swift
+public init(intervalStartUtc: String, intervalEndUtc: String, audio: AudioStats? = nil, connection: ConnectionStats? = nil, ice: ICECandidatePairStats? = nil, transport: TransportStats? = nil, mediaPlayout: MediaPlayoutStats? = nil, remoteRtcp: RemoteRTCPStats? = nil)
 ```

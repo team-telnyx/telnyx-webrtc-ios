@@ -15,6 +15,12 @@ This class contains all the properties related to: Signaling server URL and  STU
 public internal(set) var environment: WebRTCEnvironment = .production
 ```
 
+### `region`
+
+```swift
+public internal(set) var region: Region = .auto
+```
+
 ### `signalingServer`
 
 ```swift
