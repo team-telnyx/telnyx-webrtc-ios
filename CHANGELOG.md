@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [4.2.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.2.0) (2026-08-25)
+
+### Enhancements
+- **WebRTC 150**: Upgraded the CocoaPods and Swift Package Manager WebRTC dependencies to 150.0.0 ([#391](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/391)).
+- **Call Report Diagnostics**: Expanded call reports with native codec, media-source, transport, selected ICE-pair, gathered-candidate, and ICE lifecycle data; report logs now redact ICE credentials ([#385](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/385), [#389](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/389)).
+- **Reliable Call Report Uploads**: Added periodic flushing, chunking for oversized reports, and persistent retry for failed uploads.
+- **Media Recovery**: Added inbound-media health monitoring, ICE restart verification, and relay-only fallback for failed direct VPN media paths ([#379](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/379), [#380](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/380), [#381](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/381), [#384](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/384)).
+
+### Bug Fixes
+- **Push Reconnect Voice SDK ID**: Prefer the fresh `voice_sdk_id` supplied in VoIP push metadata when reconnecting, preventing reconnects from using a stale cached ID ([#386](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/386)).
+
 ## [4.1.2](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.1.2) (2026-07-21)
 
 ### Bug Fixes
