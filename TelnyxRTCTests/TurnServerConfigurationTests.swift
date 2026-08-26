@@ -322,4 +322,19 @@ class TurnServerConfigurationTests: XCTestCase {
         XCTAssertTrue(hasUdpTurn, "Development TxServerConfiguration should include UDP TURN server")
         XCTAssertTrue(hasTcpTurn, "Development TxServerConfiguration should include TCP TURN server")
     }
+
+    /// A caller-provided ICE catalog must replace, not append to, SDK defaults.
+    func testCustomIceServersReplaceDefaults() {
+        let customServer = RTCIceServer(urlStrings: ["turns:custom.example.com:443"],
+                                        username: "custom-user",
+                                        credential: "custom-password")
+
+        let serverConfig = TxServerConfiguration(webRTCIceServers: [customServer])
+        let iceServers = serverConfig.webRTCIceServers
+
+        XCTAssertEqual(iceServers.count, 1)
+        XCTAssertEqual(iceServers.first?.urlStrings, customServer.urlStrings)
+        XCTAssertEqual(iceServers.first?.username, customServer.username)
+        XCTAssertEqual(iceServers.first?.credential, customServer.credential)
+    }
 }
