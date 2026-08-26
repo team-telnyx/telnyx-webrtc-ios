@@ -165,6 +165,22 @@ class TxClientPingAuthTests: XCTestCase {
         XCTAssertEqual(mockDelegate.doneCallIds, [callUUID])
     }
 
+    func testAttachSuccessCancelsPushWatchdogWithoutTerminalCleanup() throws {
+        let pushCallUUID = UUID()
+        let signalingCallUUID = UUID()
+        txClient.inviteTimeoutInterval = 0.01
+        try startPushFlow(callId: pushCallUUID)
+        txClient.onMessageReceived(message: gatewayStateMessage(state: "REGED"))
+
+        txClient.onMessageReceived(message: """
+        {"jsonrpc":"2.0","method":"telnyx_rtc.attach","params":{"sdp":"v=0\\r\\n","callID":"\(signalingCallUUID.uuidString)"}}
+        """)
+        waitForWatchdog()
+
+        XCTAssertTrue(mockDelegate.remoteEndedCallIds.isEmpty)
+        XCTAssertTrue(mockDelegate.doneCallIds.isEmpty)
+    }
+
     private func waitForWatchdog() {
         let expectation = expectation(description: "Wait beyond INVITE watchdog")
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { expectation.fulfill() }
