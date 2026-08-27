@@ -77,6 +77,121 @@ class AnonymousLoginTests: XCTestCase {
         XCTAssertTrue(encodedMessage.contains("anonymous_login"))
     }
     
+    func testAnonymousLoginMessageWithConversationId() {
+        // Given
+        let targetId = "test-assistant-id"
+        let targetType = "ai_assistant"
+        let conversationId = "conv-12345-abcde"
+        let sessionId = "test-session-id"
+        
+        // When
+        let message = AnonymousLoginMessage(
+            targetType: targetType,
+            targetId: targetId,
+            conversationId: conversationId,
+            sessionId: sessionId
+        )
+        
+        // Then
+        XCTAssertNotNil(message)
+        XCTAssertEqual(message.method, .ANONYMOUS_LOGIN)
+        
+        // Verify the message can be encoded
+        guard let encodedMessage = message.encode() else {
+            XCTFail("Failed to encode message")
+            return
+        }
+        XCTAssertFalse(encodedMessage.isEmpty)
+        
+        // Verify the encoded message contains target_params with conversation_id
+        XCTAssertTrue(encodedMessage.contains("target_params"))
+        XCTAssertTrue(encodedMessage.contains("conversation_id"))
+        XCTAssertTrue(encodedMessage.contains(conversationId))
+    }
+    
+    func testAnonymousLoginMessageWithoutConversationId() {
+        // Given
+        let targetId = "test-assistant-id"
+        let sessionId = "test-session-id"
+        
+        // When
+        let message = AnonymousLoginMessage(
+            targetId: targetId,
+            sessionId: sessionId
+        )
+        
+        // Then
+        guard let encodedMessage = message.encode() else {
+            XCTFail("Failed to encode message")
+            return
+        }
+        
+        // Verify the encoded message does NOT contain target_params when conversationId is nil
+        XCTAssertFalse(encodedMessage.contains("target_params"))
+        XCTAssertFalse(encodedMessage.contains("conversation_id"))
+    }
+    
+    func testAnonymousLoginMessageWithEmptyConversationId() {
+        // Given
+        let targetId = "test-assistant-id"
+        let conversationId = ""
+        let sessionId = "test-session-id"
+        
+        // When
+        let message = AnonymousLoginMessage(
+            targetId: targetId,
+            conversationId: conversationId,
+            sessionId: sessionId
+        )
+        
+        // Then
+        guard let encodedMessage = message.encode() else {
+            XCTFail("Failed to encode message")
+            return
+        }
+        
+        // Verify the encoded message does NOT contain target_params when conversationId is empty
+        XCTAssertFalse(encodedMessage.contains("target_params"))
+        XCTAssertFalse(encodedMessage.contains("conversation_id"))
+    }
+    
+    func testAnonymousLoginMessageWithAllParameters() {
+        // Given
+        let targetId = "test-assistant-id"
+        let targetType = "ai_assistant"
+        let targetVersionId = "v2.0"
+        let conversationId = "existing-conversation-123"
+        let sessionId = "test-session-id"
+        let userVariables = ["key": "value"]
+        
+        // When
+        let message = AnonymousLoginMessage(
+            targetType: targetType,
+            targetId: targetId,
+            targetVersionId: targetVersionId,
+            conversationId: conversationId,
+            sessionId: sessionId,
+            userVariables: userVariables,
+            reconnection: true
+        )
+        
+        // Then
+        guard let encodedMessage = message.encode() else {
+            XCTFail("Failed to encode message")
+            return
+        }
+        
+        // Verify all fields are present
+        XCTAssertTrue(encodedMessage.contains("target_id"))
+        XCTAssertTrue(encodedMessage.contains("target_type"))
+        XCTAssertTrue(encodedMessage.contains("target_version_id"))
+        XCTAssertTrue(encodedMessage.contains("target_params"))
+        XCTAssertTrue(encodedMessage.contains("conversation_id"))
+        XCTAssertTrue(encodedMessage.contains(conversationId))
+        XCTAssertTrue(encodedMessage.contains("userVariables"))
+        XCTAssertTrue(encodedMessage.contains("reconnection"))
+    }
+    
     func testAIAssistantManagerInitialization() {
         // Given & When
         let aiManager = AIAssistantManager()
@@ -190,6 +305,60 @@ class AnonymousLoginTests: XCTestCase {
         // Then
         // Should work with minimal parameters
         XCTAssertTrue(true, "Anonymous login should work with default parameters")
+    }
+    
+    func testAnonymousLoginWithConversationId() {
+        // Given
+        let targetId = "assistant-with-conversation"
+        let conversationId = "existing-conv-12345"
+        
+        // When
+        txClient.anonymousLogin(
+            targetId: targetId,
+            conversationId: conversationId
+        )
+        
+        // Then
+        // Should not crash when providing conversationId
+        XCTAssertTrue(true, "Anonymous login should accept conversationId parameter")
+    }
+    
+    func testAnonymousLoginWithNilConversationId() {
+        // Given
+        let targetId = "assistant-no-conversation"
+        
+        // When
+        txClient.anonymousLogin(
+            targetId: targetId,
+            conversationId: nil
+        )
+        
+        // Then
+        // Should work with nil conversationId
+        XCTAssertTrue(true, "Anonymous login should work with nil conversationId")
+    }
+    
+    func testAnonymousLoginWithAllParametersIncludingConversationId() {
+        // Given
+        let targetId = "full-params-assistant"
+        let targetType = "ai_assistant"
+        let targetVersionId = "v1.0"
+        let conversationId = "full-params-conversation"
+        let userVariables = ["user": "test"]
+        
+        // When
+        txClient.anonymousLogin(
+            targetId: targetId,
+            targetType: targetType,
+            targetVersionId: targetVersionId,
+            conversationId: conversationId,
+            userVariables: userVariables,
+            reconnection: false
+        )
+        
+        // Then
+        // Should not crash with all parameters including conversationId
+        XCTAssertTrue(true, "Anonymous login should handle all parameters including conversationId")
     }
 }
 
