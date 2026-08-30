@@ -1062,7 +1062,18 @@ func initCallKit() {
 
 __*Audio Session Handling WebRTC + CallKit*__  
  
-To get `CallKit` properly working with the `TelnyxRTC SDK` you need to set the audio device state based on the `CallKit` AudioSession state like follows:
+When using `CallKit`, configure the audio session before reporting the call and
+disable peer-owned session configuration in `TxConfig`. This prevents a peer
+created after answer from changing the active CallKit audio session:
+```Swift
+let txConfig = TxConfig(
+    sipUser: sipUser,
+    password: password,
+    configureAudioSessionOnPeerCreation: false
+)
+```
+
+Set the audio device state from the `CallKit` audio-session callbacks:
 ```Swift
 extension AppDelegate : CXProviderDelegate {
 
