@@ -1347,6 +1347,7 @@ extension TxClient {
                         callReportInterval: self.txConfig?.callReportInterval ?? 5.0,
                         callReportLogLevel: self.txConfig?.callReportLogLevel ?? "debug",
                         callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000,
+                        configureAudioSessionOnPeerCreation: self.txConfig?.configureAudioSessionOnPeerCreation ?? true,
                         pushWhenActive: self.txConfig?.pushWhenActive ?? false,
                         pushDeviceToken: self.txConfig?.pushNotificationConfig?.pushDeviceToken)
         call.newCall(callerName: callerName,
@@ -1462,6 +1463,7 @@ extension TxClient {
                         callReportInterval: self.txConfig?.callReportInterval ?? 5.0,
                         callReportLogLevel: self.txConfig?.callReportLogLevel ?? "debug",
                         callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000,
+                        configureAudioSessionOnPeerCreation: self.txConfig?.configureAudioSessionOnPeerCreation ?? true,
                         pushWhenActive: self.txConfig?.pushWhenActive ?? false,
                         pushDeviceToken: self.txConfig?.pushNotificationConfig?.pushDeviceToken)
         call.callInfo?.callerName = callerName
@@ -1579,6 +1581,7 @@ extension TxClient {
                                                callReportInterval: self.txConfig?.callReportInterval ?? 5.0,
                                                callReportLogLevel: self.txConfig?.callReportLogLevel ?? "debug",
                                                callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000,
+                                               configureAudioSessionOnPeerCreation: self.storedTxConfig?.configureAudioSessionOnPeerCreation ?? true,
                                                pushWhenActive: self.storedTxConfig?.pushWhenActive ?? false,
                                                pushDeviceToken: self.storedTxConfig?.pushNotificationConfig?.pushDeviceToken)
                     self.currentCallId = callUUID
