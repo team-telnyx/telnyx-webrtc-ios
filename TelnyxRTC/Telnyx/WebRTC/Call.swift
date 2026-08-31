@@ -227,6 +227,13 @@ public class Call {
     var statsReporter: WebRTCStatsReporter?
     var callReportCollector: TelnyxCallReportCollector?
     var onInboundRtpSample: ((Call, Int) -> Void)?
+
+    /// Call reports can be disabled while media recovery remains enabled. In
+    /// that case this temporary sampler provides only the inbound RTP packet
+    /// counter required to verify an ICE restart.
+    private var mediaVerificationStatsTimer: Timer?
+    private var isMediaVerificationStatsSampling = false
+    private var isMediaVerificationStatsCollectionInFlight = false
     
     /// Flag to track if we're currently performing ICE restart
     internal var isIceRestarting: Bool = false
@@ -799,6 +806,7 @@ public class Call {
             // Start call report collector when call becomes active
             startCallReportCollector()
         case .DONE, .DROPPED, .HELD:
+            setCallReportMediaVerificationSamplingEnabled(false)
             removeIceConnectionStateMonitoring()
             removePeerConnectionStateMonitoring()
             removeRttMonitoring()
@@ -1029,7 +1037,59 @@ extension Call {
     }
 
     func setCallReportMediaVerificationSamplingEnabled(_ enabled: Bool) {
-        callReportCollector?.setMediaVerificationSamplingEnabled(enabled)
+        if let callReportCollector {
+            callReportCollector.setMediaVerificationSamplingEnabled(enabled)
+            return
+        }
+
+        DispatchQueue.main.async { [weak self] in
+            self?.setMediaVerificationStatsSamplingEnabled(enabled)
+        }
+    }
+
+    private func setMediaVerificationStatsSamplingEnabled(_ enabled: Bool) {
+        guard isMediaVerificationStatsSampling != enabled else { return }
+        isMediaVerificationStatsSampling = enabled
+        mediaVerificationStatsTimer?.invalidate()
+        mediaVerificationStatsTimer = nil
+
+        guard enabled else { return }
+
+        collectMediaVerificationInboundRtpSample()
+        mediaVerificationStatsTimer = Timer.scheduledTimer(
+            withTimeInterval: 1.0,
+            repeats: true
+        ) { [weak self] _ in
+            self?.collectMediaVerificationInboundRtpSample()
+        }
+    }
+
+    private func collectMediaVerificationInboundRtpSample() {
+        guard isMediaVerificationStatsSampling,
+              !isMediaVerificationStatsCollectionInFlight,
+              let connection = peer?.connection else {
+            return
+        }
+
+        isMediaVerificationStatsCollectionInFlight = true
+        connection.statistics { [weak self] report in
+            let packetsReceived = report.statistics.values.first { statistics in
+                statistics.type == "inbound-rtp"
+                    && (statistics.values["kind"] as? String) == "audio"
+            }.flatMap { statistics in
+                (statistics.values["packetsReceived"] as? NSNumber)?.intValue
+            }
+
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.isMediaVerificationStatsCollectionInFlight = false
+                guard self.isMediaVerificationStatsSampling,
+                      let packetsReceived else {
+                    return
+                }
+                self.onInboundRtpSample?(self, packetsReceived)
+            }
+        }
     }
 
     /// Sets up Peer callbacks that log signaling, ICE gathering, and ICE connection
