@@ -278,6 +278,17 @@ class RegionTests: XCTestCase {
             region: apacConfig.region
         )
         XCTAssertEqual(pushConfig.signalingServer.host, "apac.rtc.telnyx.com")
+
+        // Reconnects pass the already-resolved regional endpoint back through
+        // TxServerConfiguration with fresh voice_sdk_id metadata.
+        let reconnectConfig = TxServerConfiguration(
+            signalingServer: euConfig.signalingServer,
+            webRTCIceServers: euConfig.webRTCIceServers,
+            environment: euConfig.environment,
+            pushMetaData: pushMetaData,
+            region: euConfig.region
+        )
+        XCTAssertEqual(reconnectConfig.signalingServer.host, "eu.rtc.telnyx.com")
     }
     
     // MARK: - Socket Region Extraction Tests
