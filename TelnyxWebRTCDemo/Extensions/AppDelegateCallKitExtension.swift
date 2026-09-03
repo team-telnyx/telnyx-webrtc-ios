@@ -273,6 +273,18 @@ extension AppDelegate : CXProviderDelegate {
         }
 
         self.telnyxClient?.answerFromCallkit(answerAction: action, customHeaders:  ["X-test-answer":"ios-test"], debug: true)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [weak self] in
+            guard let client = self?.telnyxClient else { return }
+            if client.isAudioDeviceEnabled {
+                print("[CALLKIT_AUDIO] Post-answer verification passed")
+            } else if AVAudioSession.sharedInstance().category == .playAndRecord {
+                print("[CALLKIT_AUDIO] Recovering disabled audio after CallKit answer")
+                client.enableAudioSession(audioSession: AVAudioSession.sharedInstance())
+            } else {
+                print("[CALLKIT_AUDIO] Verification skipped; CallKit session is not active")
+            }
+        }
         if let call = self.currentCall {
             print("📞 [ID-MAP] After answerFromCallkit -> appFacingId: \(call.callInfo?.callId.uuidString ?? "nil")")
         }
