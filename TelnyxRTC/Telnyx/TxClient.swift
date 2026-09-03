@@ -305,6 +305,7 @@ public class TxClient {
         if !wasAudioEnabled {
             rtcAudioSession.audioSessionDidActivate(audioSession)
         }
+        Logger.log.i(message: "TxClient:: CallKit audio session enable completed; isAudioEnabled=\(rtcAudioSession.isAudioEnabled)")
     }
     
     /// Disables and resets the audio session.
@@ -330,6 +331,7 @@ public class TxClient {
         if wasAudioEnabled {
             rtcAudioSession.audioSessionDidDeactivate(audioSession)
         }
+        Logger.log.i(message: "TxClient:: CallKit audio session disable completed; isAudioEnabled=\(rtcAudioSession.isAudioEnabled)")
     }
     
     /// The current audio route configuration.

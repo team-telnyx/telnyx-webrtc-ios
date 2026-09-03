@@ -239,8 +239,8 @@ struct CallView: View {
                         .accessibilityIdentifier(AccessibilityIdentifiers.dtmfButton)
                     }
                     
-                    // Segunda fila - Botones adicionales (3 botones centrados)
-                    HStack(spacing: max(8, (geometry.size.width - 200) / 4)) {
+                    // Segunda fila - Botones adicionales
+                    HStack(spacing: enableAudioRaceDebug ? 12 : max(8, (geometry.size.width - 200) / 4)) {
                         Spacer()
                         
                         Button(action: {
@@ -281,9 +281,9 @@ struct CallView: View {
                                 onInjectAudioRace()
                             }) {
                                 Image(systemName: "timer")
-                                    .foregroundColor(Color(hex: "#1D1D1D"))
+                                    .foregroundColor(.white)
                                     .frame(width: 60, height: 60)
-                                    .background(Color(hex: "#F5F3E4"))
+                                    .background(Color.orange)
                                     .clipShape(Circle())
                             }
                             .accessibilityIdentifier("audioRaceDebugButton")
