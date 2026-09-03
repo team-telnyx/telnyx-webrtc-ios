@@ -297,8 +297,15 @@ public class TxClient {
     /// }
     /// ```
     public func enableAudioSession(audioSession: AVAudioSession) {
+        let rtcAudioSession = RTCAudioSession.sharedInstance()
+        let wasAudioEnabled = rtcAudioSession.isAudioEnabled
+        Logger.log.i(message: "TxClient:: enabling CallKit audio session; currentlyEnabled=\(rtcAudioSession.isAudioEnabled)")
         setupCorrectAudioConfiguration()
         setAudioSessionActive(true)
+        if !wasAudioEnabled {
+            rtcAudioSession.audioSessionDidActivate(audioSession)
+        }
+        Logger.log.i(message: "TxClient:: CallKit audio session enable completed; isAudioEnabled=\(rtcAudioSession.isAudioEnabled)")
     }
     
     /// Disables and resets the audio session.
@@ -316,8 +323,15 @@ public class TxClient {
     /// }
     /// ```
     public func disableAudioSession(audioSession: AVAudioSession) {
+        let rtcAudioSession = RTCAudioSession.sharedInstance()
+        let wasAudioEnabled = rtcAudioSession.isAudioEnabled
+        Logger.log.i(message: "TxClient:: disabling CallKit audio session; currentlyEnabled=\(rtcAudioSession.isAudioEnabled)")
         resetAudioConfiguration()
         setAudioSessionActive(false)
+        if wasAudioEnabled {
+            rtcAudioSession.audioSessionDidDeactivate(audioSession)
+        }
+        Logger.log.i(message: "TxClient:: CallKit audio session disable completed; isAudioEnabled=\(rtcAudioSession.isAudioEnabled)")
     }
     
     /// The current audio route configuration.

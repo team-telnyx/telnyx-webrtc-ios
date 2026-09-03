@@ -1,7 +1,9 @@
+import AVFoundation
 import Reachability
 import SwiftUI
 import TelnyxRTC
 import UIKit
+import WebRTC
 
 class HomeViewController: UIViewController {
     private var hostingController: UIHostingController<HomeView>?
@@ -79,6 +81,9 @@ class HomeViewController: UIViewController {
             },
             onResetAudio: { [weak self] in
                 self?.onResetAudio()
+            },
+            onInjectAudioRace: { [weak self] in
+                self?.onInjectAudioRace()
             }
         )
 
@@ -659,5 +664,23 @@ extension HomeViewController {
         print("[RESET-AUDIO] HomeViewController:: Resetting audio device to clear delay")
         call.resetAudioDevice()
         print("[RESET-AUDIO] HomeViewController:: Audio device reset completed")
+    }
+
+    func onInjectAudioRace() {
+        #if DEBUG
+        print("[VSUP-226] Scheduling a late audio disable in 250 ms")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+            RTCAudioSession.sharedInstance().isAudioEnabled = false
+            print("[VSUP-226] Injected late setup reset; audio disabled")
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [weak self] in
+                guard let client = self?.telnyxClient else { return }
+                print("[VSUP-226] Recovering through enableAudioSession")
+                client.enableAudioSession(audioSession: AVAudioSession.sharedInstance())
+            }
+        }
+        #else
+        print("[VSUP-226] Audio race injection is available only in DEBUG builds")
+        #endif
     }
 }
