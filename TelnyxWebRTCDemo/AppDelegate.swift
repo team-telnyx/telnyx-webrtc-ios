@@ -40,6 +40,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     weak var voipDelegate: VoIPDelegate?
     var callKitProvider: CXProvider?
     let callKitCallController = CXCallController()
+    var mobileBlackboxIncomingCallId: UUID?
+    var mobileBlackboxCallbackPending = false
+    var mobileBlackboxCallbackStarted = false
+    var mobileBlackboxInboundEndRequested = false
 
    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {

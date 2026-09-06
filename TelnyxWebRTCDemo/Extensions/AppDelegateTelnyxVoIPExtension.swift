@@ -133,6 +133,7 @@ extension AppDelegate: TxClientDelegate {
         print("AppDelegate:: TxClientDelegate onCallStateUpdated() callKitUUID [\(String(describing: self.callKitUUID))] callId [\(callId)]")
         print("📞 [ID-MAP] onCallStateUpdated -> state: \(callState) | callId: \(callId) | callKitUUID: \(self.callKitUUID?.uuidString ?? "nil") | match: \(callId == self.callKitUUID)")
         self.voipDelegate?.onCallStateUpdated(callState: callState, callId: callId)
+        self.handleMobileBlackboxCallState(callState: callState, callId: callId)
         
         if callState.isConsideredActive {
             // check if custom headers was passed for answered message
@@ -149,5 +150,153 @@ extension AppDelegate: TxClientDelegate {
                currentCallId == callId {
             }
         }
+    }
+
+    func scheduleMobileBlackboxAutoAnswer(callId: UUID) {
+        guard TestConfiguration.shouldAutoAnswerMobileBlackboxCalls else {
+            return
+        }
+
+        mobileBlackboxIncomingCallId = callId
+        mobileBlackboxCallbackPending = false
+        mobileBlackboxCallbackStarted = false
+        mobileBlackboxInboundEndRequested = false
+
+        let delay = TestConfiguration.mobileBlackboxAutoAnswerDelay
+        print("MobileBBT:: scheduling auto-answer for \(callId) in \(delay)s")
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+            guard let self = self,
+                  self.mobileBlackboxIncomingCallId == callId else {
+                return
+            }
+
+            self.executeAnswerCallAction(uuid: callId)
+        }
+    }
+
+    func handleMobileBlackboxCallState(callState: CallState, callId: UUID) {
+        guard TestConfiguration.isMobileBlackboxAutomationEnabled,
+              mobileBlackboxIncomingCallId == callId else {
+            return
+        }
+
+        switch callState {
+        case .ACTIVE:
+            handleMobileBlackboxInboundActive(callId: callId)
+        case .DONE:
+            handleMobileBlackboxInboundDone(callId: callId)
+        default:
+            break
+        }
+    }
+
+    private func handleMobileBlackboxInboundActive(callId: UUID) {
+        guard TestConfiguration.mobileBlackboxCallbackDestination != nil,
+              !mobileBlackboxCallbackPending,
+              !mobileBlackboxCallbackStarted else {
+            return
+        }
+
+        mobileBlackboxCallbackPending = true
+
+        guard !mobileBlackboxInboundEndRequested else {
+            return
+        }
+
+        mobileBlackboxInboundEndRequested = true
+        let delay = TestConfiguration.mobileBlackboxInboundActiveHold
+        print("MobileBBT:: inbound call \(callId) is active; ending in \(delay)s before callback")
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+            guard let self = self,
+                  self.mobileBlackboxIncomingCallId == callId,
+                  self.mobileBlackboxCallbackPending else {
+                return
+            }
+
+            self.executeEndCallAction(uuid: callId)
+        }
+    }
+
+    private func handleMobileBlackboxInboundDone(callId: UUID) {
+        guard mobileBlackboxCallbackPending,
+              !mobileBlackboxCallbackStarted else {
+            resetMobileBlackboxAutomationIfNeeded(callId: callId)
+            return
+        }
+
+        let delay = TestConfiguration.mobileBlackboxCallbackDelay
+        print("MobileBBT:: inbound call \(callId) ended; starting callback in \(delay)s")
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+            guard let self = self,
+                  self.mobileBlackboxIncomingCallId == callId,
+                  self.mobileBlackboxCallbackPending,
+                  !self.mobileBlackboxCallbackStarted else {
+                return
+            }
+
+            self.startMobileBlackboxCallback()
+        }
+    }
+
+    private func startMobileBlackboxCallback() {
+        guard let destination = TestConfiguration.mobileBlackboxCallbackDestination else {
+            print("MobileBBT:: callback skipped because MOBILE_BBT_CALLBACK_DESTINATION is not set")
+            return
+        }
+
+        guard let sipCred = SipCredentialsManager.shared.getSelectedCredential() else {
+            print("MobileBBT:: callback skipped because no selected SIP credential is available")
+            return
+        }
+
+        let callUUID = UUID()
+        let headers = [
+            "X-Mobile-BBT": "ios-callback",
+            "X-Mobile-BBT-Source": "TelnyxWebRTCDemo"
+        ]
+        let preferredCodecs = UserDefaults.standard.getPreferredAudioCodecs()
+
+        do {
+            let call = try telnyxClient?.newCall(
+                callerName: sipCred.callerName ?? "",
+                callerNumber: sipCred.callerNumber ?? "",
+                destinationNumber: destination,
+                callId: callUUID,
+                clientState: "ios_mobile_bbt_callback",
+                customHeaders: headers,
+                preferredCodecs: preferredCodecs.isEmpty ? nil : preferredCodecs,
+                debug: true
+            )
+
+            previousCall = currentCall
+            currentCall = call
+            mobileBlackboxCallbackStarted = true
+            mobileBlackboxCallbackPending = false
+            mobileBlackboxIncomingCallId = nil
+            mobileBlackboxInboundEndRequested = false
+
+            CallHistoryManager.shared.handleStartCallAction(
+                callId: callUUID,
+                destinationNumber: destination,
+                callerName: sipCred.callerName ?? ""
+            )
+            print("MobileBBT:: callback started to \(destination) with callId \(callUUID)")
+        } catch let error {
+            print("MobileBBT:: callback failed: \(error)")
+            mobileBlackboxCallbackPending = false
+            mobileBlackboxCallbackStarted = false
+            mobileBlackboxIncomingCallId = nil
+            mobileBlackboxInboundEndRequested = false
+        }
+    }
+
+    private func resetMobileBlackboxAutomationIfNeeded(callId: UUID) {
+        guard mobileBlackboxIncomingCallId == callId else {
+            return
+        }
+
+        mobileBlackboxIncomingCallId = nil
+        mobileBlackboxCallbackPending = false
+        mobileBlackboxInboundEndRequested = false
     }
 }
