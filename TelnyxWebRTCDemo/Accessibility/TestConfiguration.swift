@@ -3,22 +3,22 @@ import UIKit
 import FirebaseCore
 
 enum TestConfiguration {
-    private static let trueValues = ["1", "true", "yes", "y", "on"]
+    private static let hardcodedMobileBlackboxCallbackDestination = "sip:isaac77742@sip.telnyx.com"
     
     static var isRunningUITests: Bool {
         ProcessInfo.processInfo.arguments.contains("UI_TESTING")
     }
 
     static var isMobileBlackboxAutomationEnabled: Bool {
-        hasArgument("MOBILE_BBT_AUTOMATION") || boolValue(for: "MOBILE_BBT_AUTOMATION")
+        true
     }
 
     static var shouldAutoAnswerMobileBlackboxCalls: Bool {
-        isMobileBlackboxAutomationEnabled || boolValue(for: "MOBILE_BBT_AUTO_ANSWER")
+        true
     }
 
     static var mobileBlackboxCallbackDestination: String? {
-        stringValue(for: "MOBILE_BBT_CALLBACK_DESTINATION")
+        stringValue(for: "MOBILE_BBT_CALLBACK_DESTINATION") ?? hardcodedMobileBlackboxCallbackDestination
     }
 
     static var mobileBlackboxAutoAnswerDelay: TimeInterval {
@@ -39,18 +39,6 @@ enum TestConfiguration {
             UIView.setAnimationsEnabled(false)
             FirebaseApp.configure()
         }
-    }
-
-    private static func hasArgument(_ argument: String) -> Bool {
-        ProcessInfo.processInfo.arguments.contains(argument)
-    }
-
-    private static func boolValue(for key: String) -> Bool {
-        guard let value = ProcessInfo.processInfo.environment[key]?.lowercased() else {
-            return false
-        }
-
-        return trueValues.contains(value)
     }
 
     private static func stringValue(for key: String) -> String? {
