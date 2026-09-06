@@ -128,6 +128,7 @@ extension AppDelegate : CXProviderDelegate {
                 CallHistoryManager.shared.handleCallFailed(callId: uuid)
             } else {
                 print("AppDelegate:: Incoming call successfully reported.")
+                self.scheduleMobileBlackboxAutoAnswer(callId: uuid)
             }
         }
     }
