@@ -301,8 +301,8 @@ public class TxClient {
         let wasAudioEnabled = rtcAudioSession.isAudioEnabled
         Logger.log.i(message: "TxClient:: enabling CallKit audio session; currentlyEnabled=\(rtcAudioSession.isAudioEnabled)")
         setupCorrectAudioConfiguration()
-        setAudioSessionActive(true)
-        if !wasAudioEnabled {
+        let activationSucceeded = setAudioSessionActive(true)
+        if activationSucceeded && !wasAudioEnabled {
             rtcAudioSession.audioSessionDidActivate(audioSession)
         }
         Logger.log.i(message: "TxClient:: CallKit audio session enable completed; isAudioEnabled=\(rtcAudioSession.isAudioEnabled)")
@@ -326,11 +326,11 @@ public class TxClient {
         let rtcAudioSession = RTCAudioSession.sharedInstance()
         let wasAudioEnabled = rtcAudioSession.isAudioEnabled
         Logger.log.i(message: "TxClient:: disabling CallKit audio session; currentlyEnabled=\(rtcAudioSession.isAudioEnabled)")
-        resetAudioConfiguration()
-        setAudioSessionActive(false)
         if wasAudioEnabled {
             rtcAudioSession.audioSessionDidDeactivate(audioSession)
         }
+        resetAudioConfiguration()
+        _ = setAudioSessionActive(false)
         Logger.log.i(message: "TxClient:: CallKit audio session disable completed; isAudioEnabled=\(rtcAudioSession.isAudioEnabled)")
     }
     
@@ -2276,16 +2276,19 @@ extension TxClient {
         rtcAudioSession.unlockForConfiguration()
     }
 
-    internal func setAudioSessionActive(_ active: Bool) {
+    @discardableResult
+    internal func setAudioSessionActive(_ active: Bool) -> Bool {
         let rtcAudioSession = RTCAudioSession.sharedInstance()
-        
+        var succeeded = false
         rtcAudioSession.lockForConfiguration()
         do {
             try rtcAudioSession.setActive(active)
             rtcAudioSession.isAudioEnabled = active
+            succeeded = true
         } catch {
             Logger.log.e(message: "Failed to set audio session active: \(error)")
         }
         rtcAudioSession.unlockForConfiguration()
+        return succeeded
     }
 }

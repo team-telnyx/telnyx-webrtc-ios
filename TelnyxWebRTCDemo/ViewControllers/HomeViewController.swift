@@ -670,7 +670,10 @@ extension HomeViewController {
         #if DEBUG
         print("[VSUP-226] Scheduling a late audio disable in 250 ms")
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
-            RTCAudioSession.sharedInstance().isAudioEnabled = false
+            let rtcAudioSession = RTCAudioSession.sharedInstance()
+            rtcAudioSession.lockForConfiguration()
+            rtcAudioSession.isAudioEnabled = false
+            rtcAudioSession.unlockForConfiguration()
             print("[VSUP-226] Injected late setup reset; audio disabled")
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [weak self] in

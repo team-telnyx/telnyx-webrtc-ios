@@ -272,10 +272,13 @@ extension AppDelegate : CXProviderDelegate {
             )
         }
 
+        audioLifecycleGeneration += 1
+        let verificationGeneration = audioLifecycleGeneration
         self.telnyxClient?.answerFromCallkit(answerAction: action, customHeaders:  ["X-test-answer":"ios-test"], debug: true)
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [weak self] in
             guard let self,
+                  self.audioLifecycleGeneration == verificationGeneration,
                   self.call(for: action.callUUID) != nil,
                   let client = self.telnyxClient else {
                 print("[CALLKIT_AUDIO] Skipping stale post-answer verification")
@@ -299,6 +302,7 @@ extension AppDelegate : CXProviderDelegate {
         print("AppDelegate:: END call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
         print("📞 [ID-MAP] CXEndCallAction -> actionUUID: \(action.callUUID) | callKitUUID: \(self.callKitUUID?.uuidString ?? "nil") | currentCall: \(self.currentCall?.callInfo?.callId.uuidString ?? "nil") | match: \(action.callUUID == self.callKitUUID)")
 
+        audioLifecycleGeneration += 1
         guard let telnyxClient = self.telnyxClient else {
             print("AppDelegate:: END call action failed because Telnyx client is unavailable")
             action.fail()
@@ -352,11 +356,13 @@ extension AppDelegate : CXProviderDelegate {
     
     func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
         print("provider:didActivateAudioSession:")
+        audioLifecycleGeneration += 1
         self.telnyxClient?.enableAudioSession(audioSession: audioSession)
     }
     
     func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
         print("provider:didDeactivateAudioSession:")
+        audioLifecycleGeneration += 1
         self.telnyxClient?.disableAudioSession(audioSession: audioSession)
     }
     
