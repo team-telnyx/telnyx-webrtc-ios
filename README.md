@@ -242,8 +242,7 @@ Relay-only mode sets WebRTC's ICE transport policy to `.relay` for outbound,
 inbound, push, and recovered calls. STUN entries may remain in the ICE catalog,
 but they cannot become the selected media path. A reachable TURN server and
 valid credentials are mandatory. Production defaults include TURN over UDP and
-TCP on port 3478, followed by TURNS on port 443 at `turn.telnyx.com` and
-`turn2.telnyx.com`.
+TCP on port 3478, followed by TURNS on port 443 at `turn.telnyx.com`.
 
 Use this setting selectively. Relaying all media can add connection time,
 latency, relay bandwidth/cost, and may reduce quality for devices that could

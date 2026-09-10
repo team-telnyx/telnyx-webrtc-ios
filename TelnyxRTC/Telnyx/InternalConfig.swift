@@ -15,7 +15,6 @@ private let prodHost = "wss://rtc.telnyx.com"
 private let prodTurnServerUdp = "turn:turn.telnyx.com:3478?transport=udp"
 private let prodTurnTcpUrl = "turn:turn.telnyx.com:3478?transport=tcp"
 private let prodTurns443Url = "turns:turn.telnyx.com:443"
-private let prodTurns443SecondaryUrl = "turns:turn2.telnyx.com:443"
 private let prodStunUrl = "stun:stun.telnyx.com:3478"
 // UDP TURN server (primary - lower latency)
 private let prodTurnUdp = RTCIceServer(urlStrings: [prodTurnServerUdp],
@@ -29,13 +28,10 @@ private let prodTurnTcp = RTCIceServer(urlStrings: [prodTurnTcpUrl],
 private let prodTurns443 = RTCIceServer(urlStrings: [prodTurns443Url],
                                           username: "testuser",
                                           credential: "testpassword")
-private let prodTurns443Secondary = RTCIceServer(urlStrings: [prodTurns443SecondaryUrl],
-                                                 username: "testuser",
-                                                 credential: "testpassword")
 private let prodStun = RTCIceServer(urlStrings: [prodStunUrl])
 // Google STUN server for additional STUN redundancy (aligned with JS WebRTC SDK)
 private let googleStun = RTCIceServer(urlStrings: ["stun:stun.l.google.com:19302"])
-private let prodIceServers = [prodStun, googleStun, prodTurnUdp, prodTurnTcp, prodTurns443, prodTurns443Secondary]
+private let prodIceServers = [prodStun, googleStun, prodTurnUdp, prodTurnTcp, prodTurns443]
 
 // MARK: - Development Servers
 private let developmentHost = "wss://rtcdev.telnyx.com"
