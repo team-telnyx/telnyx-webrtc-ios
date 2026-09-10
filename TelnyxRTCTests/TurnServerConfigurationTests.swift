@@ -136,12 +136,12 @@ class TurnServerConfigurationTests: XCTestCase {
 
     // MARK: - TURNS 443 Server Tests (VSDK-503)
 
-    /// Test that production includes both primary and secondary TURNS endpoints
-    func testProdIceServersCountIsSix() {
+    /// Test that production includes the TURNS 443 endpoint
+    func testProdIceServersCountIsFive() {
         let config = InternalConfig.default
         let iceServers = config.prodWebRTCIceServers
 
-        XCTAssertEqual(iceServers.count, 6, "Production should have 6 ICE servers including both TURNS endpoints")
+        XCTAssertEqual(iceServers.count, 5, "Production should have 5 ICE servers: STUN, Google STUN, TURN UDP, TURN TCP, TURNS 443")
     }
 
     /// Test that development ICE servers contain exactly 5 servers including TURNS 443
