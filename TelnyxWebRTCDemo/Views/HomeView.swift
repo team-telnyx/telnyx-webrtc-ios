@@ -379,7 +379,8 @@ struct HomeView_Previews: PreviewProvider {
                     onDTMF: { _ in },
                     onRedial: { _ in },
                     onIceRestart: {},
-                    onResetAudio: {}
+                    onResetAudio: {},
+                    onInjectAudioRace: {}
                 )
             )
         )
