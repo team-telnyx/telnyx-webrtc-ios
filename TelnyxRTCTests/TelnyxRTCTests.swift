@@ -24,6 +24,40 @@ class TelnyxRTCTests: XCTestCase {
 
         XCTAssertTrue(txConfig.enableMissedCallNotifications)
     }
+
+    func testTxConfigConfiguresAudioSessionOnPeerCreationByDefault() {
+        let credentialConfig = TxConfig(sipUser: "<userName>", password: "<password>")
+        let tokenConfig = TxConfig(token: "<token>")
+
+        XCTAssertTrue(credentialConfig.configureAudioSessionOnPeerCreation)
+        XCTAssertTrue(tokenConfig.configureAudioSessionOnPeerCreation)
+    }
+
+    func testTxConfigCanDeferAudioSessionConfigurationToCallKit() {
+        let credentialConfig = TxConfig(
+            sipUser: "<userName>",
+            password: "<password>",
+            configureAudioSessionOnPeerCreation: false
+        )
+        let tokenConfig = TxConfig(
+            token: "<token>",
+            configureAudioSessionOnPeerCreation: false
+        )
+
+        XCTAssertFalse(credentialConfig.configureAudioSessionOnPeerCreation)
+        XCTAssertFalse(tokenConfig.configureAudioSessionOnPeerCreation)
+        XCTAssertFalse(Peer.shouldConfigureAudioSession(
+            isAttach: false,
+            configureAudioSessionOnPeerCreation: credentialConfig.configureAudioSessionOnPeerCreation
+        ))
+    }
+
+    func testAttachPeerNeverReconfiguresAudioSession() {
+        XCTAssertFalse(Peer.shouldConfigureAudioSession(
+            isAttach: true,
+            configureAudioSessionOnPeerCreation: true
+        ))
+    }
     
     /**
      Test login error when credentials are empty
