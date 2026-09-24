@@ -903,7 +903,7 @@ extension Call {
     ///     When enabled, real-time call quality metrics will be available through the `onCallQualityChange` callback.
     public func answer(customHeaders:[String:String] = [:], debug:Bool = false) {
         guard claimAnswerAttempt() else {
-            Logger.log.i(message: "Call:: Ignoring duplicate answer for callId: \(callInfo?.callId.uuidString ?? \"unknown\")")
+            Logger.log.i(message: "Call:: Ignoring duplicate answer for callId: \(callInfo?.callId.uuidString ?? "unknown")")
             return
         }
 
