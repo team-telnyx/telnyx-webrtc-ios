@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [4.2.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.2.1) (2026-09-24)
+
+### Bug Fixes
+- **CallKit Audio Recovery**: Made CallKit audio activation and deactivation idempotent and added recovery when a late audio reset disables WebRTC audio after CallKit activation, preventing silent calls during cold-start and push-answer races ([#403](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/403)).
+- **Push INVITE Timeout Cleanup**: Start the push INVITE watchdog after registration and `attachCalls`, ensuring passive secondary devices stop ringing when an INVITE is not replayed while preserving normal answer, decline, disconnect, and cleanup paths ([#383](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/383)).
+- **Default ICE Server Configuration**: Removed the secondary `turns:turn2.telnyx.com:443` endpoint from the default production ICE server list; the primary TURNS endpoint and other STUN/TURN defaults remain unchanged ([#405](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/405)).
+
+### Testing
+- **TURN Configuration Coverage**: Enabled the existing TURN configuration suite in the Xcode test target and added coverage confirming that custom ICE catalogs replace, rather than append to, the default Telnyx servers ([#400](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/400)).
+
 ## [4.2.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.2.0) (2026-08-25)
 
 ### Enhancements
