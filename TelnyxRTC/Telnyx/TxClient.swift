@@ -162,6 +162,8 @@ public class TxClient {
     private var gatewayState: GatewayStates = .NOREG
     private var isCallFromPush: Bool = false
     private var currentCallId: UUID = UUID()
+    private let activeCallLock = NSLock()
+    private var activeOrAnsweringCallId: UUID?
     private var pendingAnswerHeaders = [String:String]()
     internal var sendFileLogs: Bool = false
     private var attachCallId: String?
@@ -821,6 +823,11 @@ public class TxClient {
                                   customHeaders: [String:String] = [:],
                                   debug: Bool = false) {
         Logger.log.i(message: "TxClient:: answerFromCallkit - started for callId: \(String(describing: answerAction.callUUID))")
+        guard claimActiveCall(answerAction.callUUID) else {
+            Logger.log.i(message: "TxClient:: answerFromCallkit - another call is already active or answering")
+            answerAction.fail()
+            return
+        }
         self.answerCallAction = answerAction
 
         // Check if the call was initiated by a push notification
@@ -849,6 +856,7 @@ public class TxClient {
                 } catch let error {
                     Logger.log.e(message: "TxClient:: answerFromCallkit connect error \(error.localizedDescription)")
                     answerCallAction?.fail()
+                    releaseActiveCall(answerAction.callUUID)
                 }
             }
             return
@@ -866,8 +874,37 @@ public class TxClient {
             pendingAnswerHeaders = customHeaders
             /// Set call quality metrics
             self.enableQualityMetrics = debug
+            releaseActiveCall(answerAction.callUUID)
         }
     }
+
+    private func claimActiveCall(_ callId: UUID) -> Bool {
+        activeCallLock.lock()
+        defer { activeCallLock.unlock() }
+        guard activeOrAnsweringCallId == nil || activeOrAnsweringCallId == callId else {
+            return false
+        }
+        activeOrAnsweringCallId = callId
+        return true
+    }
+
+    private func releaseActiveCall(_ callId: UUID) {
+        activeCallLock.lock()
+        if activeOrAnsweringCallId == callId {
+            activeOrAnsweringCallId = nil
+        }
+        activeCallLock.unlock()
+    }
+
+#if DEBUG
+    internal func claimActiveCallForTesting(_ callId: UUID) -> Bool {
+        claimActiveCall(callId)
+    }
+
+    internal func releaseActiveCallForTesting(_ callId: UUID) {
+        releaseActiveCall(callId)
+    }
+#endif
     
     private func resetPushVariables() {
         answerCallAction = nil
@@ -1670,11 +1707,11 @@ extension TxClient: CallProtocol {
            let callId = call.callInfo?.callId {
             Logger.log.i(message: "TxClient:: Remove call")
             self.calls.removeValue(forKey: callId)
-
             // Clean up reverse mapping if this was a push call with different signaling ID
             if call.signalingCallId != callId {
                 socketToAppCallId.removeValue(forKey: call.signalingCallId)
             }
+            releaseActiveCall(callId)
 
             // Clear AI Assistant transcriptions when call ends
             self.aiAssistantManager.clearTranscriptions()
