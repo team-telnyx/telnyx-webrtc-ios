@@ -16,6 +16,7 @@ class AIAssistantViewModel: ObservableObject {
     @Published var sessionId: String?
     @Published var callState: CallState = .NEW
     @Published var targetIdInput: String = ""
+    @Published var conversationIdInput: String = ""
     @Published var showTranscriptDialog: Bool = false {
         didSet {
             print("AIAssistantViewModel:: showTranscriptDialog changed to: \(showTranscriptDialog)")
@@ -167,6 +168,7 @@ class AIAssistantViewModel: ObservableObject {
         transcriptions.removeAll()
         widgetSettings = nil
         targetIdInput = ""
+        conversationIdInput = ""
         errorMessage = nil
         
         print("AIAssistantViewModel cleanupAIAssistantState completed - full cleanup done")
@@ -199,7 +201,10 @@ class AIAssistantViewModel: ObservableObject {
             return
         }
 
-        print("AIAssistantViewModel connectToAssistant called with targetId: \(trimmedTargetId)")
+        let trimmedConversationId = conversationIdInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        let conversationId: String? = trimmedConversationId.isEmpty ? nil : trimmedConversationId
+
+        print("AIAssistantViewModel connectToAssistant called with targetId: \(trimmedTargetId), conversationId: \(conversationId ?? "nil")")
 
         // Store the targetId we're attempting to connect with
         pendingTargetId = trimmedTargetId
@@ -217,7 +222,8 @@ class AIAssistantViewModel: ObservableObject {
         appDelegate.telnyxClient?.anonymousLogin(
             targetId: trimmedTargetId,
             targetType: "ai_assistant",
-            targetVersionId: nil
+            targetVersionId: nil,
+            conversationId: conversationId
         )
     }
     
