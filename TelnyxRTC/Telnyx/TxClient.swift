@@ -162,6 +162,8 @@ public class TxClient {
     private var gatewayState: GatewayStates = .NOREG
     private var isCallFromPush: Bool = false
     private var currentCallId: UUID = UUID()
+    private let activeCallLock = NSLock()
+    private var activeOrAnsweringCallId: UUID?
     private var pendingAnswerHeaders = [String:String]()
     internal var sendFileLogs: Bool = false
     private var attachCallId: String?
@@ -752,6 +754,7 @@ public class TxClient {
         }
         self.calls.removeAll()
         self.socketToAppCallId.removeAll()
+        clearActiveCall()
         self.stopReconnectTimeout()
         self.stopInviteTimeout()
 
@@ -821,6 +824,11 @@ public class TxClient {
                                   customHeaders: [String:String] = [:],
                                   debug: Bool = false) {
         Logger.log.i(message: "TxClient:: answerFromCallkit - started for callId: \(String(describing: answerAction.callUUID))")
+        guard claimActiveCall(answerAction.callUUID) else {
+            Logger.log.i(message: "TxClient:: answerFromCallkit - another call is already active or answering")
+            answerAction.fail()
+            return
+        }
         self.answerCallAction = answerAction
 
         // Check if the call was initiated by a push notification
@@ -849,6 +857,7 @@ public class TxClient {
                 } catch let error {
                     Logger.log.e(message: "TxClient:: answerFromCallkit connect error \(error.localizedDescription)")
                     answerCallAction?.fail()
+                    releaseActiveCall(answerAction.callUUID)
                 }
             }
             return
@@ -857,17 +866,59 @@ public class TxClient {
         // If already connected and there's a pending INVITE, immediately accept the call
         if let currentCall = self.calls[currentCallId] {
             currentCall.answer(customHeaders: customHeaders,
-                               debug: debug)
-            answerCallAction?.fulfill()
-            resetPushVariables()
-            Logger.log.i(message: "answered from callkit")
+                               debug: debug) { [weak self] answered in
+                guard let self else { return }
+                if answered {
+                    self.answerCallAction?.fulfill()
+                    Logger.log.i(message: "answered from callkit")
+                } else {
+                    self.answerCallAction?.fail()
+                    self.releaseActiveCall(answerAction.callUUID)
+                }
+                self.resetPushVariables()
+            }
         } else {
             /// Let's Keep track of the `customHeaders` passed
             pendingAnswerHeaders = customHeaders
             /// Set call quality metrics
             self.enableQualityMetrics = debug
+            releaseActiveCall(answerAction.callUUID)
         }
     }
+
+    private func claimActiveCall(_ callId: UUID) -> Bool {
+        activeCallLock.lock()
+        defer { activeCallLock.unlock() }
+        guard activeOrAnsweringCallId == nil || activeOrAnsweringCallId == callId else {
+            return false
+        }
+        activeOrAnsweringCallId = callId
+        return true
+    }
+
+    private func releaseActiveCall(_ callId: UUID) {
+        activeCallLock.lock()
+        if activeOrAnsweringCallId == callId {
+            activeOrAnsweringCallId = nil
+        }
+        activeCallLock.unlock()
+    }
+
+    private func clearActiveCall() {
+        activeCallLock.lock()
+        activeOrAnsweringCallId = nil
+        activeCallLock.unlock()
+    }
+
+#if DEBUG
+    internal func claimActiveCallForTesting(_ callId: UUID) -> Bool {
+        claimActiveCall(callId)
+    }
+
+    internal func releaseActiveCallForTesting(_ callId: UUID) {
+        releaseActiveCall(callId)
+    }
+#endif
     
     private func resetPushVariables() {
         answerCallAction = nil
@@ -937,7 +988,8 @@ public class TxClient {
                                      callId: timedOutCallId)
         
         // Resolve the CallKit action before reset clears the stored action reference.
-        pendingAnswerAction?.fulfill()
+        pendingAnswerAction?.fail()
+        releaseActiveCall(pendingAnswerAction?.callUUID ?? timedOutCallId)
         resetPushVariables()
         
         Logger.log.i(message: "TxClient:: INVITE timeout handled - Call terminated with ORIGINATOR_CANCEL, CallKit events emitted")
@@ -1498,9 +1550,18 @@ extension TxClient {
             self.delegate?.onPushCall(call: call)
             //Answer is pending from push - Answer Call
             if(answerCallAction != nil){
-                call.answer(customHeaders: pendingAnswerHeaders,debug: enableQualityMetrics)
-                answerCallAction?.fulfill()
-                resetPushVariables()
+                let pendingAction = answerCallAction
+                call.answer(customHeaders: pendingAnswerHeaders,
+                            debug: enableQualityMetrics) { [weak self] answered in
+                    guard let self else { return }
+                    if answered {
+                        pendingAction?.fulfill()
+                    } else {
+                        pendingAction?.fail()
+                        self.releaseActiveCall(pendingAction?.callUUID ?? appFacingCallId)
+                    }
+                    self.resetPushVariables()
+                }
             }
             
             //End is pending from callkit
@@ -1670,11 +1731,11 @@ extension TxClient: CallProtocol {
            let callId = call.callInfo?.callId {
             Logger.log.i(message: "TxClient:: Remove call")
             self.calls.removeValue(forKey: callId)
-
             // Clean up reverse mapping if this was a push call with different signaling ID
             if call.signalingCallId != callId {
                 socketToAppCallId.removeValue(forKey: call.signalingCallId)
             }
+            releaseActiveCall(callId)
 
             // Clear AI Assistant transcriptions when call ends
             self.aiAssistantManager.clearTranscriptions()
