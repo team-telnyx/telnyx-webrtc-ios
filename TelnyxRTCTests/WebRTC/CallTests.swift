@@ -65,6 +65,16 @@ class CallTests: XCTestCase {
         client.releaseActiveCallForTesting(firstCallId)
         XCTAssertTrue(client.claimActiveCallForTesting(secondCallId))
     }
+
+    func testDisconnectReleasesActiveOrAnsweringCall() {
+        let client = TxClient()
+        let firstCallId = UUID()
+        let secondCallId = UUID()
+
+        XCTAssertTrue(client.claimActiveCallForTesting(firstCallId))
+        client.disconnect()
+        XCTAssertTrue(client.claimActiveCallForTesting(secondCallId))
+    }
     
     /**
      Test that the invite message is sent through the socket with custom headers.
@@ -149,6 +159,9 @@ class CallTests: XCTestCase {
         XCTAssertFalse(call.claimAnswerAttemptForTesting())
         call.releaseAnswerAttemptForTesting()
         XCTAssertTrue(call.claimAnswerAttemptForTesting())
+        call.releaseAnswerAttemptForTesting()
+        call.updateCallState(callState: .ACTIVE)
+        XCTAssertFalse(call.claimAnswerAttemptForTesting())
     }
 }
 

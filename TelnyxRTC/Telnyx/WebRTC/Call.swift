@@ -901,9 +901,12 @@ extension Call {
     ///     converted to underscores in variable names.
     ///   - debug: (optional) Enable debug mode for call quality metrics and WebRTC statistics.
     ///     When enabled, real-time call quality metrics will be available through the `onCallQualityChange` callback.
-    public func answer(customHeaders:[String:String] = [:], debug:Bool = false) {
+    public func answer(customHeaders:[String:String] = [:],
+                       debug:Bool = false,
+                       completion: ((Bool) -> Void)? = nil) {
         guard claimAnswerAttempt() else {
             Logger.log.i(message: "Call:: Ignoring duplicate answer for callId: \(callInfo?.callId.uuidString ?? "unknown")")
+            completion?(false)
             return
         }
 
@@ -916,6 +919,7 @@ extension Call {
         //TODO: Create an error if there's no remote SDP
         guard let remoteSdp = self.remoteSdp else {
             clearAnswerInProgress()
+            completion?(false)
             return
         }
         self.answerCustomHeaders = customHeaders
@@ -939,15 +943,18 @@ extension Call {
             if let error = error {
                 Logger.log.e(message: "Call:: Error creating the answering: \(error)")
                 self.clearAnswerInProgress()
+                completion?(false)
                 return
             }
 
             guard let sdp = sdp else {
                 self.clearAnswerInProgress()
+                completion?(false)
                 return
             }
             Logger.log.i(message: "Call:: Answer completed >> SDP: \(sdp)")
             self.updateCallState(callState: .ACTIVE)
+            completion?(true)
         })
     }
 

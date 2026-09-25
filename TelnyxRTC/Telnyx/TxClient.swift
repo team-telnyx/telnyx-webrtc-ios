@@ -754,6 +754,7 @@ public class TxClient {
         }
         self.calls.removeAll()
         self.socketToAppCallId.removeAll()
+        clearActiveCall()
         self.stopReconnectTimeout()
         self.stopInviteTimeout()
 
@@ -865,10 +866,17 @@ public class TxClient {
         // If already connected and there's a pending INVITE, immediately accept the call
         if let currentCall = self.calls[currentCallId] {
             currentCall.answer(customHeaders: customHeaders,
-                               debug: debug)
-            answerCallAction?.fulfill()
-            resetPushVariables()
-            Logger.log.i(message: "answered from callkit")
+                               debug: debug) { [weak self] answered in
+                guard let self else { return }
+                if answered {
+                    self.answerCallAction?.fulfill()
+                    Logger.log.i(message: "answered from callkit")
+                } else {
+                    self.answerCallAction?.fail()
+                    self.releaseActiveCall(answerAction.callUUID)
+                }
+                self.resetPushVariables()
+            }
         } else {
             /// Let's Keep track of the `customHeaders` passed
             pendingAnswerHeaders = customHeaders
@@ -893,6 +901,12 @@ public class TxClient {
         if activeOrAnsweringCallId == callId {
             activeOrAnsweringCallId = nil
         }
+        activeCallLock.unlock()
+    }
+
+    private func clearActiveCall() {
+        activeCallLock.lock()
+        activeOrAnsweringCallId = nil
         activeCallLock.unlock()
     }
 
@@ -974,7 +988,8 @@ public class TxClient {
                                      callId: timedOutCallId)
         
         // Resolve the CallKit action before reset clears the stored action reference.
-        pendingAnswerAction?.fulfill()
+        pendingAnswerAction?.fail()
+        releaseActiveCall(pendingAnswerAction?.callUUID ?? timedOutCallId)
         resetPushVariables()
         
         Logger.log.i(message: "TxClient:: INVITE timeout handled - Call terminated with ORIGINATOR_CANCEL, CallKit events emitted")
@@ -1535,9 +1550,18 @@ extension TxClient {
             self.delegate?.onPushCall(call: call)
             //Answer is pending from push - Answer Call
             if(answerCallAction != nil){
-                call.answer(customHeaders: pendingAnswerHeaders,debug: enableQualityMetrics)
-                answerCallAction?.fulfill()
-                resetPushVariables()
+                let pendingAction = answerCallAction
+                call.answer(customHeaders: pendingAnswerHeaders,
+                            debug: enableQualityMetrics) { [weak self] answered in
+                    guard let self else { return }
+                    if answered {
+                        pendingAction?.fulfill()
+                    } else {
+                        pendingAction?.fail()
+                        self.releaseActiveCall(pendingAction?.callUUID ?? appFacingCallId)
+                    }
+                    self.resetPushVariables()
+                }
             }
             
             //End is pending from callkit

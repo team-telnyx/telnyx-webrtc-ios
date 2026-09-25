@@ -125,7 +125,7 @@ class TxClientPingAuthTests: XCTestCase {
         XCTAssertTrue(mockDelegate.doneCallIds.isEmpty)
     }
 
-    func testAnsweredPushInviteTimeoutUsesPushUUIDAndCompletesAnswerAction() throws {
+    func testAnsweredPushInviteTimeoutUsesPushUUIDAndFailsAnswerAction() throws {
         let callUUID = UUID()
         txClient.inviteTimeoutInterval = 0.01
         try startPushFlow(callId: callUUID)
@@ -142,7 +142,8 @@ class TxClientPingAuthTests: XCTestCase {
 
         XCTAssertEqual(mockDelegate.remoteEndedCallIds, [callUUID])
         XCTAssertEqual(mockDelegate.doneCallIds, [callUUID])
-        XCTAssertEqual(answerAction.fulfillCallCount, 1)
+        XCTAssertEqual(answerAction.fulfillCallCount, 0)
+        XCTAssertEqual(answerAction.failCallCount, 1)
     }
 
     func testPassivePushInviteTimeoutUsesPushUUIDWithoutAnswerAction() throws {
@@ -242,10 +243,16 @@ class TxClientPingAuthTests: XCTestCase {
 
 private final class TrackingAnswerCallAction: CXAnswerCallAction {
     private(set) var fulfillCallCount = 0
+    private(set) var failCallCount = 0
 
     override func fulfill() {
         fulfillCallCount += 1
         super.fulfill()
+    }
+
+    override func fail() {
+        failCallCount += 1
+        super.fail()
     }
 }
 
