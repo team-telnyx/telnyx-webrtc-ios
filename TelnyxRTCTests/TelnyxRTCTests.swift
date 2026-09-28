@@ -296,3 +296,159 @@ class TelnyxRTCTests: XCTestCase {
         XCTAssertFalse(sessionId.isEmpty) // We should get a session ID
     }
 }
+
+private final class InMemoryPushTokenRegistrationStore: PushTokenRegistrationStoring {
+    var history = StoredPushTokenHistory()
+
+    func load() throws -> StoredPushTokenHistory {
+        history
+    }
+
+    func save(_ history: StoredPushTokenHistory) throws {
+        self.history = history
+    }
+}
+
+private final class PushCleanupCapturingSocket: Socket {
+    private(set) var sentMethods: [String] = []
+
+    override func sendMessage(message: String?) {
+        guard let message,
+              let data = message.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let method = json["method"] as? String else {
+            return
+        }
+        sentMethods.append(method)
+    }
+}
+
+final class PushTokenRegistrationTrackerTests: XCTestCase {
+    private let accountKey = "sip:alice"
+
+    func testFirstObservedTokenBecomesCurrentWithoutCleanup() throws {
+        let store = InMemoryPushTokenRegistrationStore()
+        let tracker = PushTokenRegistrationTracker(store: store)
+        let current = registration(token: "CURRENT", environment: "debug")
+
+        let cleanup = try tracker.registrationsToCleanup(
+            current: current,
+            accountKey: accountKey
+        )
+
+        XCTAssertTrue(cleanup.isEmpty)
+        XCTAssertEqual(store.history.accounts[accountKey]?.current, current)
+        XCTAssertTrue(store.history.accounts[accountKey]?.pendingCleanup.isEmpty == true)
+    }
+
+    func testTokenRotationQueuesOnlyPreviousRegistration() throws {
+        let store = InMemoryPushTokenRegistrationStore()
+        let tracker = PushTokenRegistrationTracker(store: store)
+        let previous = registration(token: "OLD", environment: "production")
+        let current = registration(token: "NEW", environment: "debug")
+
+        _ = try tracker.registrationsToCleanup(current: previous, accountKey: accountKey)
+        let cleanup = try tracker.registrationsToCleanup(current: current, accountKey: accountKey)
+
+        XCTAssertEqual(cleanup, [previous])
+        XCTAssertEqual(store.history.accounts[accountKey]?.current, current)
+        XCTAssertEqual(store.history.accounts[accountKey]?.pendingCleanup, [previous])
+    }
+
+    func testEnvironmentChangeQueuesPreviousRegistrationEvenWhenTokenMatches() throws {
+        let store = InMemoryPushTokenRegistrationStore()
+        let tracker = PushTokenRegistrationTracker(store: store)
+        let sandbox = registration(token: "SAME", environment: "debug")
+        let production = registration(token: "SAME", environment: "production")
+
+        _ = try tracker.registrationsToCleanup(current: sandbox, accountKey: accountKey)
+        let cleanup = try tracker.registrationsToCleanup(current: production, accountKey: accountKey)
+
+        XCTAssertEqual(cleanup, [sandbox])
+    }
+
+    func testUnconfirmedCleanupsRemainQueuedAcrossMultipleRotations() throws {
+        let store = InMemoryPushTokenRegistrationStore()
+        let tracker = PushTokenRegistrationTracker(store: store)
+        let first = registration(token: "FIRST", environment: "debug")
+        let second = registration(token: "SECOND", environment: "debug")
+        let third = registration(token: "THIRD", environment: "debug")
+
+        _ = try tracker.registrationsToCleanup(current: first, accountKey: accountKey)
+        _ = try tracker.registrationsToCleanup(current: second, accountKey: accountKey)
+        let cleanup = try tracker.registrationsToCleanup(current: third, accountKey: accountKey)
+
+        XCTAssertEqual(cleanup, [first, second])
+    }
+
+    func testConfirmedCleanupIsRemovedFromRetryQueue() throws {
+        let store = InMemoryPushTokenRegistrationStore()
+        let tracker = PushTokenRegistrationTracker(store: store)
+        let previous = registration(token: "OLD", environment: "debug")
+        let current = registration(token: "NEW", environment: "debug")
+
+        _ = try tracker.registrationsToCleanup(current: previous, accountKey: accountKey)
+        _ = try tracker.registrationsToCleanup(current: current, accountKey: accountKey)
+        try tracker.markCleanupSucceeded(previous, accountKey: accountKey)
+
+        XCTAssertTrue(store.history.accounts[accountKey]?.pendingCleanup.isEmpty == true)
+        XCTAssertEqual(store.history.accounts[accountKey]?.current, current)
+    }
+
+    func testRegistrationsAreScopedBySipAccount() throws {
+        let store = InMemoryPushTokenRegistrationStore()
+        let tracker = PushTokenRegistrationTracker(store: store)
+        let alice = registration(token: "ALICE", environment: "debug")
+        let bob = registration(token: "BOB", environment: "debug")
+
+        _ = try tracker.registrationsToCleanup(current: alice, accountKey: "sip:alice")
+        let bobCleanup = try tracker.registrationsToCleanup(current: bob, accountKey: "sip:bob")
+
+        XCTAssertTrue(bobCleanup.isEmpty)
+        XCTAssertEqual(store.history.accounts["sip:alice"]?.current, alice)
+        XCTAssertEqual(store.history.accounts["sip:bob"]?.current, bob)
+    }
+
+    func testCleanupIsSentOnlyAfterGatewayRegistrationIsConfirmed() throws {
+        let store = InMemoryPushTokenRegistrationStore()
+        let tracker = PushTokenRegistrationTracker(store: store)
+        let previous = registration(token: "OLD", environment: "production")
+        let current = registration(token: "NEW", environment: "debug")
+        _ = try tracker.registrationsToCleanup(current: previous, accountKey: accountKey)
+
+        let client = TxClient()
+        let socket = PushCleanupCapturingSocket()
+        client.pushTokenRegistrationTracker = tracker
+        client.txConfig = TxConfig(
+            sipUser: "alice",
+            password: "password",
+            pushDeviceToken: current.token,
+            pushEnvironment: .debug
+        )
+        client.setSocketForTesting(socket)
+
+        client.onSocketConnected()
+
+        XCTAssertEqual(socket.sentMethods, [Method.LOGIN.rawValue])
+        XCTAssertEqual(store.history.accounts[accountKey]?.current, previous)
+
+        client.onMessageReceived(message: """
+        {"jsonrpc":"2.0","id":"gateway-state","result":{"params":{"state":"REGED"}}}
+        """)
+
+        XCTAssertEqual(
+            socket.sentMethods,
+            [Method.LOGIN.rawValue, Method.DISABLE_PUSH.rawValue]
+        )
+        XCTAssertEqual(store.history.accounts[accountKey]?.current, current)
+        XCTAssertEqual(store.history.accounts[accountKey]?.pendingCleanup, [previous])
+    }
+
+    private func registration(token: String, environment: String) -> StoredPushTokenRegistration {
+        StoredPushTokenRegistration(
+            token: token,
+            provider: TxPushConfig.PUSH_NOTIFICATION_PROVIDER,
+            environment: environment
+        )
+    }
+}

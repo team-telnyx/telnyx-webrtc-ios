@@ -519,4 +519,21 @@ class VertoMessagesTests: XCTestCase {
         let userAgent = login.params?["User-Agent"] as? String
         XCTAssertEqual(userAgent, "iOS-\(Message.SDK_VERSION)")
     }
+
+    func testDisablePushMessageTargetsExplicitPreviousRegistration() {
+        let message = DisablePushMessage(
+            user: "alice",
+            pushDeviceToken: "OLD_TOKEN",
+            pushNotificationProvider: "ios",
+            pushEnvironment: .production
+        )
+
+        XCTAssertEqual(message.method, .DISABLE_PUSH)
+        XCTAssertEqual(message.params?["user"] as? String, "alice")
+
+        let pushVariables = message.params?["User-Agent"] as? [String: String]
+        XCTAssertEqual(pushVariables?["push_device_token"], "OLD_TOKEN")
+        XCTAssertEqual(pushVariables?["push_notification_provider"], "ios")
+        XCTAssertEqual(pushVariables?["push_notification_environment"], "production")
+    }
 }
