@@ -49,6 +49,32 @@ class CallTests: XCTestCase {
         self.call?.newCall(callerName: "callerName", callerNumber: "callerNumber", destinationNumber: "destinationNumber")
         waitForExpectations(timeout: timeout)
     }
+
+    func testTxClientAllowsOnlyOneActiveOrAnsweringCall() {
+        let client = TxClient()
+        let firstCallId = UUID()
+        let secondCallId = UUID()
+
+        XCTAssertTrue(client.claimActiveCallForTesting(firstCallId))
+        XCTAssertTrue(client.claimActiveCallForTesting(firstCallId))
+        XCTAssertFalse(client.claimActiveCallForTesting(secondCallId))
+
+        client.releaseActiveCallForTesting(secondCallId)
+        XCTAssertFalse(client.claimActiveCallForTesting(secondCallId))
+
+        client.releaseActiveCallForTesting(firstCallId)
+        XCTAssertTrue(client.claimActiveCallForTesting(secondCallId))
+    }
+
+    func testDisconnectReleasesActiveOrAnsweringCall() {
+        let client = TxClient()
+        let firstCallId = UUID()
+        let secondCallId = UUID()
+
+        XCTAssertTrue(client.claimActiveCallForTesting(firstCallId))
+        client.disconnect()
+        XCTAssertTrue(client.claimActiveCallForTesting(secondCallId))
+    }
     
     /**
      Test that the invite message is sent through the socket with custom headers.
@@ -119,6 +145,23 @@ class CallTests: XCTestCase {
 
         XCTAssertFalse(Call.selectedCandidateUsesDirectVPN(relayStatistics))
         XCTAssertFalse(Call.selectedCandidateUsesDirectVPN(wifiStatistics))
+    }
+
+    func testAnswerAttemptIsClaimedUntilItFailsOrCompletes() {
+        guard let call else {
+            XCTFail("Call should be created")
+            return
+        }
+
+        XCTAssertFalse(call.claimAnswerAttemptForTesting())
+        call.remoteSdp = "test-sdp"
+        XCTAssertTrue(call.claimAnswerAttemptForTesting())
+        XCTAssertFalse(call.claimAnswerAttemptForTesting())
+        call.releaseAnswerAttemptForTesting()
+        XCTAssertTrue(call.claimAnswerAttemptForTesting())
+        call.releaseAnswerAttemptForTesting()
+        call.updateCallState(callState: .ACTIVE)
+        XCTAssertFalse(call.claimAnswerAttemptForTesting())
     }
 }
 
