@@ -159,7 +159,7 @@ This effectively means that you can have up to 5 devices that can receive push n
 
 ### PushKit token rotation
 
-Always pass the latest VoIP token received from `pushRegistry(_:didUpdate:for:)` in `TxConfig`. The SDK stores the most recently observed registration in device-only Keychain storage. When the token, provider, or push environment changes, it sends a targeted request to disable the exact previous registration before registering the current one. Failed or unconfirmed cleanup is retained and retried on a later connection.
+Always pass the latest VoIP token received from `pushRegistry(_:didUpdate:for:)` in `TxConfig`. After login reaches the registered (`REGED`) state, the SDK stores the current registration in device-only Keychain storage. When the token, provider, or push environment has changed, it sends a targeted request to disable the exact previous registration using the authenticated member session. Failed or unconfirmed cleanup is retained and retried on a later connection.
 
 This cleanup only applies to rotations observed by an SDK version that includes this behavior. It cannot discover historical stale tokens that were registered before the SDK began storing token history. Registrations belonging to other devices remain untouched, so multi-device delivery continues to work.
 

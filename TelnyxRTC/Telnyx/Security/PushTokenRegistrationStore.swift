@@ -142,7 +142,7 @@ final class PushTokenRegistrationTracker {
     }
 
     /// Records the current registration and returns stale registrations that
-    /// should be disabled before the current login is sent.
+    /// should be disabled after the current login reaches REGED.
     func registrationsToCleanup(
         current: StoredPushTokenRegistration,
         accountKey: String

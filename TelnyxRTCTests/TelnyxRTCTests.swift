@@ -309,6 +309,20 @@ private final class InMemoryPushTokenRegistrationStore: PushTokenRegistrationSto
     }
 }
 
+private final class PushCleanupCapturingSocket: Socket {
+    private(set) var sentMethods: [String] = []
+
+    override func sendMessage(message: String?) {
+        guard let message,
+              let data = message.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let method = json["method"] as? String else {
+            return
+        }
+        sentMethods.append(method)
+    }
+}
+
 final class PushTokenRegistrationTrackerTests: XCTestCase {
     private let accountKey = "sip:alice"
 
@@ -393,6 +407,41 @@ final class PushTokenRegistrationTrackerTests: XCTestCase {
         XCTAssertTrue(bobCleanup.isEmpty)
         XCTAssertEqual(store.history.accounts["sip:alice"]?.current, alice)
         XCTAssertEqual(store.history.accounts["sip:bob"]?.current, bob)
+    }
+
+    func testCleanupIsSentOnlyAfterGatewayRegistrationIsConfirmed() throws {
+        let store = InMemoryPushTokenRegistrationStore()
+        let tracker = PushTokenRegistrationTracker(store: store)
+        let previous = registration(token: "OLD", environment: "production")
+        let current = registration(token: "NEW", environment: "debug")
+        _ = try tracker.registrationsToCleanup(current: previous, accountKey: accountKey)
+
+        let client = TxClient()
+        let socket = PushCleanupCapturingSocket()
+        client.pushTokenRegistrationTracker = tracker
+        client.txConfig = TxConfig(
+            sipUser: "alice",
+            password: "password",
+            pushDeviceToken: current.token,
+            pushEnvironment: .debug
+        )
+        client.setSocketForTesting(socket)
+
+        client.onSocketConnected()
+
+        XCTAssertEqual(socket.sentMethods, [Method.LOGIN.rawValue])
+        XCTAssertEqual(store.history.accounts[accountKey]?.current, previous)
+
+        client.onMessageReceived(message: """
+        {"jsonrpc":"2.0","id":"gateway-state","result":{"params":{"state":"REGED"}}}
+        """)
+
+        XCTAssertEqual(
+            socket.sentMethods,
+            [Method.LOGIN.rawValue, Method.DISABLE_PUSH.rawValue]
+        )
+        XCTAssertEqual(store.history.accounts[accountKey]?.current, current)
+        XCTAssertEqual(store.history.accounts[accountKey]?.pendingCleanup, [previous])
     }
 
     private func registration(token: String, environment: String) -> StoredPushTokenRegistration {
