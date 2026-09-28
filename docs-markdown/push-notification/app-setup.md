@@ -157,6 +157,12 @@ Telnyx WebRTC supports multidevice push notifications. A single user can have up
 
 This effectively means that you can have up to 5 devices that can receive push notifications for the same incoming call.
 
+### PushKit token rotation
+
+Always pass the latest VoIP token received from `pushRegistry(_:didUpdate:for:)` in `TxConfig`. The SDK stores the most recently observed registration in device-only Keychain storage. When the token, provider, or push environment changes, it sends a targeted request to disable the exact previous registration before registering the current one. Failed or unconfirmed cleanup is retained and retried on a later connection.
+
+This cleanup only applies to rotations observed by an SDK version that includes this behavior. It cannot discover historical stale tokens that were registered before the SDK began storing token history. Registrations belonging to other devices remain untouched, so multi-device delivery continues to work.
+
 ### Push-when-active multi-device flows
 
 For multi-device setups where a single incoming call is delivered to several devices via push, the SDK can automatically include the answering device's PushKit VoIP token in the `telnyx_rtc.answer` payload. The backend uses that token to exclude the answering device from the `answered-elsewhere` / `picked-off` notification that is delivered to the remaining devices.
