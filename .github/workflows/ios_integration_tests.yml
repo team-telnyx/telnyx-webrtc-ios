@@ -1,0 +1,89 @@
+name: iOS Integration Tests
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-integration-tests
+  cancel-in-progress: false
+
+jobs:
+  integration-tests:
+    name: Credentialed login tests
+    environment: mobile-sdk-integration
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Select Xcode Version
+        uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1
+        with:
+          xcode-version: '26.3.0'
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1
+        with:
+          ruby-version: 3.3.0
+          bundler-cache: true
+
+      - name: Create on-demand credential
+        id: ondemand-credential
+        env:
+          TELNYX_SIP_API_KEY: ${{ secrets.TELNYX_SIP_API_KEY }}
+          TELNYX_SIP_CONNECTION_ID: ${{ secrets.TELNYX_SIP_CONNECTION_ID }}
+        run: |
+          response=$(curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Content-Type: application/json" \
+            --header "Authorization: Bearer $TELNYX_SIP_API_KEY" \
+            --data "{\"connection_id\":\"$TELNYX_SIP_CONNECTION_ID\"}" \
+            https://api.telnyx.com/v2/telephony_credentials)
+          credential_id=$(jq --exit-status --raw-output '.data.id' <<< "$response")
+          echo "credential_id=$credential_id" >> "$GITHUB_OUTPUT"
+
+      - name: Generate login token
+        id: login-token
+        env:
+          TELNYX_SIP_API_KEY: ${{ secrets.TELNYX_SIP_API_KEY }}
+          CREDENTIAL_ID: ${{ steps.ondemand-credential.outputs.credential_id }}
+        run: |
+          token=$(curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Content-Type: application/json" \
+            --header "Authorization: Bearer $TELNYX_SIP_API_KEY" \
+            --data '{}' \
+            "https://api.telnyx.com/v2/telephony_credentials/$CREDENTIAL_ID/token")
+          echo "::add-mask::$token"
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Configure integration credentials
+        env:
+          TELNYX_SIP_USER: ${{ secrets.TELNYX_SIP_USER }}
+          TELNYX_SIP_PASSWORD: ${{ secrets.TELNYX_SIP_PASSWORD }}
+          TELNYX_SIP_TOKEN: ${{ steps.login-token.outputs.token }}
+        run: sh scripts/setup_env.sh -u "$TELNYX_SIP_USER" -p "$TELNYX_SIP_PASSWORD" -t "$TELNYX_SIP_TOKEN"
+
+      - name: Install Pods
+        run: pod install
+
+      - name: Run credentialed integration tests
+        run: bundle exec fastlane integration_tests
+
+      - name: Delete on-demand credential
+        if: ${{ always() && steps.ondemand-credential.outputs.credential_id != '' }}
+        env:
+          TELNYX_SIP_API_KEY: ${{ secrets.TELNYX_SIP_API_KEY }}
+          CREDENTIAL_ID: ${{ steps.ondemand-credential.outputs.credential_id }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --request DELETE \
+            --header "Authorization: Bearer $TELNYX_SIP_API_KEY" \
+            "https://api.telnyx.com/v2/telephony_credentials/$CREDENTIAL_ID"
