@@ -183,12 +183,22 @@ public struct CallReportPayload: Codable {
     public let stats: [CallReportInterval]
     public let logs: [LogEntry]?
     public let segment: Int?
+    /// Call-establishment timing breakdown (per-call recorder output). Always
+    /// `nil` if call reports are disabled or the recorder was never started;
+    /// never partially populated — unsupported milestones stay `nil` rather
+    /// than being fabricated as zero-duration entries.
+    public let timing: CallTimingBreakdown?
 
-    public init(summary: CallReportSummary, stats: [CallReportInterval], logs: [LogEntry]? = nil, segment: Int? = nil) {
+    public init(summary: CallReportSummary,
+                stats: [CallReportInterval],
+                logs: [LogEntry]? = nil,
+                segment: Int? = nil,
+                timing: CallTimingBreakdown? = nil) {
         self.summary = summary
         self.stats = stats
         self.logs = logs
         self.segment = segment
+        self.timing = timing
     }
 }
 
