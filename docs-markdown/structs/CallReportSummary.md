@@ -81,8 +81,17 @@ public let startTimestamp: String?
 public let endTimestamp: String?
 ```
 
+### `clientSummary`
+
+```swift
+public let clientSummary: CallReportClientSummary?
+```
+
+Sanitized client and call options that were in effect for this call.
+Credentials and ICE usernames are represented only as presence flags.
+
 ## Methods
-### `init(callId:destinationNumber:callerNumber:direction:state:durationSeconds:telnyxSessionId:telnyxLegId:voiceSdkSessionId:sdkVersion:startTimestamp:endTimestamp:)`
+### `init(callId:destinationNumber:callerNumber:direction:state:durationSeconds:telnyxSessionId:telnyxLegId:voiceSdkSessionId:sdkVersion:startTimestamp:endTimestamp:clientSummary:)`
 
 ```swift
 public init(
@@ -97,6 +106,7 @@ public init(
     voiceSdkSessionId: String? = nil,
     sdkVersion: String? = nil,
     startTimestamp: String? = nil,
-    endTimestamp: String? = nil
+    endTimestamp: String? = nil,
+    clientSummary: CallReportClientSummary? = nil
 )
 ```

@@ -45,6 +45,22 @@ class PeerConnectionTests: XCTestCase {
         XCTAssertNotNil(audio)
     }
 
+    func testPeerConnectionStateCallbackForwardsFailure() {
+        var receivedState: RTCPeerConnectionState?
+        self.peerConnection?.onPeerConnectionStateChange = { state in
+            receivedState = state
+        }
+
+        guard let peerConnection = self.peerConnection,
+              let connection = peerConnection.connection else {
+            return XCTFail("Expected peer connection")
+        }
+
+        peerConnection.peerConnection(connection, didChange: RTCPeerConnectionState.failed)
+
+        XCTAssertEqual(receivedState, .failed)
+    }
+
     /**
      Test offer creation.
      - We should get an SDP if everythigng is correctly setup

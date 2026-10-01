@@ -21,7 +21,6 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
-Gemfile.lock
 reports/
 drivers/
 e2e/.env.local
@@ -39,7 +38,6 @@ TelnyxWebRTCDemo/GoogleService-Info.plist
 
 # pipelines
 .bundle/
-Gemfile.lock
 *.swp
 .DS_Store
 

@@ -40,6 +40,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     weak var voipDelegate: VoIPDelegate?
     var callKitProvider: CXProvider?
     let callKitCallController = CXCallController()
+    var audioLifecycleGeneration = 0
 
    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {

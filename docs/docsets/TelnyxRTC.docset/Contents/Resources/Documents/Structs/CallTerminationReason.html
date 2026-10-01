@@ -17,7 +17,7 @@
     <a title="CallTerminationReason Structure Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">TelnyxRTC 4.0.0 Docs</a> (62% documented)</p>
+        <p><a href="../index.html">TelnyxRTC 4.2.0 Docs</a> (50% documented)</p>
         <div class="header-right">
           <form role="search" action="../search.json">
             <input type="text" placeholder="Search documentation" data-typeahead>
@@ -154,6 +154,12 @@
                 <a href="../Structs/AnyCodable.html">AnyCodable</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Structs/AudioCodecStats.html">AudioCodecStats</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/AudioMediaSourceStats.html">AudioMediaSourceStats</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/AudioStats.html">AudioStats</a>
               </li>
               <li class="nav-group-task">
@@ -163,13 +169,28 @@
                 <a href="../Structs/CallQualityMetrics.html">CallQualityMetrics</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Structs/CallReportClientSummary.html">CallReportClientSummary</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/CallReportConfig.html">CallReportConfig</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/CallReportConnectionSummary.html">CallReportConnectionSummary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/CallReportIceServerSummary.html">CallReportIceServerSummary</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/CallReportInterval.html">CallReportInterval</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Structs/CallReportMediaSummary.html">CallReportMediaSummary</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/CallReportPayload.html">CallReportPayload</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/CallReportSettingsSummary.html">CallReportSettingsSummary</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/CallReportSummary.html">CallReportSummary</a>
@@ -187,6 +208,12 @@
                 <a href="../Structs/ConversationItem.html">ConversationItem</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Structs/ICECandidatePairStats.html">ICECandidatePairStats</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ICECandidateStats.html">ICECandidateStats</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/ImageURL.html">ImageURL</a>
               </li>
               <li class="nav-group-task">
@@ -199,10 +226,25 @@
                 <a href="../Structs/LogEntry.html">LogEntry</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Structs/MediaPlayoutStats.html">MediaPlayoutStats</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/OutboundAudioStats.html">OutboundAudioStats</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Structs/RemoteInboundRTCPStats.html">RemoteInboundRTCPStats</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/RemoteOutboundRTCPStats.html">RemoteOutboundRTCPStats</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/RemoteRTCPStats.html">RemoteRTCPStats</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Structs/TranscriptionItem.html">TranscriptionItem</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TransportStats.html">TransportStats</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Structs/TxCallInfo.html">TxCallInfo</a>
@@ -357,9 +399,36 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:9TelnyxRTC21CallTerminationReasonV5cause0F4Code03sipG00hE0ACSSSg_SiSgAiHtcfc"></a>
-                    <a name="//apple_ref/swift/Method/init(cause:causeCode:sipCode:sipReason:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:9TelnyxRTC21CallTerminationReasonV5cause0F4Code03sipG00hE0ACSSSg_SiSgAiHtcfc">init(cause:<wbr>causeCode:<wbr>sipCode:<wbr>sipReason:<wbr>)</a>
+                    <a name="/s:9TelnyxRTC21CallTerminationReasonV03sipC2IdSSSgvp"></a>
+                    <a name="//apple_ref/swift/Property/sipCallId" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC21CallTerminationReasonV03sipC2IdSSSgvp">sipCallId</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>SIP Call-ID associated with the terminated call, when provided by the signaling server.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">sipCallId</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9TelnyxRTC21CallTerminationReasonV5cause0F4Code03sipG00hE00hC2IdACSSSg_SiSgAj2Itcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(cause:causeCode:sipCode:sipReason:sipCallId:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9TelnyxRTC21CallTerminationReasonV5cause0F4Code03sipG00hE00hC2IdACSSSg_SiSgAj2Itcfc">init(cause:<wbr>causeCode:<wbr>sipCode:<wbr>sipReason:<wbr>sipCallId:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -374,7 +443,7 @@
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">cause</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">causeCode</span><span class="p">:</span> <span class="kt">Int</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">sipCode</span><span class="p">:</span> <span class="kt">Int</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">sipReason</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">cause</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">causeCode</span><span class="p">:</span> <span class="kt">Int</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">sipCode</span><span class="p">:</span> <span class="kt">Int</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">sipReason</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">sipCallId</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span></code></pre>
 
                         </div>
                       </div>
@@ -386,7 +455,7 @@
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2026 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2026-05-05)</p>
+          <p>&copy; 2026 <a class="link" href="https://www.telnyx.com/" target="_blank" rel="external noopener">Telnyx LLC</a>. All rights reserved. (Last updated: 2026-08-25)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.15.4</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>

@@ -38,14 +38,42 @@ class CallTests: XCTestCase {
      - NOTE: Due that we are not sending a valid sessionID we are going to get an "Authentication error" from the server.
      */
     func testNewCall() {
+        let timeout: TimeInterval = ProcessInfo.processInfo.environment["CI"] != nil ? 30.0 : 10.0
+
         //Wait for socket connection
         expectation = expectation(description: "socket")
-        waitForExpectations(timeout: 10)
+        waitForExpectations(timeout: timeout)
 
         //Wait to send invite message.
         expectation = expectation(description: "newCall")
         self.call?.newCall(callerName: "callerName", callerNumber: "callerNumber", destinationNumber: "destinationNumber")
-        waitForExpectations(timeout: 10)
+        waitForExpectations(timeout: timeout)
+    }
+
+    func testTxClientAllowsOnlyOneActiveOrAnsweringCall() {
+        let client = TxClient()
+        let firstCallId = UUID()
+        let secondCallId = UUID()
+
+        XCTAssertTrue(client.claimActiveCallForTesting(firstCallId))
+        XCTAssertTrue(client.claimActiveCallForTesting(firstCallId))
+        XCTAssertFalse(client.claimActiveCallForTesting(secondCallId))
+
+        client.releaseActiveCallForTesting(secondCallId)
+        XCTAssertFalse(client.claimActiveCallForTesting(secondCallId))
+
+        client.releaseActiveCallForTesting(firstCallId)
+        XCTAssertTrue(client.claimActiveCallForTesting(secondCallId))
+    }
+
+    func testDisconnectReleasesActiveOrAnsweringCall() {
+        let client = TxClient()
+        let firstCallId = UUID()
+        let secondCallId = UUID()
+
+        XCTAssertTrue(client.claimActiveCallForTesting(firstCallId))
+        client.disconnect()
+        XCTAssertTrue(client.claimActiveCallForTesting(secondCallId))
     }
     
     /**
@@ -91,6 +119,49 @@ class CallTests: XCTestCase {
         XCTAssertFalse(callCustomHeaders?.isEmpty == true, "Custom headers should not be empty")
         XCTAssertEqual(callCustomHeaders?["X-test1"], "ios-test1", "X-test1 header should match")
         XCTAssertEqual(callCustomHeaders?["X-test2"], "ios-test2", "X-test2 header should match")
+    }
+
+    func testSelectedDirectVPNCandidateRequiresRelayForRecovery() {
+        let statistics: [String: [String: Any]] = [
+            "transport": ["type": "transport", "selectedCandidatePairId": "pair"],
+            "pair": ["type": "candidate-pair", "localCandidateId": "local"],
+            "local": ["type": "local-candidate", "networkType": "vpn", "candidateType": "host"]
+        ]
+
+        XCTAssertTrue(Call.selectedCandidateUsesDirectVPN(statistics))
+    }
+
+    func testSelectedRelayOrNonVPNCandidateDoesNotRequireRelayForRecovery() {
+        let relayStatistics: [String: [String: Any]] = [
+            "transport": ["type": "transport", "selectedCandidatePairId": "pair"],
+            "pair": ["type": "candidate-pair", "localCandidateId": "local"],
+            "local": ["type": "local-candidate", "networkType": "vpn", "candidateType": "relay"]
+        ]
+        let wifiStatistics: [String: [String: Any]] = [
+            "transport": ["type": "transport", "selectedCandidatePairId": "pair"],
+            "pair": ["type": "candidate-pair", "localCandidateId": "local"],
+            "local": ["type": "local-candidate", "networkType": "wifi", "candidateType": "host"]
+        ]
+
+        XCTAssertFalse(Call.selectedCandidateUsesDirectVPN(relayStatistics))
+        XCTAssertFalse(Call.selectedCandidateUsesDirectVPN(wifiStatistics))
+    }
+
+    func testAnswerAttemptIsClaimedUntilItFailsOrCompletes() {
+        guard let call else {
+            XCTFail("Call should be created")
+            return
+        }
+
+        XCTAssertFalse(call.claimAnswerAttemptForTesting())
+        call.remoteSdp = "test-sdp"
+        XCTAssertTrue(call.claimAnswerAttemptForTesting())
+        XCTAssertFalse(call.claimAnswerAttemptForTesting())
+        call.releaseAnswerAttemptForTesting()
+        XCTAssertTrue(call.claimAnswerAttemptForTesting())
+        call.releaseAnswerAttemptForTesting()
+        call.updateCallState(callState: .ACTIVE)
+        XCTAssertFalse(call.claimAnswerAttemptForTesting())
     }
 }
 

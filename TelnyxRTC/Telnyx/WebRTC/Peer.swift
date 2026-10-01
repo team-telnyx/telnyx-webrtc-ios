@@ -126,6 +126,11 @@ class Peer : NSObject, WebRTCEventHandler {
     /// Prevents sending duplicate endOfCandidates messages during trickle ICE
     private var endOfCandidatesSent: Bool = false
 
+    /// A delayed candidate-gathering callback can outlive call teardown because it
+    /// is scheduled on the main run loop. Keep an explicit lifecycle guard so it
+    /// cannot signal an already-ended server session.
+    private var isDisposed: Bool = false
+
     /// Queued candidates for answering side (until ANSWER is sent)
     /// When answering a call, we queue local ICE candidates until the ANSWER is sent
     /// to avoid race conditions where candidates arrive before the ANSWER
@@ -149,9 +154,18 @@ class Peer : NSObject, WebRTCEventHandler {
     /// This is used for automatic recovery and audio buffer management
     var onIceConnectionStateChange: ((RTCIceConnectionState) -> Void)?
 
+    /// Callback for overall peer connection state monitoring.
+    /// This includes failures outside the ICE transport itself, such as DTLS.
+    var onPeerConnectionStateChange: ((RTCPeerConnectionState) -> Void)?
+
     // Call-report logging closures (separate from WebRTCStatsReporter callbacks)
     var onSignalingStateChangeForLog: ((RTCSignalingState) -> Void)?
     var onIceGatheringStateChangeForLog: ((RTCIceGatheringState) -> Void)?
+    var onIceConnectionStateChangeForLog: ((RTCIceConnectionState) -> Void)?
+    var onPeerConnectionStateChangeForLog: ((RTCPeerConnectionState) -> Void)?
+    var onNegotiationNeededForLog: (() -> Void)?
+    var onIceCandidateForLog: ((RTCIceCandidate) -> Void)?
+    var onIceCandidateErrorForLog: ((RTCIceCandidateErrorEvent) -> Void)?
     var onIceCandidate: ((RTCIceCandidate) -> Void)?
     var onRemoveIceCandidates: (([RTCIceCandidate]) -> Void)?
     var onDataChannel: ((RTCDataChannel) -> Void)?
@@ -553,6 +567,11 @@ class Peer : NSObject, WebRTCEventHandler {
      - Sends SDP with all candidates included after timeout
      */
     fileprivate func startNegotiation(peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
+        guard !isDisposed else {
+            Logger.log.i(message: "[TRICKLE-ICE] Peer:: Skipping negotiation timer - peer is disposed")
+            return
+        }
+
         Logger.log.i(message: "[TRICKLE-ICE] Peer:: startNegotiation called (useTrickleIce: \(useTrickleIce))")
 
         // For Trickle ICE: restart timer to send endOfCandidates when no more candidates arrive
@@ -564,8 +583,17 @@ class Peer : NSObject, WebRTCEventHandler {
             self.negotiationTimer?.invalidate()
             self.negotiationTimer = nil
             DispatchQueue.main.async {
+                guard !self.isDisposed else {
+                    Logger.log.i(message: "[TRICKLE-ICE] Peer:: Skipping negotiation timer scheduling - peer is disposed")
+                    return
+                }
                 self.negotiationTimer = Timer.scheduledTimer(withTimeInterval: self.TRICKLE_ICE_TIMEOUT, repeats: false) { timer in
                     self.negotiationTimer?.invalidate()
+
+                    guard !self.isDisposed else {
+                        Logger.log.i(message: "[TRICKLE-ICE] Peer:: Skipping end of candidates - peer is disposed")
+                        return
+                    }
 
                     Logger.log.i(message: "[TRICKLE-ICE] Peer:: No more candidates for \(self.TRICKLE_ICE_TIMEOUT)s - sending endOfCandidates")
                     self.sendEndOfCandidates()
@@ -612,6 +640,12 @@ class Peer : NSObject, WebRTCEventHandler {
     func dispose() {
         Logger.log.i(message: "Peer:: dispose()")
 
+        // Invalidate before closing the connection. A timer block that was already
+        // queued on the main run loop also checks this flag before it can signal.
+        self.isDisposed = true
+        self.negotiationTimer?.invalidate()
+        self.negotiationTimer = nil
+
         self.connection?.close()
         self.delegate = nil
 
@@ -629,16 +663,20 @@ class Peer : NSObject, WebRTCEventHandler {
         self.onIceConnectionChange = nil
         self.onIceGatheringChange = nil
         self.onIceConnectionStateChange = nil
+        self.onPeerConnectionStateChange = nil
         self.onSignalingStateChangeForLog = nil
         self.onIceGatheringStateChangeForLog = nil
+        self.onIceConnectionStateChangeForLog = nil
+        self.onPeerConnectionStateChangeForLog = nil
+        self.onNegotiationNeededForLog = nil
+        self.onIceCandidateForLog = nil
+        self.onIceCandidateErrorForLog = nil
         self.onIceCandidate = nil
         self.onRemoveIceCandidates = nil
         self.onDataChannel = nil
 
         // Reset trickle ICE state
         self.endOfCandidatesSent = false
-        self.negotiationTimer?.invalidate()
-        self.negotiationTimer = nil
 
         // Clear queued candidates and reset answering flags
         self.queuedCandidates.removeAll()
@@ -954,12 +992,14 @@ extension Peer : RTCPeerConnectionDelegate {
 
     func peerConnectionShouldNegotiate(_ peerConnection: RTCPeerConnection) {
         onNegotiationNeeded?()
+        onNegotiationNeededForLog?()
         Logger.log.i(message: "Peer:: connection should negotiate")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceConnectionState) {
         onIceConnectionChange?(newState)
         onIceConnectionStateChange?(newState)
+        onIceConnectionStateChangeForLog?(newState)
         Logger.log.i(message: "Peer:: connection didChange ICE connection state: [\(newState.telnyx_to_string().uppercased())]")
         
         // Track ICE connection state changes for benchmarking
@@ -984,6 +1024,8 @@ extension Peer : RTCPeerConnectionDelegate {
     }
     
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCPeerConnectionState) {
+        onPeerConnectionStateChange?(newState)
+        onPeerConnectionStateChangeForLog?(newState)
         Logger.log.i(message: "Peer:: connection didChange peer connection state: [\(newState.telnyx_to_string().uppercased())]")
         
         // Track peer connection state changes for benchmarking
@@ -1054,6 +1096,10 @@ extension Peer : RTCPeerConnectionDelegate {
         // ignored by the recorder (once-per-milestone), so reconnect /
         // ICE restart cannot overwrite the original establishment timeline.
         self.timingRecorder?.record(.firstIceCandidate)
+
+        // Record every gathered candidate for the call report, including
+        // candidates that legacy non-trickle handling later declines to send.
+        onIceCandidateForLog?(candidate)
 
         // For Trickle ICE, we always send candidates - don't skip based on negotiationEnded
         if !useTrickleIce {
@@ -1137,6 +1183,11 @@ extension Peer : RTCPeerConnectionDelegate {
             }
         }
       
+    }
+
+    func peerConnection(_ peerConnection: RTCPeerConnection, didFailToGatherIceCandidate event: RTCIceCandidateErrorEvent) {
+        onIceCandidateErrorForLog?(event)
+        Logger.log.w(message: "Peer:: failed to gather ICE candidate (code: \(event.errorCode), url: \(event.url))")
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didRemove candidates: [RTCIceCandidate]) {
@@ -1228,6 +1279,11 @@ extension Peer : RTCPeerConnectionDelegate {
     
     /// Sends end of candidates signal for trickle ICE
     private func sendEndOfCandidates() {
+        guard !isDisposed else {
+            Logger.log.i(message: "[TRICKLE-ICE] Peer:: Skipping end of candidates - peer is disposed")
+            return
+        }
+
         guard let socket = socket, useTrickleIce else {
             Logger.log.i(message: "[TRICKLE-ICE] Peer:: Skipping end of candidates - socket: \(socket != nil), useTrickleIce: \(useTrickleIce)")
             return
@@ -1307,4 +1363,3 @@ extension Peer : RTCPeerConnectionDelegate {
         Logger.log.i(message: "Peer:: connection didOpen RTCDataChannel: \(dataChannel)")
     }
 }
-

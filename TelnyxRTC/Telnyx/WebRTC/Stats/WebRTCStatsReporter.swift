@@ -59,7 +59,7 @@ class WebRTCStatsReporter {
     
     /// Interval for sending stats to socket (in seconds)
     private var socketSendInterval: TimeInterval = 2.0
-    
+
     /// Timestamp of last socket send
     private var lastSocketSendTime: TimeInterval = 0
     
@@ -71,7 +71,7 @@ class WebRTCStatsReporter {
     
     public func startDebugReport(peerId: UUID,
                                  call: Call) {
-        
+
         self.peerId = peerId
         self.peer = call.peer
         self.call  = call
@@ -374,7 +374,7 @@ class WebRTCStatsReporter {
         // Always collect stats for real-time metrics (every 0.2s)
         let currentTime = Date().timeIntervalSince1970
         let shouldSendToSocket = (currentTime - lastSocketSendTime) >= socketSendInterval
-        
+
         Logger.log.i(message: "WebRTCStatsReporter:: Task executed at \(Date()) - SendToSocket: \(shouldSendToSocket)")
         peer.connection?.statistics(completionHandler: { [weak self] reports in
             guard let self = self else { return }

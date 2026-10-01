@@ -58,6 +58,48 @@ class CallReportCollectorTests: XCTestCase {
         disabledCollector.start(peerConnection: mockPeerConnection)
         disabledCollector.stop()
     }
+
+    func testClientSummaryEncodesSanitizedIceServerConfiguration() throws {
+        let summary = CallReportSummary(
+            callId: "call-id",
+            clientSummary: CallReportClientSummary(
+                connection: CallReportConnectionSummary(host: "wss://rtc.telnyx.com"),
+                media: CallReportMediaSummary(
+                    audio: true,
+                    video: false,
+                    forceRelayCandidate: false,
+                    trickleIce: true,
+                    iceServers: [
+                        CallReportIceServerSummary(
+                            urls: ["turns:turn.telnyx.com:443"],
+                            hasUsername: true,
+                            hasCredential: true
+                        )
+                    ]
+                ),
+                callReports: CallReportSettingsSummary(
+                    enabled: true,
+                    intervalMs: 5000,
+                    debugLogLevel: "debug",
+                    debugLogMaxEntries: 1000
+                )
+            )
+        )
+
+        let data = try JSONEncoder().encode(summary)
+        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let clientSummary = try XCTUnwrap(json["clientSummary"] as? [String: Any])
+        let callReports = try XCTUnwrap(clientSummary["callReports"] as? [String: Any])
+        let media = try XCTUnwrap(clientSummary["media"] as? [String: Any])
+        let iceServer = try XCTUnwrap((media["iceServers"] as? [[String: Any]])?.first)
+
+        XCTAssertEqual(iceServer["urls"] as? [String], ["turns:turn.telnyx.com:443"])
+        XCTAssertEqual(iceServer["hasUsername"] as? Bool, true)
+        XCTAssertEqual(iceServer["hasCredential"] as? Bool, true)
+        XCTAssertNil(iceServer["username"])
+        XCTAssertNil(iceServer["credential"])
+        XCTAssertEqual(callReports["flushIntervalMs"] as? Int, 180_000)
+    }
     
     // MARK: - Start/Stop Tests
     
@@ -291,14 +333,6 @@ class CallReportCollectorTests: XCTestCase {
     
     func testCallReportPayloadStructure() {
         collector.start(peerConnection: mockPeerConnection)
-        
-        // Wait for stats
-        let statsExpectation = expectation(description: "Stats")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            statsExpectation.fulfill()
-        }
-        wait(for: [statsExpectation], timeout: 1.0)
-        
         collector.stop()
         
         let summary = CallReportSummary(
@@ -333,6 +367,238 @@ class CallReportCollectorTests: XCTestCase {
         } catch {
             XCTFail("Failed to encode payload: \(error)")
         }
+    }
+
+    func testCallReportEncodesJSCompatibleIceLifecycleLogs() throws {
+        let candidate = "candidate:4279963309 1 udp 41820415 64.16.248.202 54368 typ relay generation 0 ufrag GhhH"
+        let logs = [
+            LogEntry(
+                timestamp: "2026-08-24T19:19:38.200Z",
+                level: "info",
+                message: "RTC config",
+                context: [
+                    "iceServers": AnyCodable([
+                        [
+                            "urls": "turn:turn.telnyx.com:3478?transport=udp",
+                            "hasUsername": true,
+                            "hasCredential": true
+                        ]
+                    ] as [Any])
+                ]
+            ),
+            LogEntry(
+                timestamp: "2026-08-24T19:19:38.800Z",
+                level: "info",
+                message: "RTCPeer Candidate:",
+                context: [
+                    "candidate": AnyCodable(candidate),
+                    "sdpMLineIndex": AnyCodable(1),
+                    "sdpMid": AnyCodable("video"),
+                    "usernameFragment": AnyCodable("GhhH")
+                ]
+            ),
+            LogEntry(
+                timestamp: "2026-08-24T19:19:39.000Z",
+                level: "warn",
+                message: "ICE candidate error:",
+                context: [
+                    "address": AnyCodable("192.168.1.38"),
+                    "port": AnyCodable(55286),
+                    "errorCode": AnyCodable(701),
+                    "errorText": AnyCodable("TURN allocate request timed out."),
+                    "url": AnyCodable("turn:turn.telnyx.com:3478?transport=udp")
+                ]
+            )
+        ]
+
+        let data = try JSONEncoder().encode(CallReportPayload(
+            summary: CallReportSummary(callId: "call-id"),
+            stats: [],
+            logs: logs
+        ))
+        let payload = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let encodedLogs = try XCTUnwrap(payload?["logs"] as? [[String: Any]])
+
+        let iceServer = try XCTUnwrap(
+            ((encodedLogs[0]["context"] as? [String: Any])?["iceServers"] as? [[String: Any]])?.first
+        )
+        XCTAssertEqual(iceServer["urls"] as? String, "turn:turn.telnyx.com:3478?transport=udp")
+        XCTAssertEqual(iceServer["hasUsername"] as? Bool, true)
+        XCTAssertEqual(iceServer["hasCredential"] as? Bool, true)
+        XCTAssertNil(iceServer["username"])
+        XCTAssertNil(iceServer["credential"])
+        XCTAssertEqual(encodedLogs[1]["message"] as? String, "RTCPeer Candidate:")
+        XCTAssertEqual((encodedLogs[1]["context"] as? [String: Any])?["candidate"] as? String, candidate)
+        XCTAssertEqual((encodedLogs[1]["context"] as? [String: Any])?["sdpMLineIndex"] as? Int, 1)
+        XCTAssertEqual(encodedLogs[2]["message"] as? String, "ICE candidate error:")
+        XCTAssertEqual((encodedLogs[2]["context"] as? [String: Any])?["errorCode"] as? Int, 701)
+    }
+
+    func testLargePayloadSplitsStatsIntoSafeChunks() throws {
+        let summary = CallReportSummary(callId: "call-id")
+        let largeCandidateAddress = String(repeating: "a", count: 50_000)
+        let localCandidate = ICECandidateStats(address: largeCandidateAddress)
+        let stats = (0..<50).map { index in
+            CallReportInterval(
+                intervalStartUtc: "2026-08-23T10:00:\(index).000Z",
+                intervalEndUtc: "2026-08-23T10:00:\(index + 1).000Z",
+                ice: ICECandidatePairStats(local: localCandidate)
+            )
+        }
+        let payload = CallReportPayload(summary: summary, stats: stats)
+
+        let chunks = try TelnyxCallReportCollector.chunkedPayloadData(for: payload)
+
+        XCTAssertGreaterThan(chunks.count, 1)
+        XCTAssertTrue(chunks.allSatisfy {
+            $0.count <= TelnyxCallReportCollector.safePayloadSizeBytes
+        })
+
+        let decodedStats = try chunks.flatMap {
+            try JSONDecoder().decode(CallReportPayload.self, from: $0).stats
+        }
+        XCTAssertEqual(decodedStats.count, stats.count)
+        XCTAssertEqual(decodedStats.map(\.intervalStartUtc), stats.map(\.intervalStartUtc))
+    }
+
+    func testIntermediateFlushIsDueAfterThreeMinutes() {
+        XCTAssertFalse(collector.isIntermediateFlushDue(at: collector.callStartTime.addingTimeInterval(179)))
+        XCTAssertTrue(collector.isIntermediateFlushDue(at: collector.callStartTime.addingTimeInterval(180)))
+    }
+
+    func testIntervalEncodesJSCompatibleIceAndTransportStats() throws {
+        let local = ICECandidateStats(
+            id: "local-candidate",
+            address: "10.0.0.2",
+            port: 54543,
+            candidateType: "relay",
+            protocolType: "udp",
+            networkType: "wifi",
+            url: "turn:turn.telnyx.com:3478",
+            relayProtocol: "udp"
+        )
+        let ice = ICECandidatePairStats(
+            id: "candidate-pair",
+            localCandidateId: "local-candidate",
+            remoteCandidateId: "remote-candidate",
+            state: "succeeded",
+            nominated: true,
+            writable: true,
+            currentRoundTripTime: 0.125,
+            requestsSent: 7,
+            responsesReceived: 7,
+            local: local
+        )
+        let transport = TransportStats(
+            iceState: "connected",
+            dtlsState: "connected",
+            srtpCipher: "AES_CM_128_HMAC_SHA1_80",
+            tlsVersion: "FEFD",
+            selectedCandidatePairChanges: 1,
+            selectedCandidatePairId: "candidate-pair"
+        )
+        let interval = CallReportInterval(
+            intervalStartUtc: "2026-08-19T10:00:00.000Z",
+            intervalEndUtc: "2026-08-19T10:00:05.000Z",
+            ice: ice,
+            transport: transport
+        )
+
+        let json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(interval)) as? [String: Any]
+        let encodedIce = try XCTUnwrap(json?["ice"] as? [String: Any])
+        let encodedLocal = try XCTUnwrap(encodedIce["local"] as? [String: Any])
+        let encodedTransport = try XCTUnwrap(json?["transport"] as? [String: Any])
+
+        XCTAssertEqual(encodedIce["localCandidateId"] as? String, "local-candidate")
+        XCTAssertEqual(encodedLocal["protocol"] as? String, "udp")
+        XCTAssertEqual(encodedTransport["selectedCandidatePairId"] as? String, "candidate-pair")
+        XCTAssertEqual(encodedTransport["iceState"] as? String, "connected")
+    }
+
+    func testParserMapsRepresentativeRTCStatisticsFixture() {
+        let snapshot = collector.parsedStatisticsSnapshot([
+            CallReportStatisticsFixture(
+                id: "inbound-audio",
+                type: "inbound-rtp",
+                timestampMs: 5_000,
+                values: [
+                    "kind": "audio",
+                    "packetsReceived": 42,
+                    "bytesReceived": 8_192,
+                    "jitter": 0.012
+                ]
+            ),
+            CallReportStatisticsFixture(
+                id: "outbound-audio",
+                type: "outbound-rtp",
+                values: [
+                    "kind": "audio",
+                    "packetsSent": 24,
+                    "bytesSent": 4_096,
+                    "codecId": "opus-codec",
+                    "mediaSourceId": "mic-source"
+                ]
+            ),
+            CallReportStatisticsFixture(
+                id: "opus-codec",
+                type: "codec",
+                values: [
+                    "mimeType": "audio/opus",
+                    "payloadType": 111,
+                    "clockRate": 48_000,
+                    "channels": 2
+                ]
+            ),
+            CallReportStatisticsFixture(
+                id: "mic-source",
+                type: "media-source",
+                values: [
+                    "kind": "audio",
+                    "audioLevel": 0.125,
+                    "totalAudioEnergy": 42.5
+                ]
+            ),
+            CallReportStatisticsFixture(
+                id: "selected-pair",
+                type: "candidate-pair",
+                values: [
+                    "state": "succeeded",
+                    "nominated": true,
+                    "localCandidateId": "local-relay",
+                    "remoteCandidateId": "remote-host"
+                ]
+            ),
+            CallReportStatisticsFixture(
+                id: "local-relay",
+                type: "local-candidate",
+                values: ["candidateType": "relay", "protocol": "tcp"]
+            ),
+            CallReportStatisticsFixture(
+                id: "remote-host",
+                type: "remote-candidate",
+                values: ["candidateType": "host"]
+            ),
+            CallReportStatisticsFixture(
+                id: "transport",
+                type: "transport",
+                values: [
+                    "selectedCandidatePairId": "selected-pair",
+                    "iceState": "connected",
+                    "dtlsState": "connected"
+                ]
+            )
+        ])
+
+        XCTAssertEqual(snapshot.inboundPacketsReceived, 42)
+        XCTAssertEqual(snapshot.inboundBytesReceived, 8_192)
+        XCTAssertEqual(snapshot.selectedCandidatePairId, "selected-pair")
+        XCTAssertEqual(snapshot.localCandidateType, "relay")
+        XCTAssertEqual(snapshot.localCandidateProtocol, "tcp")
+        XCTAssertEqual(snapshot.remoteCandidateType, "host")
+        XCTAssertEqual(snapshot.iceState, "connected")
+        XCTAssertEqual(snapshot.dtlsState, "connected")
+        XCTAssertEqual(snapshot.outboundCodecMimeType, "audio/opus")
+        XCTAssertEqual(snapshot.outboundMediaSourceAudioLevel, 0.125)
     }
     
     func testCollectorHandlesLongCalls() {

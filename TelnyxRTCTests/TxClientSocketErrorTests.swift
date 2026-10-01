@@ -73,6 +73,35 @@ class TxClientPingAuthTests: XCTestCase {
                        "No error should occur — ping should be silently ignored on unauthenticated socket")
     }
 
+    func testFreshPushVoiceSdkIdTakesPrecedenceOverCachedIdOnConnect() throws {
+        txClient.onMessageReceived(message: """
+        {"jsonrpc":"2.0","voice_sdk_id":"stale-sdk-id","result":{"params":{"state":"REGED"}}}
+        """)
+
+        let txConfig = TxConfig(sipUser: "test_user", password: "test_password")
+        let serverConfiguration = TxServerConfiguration(
+            pushMetaData: [
+                "voice_sdk_id": "fresh-push-sdk-id",
+                "call_id": UUID().uuidString
+            ]
+        )
+
+        try txClient.connect(txConfig: txConfig, serverConfiguration: serverConfiguration)
+
+        XCTAssertEqual(
+            txClient.serverConfiguration.pushMetaData?["voice_sdk_id"] as? String,
+            "fresh-push-sdk-id"
+        )
+        let queryItems = URLComponents(
+            url: txClient.serverConfiguration.signalingServer,
+            resolvingAgainstBaseURL: false
+        )?.queryItems
+        XCTAssertEqual(
+            queryItems?.first(where: { $0.name == "voice_sdk_id" })?.value,
+            "fresh-push-sdk-id"
+        )
+    }
+
     func testDeclinePushDoneUsesEndActionUUIDWhenCallIdIsNotProvided() throws {
         let callUUID = UUID()
         try startPushFlow(callId: callUUID)
@@ -96,7 +125,7 @@ class TxClientPingAuthTests: XCTestCase {
         XCTAssertTrue(mockDelegate.doneCallIds.isEmpty)
     }
 
-    func testAnsweredPushInviteTimeoutUsesPushUUIDAndCompletesAnswerAction() throws {
+    func testAnsweredPushInviteTimeoutUsesPushUUIDAndFailsAnswerAction() throws {
         let callUUID = UUID()
         txClient.inviteTimeoutInterval = 0.01
         try startPushFlow(callId: callUUID)
@@ -113,7 +142,79 @@ class TxClientPingAuthTests: XCTestCase {
 
         XCTAssertEqual(mockDelegate.remoteEndedCallIds, [callUUID])
         XCTAssertEqual(mockDelegate.doneCallIds, [callUUID])
-        XCTAssertEqual(answerAction.fulfillCallCount, 1)
+        XCTAssertEqual(answerAction.fulfillCallCount, 0)
+        XCTAssertEqual(answerAction.failCallCount, 1)
+    }
+
+    func testPassivePushInviteTimeoutUsesPushUUIDWithoutAnswerAction() throws {
+        let callUUID = UUID()
+        txClient.inviteTimeoutInterval = 0.01
+        try startPushFlow(callId: callUUID)
+
+        txClient.onSocketConnected()
+        txClient.onMessageReceived(message: gatewayStateMessage(state: "REGED"))
+
+        let timeoutExpectation = expectation(description: "Passive VoIP push INVITE timeout handled")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            timeoutExpectation.fulfill()
+        }
+        wait(for: [timeoutExpectation], timeout: 1.0)
+
+        XCTAssertEqual(mockDelegate.remoteEndedCallIds, [callUUID])
+        XCTAssertEqual(mockDelegate.doneCallIds, [callUUID])
+    }
+
+    func testMalformedInviteDoesNotCancelPushWatchdog() throws {
+        let callUUID = UUID()
+        txClient.inviteTimeoutInterval = 0.01
+        try startPushFlow(callId: callUUID)
+        txClient.onMessageReceived(message: gatewayStateMessage(state: "REGED"))
+
+        txClient.onMessageReceived(message: """
+        {"jsonrpc":"2.0","method":"telnyx_rtc.invite","params":{"callID":"\(UUID().uuidString)"}}
+        """)
+        waitForWatchdog()
+
+        XCTAssertEqual(mockDelegate.remoteEndedCallIds, [callUUID])
+        XCTAssertEqual(mockDelegate.doneCallIds, [callUUID])
+    }
+
+    func testAttachErrorCancelsPushWatchdogAfterSingleCleanup() throws {
+        let callUUID = UUID()
+        txClient.inviteTimeoutInterval = 0.01
+        try startPushFlow(callId: callUUID)
+        txClient.onMessageReceived(message: gatewayStateMessage(state: "REGED"))
+
+        let attachId = try XCTUnwrap(txClient.pendingAttachCallIdForTesting)
+        txClient.onMessageReceived(message: """
+        {"jsonrpc":"2.0","id":"\(attachId)","error":{"code":-1,"message":"Call failed"}}
+        """)
+        waitForWatchdog()
+
+        XCTAssertEqual(mockDelegate.remoteEndedCallIds, [callUUID])
+        XCTAssertEqual(mockDelegate.doneCallIds, [callUUID])
+    }
+
+    func testAttachSuccessCancelsPushWatchdogWithoutTerminalCleanup() throws {
+        let pushCallUUID = UUID()
+        let signalingCallUUID = UUID()
+        txClient.inviteTimeoutInterval = 0.01
+        try startPushFlow(callId: pushCallUUID)
+        txClient.onMessageReceived(message: gatewayStateMessage(state: "REGED"))
+
+        txClient.onMessageReceived(message: """
+        {"jsonrpc":"2.0","method":"telnyx_rtc.attach","params":{"sdp":"v=0\\r\\n","callID":"\(signalingCallUUID.uuidString)"}}
+        """)
+        waitForWatchdog()
+
+        XCTAssertTrue(mockDelegate.remoteEndedCallIds.isEmpty)
+        XCTAssertTrue(mockDelegate.doneCallIds.isEmpty)
+    }
+
+    private func waitForWatchdog() {
+        let expectation = expectation(description: "Wait beyond INVITE watchdog")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { expectation.fulfill() }
+        wait(for: [expectation], timeout: 1.0)
     }
 
     private func startPushFlow(callId: UUID) throws {
@@ -142,10 +243,16 @@ class TxClientPingAuthTests: XCTestCase {
 
 private final class TrackingAnswerCallAction: CXAnswerCallAction {
     private(set) var fulfillCallCount = 0
+    private(set) var failCallCount = 0
 
     override func fulfill() {
         fulfillCallCount += 1
         super.fulfill()
+    }
+
+    override func fail() {
+        failCallCount += 1
+        super.fail()
     }
 }
 

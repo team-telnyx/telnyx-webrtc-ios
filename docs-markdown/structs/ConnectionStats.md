@@ -39,8 +39,20 @@ public let bytesSent: Int?
 public let bytesReceived: Int?
 ```
 
+### `currentRoundTripTime`
+
+```swift
+public let currentRoundTripTime: Double?
+```
+
+### `roundTripTimeSource`
+
+```swift
+public let roundTripTimeSource: String?
+```
+
 ## Methods
-### `init(roundTripTimeAvg:packetsSent:packetsReceived:bytesSent:bytesReceived:)`
+### `init(roundTripTimeAvg:packetsSent:packetsReceived:bytesSent:bytesReceived:currentRoundTripTime:roundTripTimeSource:)`
 
 ```swift
 public init(
@@ -48,6 +60,8 @@ public init(
     packetsSent: Int? = nil,
     packetsReceived: Int? = nil,
     bytesSent: Int? = nil,
-    bytesReceived: Int? = nil
+    bytesReceived: Int? = nil,
+    currentRoundTripTime: Double? = nil,
+    roundTripTimeSource: String? = nil
 )
 ```

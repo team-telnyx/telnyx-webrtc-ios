@@ -137,6 +137,17 @@ enum SoundFileType : String {
 
 protocol CallProtocol: AnyObject {
     func callStateUpdated(call: Call)
+    func callIceConnectionStateUpdated(call: Call, state: RTCIceConnectionState)
+    func callPeerConnectionStateUpdated(call: Call, state: RTCPeerConnectionState)
+    func callIceRestartCompleted(call: Call)
+    func callIceRestartFailed(call: Call, error: Error)
+}
+
+extension CallProtocol {
+    func callIceConnectionStateUpdated(call: Call, state: RTCIceConnectionState) {}
+    func callPeerConnectionStateUpdated(call: Call, state: RTCPeerConnectionState) {}
+    func callIceRestartCompleted(call: Call) {}
+    func callIceRestartFailed(call: Call, error: Error) {}
 }
 
 
@@ -204,6 +215,9 @@ protocol CallProtocol: AnyObject {
 /// ```
 public class Call {
 
+    private let answerStateLock = NSLock()
+    private var isAnswerInProgress = false
+
     var direction: CallDirection = .OUTBOUND
     var peer: Peer?
     weak var socket: Socket?
@@ -215,6 +229,7 @@ public class Call {
     
     var statsReporter: WebRTCStatsReporter?
     var callReportCollector: TelnyxCallReportCollector?
+    var onInboundRtpSample: ((Call, Int) -> Void)?
     
     /// Flag to track if we're currently performing ICE restart
     internal var isIceRestarting: Bool = false
@@ -227,6 +242,12 @@ public class Call {
     
     /// Previous ICE connection state for monitoring transitions
     private var previousIceConnectionState: RTCIceConnectionState = .new
+
+    /// Previous overall peer connection state for recovery monitoring.
+    private var previousPeerConnectionState: RTCPeerConnectionState = .new
+
+    /// Previous connection state used only to mirror the Web SDK call-report log.
+    private var previousPeerConnectionStateForCallReport = "new"
 
     /// Flag to track if ICE connection has been successfully established at least once
     private var hasBeenConnectedBefore: Bool = false
@@ -720,6 +741,40 @@ public class Call {
         self.peer?.dispose()
     }
 
+    /// Checks whether the selected local ICE candidate is a non-relay VPN path.
+    /// This is evaluated only after a peer failure and only affects the replacement
+    /// call created by reconnect/reattach.
+    internal func shouldForceRelayForRecovery(completion: @escaping (Bool) -> Void) {
+        guard let connection = peer?.connection else {
+            completion(false)
+            return
+        }
+
+        connection.statistics { report in
+            var statistics = [String: [String: Any]]()
+            for stat in report.statistics.values {
+                var values = stat.values
+                values["type"] = stat.type as NSObject
+                statistics[stat.id] = values.mapValues { $0 as Any }
+            }
+            completion(Self.selectedCandidateUsesDirectVPN(statistics))
+        }
+    }
+
+    internal static func selectedCandidateUsesDirectVPN(_ statistics: [String: [String: Any]]) -> Bool {
+        guard let transport = statistics.values.first(where: { $0["type"] as? String == "transport" }),
+              let candidatePairId = transport["selectedCandidatePairId"] as? String,
+              let candidatePair = statistics[candidatePairId],
+              let localCandidateId = candidatePair["localCandidateId"] as? String,
+              let localCandidate = statistics[localCandidateId],
+              let networkType = localCandidate["networkType"] as? String,
+              let candidateType = localCandidate["candidateType"] as? String else {
+            return false
+        }
+
+        return networkType.lowercased() == "vpn" && candidateType.lowercased() != "relay"
+    }
+
     internal func updateCallState(callState: CallState) {
         Logger.log.i(message: "Call state updated: \(callState)")
         self.callState = callState
@@ -742,11 +797,13 @@ public class Call {
         switch callState {
         case .ACTIVE:
             setupIceConnectionStateMonitoring()
+            setupPeerConnectionStateMonitoring()
             setupRttMonitoring()
             // Start call report collector when call becomes active
             startCallReportCollector()
         case .DONE, .DROPPED, .HELD:
             removeIceConnectionStateMonitoring()
+            removePeerConnectionStateMonitoring()
             removeRttMonitoring()
         default:
             break
@@ -844,7 +901,15 @@ extension Call {
     ///     converted to underscores in variable names.
     ///   - debug: (optional) Enable debug mode for call quality metrics and WebRTC statistics.
     ///     When enabled, real-time call quality metrics will be available through the `onCallQualityChange` callback.
-    public func answer(customHeaders:[String:String] = [:], debug:Bool = false) {
+    public func answer(customHeaders:[String:String] = [:],
+                       debug:Bool = false,
+                       completion: ((Bool) -> Void)? = nil) {
+        guard claimAnswerAttempt() else {
+            Logger.log.i(message: "Call:: Ignoring duplicate answer for callId: \(callInfo?.callId.uuidString ?? "unknown")")
+            completion?(false)
+            return
+        }
+
         // Start benchmarking for inbound calls when answer is called
         CallTimingBenchmark.start(isOutbound: false)
         CallTimingBenchmark.mark(CallBenchmarkMilestone.acceptCallStarted)
@@ -853,6 +918,8 @@ extension Call {
         self.stopRingbackTone()
         //TODO: Create an error if there's no remote SDP
         guard let remoteSdp = self.remoteSdp else {
+            clearAnswerInProgress()
+            completion?(false)
             return
         }
         self.answerCustomHeaders = customHeaders
@@ -875,16 +942,47 @@ extension Call {
 
             if let error = error {
                 Logger.log.e(message: "Call:: Error creating the answering: \(error)")
+                self.clearAnswerInProgress()
+                completion?(false)
                 return
             }
 
             guard let sdp = sdp else {
+                self.clearAnswerInProgress()
+                completion?(false)
                 return
             }
             Logger.log.i(message: "Call:: Answer completed >> SDP: \(sdp)")
             self.updateCallState(callState: .ACTIVE)
+            completion?(true)
         })
     }
+
+    private func clearAnswerInProgress() {
+        answerStateLock.lock()
+        isAnswerInProgress = false
+        answerStateLock.unlock()
+    }
+
+    private func claimAnswerAttempt() -> Bool {
+        answerStateLock.lock()
+        defer { answerStateLock.unlock() }
+        guard remoteSdp != nil, !isAnswerInProgress, callState != .ACTIVE else {
+            return false
+        }
+        isAnswerInProgress = true
+        return true
+    }
+
+#if DEBUG
+    internal func claimAnswerAttemptForTesting() -> Bool {
+        claimAnswerAttempt()
+    }
+
+    internal func releaseAnswerAttemptForTesting() {
+        clearAnswerInProgress()
+    }
+#endif
     
     
     /// Starts the process to answer the incoming call.
@@ -965,7 +1063,6 @@ extension Call {
             level: callReportLogLevel,
             maxEntries: callReportMaxLogEntries
         )
-
         self.callReportCollector = TelnyxCallReportCollector(config: config, logCollectorConfig: logConfig)
 
         // Install the per-call call-establishment timing recorder. The call's
@@ -985,8 +1082,18 @@ extension Call {
             collector.installTimingRecorder(callId: callIdString, direction: direction)
             collector.timingRecorder?.record(.callStart)
         }
+
+        let collector = self.callReportCollector
+        collector?.onInboundRtpSample = { [weak self] packetsReceived in
+            guard let self = self else { return }
+            self.onInboundRtpSample?(self, packetsReceived)
+        }
     }
-    
+
+    func setCallReportMediaVerificationSamplingEnabled(_ enabled: Bool) {
+        callReportCollector?.setMediaVerificationSamplingEnabled(enabled)
+    }
+
     /// Sets up Peer callbacks that log signaling, ICE gathering, and ICE connection
     /// state changes into the call report collector. Called after peer creation.
     private func setupPeerEventLogging() {
@@ -1004,6 +1111,14 @@ extension Call {
         // once per call by the recorder's no-op guard.
         self.callReportCollector?.timingRecorder?.record(.peerCreated)
 
+        previousPeerConnectionStateForCallReport = "new"
+
+        callReportCollector?.addLogEntry(
+            level: "info",
+            message: "RTC config",
+            context: ["iceServers": callReportIceServersForLogs() as [Any]]
+        )
+
         peer.onSignalingStateChangeForLog = { [weak self] state in
             self?.callReportCollector?.addLogEntry(
                 level: "info",
@@ -1015,8 +1130,8 @@ extension Call {
         peer.onIceGatheringStateChangeForLog = { [weak self] state in
             self?.callReportCollector?.addLogEntry(
                 level: "info",
-                message: "ICE gathering state changed",
-                context: ["state": state.telnyx_to_string()]
+                message: Self.callReportTimestampedMessage("ICE Gathering State"),
+                context: ["args": [state.telnyx_to_string()]]
             )
         }
 
@@ -1055,6 +1170,109 @@ extension Call {
         peer.onAddStream = { [weak self] _ in
             self?.callReportCollector?.timingRecorder?.record(.firstRemoteAudioVideoTrack)
         }
+
+        peer.onIceConnectionStateChangeForLog = { [weak self] state in
+            self?.callReportCollector?.addLogEntry(
+                level: "info",
+                message: Self.callReportTimestampedMessage("ICE Connection State"),
+                context: ["args": [state.telnyx_to_string()]]
+            )
+        }
+
+        peer.onPeerConnectionStateChangeForLog = { [weak self] state in
+            guard let self = self else { return }
+            let currentState = state.telnyx_to_string()
+            self.callReportCollector?.addLogEntry(
+                level: "info",
+                message: "Connection State changed: \(self.previousPeerConnectionStateForCallReport) -> \(currentState)"
+            )
+            self.previousPeerConnectionStateForCallReport = currentState
+        }
+
+        peer.onNegotiationNeededForLog = { [weak self] in
+            self?.callReportCollector?.addLogEntry(
+                level: "info",
+                message: "Peer negotiation needed"
+            )
+        }
+
+        peer.onIceCandidateForLog = { [weak self] candidate in
+            guard let self = self else { return }
+            var context: [String: Any] = [
+                "candidate": candidate.sdp,
+                "sdpMLineIndex": Int(candidate.sdpMLineIndex)
+            ]
+            if let sdpMid = candidate.sdpMid {
+                context["sdpMid"] = sdpMid
+            }
+            if let usernameFragment = candidate.telnyx_stats_extractUfrag() {
+                context["usernameFragment"] = usernameFragment
+            }
+            self.callReportCollector?.addLogEntry(
+                level: "info",
+                message: "RTCPeer Candidate:",
+                context: context
+            )
+        }
+
+        peer.onIceCandidateErrorForLog = { [weak self] event in
+            let address = event.address
+            let port = Int(event.port)
+            self?.callReportCollector?.addLogEntry(
+                level: "warn",
+                message: "ICE candidate error:",
+                context: [
+                    "address": address,
+                    "port": port,
+                    "errorCode": Int(event.errorCode),
+                    "errorText": event.errorText,
+                    "url": event.url,
+                    "hostCandidate": "\(address):\(port)"
+                ]
+            )
+        }
+    }
+
+    private static func callReportTimestampedMessage(_ message: String) -> String {
+        "[\(ISO8601DateFormatter().string(from: Date()))] \(message)"
+    }
+
+    /// Records the ICE-server URLs used for gathering without uploading TURN
+    /// authentication material. The presence flags retain diagnostics parity
+    /// with the sanitized client summary.
+    private func callReportIceServersForLogs() -> [[String: Any]] {
+        iceServers.flatMap { server in
+            server.urlStrings.map { url in
+                [
+                    "urls": url,
+                    "hasUsername": !(server.username?.isEmpty ?? true),
+                    "hasCredential": !(server.credential?.isEmpty ?? true)
+                ]
+            }
+        }
+    }
+
+    /// Remote candidates arrive through signaling. Keep this supplemental log
+    /// free of the peer address and SDP credentials; gathered local candidates
+    /// above intentionally use the JS-compatible raw event consumed by the UI.
+    private func sanitizedCandidateContext(
+        _ candidate: String,
+        sdpMid: String? = nil,
+        sdpMLineIndex: Int? = nil
+    ) -> [String: Any] {
+        let fields = candidate
+            .replacingOccurrences(of: "a=", with: "")
+            .split(separator: " ")
+            .map(String.init)
+        let typeIndex = fields.firstIndex(of: "typ")
+        var context: [String: Any] = [:]
+        if fields.count > 2 { context["protocol"] = fields[2].lowercased() }
+        if let typeIndex, fields.indices.contains(typeIndex + 1) {
+            context["candidateType"] = fields[typeIndex + 1]
+        }
+        if let sdpMid { context["sdpMid"] = sdpMid }
+        if let sdpMLineIndex { context["sdpMLineIndex"] = sdpMLineIndex }
+        return context
     }
 
     private func startCallReportCollector() {
@@ -1092,18 +1310,19 @@ extension Call {
 
         // Build call summary
         let summary = CallReportSummary(
-            callId: callId.uuidString,
+            callId: callId.uuidString.lowercased(),
             destinationNumber: self.callOptions?.destinationNumber,
             callerNumber: self.callInfo?.callerNumber,
             direction: self.direction.rawValue,
             state: self.callState.value.lowercased(),
             durationSeconds: durationSeconds,
-            telnyxSessionId: self.telnyxSessionId?.uuidString,
-            telnyxLegId: self.telnyxLegId?.uuidString,
+            telnyxSessionId: self.telnyxSessionId?.uuidString.lowercased(),
+            telnyxLegId: self.telnyxLegId?.uuidString.lowercased(),
             voiceSdkSessionId: self.sessionId,
             sdkVersion: Message.SDK_VERSION,
             startTimestamp: startTimestamp,
-            endTimestamp: endTimestamp
+            endTimestamp: endTimestamp,
+            clientSummary: callReportClientSummary()
         )
         
         // Get call_report_id and host
@@ -1139,16 +1358,17 @@ extension Call {
         flushIso8601.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         let startTimestamp = flushIso8601.string(from: collector.callStartTime)
         let summary = CallReportSummary(
-            callId: callId.uuidString,
+            callId: callId.uuidString.lowercased(),
             destinationNumber: self.callOptions?.destinationNumber,
             callerNumber: self.callInfo?.callerNumber,
             direction: self.direction.rawValue,
             state: self.callState.value.lowercased(),
-            telnyxSessionId: self.telnyxSessionId?.uuidString,
-            telnyxLegId: self.telnyxLegId?.uuidString,
+            telnyxSessionId: self.telnyxSessionId?.uuidString.lowercased(),
+            telnyxLegId: self.telnyxLegId?.uuidString.lowercased(),
             voiceSdkSessionId: self.sessionId,
             sdkVersion: Message.SDK_VERSION,
-            startTimestamp: startTimestamp
+            startTimestamp: startTimestamp,
+            clientSummary: callReportClientSummary()
         )
 
         guard let payload = collector.flush(summary: summary) else { return }
@@ -1162,6 +1382,40 @@ extension Call {
         )
 
         Logger.log.i(message: "Call:: Flushed intermediate call report segment \(payload.segment ?? -1)")
+    }
+
+    /// Mirrors the JS SDK's call-report `clientSummary` while deliberately
+    /// excluding ICE usernames and credentials.
+    private func callReportClientSummary() -> CallReportClientSummary {
+        let iceServerSummaries = iceServers.map {
+            CallReportIceServerSummary(
+                urls: $0.urlStrings,
+                hasUsername: !($0.username?.isEmpty ?? true),
+                hasCredential: !($0.credential?.isEmpty ?? true)
+            )
+        }
+
+        return CallReportClientSummary(
+            connection: CallReportConnectionSummary(
+                host: socket?.signalingServer?.absoluteString
+            ),
+            media: CallReportMediaSummary(
+                audio: callOptions?.audio ?? true,
+                video: callOptions?.video ?? false,
+                mutedMicOnStart: false,
+                prefetchIceCandidates: false,
+                forceRelayCandidate: forceRelayCandidate,
+                trickleIce: useTrickleIce,
+                iceServers: iceServerSummaries
+            ),
+            callReports: CallReportSettingsSummary(
+                enabled: enableCallReports,
+                intervalMs: Int((callReportInterval * 1000).rounded()),
+                flushIntervalMs: 180_000,
+                debugLogLevel: callReportLogLevel,
+                debugLogMaxEntries: callReportMaxLogEntries
+            )
+        )
     }
 }
 
@@ -1506,10 +1760,9 @@ extension Call {
                    let telnyxLegIdUUID = UUID(uuidString: telnyxLegId) {
                     self.telnyxLegId = telnyxLegIdUUID
 
-                    // Update peer's callLegID and flush any pending trickle ICE candidates
+                    // Preserve the backend leg identifier for call correlation.
                     self.peer?.callLegID = telnyxLegIdUUID.uuidString
-                    Logger.log.i(message: "[TRICKLE-ICE] Call:: Updated peer.callLegID with telnyxLegId, flushing pending candidates")
-                    self.peer?.flushPendingTrickleCandidates()
+                    Logger.log.i(message: "[TRICKLE-ICE] Call:: Updated peer.callLegID with telnyxLegId")
                 } else {
                     Logger.log.w(message: "Call:: Telnyx Leg ID unavailable on RINGING message")
                 }
@@ -1534,6 +1787,15 @@ extension Call {
                 let sdpMLineIndex = params["sdpMLineIndex"] as? Int32 ?? 0
 
                 Logger.log.i(message: "[TRICKLE-ICE] Call:: Received remote candidate - forwarding to peer")
+                callReportCollector?.addLogEntry(
+                    level: "info",
+                    message: "Remote ICE candidate received",
+                    context: sanitizedCandidateContext(
+                        candidateString,
+                        sdpMid: sdpMid,
+                        sdpMLineIndex: Int(sdpMLineIndex)
+                    )
+                )
                 self.peer?.handleRemoteCandidate(candidateString: candidateString, sdpMid: sdpMid, sdpMLineIndex: sdpMLineIndex)
             }
             break
@@ -1541,6 +1803,7 @@ extension Call {
         case .END_OF_CANDIDATES:
             // Handle end of remote candidates signal for trickle ICE
             Logger.log.i(message: "[TRICKLE-ICE] Call:: Received END_OF_CANDIDATES - forwarding to peer")
+            callReportCollector?.addLogEntry(level: "info", message: "Remote ICE gathering complete")
             self.peer?.handleEndOfRemoteCandidates()
             break
 
@@ -1630,6 +1893,9 @@ extension Call {
             )
             self?.handleIceConnectionStateTransition(from: self?.previousIceConnectionState ?? .new, to: newState)
             self?.previousIceConnectionState = newState
+            if let self = self {
+                self.delegate?.callIceConnectionStateUpdated(call: self, state: newState)
+            }
         }
     }
     
@@ -1640,6 +1906,30 @@ extension Call {
         // Clear the callback
         self.peer?.onIceConnectionStateChange = nil
     }
+
+    private func setupPeerConnectionStateMonitoring() {
+        Logger.log.i(message: "Call:: Setting up peer connection state monitoring")
+
+        self.peer?.onPeerConnectionStateChange = { [weak self] newState in
+            guard let self = self else { return }
+
+            self.callReportCollector?.addLogEntry(
+                level: "info",
+                message: "Peer connection state changed",
+                context: [
+                    "state": newState.telnyx_to_string(),
+                    "previousState": self.previousPeerConnectionState.telnyx_to_string()
+                ]
+            )
+            self.previousPeerConnectionState = newState
+            self.delegate?.callPeerConnectionStateUpdated(call: self, state: newState)
+        }
+    }
+
+    private func removePeerConnectionStateMonitoring() {
+        Logger.log.i(message: "Call:: Removing peer connection state monitoring")
+        self.peer?.onPeerConnectionStateChange = nil
+    }
     
     /// Handles ICE connection state transitions for automatic recovery
     /// - Parameters:
@@ -1647,27 +1937,6 @@ extension Call {
     ///   - to: New ICE connection state
     private func handleIceConnectionStateTransition(from previousState: RTCIceConnectionState, to newState: RTCIceConnectionState) {
         Logger.log.i(message: "Call:: ICE state transition: \(previousState.telnyx_to_string()) -> \(newState.telnyx_to_string())")
-        
-        // Case 1: disconnected -> failed: Attempt ICE restart/renegotiation
-        if previousState == .disconnected && newState == .failed {
-            Logger.log.w(message: "Call:: ICE connection failed after disconnect - attempting ICE restart")
-            
-            // Save current speaker state immediately before iOS can change audio route due to network change
-            let currentRoute = AVAudioSession.sharedInstance().currentRoute
-            speakerStateAtNetworkChange = currentRoute.outputs.contains { $0.portType == .builtInSpeaker }
-            Logger.log.i(message: "Call:: Saved speaker state at network change: \(speakerStateAtNetworkChange ?? false)")
-            
-            // Trigger ICE restart to recover from failed state
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                self?.performIceRestart { success, error in
-                    if success {
-                        Logger.log.i(message: "Call:: Auto ICE restart completed successfully")
-                    } else {
-                        Logger.log.e(message: "Call:: Auto ICE restart failed: \(error?.localizedDescription ?? "Unknown error")")
-                    }
-                }
-            }
-        }
         
         // Track first successful connection
         if newState == .connected && !hasBeenConnectedBefore {
@@ -1703,36 +1972,6 @@ extension Call {
         }
     }
     
-    /// Performs ICE restart using the existing Call+IceRestart implementation
-    /// - Parameter completion: Callback with success status and error
-    private func performIceRestart(completion: @escaping (Bool, Error?) -> Void) {
-        guard let _ = self.peer else {
-            Logger.log.e(message: "Call:: performIceRestart - No peer connection available")
-            completion(false, NSError(domain: "Call", code: -1, userInfo: [NSLocalizedDescriptionKey: "No peer connection available"]))
-            return
-        }
-        
-        Logger.log.i(message: "Call:: Starting ICE restart")
-        
-        // Set ICE restart flags
-        self.isIceRestarting = true
-        self.shouldResetAudioAfterIceRestart = true
-        
-        // Use the existing iceRestart method from Call+IceRestart
-        self.iceRestart { [weak self] success, error in
-            guard let self = self else { return }
-            
-            if success {
-                Logger.log.i(message: "Call:: ICE restart completed successfully")
-                completion(true, nil)
-            } else {
-                Logger.log.e(message: "Call:: ICE restart failed: \(error?.localizedDescription ?? "Unknown error")")
-                self.isIceRestarting = false
-                self.shouldResetAudioAfterIceRestart = false
-                completion(false, error)
-            }
-        }
-    }
 }
 
 // MARK: - RTT Monitoring
@@ -1848,4 +2087,3 @@ extension Call {
         lastAudioResetTime = Date()
     }
 }
-

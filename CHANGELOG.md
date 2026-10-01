@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+## [4.2.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.2.1) (2026-09-24)
+
+### Bug Fixes
+- **CallKit Audio Recovery**: Made CallKit audio activation and deactivation idempotent and added recovery when a late audio reset disables WebRTC audio after CallKit activation, preventing silent calls during cold-start and push-answer races ([#403](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/403)).
+- **Push INVITE Timeout Cleanup**: Start the push INVITE watchdog after registration and `attachCalls`, ensuring passive secondary devices stop ringing when an INVITE is not replayed while preserving normal answer, decline, disconnect, and cleanup paths ([#383](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/383)).
+- **Default ICE Server Configuration**: Removed the secondary `turns:turn2.telnyx.com:443` endpoint from the default production ICE server list; the primary TURNS endpoint and other STUN/TURN defaults remain unchanged ([#405](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/405)).
+
+### Testing
+- **TURN Configuration Coverage**: Enabled the existing TURN configuration suite in the Xcode test target and added coverage confirming that custom ICE catalogs replace, rather than append to, the default Telnyx servers ([#400](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/400)).
+
+## [4.2.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.2.0) (2026-08-25)
+
+### Enhancements
+- **WebRTC 150**: Upgraded the CocoaPods and Swift Package Manager WebRTC dependencies to 150.0.0 ([#391](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/391)).
+- **Call Report Diagnostics**: Expanded call reports with native codec, media-source, transport, selected ICE-pair, gathered-candidate, and ICE lifecycle data; report logs now redact ICE credentials ([#385](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/385), [#389](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/389)).
+- **Reliable Call Report Uploads**: Added periodic flushing, chunking for oversized reports, and persistent retry for failed uploads.
+- **Media Recovery**: Added inbound-media health monitoring, ICE restart verification, and relay-only fallback for failed direct VPN media paths ([#379](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/379), [#380](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/380), [#381](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/381), [#384](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/384)).
+
+### Bug Fixes
+- **Push Reconnect Voice SDK ID**: Prefer the fresh `voice_sdk_id` supplied in VoIP push metadata when reconnecting, preventing reconnects from using a stale cached ID ([#386](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/386)).
+
 ## [4.1.2](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.1.2) (2026-07-21)
 
 ### Bug Fixes
@@ -21,7 +42,9 @@
 ## [4.1.0](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.1.0) (2026-07-15)
 
 ### Bug Fixes
+- **Audio Route Observer Persistence**: `TxClient.disconnect()` no longer removes the `AVAudioSession.routeChangeNotification` observer. The observer was previously removed on every disconnect but never re-registered on subsequent `connect()` calls, which silently broke speaker and audio-route tracking after a single disconnect/reconnect cycle. Observer cleanup is now exclusively handled in `deinit`, matching the existing behavior of the `acmResetStarted` / `acmResetCompleted` observers (VSDK-337 / IOS-C26).
 - **Socket Connection Timeout / Redial**: The signaling socket now always arms a 5s connection-timeout watchdog and redials on a stalled handshake, instead of only doing so when a region fallback was possible. Previously, on the default `wss://rtc.telnyx.com` URL the watchdog never started (the host has no valid region prefix) and the underlying request timeout was overridden to 120s, so a lost SYN after a VoIP push left the dial hanging on TCP retransmit backoff with no recovery — causing answer-from-push failures on cold start. On timeout the socket now falls back to the auto region only for genuine Telnyx regional hosts (`*.rtc.telnyx.com` / `*.rtcdev.telnyx.com`) and otherwise redials the same server, the duplicate disconnect callback from the timed-out socket is suppressed so it does not surface a spurious disconnect mid-redial, and the push socket-only reconnect path no longer force-unwraps a possibly-nil `TxConfig` ([#348](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/348)).
+- **Call Quality NaN / Band Gaps**: `MOSCalculator.calculateMOS(jitter:rtt:packetsReceived:packetsLost:)` now returns `Double.nan` when the inputs are non-finite or the R-factor → MOS math overflows, instead of clamping to `1.0` (which mapped to `.bad`) or letting the host app see `NaN`. `MOSCalculator.getQuality(mos:)` treats `NaN` and `±infinity` as `.unknown` and uses continuous thresholds (`> 4.2`, `>= 4.1`, `>= 3.7`, `>= 3.1`, else `.bad`) so values like `4.05` and `3.65` are no longer mis-rated as `.bad` ([VSDK-338](https://linear.app/telnyx/issue/VSDK-338)).
 
 ## [4.0.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.0.1) (2026-05-25)
 

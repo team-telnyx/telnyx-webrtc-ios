@@ -1,7 +1,9 @@
+import AVFoundation
 import Reachability
 import SwiftUI
 import TelnyxRTC
 import UIKit
+import WebRTC
 
 class HomeViewController: UIViewController {
     private var hostingController: UIHostingController<HomeView>?
@@ -79,6 +81,9 @@ class HomeViewController: UIViewController {
             },
             onResetAudio: { [weak self] in
                 self?.onResetAudio()
+            },
+            onInjectAudioRace: { [weak self] in
+                self?.onInjectAudioRace()
             }
         )
 
@@ -622,17 +627,26 @@ extension HomeViewController {
     }
     
     func onIceRestart() {
-        guard let call = appDelegate.currentCall else {
+        guard let retainedCall = appDelegate.currentCall else {
             print("[ICE-RESTART] HomeViewController:: No active call for ICE restart")
             return
+        }
+
+        // Reattach replaces the SDK's Call instance. Resolve it again by ID
+        // so this diagnostic button never restarts a disposed pre-reattach peer.
+        var call = retainedCall
+        if let callId = retainedCall.callInfo?.callId,
+           let currentCall = telnyxClient?.getCall(callId: callId) {
+            call = currentCall
+            appDelegate.currentCall = currentCall
         }
         
         print("[ICE-RESTART] HomeViewController:: Starting ICE restart")
         call.iceRestart { [weak self] (success, error) in
             DispatchQueue.main.async {
                 if success {
-                    print("[ICE-RESTART] HomeViewController:: ICE restart completed successfully")
-                    // You could show a success message to the user here if needed
+                    print("[ICE-RESTART] HomeViewController:: ICE restart request sent; awaiting media recovery")
+                    // The request was sent. Inbound RTP confirms actual recovery.
                 } else {
                     print("[ICE-RESTART] HomeViewController:: ICE restart failed: \(error?.localizedDescription ?? "Unknown error")")
                     // You could show an error message to the user here if needed
@@ -650,5 +664,26 @@ extension HomeViewController {
         print("[RESET-AUDIO] HomeViewController:: Resetting audio device to clear delay")
         call.resetAudioDevice()
         print("[RESET-AUDIO] HomeViewController:: Audio device reset completed")
+    }
+
+    func onInjectAudioRace() {
+        #if DEBUG
+        print("[VSUP-226] Scheduling a late audio disable in 250 ms")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+            let rtcAudioSession = RTCAudioSession.sharedInstance()
+            rtcAudioSession.lockForConfiguration()
+            rtcAudioSession.isAudioEnabled = false
+            rtcAudioSession.unlockForConfiguration()
+            print("[VSUP-226] Injected late setup reset; audio disabled")
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [weak self] in
+                guard let client = self?.telnyxClient else { return }
+                print("[VSUP-226] Recovering through enableAudioSession")
+                client.enableAudioSession(audioSession: AVAudioSession.sharedInstance())
+            }
+        }
+        #else
+        print("[VSUP-226] Audio race injection is available only in DEBUG builds")
+        #endif
     }
 }

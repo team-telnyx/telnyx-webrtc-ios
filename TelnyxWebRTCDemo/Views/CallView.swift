@@ -2,6 +2,8 @@ import SwiftUI
 import TelnyxRTC
 
 struct CallView: View {
+    // Change by hand for VSUP-226 validation. This keeps the fault injector out of normal UI.
+    private let enableAudioRaceDebug = false
     @ObservedObject var viewModel: CallViewModel
     @State var isPhoneNumber: Bool
     @State private var showCallHistory = false
@@ -17,6 +19,7 @@ struct CallView: View {
     let onRedial: ((String) -> Void)?
     let onIceRestart: () -> Void
     let onResetAudio: () -> Void
+    let onInjectAudioRace: () -> Void
     
 
     var body: some View {
@@ -236,8 +239,8 @@ struct CallView: View {
                         .accessibilityIdentifier(AccessibilityIdentifiers.dtmfButton)
                     }
                     
-                    // Segunda fila - Botones adicionales (3 botones centrados)
-                    HStack(spacing: max(8, (geometry.size.width - 200) / 4)) {
+                    // Segunda fila - Botones adicionales
+                    HStack(spacing: enableAudioRaceDebug ? 12 : max(8, (geometry.size.width - 200) / 4)) {
                         Spacer()
                         
                         Button(action: {
@@ -272,6 +275,19 @@ struct CallView: View {
                                 .clipShape(Circle())
                         }
                         .accessibilityIdentifier("resetAudioButton")
+
+                        if enableAudioRaceDebug {
+                            Button(action: {
+                                onInjectAudioRace()
+                            }) {
+                                Image(systemName: "timer")
+                                    .foregroundColor(.white)
+                                    .frame(width: 60, height: 60)
+                                    .background(Color.orange)
+                                    .clipShape(Circle())
+                            }
+                            .accessibilityIdentifier("audioRaceDebugButton")
+                        }
                         
                         Spacer()
                     }
@@ -345,7 +361,8 @@ struct CallView_Previews: PreviewProvider {
             onDTMF: { _ in },
             onRedial: { _ in },
             onIceRestart: {},
-            onResetAudio: {}
+            onResetAudio: {},
+            onInjectAudioRace: {}
         )
     }
 }

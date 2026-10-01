@@ -162,9 +162,12 @@ public class TxClient {
     private var gatewayState: GatewayStates = .NOREG
     private var isCallFromPush: Bool = false
     private var currentCallId: UUID = UUID()
+    private let activeCallLock = NSLock()
+    private var activeOrAnsweringCallId: UUID?
     private var pendingAnswerHeaders = [String:String]()
     internal var sendFileLogs: Bool = false
     private var attachCallId: String?
+    internal var pendingAttachCallIdForTesting: String? { attachCallId }
     private var pushMetaData: [String:Any]?
     private let AUTH_ERROR_CODE = "-32001"
     private var reconnectTimeoutTimer: DispatchSourceTimer?
@@ -173,9 +176,54 @@ public class TxClient {
     private var enableQualityMetrics: Bool = false
     private var isACMResetInProgress: Bool = false
     private var pendingAnonymousLoginMessage: AnonymousLoginMessage?
+    private var forceRelayForNextRecoveredCall = false
+    private let forceRelayForNextRecoveredCallLock = NSLock()
     
     /// AI Assistant Manager for handling AI-related functionality
     public let aiAssistantManager = AIAssistantManager()
+
+    /// Decides whether an active call should restart ICE or use the existing
+    /// reconnect/reattach path. It is intentionally client-owned because
+    /// signaling health and reattach are client responsibilities.
+    private lazy var signalingHealthMonitor: SignalingHealthMonitor = {
+        SignalingHealthMonitor(
+            isSignalingAvailable: { [weak self] in
+                self?.socket?.isConnected == true
+            },
+            sendSignalingProbe: { [weak self] in
+                guard let self = self else { return nil }
+                guard self.socket?.isConnected == true else { return nil }
+                let ping = Message([:], method: .PING)
+                ping.jsonMessage["voice_sdk_id"] = self.voiceSdkId
+                guard let encodedPing = ping.encode() else { return nil }
+                self.socket?.sendMessage(message: encodedPing)
+                return ping.id
+            },
+            startIceRestart: { [weak self] call in
+                DispatchQueue.main.async {
+                    call.iceRestart { success, error in
+                        guard !success else { return }
+                        self?.signalingHealthMonitor.iceRestartRequestDidFail(
+                            for: call,
+                            error: error ?? NSError(
+                                domain: "SignalingHealthMonitor",
+                                code: -1,
+                                userInfo: [NSLocalizedDescriptionKey: "ICE restart request failed"]
+                            )
+                        )
+                    }
+                }
+            },
+            shouldForceRelayForRecovery: { call, completion in
+                call.shouldForceRelayForRecovery(completion: completion)
+            },
+            requestReattach: { [weak self] forceRelay in
+                DispatchQueue.main.async {
+                    self?.reconnectClient(forceRelayCandidateForRecovery: forceRelay)
+                }
+            }
+        )
+    }()
 
     
     // New properties for improved push flow
@@ -251,8 +299,15 @@ public class TxClient {
     /// }
     /// ```
     public func enableAudioSession(audioSession: AVAudioSession) {
+        let rtcAudioSession = RTCAudioSession.sharedInstance()
+        let wasAudioEnabled = rtcAudioSession.isAudioEnabled
+        Logger.log.i(message: "TxClient:: enabling CallKit audio session; currentlyEnabled=\(rtcAudioSession.isAudioEnabled)")
         setupCorrectAudioConfiguration()
-        setAudioSessionActive(true)
+        let activationSucceeded = setAudioSessionActive(true)
+        if activationSucceeded && !wasAudioEnabled {
+            rtcAudioSession.audioSessionDidActivate(audioSession)
+        }
+        Logger.log.i(message: "TxClient:: CallKit audio session enable completed; isAudioEnabled=\(rtcAudioSession.isAudioEnabled)")
     }
     
     /// Disables and resets the audio session.
@@ -270,8 +325,15 @@ public class TxClient {
     /// }
     /// ```
     public func disableAudioSession(audioSession: AVAudioSession) {
+        let rtcAudioSession = RTCAudioSession.sharedInstance()
+        let wasAudioEnabled = rtcAudioSession.isAudioEnabled
+        Logger.log.i(message: "TxClient:: disabling CallKit audio session; currentlyEnabled=\(rtcAudioSession.isAudioEnabled)")
+        if wasAudioEnabled {
+            rtcAudioSession.audioSessionDidDeactivate(audioSession)
+        }
         resetAudioConfiguration()
-        setAudioSessionActive(false)
+        _ = setAudioSessionActive(false)
+        Logger.log.i(message: "TxClient:: CallKit audio session disable completed; isAudioEnabled=\(rtcAudioSession.isAudioEnabled)")
     }
     
     /// The current audio route configuration.
@@ -304,9 +366,15 @@ public class TxClient {
                 switch state {
                 case .wifi:
                     Logger.log.i(message: "Connected to Wi-Fi")
+                    if self.isCallsActive {
+                        self.signalingHealthMonitor.networkPathDidChange()
+                    }
                     self.reconnectClient()
                 case .cellular, .vpn:
                     Logger.log.i(message: "Connected to Cellular")
+                    if self.isCallsActive {
+                        self.signalingHealthMonitor.networkPathDidChange()
+                    }
                     self.reconnectClient()
                 case .noConnection:
                     if(!self.isCallsActive){
@@ -527,17 +595,7 @@ public class TxClient {
         self.gatewayState = .NOREG
         self.txConfig = txConfig
 
-        if(self.voiceSdkId != nil){
-            Logger.log.i(message: "with_id")
-            self.serverConfiguration = TxServerConfiguration(signalingServer: serverConfiguration.signalingServer,
-                                                             webRTCIceServers: serverConfiguration.webRTCIceServers,
-                                                             environment: serverConfiguration.environment,
-                                                             pushMetaData: [
-                                                                "voice_sdk_id":self.voiceSdkId!
-                                                             ])
-        } else {
-            self.serverConfiguration = serverConfiguration
-        }
+        self.serverConfiguration = serverConfigurationForConnection(serverConfiguration)
         self.socket = Socket()
         self.socket?.delegate = self
         self.aiAssistantManager.setSocket(self.socket)
@@ -565,6 +623,29 @@ public class TxClient {
         self.socket?.delegate = self
         self.aiAssistantManager.setSocket(self.socket)
         self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
+    }
+
+    /// Builds a connection configuration without allowing a voice SDK ID from
+    /// an earlier session to overwrite newer push metadata. Preserve all push
+    /// metadata as it can contain the CallKit correlation fields as well.
+    private func serverConfigurationForConnection(
+        _ configuration: TxServerConfiguration
+    ) -> TxServerConfiguration {
+        var pushMetaData = configuration.pushMetaData ?? [:]
+        if let pushedVoiceSdkId = pushMetaData["voice_sdk_id"] as? String,
+           !pushedVoiceSdkId.isEmpty {
+            voiceSdkId = pushedVoiceSdkId
+        } else if let voiceSdkId {
+            pushMetaData["voice_sdk_id"] = voiceSdkId
+        }
+
+        return TxServerConfiguration(
+            signalingServer: configuration.signalingServer,
+            webRTCIceServers: configuration.webRTCIceServers,
+            environment: configuration.environment,
+            pushMetaData: pushMetaData.isEmpty ? nil : pushMetaData,
+            region: configuration.region
+        )
     }
     
     /// Connects only the socket without performing login - used for improved push flow
@@ -673,16 +754,21 @@ public class TxClient {
         }
         self.calls.removeAll()
         self.socketToAppCallId.removeAll()
+        clearActiveCall()
         self.stopReconnectTimeout()
         self.stopInviteTimeout()
 
         // Clear AI Assistant Manager data
         self.aiAssistantManager.clearAllData()
 
-        // Remove audio route change observer
-        NotificationCenter.default.removeObserver(self,
-                                                  name: AVAudioSession.routeChangeNotification,
-                                                  object: nil)
+        // NOTE: The AVAudioSession.routeChangeNotification observer registered in
+        // `setupAudioRouteChangeMonitoring()` is intentionally NOT removed here.
+        // Disconnect/reconnect cycles re-use the same TxClient instance and need
+        // audio-route tracking to remain wired across calls to `connect()` (which
+        // does not re-register the observer). Removing the observer in `disconnect()`
+        // caused the speaker / audio-route state to stop tracking route changes
+        // after every disconnect (see IOS-C26 / VSDK-337). Observer cleanup is
+        // exclusively handled in `deinit`.
         socket?.disconnect(reconnect: false)
         delegate?.onSocketDisconnected()
     }
@@ -738,6 +824,11 @@ public class TxClient {
                                   customHeaders: [String:String] = [:],
                                   debug: Bool = false) {
         Logger.log.i(message: "TxClient:: answerFromCallkit - started for callId: \(String(describing: answerAction.callUUID))")
+        guard claimActiveCall(answerAction.callUUID) else {
+            Logger.log.i(message: "TxClient:: answerFromCallkit - another call is already active or answering")
+            answerAction.fail()
+            return
+        }
         self.answerCallAction = answerAction
 
         // Check if the call was initiated by a push notification
@@ -766,6 +857,7 @@ public class TxClient {
                 } catch let error {
                     Logger.log.e(message: "TxClient:: answerFromCallkit connect error \(error.localizedDescription)")
                     answerCallAction?.fail()
+                    releaseActiveCall(answerAction.callUUID)
                 }
             }
             return
@@ -774,17 +866,59 @@ public class TxClient {
         // If already connected and there's a pending INVITE, immediately accept the call
         if let currentCall = self.calls[currentCallId] {
             currentCall.answer(customHeaders: customHeaders,
-                               debug: debug)
-            answerCallAction?.fulfill()
-            resetPushVariables()
-            Logger.log.i(message: "answered from callkit")
+                               debug: debug) { [weak self] answered in
+                guard let self else { return }
+                if answered {
+                    self.answerCallAction?.fulfill()
+                    Logger.log.i(message: "answered from callkit")
+                } else {
+                    self.answerCallAction?.fail()
+                    self.releaseActiveCall(answerAction.callUUID)
+                }
+                self.resetPushVariables()
+            }
         } else {
             /// Let's Keep track of the `customHeaders` passed
             pendingAnswerHeaders = customHeaders
             /// Set call quality metrics
             self.enableQualityMetrics = debug
+            releaseActiveCall(answerAction.callUUID)
         }
     }
+
+    private func claimActiveCall(_ callId: UUID) -> Bool {
+        activeCallLock.lock()
+        defer { activeCallLock.unlock() }
+        guard activeOrAnsweringCallId == nil || activeOrAnsweringCallId == callId else {
+            return false
+        }
+        activeOrAnsweringCallId = callId
+        return true
+    }
+
+    private func releaseActiveCall(_ callId: UUID) {
+        activeCallLock.lock()
+        if activeOrAnsweringCallId == callId {
+            activeOrAnsweringCallId = nil
+        }
+        activeCallLock.unlock()
+    }
+
+    private func clearActiveCall() {
+        activeCallLock.lock()
+        activeOrAnsweringCallId = nil
+        activeCallLock.unlock()
+    }
+
+#if DEBUG
+    internal func claimActiveCallForTesting(_ callId: UUID) -> Bool {
+        claimActiveCall(callId)
+    }
+
+    internal func releaseActiveCallForTesting(_ callId: UUID) {
+        releaseActiveCall(callId)
+    }
+#endif
     
     private func resetPushVariables() {
         answerCallAction = nil
@@ -836,7 +970,7 @@ public class TxClient {
     
     /// Handles the timeout when no INVITE is received after accepting a VoIP push call
     private func handleInviteTimeout() {
-        Logger.log.w(message: "TxClient:: INVITE timeout - No INVITE received within \(inviteTimeoutInterval) seconds after accepting VoIP push call")
+        Logger.log.w(message: "TxClient:: INVITE timeout - No INVITE received within \(inviteTimeoutInterval) seconds after attachCalls")
         let timedOutCallId = currentCallId
         let pendingAnswerAction = answerCallAction
         
@@ -854,7 +988,8 @@ public class TxClient {
                                      callId: timedOutCallId)
         
         // Resolve the CallKit action before reset clears the stored action reference.
-        pendingAnswerAction?.fulfill()
+        pendingAnswerAction?.fail()
+        releaseActiveCall(pendingAnswerAction?.callUUID ?? timedOutCallId)
         resetPushVariables()
         
         Logger.log.i(message: "TxClient:: INVITE timeout handled - Call terminated with ORIGINATOR_CANCEL, CallKit events emitted")
@@ -1019,19 +1154,7 @@ public class TxClient {
             Logger.log.i(message: "TxClient:: anonymousLogin() socket not connected, starting connection process")
             self.pendingAnonymousLoginMessage = anonymousLoginMessage
             
-            // Set up server configuration
-            if self.voiceSdkId != nil {
-                Logger.log.i(message: "TxClient:: anonymousLogin() with voice_sdk_id")
-                self.serverConfiguration = TxServerConfiguration(
-                    signalingServer: serverConfiguration.signalingServer,
-                    webRTCIceServers: serverConfiguration.webRTCIceServers,
-                    environment: serverConfiguration.environment,
-                    pushMetaData: ["voice_sdk_id": self.voiceSdkId!]
-                )
-            } else {
-                Logger.log.i(message: "TxClient:: anonymousLogin() without voice_sdk_id")
-                self.serverConfiguration = serverConfiguration
-            }
+            self.serverConfiguration = serverConfigurationForConnection(serverConfiguration)
             
             Logger.log.i(message: "TxClient:: anonymousLogin() serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
             
@@ -1117,9 +1240,12 @@ public class TxClient {
                 if (self.isCallFromPush == true){
                     self.sendAttachCall()
                     
-                    // Start INVITE timeout for VoIP push calls that are being answered (not declined)
-                    if answerCallAction != nil && !pendingCallDecline && pushCallState != .inviteReceived {
-                        Logger.log.i(message: "TxClient:: updateGatewayState() Starting INVITE timeout for VoIP push call")
+                    // Every push-originated ringing call needs a terminal path. Start the watchdog
+                    // after registration + attachCalls even when the user has not pressed Answer;
+                    // otherwise a secondary device can remain in CallKit until its system timeout
+                    // when the backend never replays INVITE or terminal cleanup.
+                    if !pendingCallDecline && pushCallState != .inviteReceived {
+                        Logger.log.i(message: "TxClient:: updateGatewayState() Starting post-attach INVITE timeout for VoIP push call")
                         startInviteTimeout()
                     }
                 }
@@ -1378,6 +1504,9 @@ extension TxClient {
             socketToAppCallId[signalingCallId] = appFacingCallId
         }
 
+        let forceRelayCandidate = (self.txConfig?.forceRelayCandidate ?? false)
+            || (isAttach && takeForceRelayForNextRecoveredCall())
+
         let call = Call(callId: appFacingCallId,
                         signalingCallId: signalingCallId,
                         remoteSdp: remoteSdp,
@@ -1391,7 +1520,7 @@ extension TxClient {
                         iceServers: self.serverConfiguration.webRTCIceServers,
                         isAttach: isAttach,
                         debug: self.txConfig?.debug ?? false,
-                        forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
+                        forceRelayCandidate: forceRelayCandidate,
                         sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
                         useTrickleIce: self.txConfig?.useTrickleIce ?? false,
                         enableMissedCallNotifications: self.txConfig?.enableMissedCallNotifications ?? false,
@@ -1421,9 +1550,18 @@ extension TxClient {
             self.delegate?.onPushCall(call: call)
             //Answer is pending from push - Answer Call
             if(answerCallAction != nil){
-                call.answer(customHeaders: pendingAnswerHeaders,debug: enableQualityMetrics)
-                answerCallAction?.fulfill()
-                resetPushVariables()
+                let pendingAction = answerCallAction
+                call.answer(customHeaders: pendingAnswerHeaders,
+                            debug: enableQualityMetrics) { [weak self] answered in
+                    guard let self else { return }
+                    if answered {
+                        pendingAction?.fulfill()
+                    } else {
+                        pendingAction?.fail()
+                        self.releaseActiveCall(pendingAction?.callUUID ?? appFacingCallId)
+                    }
+                    self.resetPushVariables()
+                }
             }
             
             //End is pending from callkit
@@ -1467,6 +1605,9 @@ extension TxClient {
         }
         
         self.pushMetaData = pushMetaData
+        // A VoIP push is authoritative for this incoming call. Update the
+        // cached ID before any reconnect path can call the normal connect API.
+        self.voiceSdkId = rtc_id
         self.pushCallState = .idle
         
         // Store config objects for later use (don't login immediately)
@@ -1574,6 +1715,11 @@ extension TxClient: CallProtocol {
 
     func callStateUpdated(call: Call) {
         Logger.log.i(message: "TxClient:: callStateUpdated()")
+        call.onInboundRtpSample = { [weak self, weak call] _, packetsReceived in
+            guard let self = self, let call = call else { return }
+            self.signalingHealthMonitor.inboundRtpSampleReceived(packetsReceived, for: call)
+        }
+        self.signalingHealthMonitor.callStateDidChange(call)
 
         guard let callId = call.callInfo?.callId else { return }
         
@@ -1585,11 +1731,11 @@ extension TxClient: CallProtocol {
            let callId = call.callInfo?.callId {
             Logger.log.i(message: "TxClient:: Remove call")
             self.calls.removeValue(forKey: callId)
-
             // Clean up reverse mapping if this was a push call with different signaling ID
             if call.signalingCallId != callId {
                 socketToAppCallId.removeValue(forKey: call.signalingCallId)
             }
+            releaseActiveCall(callId)
 
             // Clear AI Assistant transcriptions when call ends
             self.aiAssistantManager.clearTranscriptions()
@@ -1601,6 +1747,13 @@ extension TxClient: CallProtocol {
                 self.delegate?.onRemoteCallEnded(callId: callId, reason: nil)
             }
             self._isSpeakerEnabled = false
+
+            // A terminal event can arrive for the placeholder call before the
+            // replayed INVITE. Cancel the post-attach watchdog so it cannot emit
+            // a second DONE/onRemoteCallEnded callback for the same push call.
+            if isCallFromPush && callId == currentCallId {
+                resetPushVariables()
+            }
         }
     }
 
@@ -1689,7 +1842,10 @@ extension TxClient : SocketDelegate {
         }
     }
    
-    func reconnectClient() {
+    func reconnectClient(forceRelayCandidateForRecovery: Bool = false) {
+        forceRelayForNextRecoveredCallLock.lock()
+        forceRelayForNextRecoveredCall = forceRelayCandidateForRecovery
+        forceRelayForNextRecoveredCallLock.unlock()
         if self.isCallsActive {
             updateActiveCallsState(callState: CallState.RECONNECTING(reason: .networkSwitch))
             startReconnectTimeout()
@@ -1712,6 +1868,17 @@ extension TxClient : SocketDelegate {
         }else {
             Logger.log.e(message:"TxClient:: Not Reconnecting")
         }
+    }
+
+    /// Consumes the one-shot relay override on the socket callback thread.
+    /// A lock keeps this handoff race-free with reconnectClient on the main
+    /// thread without moving all socket work onto the main queue.
+    private func takeForceRelayForNextRecoveredCall() -> Bool {
+        forceRelayForNextRecoveredCallLock.lock()
+        defer { forceRelayForNextRecoveredCallLock.unlock() }
+        let shouldForceRelay = forceRelayForNextRecoveredCall
+        forceRelayForNextRecoveredCall = false
+        return shouldForceRelay
     }
     
     func updateActiveCallsState(callState: CallState) {
@@ -1874,6 +2041,7 @@ extension TxClient : SocketDelegate {
         NotificationCenter.default.post(name: .telnyxWebSocketMessageReceived, object: nil, userInfo: ["message": message])
         
         guard let vertoMessage = Message().decode(message: message) else { return }
+        self.signalingHealthMonitor.signalingMessageReceived(vertoMessage)
         
         // Process message through AI Assistant Manager
         if let messageDict = try? JSONSerialization.jsonObject(with: Data(message.utf8), options: []) as? [String: Any] {
@@ -1885,6 +2053,7 @@ extension TxClient : SocketDelegate {
         //Check if server is sending an error code
         if let error = vertoMessage.serverError {
             if attachCallId == vertoMessage.id {
+                stopInviteTimeout()
                 // Call failed from remote end
               if let callId = pushMetaData?["call_id"] as? String,
                 let callUUID = UUID(uuidString: callId) {
@@ -1895,6 +2064,7 @@ extension TxClient : SocketDelegate {
                   self.delegate?.onRemoteCallEnded(callId: callUUID, reason: terminationReason)
                   self.delegate?.onCallStateUpdated(callState: .DONE(reason: terminationReason), callId: callUUID)
                 }
+                resetPushVariables()
                 return
             }
             let message: String = error["message"] as? String ?? "Unknown"
@@ -1983,20 +2153,21 @@ extension TxClient : SocketDelegate {
                     break
 
                 case .INVITE:
-                    //invite received
-                    if isCallFromPush {
-                        pushCallState = .inviteReceived
-                    }
-                    if isWaitingForInviteAfterPush {
-                        Logger.log.i(message: "TxClient:: INVITE received - stopping timeout timer for VoIP push call")
-                        stopInviteTimeout()
-                    }
-                    
                     if let params = vertoMessage.params {
                         guard let sdp = params["sdp"] as? String,
                               let callId = params["callID"] as? String,
                               let uuid = UUID(uuidString: callId) else {
                             return
+                        }
+
+                        // Only a usable INVITE resolves the pending push flow.
+                        // Malformed messages must leave the watchdog armed.
+                        if isCallFromPush {
+                            pushCallState = .inviteReceived
+                        }
+                        if isWaitingForInviteAfterPush {
+                            Logger.log.i(message: "TxClient:: INVITE received - stopping timeout timer for VoIP push call")
+                            stopInviteTimeout()
                         }
                         
                         self.voiceSdkId = vertoMessage.voiceSdkId
@@ -2050,6 +2221,10 @@ extension TxClient : SocketDelegate {
                           let uuid = UUID(uuidString: callId) else {
                         return
                     }
+
+                    // ATTACH is a successful terminal outcome for the pending
+                    // replay wait. Do not let the INVITE watchdog end this call.
+                    stopInviteTimeout()
                     
                     self.voiceSdkId = vertoMessage.voiceSdkId
 
@@ -2087,6 +2262,7 @@ extension TxClient : SocketDelegate {
                                             customHeaders: customHeaders,
                                             isAttach: true
                     )
+                    resetPushVariables()
                     
                 }
                  break;
@@ -2108,6 +2284,22 @@ extension TxClient : SocketDelegate {
                     break
             }
         }
+    }
+
+    func callIceConnectionStateUpdated(call: Call, state: RTCIceConnectionState) {
+        self.signalingHealthMonitor.iceConnectionStateDidChange(call, state: state)
+    }
+
+    func callPeerConnectionStateUpdated(call: Call, state: RTCPeerConnectionState) {
+        self.signalingHealthMonitor.peerConnectionStateDidChange(call, state: state)
+    }
+
+    func callIceRestartCompleted(call: Call) {
+        self.signalingHealthMonitor.iceRestartDidComplete(for: call)
+    }
+
+    func callIceRestartFailed(call: Call, error: Error) {
+        self.signalingHealthMonitor.iceRestartRequestDidFail(for: call, error: error)
     }
 }
 
@@ -2145,16 +2337,19 @@ extension TxClient {
         rtcAudioSession.unlockForConfiguration()
     }
 
-    internal func setAudioSessionActive(_ active: Bool) {
+    @discardableResult
+    internal func setAudioSessionActive(_ active: Bool) -> Bool {
         let rtcAudioSession = RTCAudioSession.sharedInstance()
-        
+        var succeeded = false
         rtcAudioSession.lockForConfiguration()
         do {
             try rtcAudioSession.setActive(active)
             rtcAudioSession.isAudioEnabled = active
+            succeeded = true
         } catch {
             Logger.log.e(message: "Failed to set audio session active: \(error)")
         }
         rtcAudioSession.unlockForConfiguration()
+        return succeeded
     }
 }

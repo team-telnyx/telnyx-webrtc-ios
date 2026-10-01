@@ -30,41 +30,62 @@ public class MOSCalculator {
     ///   - rtt: Round-trip time in milliseconds
     ///   - packetsReceived: Number of packets received
     ///   - packetsLost: Number of packets lost
-    /// - Returns: MOS score between 1.0 and 5.0
+    /// - Returns: MOS score in the inclusive range `1.0...5.0`, or `NaN` when the
+    ///   inputs are non-finite or the computation overflows. Callers should pair
+    ///   the result with `getQuality(mos:)`, which maps `NaN` to `.unknown`.
     public static func calculateMOS(jitter: Double, rtt: Double, packetsReceived: Int, packetsLost: Int) -> Double {
-        
-    
-        Logger.log.i(message: "Calculating_MOS... \(jitter), \(rtt), \(packetsReceived), \(packetsLost)") 
-        
+
+
+        Logger.log.i(message: "Calculating_MOS... \(jitter), \(rtt), \(packetsReceived), \(packetsLost)")
+
+        // Reject non-finite inputs early so we never surface a misleading
+        // clamped score (e.g. jitter / RTT reported as `.infinity` would
+        // otherwise clamp to 5.0 → `.excellent`). Returning NaN lets
+        // `getQuality(mos:)` report `.unknown` instead.
+        guard jitter.isFinite, rtt.isFinite else {
+            return Double.nan
+        }
+
         // Simplified R-factor calculation
         let R0: Double = 93.2 // Base value for G.711 codec
         let Is: Double = 0 // Assume no simultaneous transmission impairment
         let Id = calculateDelayImpairment(jitter: jitter, rtt: rtt) // Delay impairment
         let Ie = calculateEquipmentImpairment(packetsLost: packetsLost, packetsReceived: packetsReceived) // Equipment impairment
         let A: Double = 0 // Advantage factor (0 for WebRTC)
-        
+
         let R = R0 - Is - Id - Ie + A
-        
+
         // Convert R-factor to MOS
         let MOS = 1 + 0.035 * R + 0.000007 * R * (R - 60) * (100 - R)
+
+        // If the computation produced a non-finite value we cannot safely
+        // clamp it. Propagate NaN so the caller can mark quality as unknown
+        // instead of reporting an arbitrary in-range score.
+        guard MOS.isFinite else {
+            return Double.nan
+        }
         return min(max(MOS, 1), 5) // Clamp MOS between 1 and 5
     }
-    
-    /// Determines call quality based on MOS score
+
+    /// Determines call quality based on MOS score.
+    ///
+    /// Non-finite inputs (`NaN`, `±infinity`) are reported as `.unknown`. For
+    /// finite values the bands are continuous — every non-negative MOS value
+    /// maps to exactly one rating, with no gaps between bands.
     /// - Parameter mos: Mean Opinion Score
     /// - Returns: Call quality rating
     public static func getQuality(mos: Double) -> CallQuality {
-        if mos.isNaN {
+        if mos.isNaN || mos.isInfinite {
             return .unknown
         }
-        
+
         if mos > 4.2 {
             return .excellent
-        } else if mos >= 4.1 && mos <= 4.2 {
+        } else if mos >= 4.1 {
             return .good
-        } else if mos >= 3.7 && mos <= 4.0 {
+        } else if mos >= 3.7 {
             return .fair
-        } else if mos >= 3.1 && mos <= 3.6 {
+        } else if mos >= 3.1 {
             return .poor
         } else {
             return .bad
