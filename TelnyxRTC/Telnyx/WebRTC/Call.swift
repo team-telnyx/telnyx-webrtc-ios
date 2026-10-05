@@ -1665,7 +1665,7 @@ extension Call {
                 if params["dialogParams"] is [String:Any] {
                     do {
                         guard let dataFromMessage = dataMessage.data(using: .utf8) else {
-                            throw NSError(domain: "Call", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to convert dataMessage to Data"])
+                            throw TxError.clientConfigurationFailed(reason: .invalidMessageFormat)
                         }
                         let dataDecoded = try JSONDecoder().decode(CustomHeaderData.self, from: !)
                         dataDecoded.params.dialogParams.custom_headers.forEach { xHeader in
