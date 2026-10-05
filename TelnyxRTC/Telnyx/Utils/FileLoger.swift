@@ -73,8 +73,11 @@ public class FileLogger {
     
     func checkIfLogFileNotEmpty() -> Bool {
             let fileManager = FileManager.default
-            let filePath = logFileURL.path
-            
+
+            guard let filePath = logFileURL?.path else {
+                Logger.log.e(message: "FileLogger :: Invalid log file URL")
+                return false
+            }
             // Check if file exists
             if fileManager.fileExists(atPath: filePath) {
                 do {
@@ -109,7 +112,7 @@ public class FileLogger {
         Logger.log.i(message: "FileLogger :: Sending file to ")
 
         let logFileURL = FileLogger.shared.logFileURL
-        guard let logData = try? Data(contentsOf: logFileURL) else {
+        guard let logFileURL, let logData = try? Data(contentsOf: logFileURL) else {
             Logger.log.e(message: "Failed to read log file")
             return
         }
