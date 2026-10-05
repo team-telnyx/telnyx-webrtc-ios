@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Bug Fixes
+- **Push Processing Crash**: Fixed a crash in `processVoIPNotification` when a push arrives on a connected socket while a placeholder from an earlier unresolved push is still the current call. Ending that placeholder during the push teardown reset the stored push configuration before it was force-unwrapped; the teardown now runs before the new push state is stored.
+
 ## [4.2.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.2.1) (2026-09-24)
 
 ### Bug Fixes

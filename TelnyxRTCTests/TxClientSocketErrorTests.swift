@@ -211,6 +211,29 @@ class TxClientPingAuthTests: XCTestCase {
         XCTAssertTrue(mockDelegate.doneCallIds.isEmpty)
     }
 
+    /// A push placeholder that never got an INVITE, answer or decline is still `currentCallId`
+    /// when the next push arrives on a connected socket. The teardown in
+    /// `processVoIPNotification` ends it, which resets push state; the new push must keep its own.
+    func testPushOnConnectedSocketKeepsStateWhenStalePushPlaceholderEnds() throws {
+        let stalePushUUID = UUID()
+        try startPushFlow(callId: stalePushUUID)
+        let staleSocket = try XCTUnwrap(txClient.calls[stalePushUUID]?.socket)
+        staleSocket.isConnected = true
+
+        let newPushUUID = UUID()
+        try startPushFlow(callId: newPushUUID)
+
+        XCTAssertEqual(mockDelegate.doneCallIds, [stalePushUUID])
+        XCTAssertNil(txClient.calls[stalePushUUID])
+        XCTAssertNotNil(txClient.calls[newPushUUID])
+
+        // Declining needs the stored push config to connect and send the decline_push login.
+        txClient.endCallFromCallkit(endAction: CXEndCallAction(call: newPushUUID))
+        txClient.onSocketConnected()
+
+        XCTAssertEqual(mockDelegate.doneCallIds, [stalePushUUID, newPushUUID])
+    }
+
     private func waitForWatchdog() {
         let expectation = expectation(description: "Wait beyond INVITE watchdog")
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { expectation.fulfill() }

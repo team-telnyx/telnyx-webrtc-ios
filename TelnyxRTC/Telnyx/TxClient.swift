@@ -1608,43 +1608,47 @@ extension TxClient {
         // A VoIP push is authoritative for this incoming call. Update the
         // cached ID before any reconnect path can call the normal connect API.
         self.voiceSdkId = rtc_id
+
+        let noActiveCalls = self.calls.filter {
+            $0.value.callState.isConsideredActive
+        }.isEmpty
+
+        // Tear down before storing this push's state: `disconnect()` synchronously hangs up
+        // leftover calls, and a placeholder from an earlier unresolved push ending there runs
+        // `resetPushVariables()` (see `callStateUpdated`), which would clear the state below.
+        if noActiveCalls && isConnected() {
+            Logger.log.i(message: "TxClient:: processVoIPNotification - No Active Calls disconnect")
+            self.disconnect()
+        }
+
         self.pushCallState = .idle
-        
+
         // Store config objects for later use (don't login immediately)
-        self.storedTxConfig = txConfig
-        self.storedServerConfiguration = TxServerConfiguration(
+        let pushServerConfiguration = TxServerConfiguration(
             signalingServer:nil,
             webRTCIceServers: serverConfiguration.webRTCIceServers,
             environment: serverConfiguration.environment,
             pushMetaData: pushMetaData,
             region: serverConfiguration.region)
-                
-        let noActiveCalls = self.calls.filter { 
-            $0.value.callState.isConsideredActive
-        }.isEmpty
+        self.storedTxConfig = txConfig
+        self.storedServerConfiguration = pushServerConfiguration
 
-        if noActiveCalls && isConnected() {
-            Logger.log.i(message: "TxClient:: processVoIPNotification - No Active Calls disconnect")
-            self.disconnect()
-        }
-        
         if noActiveCalls {
             do {
                 Logger.log.i(message: "TxClient:: No Active Calls - Only connecting socket, not logging in")
                 // Only initiate socket connection, don't login yet
-                try self.connectSocketOnly(serverConfiguration: self.storedServerConfiguration!)
-                
+                try self.connectSocketOnly(serverConfiguration: pushServerConfiguration)
+
                 // Create an initial call_object to handle early bye message
                 if let newCallId = pushMetaData["call_id"] as? String,
                    let callUUID = UUID(uuidString: newCallId),
-                   let socket = self.socket,
-                   let iceServers = self.storedServerConfiguration?.webRTCIceServers {
+                   let socket = self.socket {
                     self.calls[callUUID] = Call(callId: callUUID,
                                                remoteSdp: "",
                                                sessionId: newCallId,
                                                socket: socket,
                                                delegate: self,
-                                               iceServers: iceServers,
+                                               iceServers: pushServerConfiguration.webRTCIceServers,
                                                debug: self.txConfig?.debug ?? false,
                                                forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
                                                sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
@@ -1658,7 +1662,7 @@ extension TxClient {
                                                pushDeviceToken: self.storedTxConfig?.pushNotificationConfig?.pushDeviceToken)
                     self.currentCallId = callUUID
                 } else {
-                    Logger.log.e(message: "TxClient:: processVoIPNotification - Invalid call_id, socket, or ICE servers. Cannot create call object.")
+                    Logger.log.e(message: "TxClient:: processVoIPNotification - Invalid call_id or socket. Cannot create call object.")
                 }
             } catch let error {
                 Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
