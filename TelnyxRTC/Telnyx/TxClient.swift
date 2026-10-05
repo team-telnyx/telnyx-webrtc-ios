@@ -1609,9 +1609,9 @@ extension TxClient {
         // cached ID before any reconnect path can call the normal connect API.
         self.voiceSdkId = rtc_id
 
-        let noActiveCalls = self.calls.filter {
-            $0.value.callState.isConsideredActive
-        }.isEmpty
+        let noActiveCalls = !self.calls.values.contains {
+            $0.callState.isConsideredActive
+        }
 
         // Tear down the previous push before storing the new push state.
         if noActiveCalls && isConnected() {
