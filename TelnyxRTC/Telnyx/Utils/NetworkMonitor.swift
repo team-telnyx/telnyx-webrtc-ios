@@ -73,7 +73,12 @@ class NetworkMonitor {
 
 
     private func checkInternetAccess(completion: @escaping (Bool) -> Void) {
-        let url = URL(string: "https://www.google.com")! // Use a reliable server
+        let url = URL(string: "https://www.google.com") // Use a reliable server
+        guard let url else {
+            completion(false)
+            return
+        }
+
         let request = URLRequest(url: url, timeoutInterval: 1) // Set a timeout
 
         let task = URLSession.shared.dataTask(with: request) { _, response, error in
