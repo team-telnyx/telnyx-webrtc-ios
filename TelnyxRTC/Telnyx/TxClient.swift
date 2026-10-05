@@ -2204,7 +2204,7 @@ extension TxClient : SocketDelegate {
                         if params["dialogParams"] is [String:Any] {
                             do {
                                 guard let dataFromMessage = message.data(using: .utf8) else {
-                                    throw TxError.clientConfigurationFailed(reason: .invalidMessageFormat)
+                                    throw NSError(domain: "Call", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to convert dataMessage to Data"])
                                 }
                                 let dataDecoded = try JSONDecoder().decode(CustomHeaderData.self, from: dataFromMessage)
                                 dataDecoded.params.dialogParams.custom_headers.forEach { xHeader in
@@ -2262,7 +2262,10 @@ extension TxClient : SocketDelegate {
                     var customHeaders = [String:String]()
                     if params["dialogParams"] is [String:Any] {
                         do {
-                            let dataDecoded = try JSONDecoder().decode(CustomHeaderData.self, from: message.data(using: .utf8))
+                            guard let dataFromMessage = message.data(using: .utf8) else {
+                                throw NSError(domain: "Call", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to convert dataMessage to Data"])
+                            }
+                            let dataDecoded = try JSONDecoder().decode(CustomHeaderData.self, from: dataFromMessage)
                             dataDecoded.params.dialogParams.custom_headers.forEach { xHeader in
                                 customHeaders[xHeader.name] = xHeader.value
                             }

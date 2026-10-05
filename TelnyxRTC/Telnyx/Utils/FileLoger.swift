@@ -14,7 +14,7 @@ public class FileLogger {
     
     private var logFileURL: URL? {
         let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
-        return documentsDirectory.appendingPathComponent("appLog2.txt")
+        return documentsDirectory?.appendingPathComponent("appLog2.txt")
     }
     
     public func log(_ message: String) {
