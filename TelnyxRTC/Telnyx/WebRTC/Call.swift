@@ -1664,10 +1664,7 @@ extension Call {
                 var customHeaders = [String:String]()
                 if params["dialogParams"] is [String:Any] {
                     do {
-                        guard let dataFromMessage = dataMessage.data(using: .utf8) else {
-                            throw TxError.clientConfigurationFailed(reason: .invalidMessageFormat)
-                        }
-                        let dataDecoded = try JSONDecoder().decode(CustomHeaderData.self, from: !)
+                        let dataDecoded = try JSONDecoder().decode(CustomHeaderData.self, from: message.data(using: .utf8))
                         dataDecoded.params.dialogParams.custom_headers.forEach { xHeader in
                             customHeaders[xHeader.name] = xHeader.value
                         }

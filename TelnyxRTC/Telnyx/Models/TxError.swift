@@ -32,8 +32,6 @@ public enum TxError : Error {
         case tokenIsRequired
         /// `token` is missing when using the Token login method.
         case voiceSdkIsRequired
-        /// The message format received from the server is invalid.
-        case invalidMessageFormat
     }
 
     /// The underlying reason of the call errors
