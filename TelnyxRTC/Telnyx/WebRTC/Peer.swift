@@ -1071,10 +1071,14 @@ extension Peer : RTCPeerConnectionDelegate {
                 Logger.log.i(message: "[TRICKLE-ICE] Peer:: Trickle ICE enabled - sending candidate individually")
                 sendTrickleCandidate(candidate)
 
-                // Start/restart the end-of-candidates timer when sending candidates
-                // Only start timer when candidate is actually SENT, not when queued
-                Logger.log.i(message: "[TRICKLE-ICE] Peer:: Starting/restarting negotiation timer for endOfCandidates detection")
-                self.startNegotiation(peerConnection: connection!, didGenerate: candidate)
+                if let connection {
+                    // Start/restart the end-of-candidates timer when sending candidates
+                    // Only start timer when candidate is actually SENT, not when queued
+                    Logger.log.i(message: "[TRICKLE-ICE] Peer:: Starting/restarting negotiation timer for endOfCandidates detection")
+                    self.startNegotiation(peerConnection: connection!, didGenerate: candidate)
+                } else {
+                    Logger.log.e(message: "[TRICKLE-ICE] Peer:: Cannot start negotiation - connection is nil")
+                }
             }
         } else {
             Logger.log.i(message: "[TRICKLE-ICE] Peer:: Trickle ICE disabled - candidate will be included in SDP")
@@ -1104,8 +1108,12 @@ extension Peer : RTCPeerConnectionDelegate {
                     return gatheredBase == configuredBase
                 }
             }) {
-                Logger.log.i(message: "Peer:: Valid ICE candidate found from configured server - starting negotiation (traditional mode)")
-                self.startNegotiation(peerConnection: connection!, didGenerate: candidate)
+                if let connection {
+                    Logger.log.i(message: "Peer:: Valid ICE candidate found from configured server - starting negotiation (traditional mode)")
+                    self.startNegotiation(peerConnection: connection!, didGenerate: candidate)
+                } else {
+                    Logger.log.e(message: "Peer:: Cannot start negotiation - connection is nil")
+                }
             }
         }
       
