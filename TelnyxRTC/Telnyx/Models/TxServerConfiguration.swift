@@ -68,8 +68,11 @@ public struct TxServerConfiguration {
                 let query = createQuery(with: rtc_id)
                 let pushRtcServer = "wss://\(regionPrefix)\(baseURL.host ?? "")\(query)"
                 self.signalingServer = URL(string: pushRtcServer) ?? baseURL
+            } else if let signalingServerURL = URL(string: "wss://\(regionPrefix)\(baseURL.host ?? "")") {
+                self.signalingServer = signalingServerURL
             } else {
-                self.signalingServer = URL(string: "wss://\(regionPrefix)\(baseURL.host ?? "")")!
+                Logger.log.e(message: "TxServerConfiguration:: Invalid signaling server URL, using default")
+                self.signalingServer = baseURL
             }
             self.environment = environment
         }
