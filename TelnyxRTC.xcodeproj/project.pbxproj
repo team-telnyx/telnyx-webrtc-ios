@@ -185,6 +185,7 @@
 		C9799A1411FBF7FA5CC8DF9E /* SocketSSLConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51C1A1B92CACA63F62AB2095 /* SocketSSLConfigurationTests.swift */; };
 		E646798A1FBBDD9C713778B1 /* CallReportCollectorSSLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36D59B37D5C89B9A69EEC3F5 /* CallReportCollectorSSLTests.swift */; };
 		9127260D822A71414048FCB0 /* SSLValidationHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A500401434F9B22288B10F27 /* SSLValidationHelper.swift */; };
+		E21000000000000000000002 /* PushTokenRegistrationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E21000000000000000000001 /* PushTokenRegistrationStore.swift */; };
 /* End PBXBuildFile section
 
 /* Begin PBXContainerItemProxy section */
@@ -421,6 +422,7 @@
 		51C1A1B92CACA63F62AB2095 /* SocketSSLConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketSSLConfigurationTests.swift; sourceTree = "<group>"; };
 		36D59B37D5C89B9A69EEC3F5 /* CallReportCollectorSSLTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallReportCollectorSSLTests.swift; sourceTree = "<group>"; };
 		A500401434F9B22288B10F27 /* SSLValidationHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSLValidationHelper.swift; sourceTree = "<group>"; };
+		E21000000000000000000001 /* PushTokenRegistrationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushTokenRegistrationStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -870,6 +872,7 @@
 			isa = PBXGroup;
 			children = (
 				A500401434F9B22288B10F27 /* SSLValidationHelper.swift */,
+				E21000000000000000000001 /* PushTokenRegistrationStore.swift */,
 			);
 			path = Security;
 			sourceTree = "<group>";
@@ -1301,6 +1304,7 @@
 				9911247E2CF50092000C23BA /* Dictionary+Extensions.swift in Sources */,
 				996C67BC2CFEA4880056E508 /* RTCIceServer+Extension.swift in Sources */,
 				9127260D822A71414048FCB0 /* SSLValidationHelper.swift in Sources */,
+				E21000000000000000000002 /* PushTokenRegistrationStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

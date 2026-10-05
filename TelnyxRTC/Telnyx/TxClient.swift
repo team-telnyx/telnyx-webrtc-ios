@@ -168,7 +168,15 @@ public class TxClient {
     internal var sendFileLogs: Bool = false
     private var attachCallId: String?
     internal var pendingAttachCallIdForTesting: String? { attachCallId }
+    internal func setSocketForTesting(_ socket: Socket?) { self.socket = socket }
     private var pushMetaData: [String:Any]?
+    private struct AutomaticPushCleanupRequest: Equatable {
+        let registration: StoredPushTokenRegistration
+        let accountKey: String
+    }
+    internal var pushTokenRegistrationTracker = PushTokenRegistrationTracker()
+    private let automaticPushCleanupRequestsLock = NSLock()
+    private var automaticPushCleanupRequests: [String: AutomaticPushCleanupRequest] = [:]
     private let AUTH_ERROR_CODE = "-32001"
     private var reconnectTimeoutTimer: DispatchSourceTimer?
     private let reconnectQueue = DispatchQueue(label: "TelnyxClient.ReconnectQueue")
@@ -596,6 +604,7 @@ public class TxClient {
         self.txConfig = txConfig
 
         self.serverConfiguration = serverConfigurationForConnection(serverConfiguration)
+        clearAutomaticPushCleanupRequests()
         self.socket = Socket()
         self.socket?.delegate = self
         self.aiAssistantManager.setSocket(self.socket)
@@ -619,6 +628,7 @@ public class TxClient {
                                                          pushMetaData: self.pushMetaData)
 
         Logger.log.i(message: "TxClient:: serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
+        clearAutomaticPushCleanupRequests()
         self.socket = Socket()
         self.socket?.delegate = self
         self.aiAssistantManager.setSocket(self.socket)
@@ -659,6 +669,7 @@ public class TxClient {
         self.serverConfiguration = serverConfiguration
 
         Logger.log.i(message: "TxClient:: serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
+        clearAutomaticPushCleanupRequests()
         self.socket = Socket()
         self.socket?.delegate = self
         self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
@@ -1087,6 +1098,174 @@ public class TxClient {
         }
     }
 
+    /// Queues cleanup for push registrations previously observed by this SDK
+    /// installation after the current member has reached REGED. Cleanup is
+    /// scoped to the exact old token, provider and environment so registrations
+    /// belonging to other devices are untouched.
+    private func sendAutomaticPushTokenCleanupIfNeeded(for config: TxConfig) {
+        guard let token = config.pushNotificationConfig?.pushDeviceToken,
+              !token.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              let accountKey = pushTokenRegistrationAccountKey(for: config) else {
+            return
+        }
+
+        let provider = config.pushNotificationConfig?.pushNotificationProvider
+            ?? TxPushConfig.PUSH_NOTIFICATION_PROVIDER
+        let current = StoredPushTokenRegistration(
+            token: token,
+            provider: provider,
+            environment: resolvedPushEnvironment(config.pushEnvironment).rawValue
+        )
+
+        let staleRegistrations: [StoredPushTokenRegistration]
+        do {
+            staleRegistrations = try pushTokenRegistrationTracker.registrationsToCleanup(
+                current: current,
+                accountKey: accountKey
+            )
+        } catch {
+            Logger.log.w(message: "TxClient:: Unable to read or persist push-token rotation state: \(error)")
+            return
+        }
+
+        for staleRegistration in staleRegistrations {
+            guard let staleEnvironment = PushEnvironment(rawValue: staleRegistration.environment),
+                  let disableMessage = automaticDisablePushMessage(
+                    config: config,
+                    registration: staleRegistration,
+                    environment: staleEnvironment
+                  ),
+                  let encodedMessage = disableMessage.encode() else {
+                continue
+            }
+
+            let cleanupRequest = AutomaticPushCleanupRequest(
+                registration: staleRegistration,
+                accountKey: accountKey
+            )
+            guard reserveAutomaticPushCleanupRequest(cleanupRequest, id: disableMessage.id) else {
+                continue
+            }
+
+            Logger.log.i(message: "TxClient:: Disabling a previous push-token registration after successful login")
+            socket?.sendMessage(message: encodedMessage)
+        }
+    }
+
+    private func reserveAutomaticPushCleanupRequest(
+        _ request: AutomaticPushCleanupRequest,
+        id: String
+    ) -> Bool {
+        automaticPushCleanupRequestsLock.lock()
+        defer { automaticPushCleanupRequestsLock.unlock() }
+
+        guard !automaticPushCleanupRequests.values.contains(request) else {
+            return false
+        }
+        automaticPushCleanupRequests[id] = request
+        return true
+    }
+
+    private func takeAutomaticPushCleanupRequest(id: String) -> AutomaticPushCleanupRequest? {
+        automaticPushCleanupRequestsLock.lock()
+        defer { automaticPushCleanupRequestsLock.unlock() }
+        return automaticPushCleanupRequests.removeValue(forKey: id)
+    }
+
+    private func clearAutomaticPushCleanupRequests() {
+        automaticPushCleanupRequestsLock.lock()
+        automaticPushCleanupRequests.removeAll()
+        automaticPushCleanupRequestsLock.unlock()
+    }
+
+    private func automaticDisablePushMessage(
+        config: TxConfig,
+        registration: StoredPushTokenRegistration,
+        environment: PushEnvironment
+    ) -> DisablePushMessage? {
+        if let sipUser = config.sipUser {
+            return DisablePushMessage(
+                user: sipUser,
+                pushDeviceToken: registration.token,
+                pushNotificationProvider: registration.provider,
+                pushEnvironment: environment
+            )
+        }
+
+        if let token = config.token {
+            return DisablePushMessage(
+                loginToken: token,
+                pushDeviceToken: registration.token,
+                pushNotificationProvider: registration.provider,
+                pushEnvironment: environment
+            )
+        }
+
+        return nil
+    }
+
+    private func pushTokenRegistrationAccountKey(for config: TxConfig) -> String? {
+        if let sipUser = config.sipUser, !sipUser.isEmpty {
+            return "sip:\(sipUser)"
+        }
+
+        // JWTs can rotate and do not expose a guaranteed stable account field
+        // to the SDK. Keep token-auth cleanup in its own bucket; the backend
+        // still scopes deletion through the current authenticated token.
+        if config.token != nil {
+            return "token-auth"
+        }
+
+        return nil
+    }
+
+    private func resolvedPushEnvironment(_ environment: PushEnvironment?) -> PushEnvironment {
+        if let environment = environment {
+            return environment
+        }
+
+        #if DEBUG
+        return .debug
+        #else
+        return .production
+        #endif
+    }
+
+    /// Consumes responses for SDK-owned cleanup without surfacing them as an
+    /// application-requested `disablePushNotifications()` operation.
+    private func handleAutomaticPushTokenCleanupResponse(_ message: Message) -> Bool {
+        guard let request = takeAutomaticPushCleanupRequest(id: message.id) else {
+            return false
+        }
+
+        if let error = message.serverError {
+            let detail = error["message"] as? String ?? "Unknown error"
+            Logger.log.w(message: "TxClient:: Previous push-token cleanup failed and will be retried: \(detail)")
+            return true
+        }
+
+        guard let result = message.result,
+              let resultMessage = result["message"] as? String,
+              resultMessage.lowercased() == DisablePushMessage.DISABLE_PUSH_SUCCESS_MESSAGE else {
+            Logger.log.w(message: "TxClient:: Previous push-token cleanup was not confirmed and will be retried")
+            return true
+        }
+
+        do {
+            try pushTokenRegistrationTracker.markCleanupSucceeded(
+                request.registration,
+                accountKey: request.accountKey
+            )
+            Logger.log.i(message: "TxClient:: Previous push-token registration disabled")
+        } catch {
+            // The server already removed the old registration. Retrying is
+            // harmless if Keychain persistence fails here.
+            Logger.log.w(message: "TxClient:: Unable to persist completed push-token cleanup: \(error)")
+        }
+
+        return true
+    }
+
     /// Get the current session ID after logging into Telnyx Backend.
     /// - Returns: The current sessionId. If this value is empty, that means that the client is not connected to Telnyx server.
     public func getSessionId() -> String {
@@ -1226,6 +1405,13 @@ public class TxClient {
                 // - Stop the timer
                 // - Propagate the client state to the app.
                 self.registerTimer.invalidate()
+
+                // disable_push is scoped to the currently logged-in member.
+                // Wait for REGED before attempting cleanup so the backend has
+                // the correct authenticated member/session context.
+                if let config = self.txConfig {
+                    sendAutomaticPushTokenCleanupIfNeeded(for: config)
+                }
                 
                 // Handle decline_push case - disconnect immediately after successful login
                 if pendingCallDecline {
@@ -1946,7 +2132,6 @@ extension TxClient : SocketDelegate {
         // Get push token and push provider if available
         let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
         let pushProvider = self.txConfig?.pushNotificationConfig?.pushNotificationProvider
-
         //Login into the signaling server after the connection is produced.
         if let token = self.txConfig?.token  {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with Token")
@@ -1979,6 +2164,11 @@ extension TxClient : SocketDelegate {
     }
     
     func onSocketDisconnected(reconnect: Bool, region: Region?) {
+        // Any automatic cleanup requests still in this map did not receive a
+        // confirmed response. They remain queued in Keychain for the next
+        // connection attempt.
+        clearAutomaticPushCleanupRequests()
+
         if reconnect {
             Logger.log.i(message: "TxClient:: SocketDelegate  Reconnecting")
             if pendingCallDecline {
@@ -2024,6 +2214,7 @@ extension TxClient : SocketDelegate {
 
     func onSocketError(error: Error) {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketError()")
+        clearAutomaticPushCleanupRequests()
         if pendingCallDecline && !isReconnectPendingForCallKitDecline {
             cleanupPendingCallKitDecline(reason: "socket error before decline_push login completed")
         }
@@ -2047,6 +2238,10 @@ extension TxClient : SocketDelegate {
         // Process message through AI Assistant Manager
         if let messageDict = try? JSONSerialization.jsonObject(with: Data(message.utf8), options: []) as? [String: Any] {
             _ = self.aiAssistantManager.processIncomingMessage(messageDict)
+        }
+
+        if handleAutomaticPushTokenCleanupResponse(vertoMessage) {
+            return
         }
         
        // FileLogger().log(message)
