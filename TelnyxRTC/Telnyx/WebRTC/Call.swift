@@ -1056,20 +1056,38 @@ extension Call {
     
     private func configureCallReportCollector() {
         guard enableCallReports else { return }
-        
+
         let config = CallReportConfig(enabled: true, interval: callReportInterval)
         let logConfig = LogCollectorConfig(
             enabled: true,
             level: callReportLogLevel,
             maxEntries: callReportMaxLogEntries
         )
-        
-        let collector = TelnyxCallReportCollector(config: config, logCollectorConfig: logConfig)
-        collector.onInboundRtpSample = { [weak self] packetsReceived in
+        self.callReportCollector = TelnyxCallReportCollector(config: config, logCollectorConfig: logConfig)
+
+        // Install the per-call call-establishment timing recorder. The call's
+        // direction is captured here so the stats UI can disambiguate
+        // outbound vs inbound timelines; the recorder is owned by the
+        // collector and snapshots into every report payload automatically.
+        // `callStart` is recorded as the very first establishment milestone
+        // so subsequent `deltaMs` values are anchored to this instant.
+        if let collector = self.callReportCollector {
+            let direction: TelnyxCallTimingRecorder.Direction
+            switch self.direction {
+            case .INBOUND: direction = .inbound
+            case .OUTBOUND: direction = .outbound
+            case .ATTACH:   direction = .attach
+            }
+            let callIdString = self.callInfo?.callId.uuidString
+            collector.installTimingRecorder(callId: callIdString, direction: direction)
+            collector.timingRecorder?.record(.callStart)
+        }
+
+        let collector = self.callReportCollector
+        collector?.onInboundRtpSample = { [weak self] packetsReceived in
             guard let self = self else { return }
             self.onInboundRtpSample?(self, packetsReceived)
         }
-        self.callReportCollector = collector
     }
 
     func setCallReportMediaVerificationSamplingEnabled(_ enabled: Bool) {
@@ -1080,6 +1098,18 @@ extension Call {
     /// state changes into the call report collector. Called after peer creation.
     private func setupPeerEventLogging() {
         guard let peer = self.peer else { return }
+
+        // Hand the per-call timing recorder to the Peer so it can record
+        // its own lifecycle milestones (mediaDevicesAcquired, peerSetupComplete,
+        // firstIceCandidate, signaling state transitions). The recorder is
+        // nil when call reports are disabled, so Peer hooks become no-ops
+        // in that case.
+        peer.timingRecorder = self.callReportCollector?.timingRecorder
+
+        // Record the peerCreated milestone as the very first action here so
+        // the delta-vs-callStart captures Peer construction time. Recorded
+        // once per call by the recorder's no-op guard.
+        self.callReportCollector?.timingRecorder?.record(.peerCreated)
 
         previousPeerConnectionStateForCallReport = "new"
 
@@ -1103,6 +1133,42 @@ extension Call {
                 message: Self.callReportTimestampedMessage("ICE Gathering State"),
                 context: ["args": [state.telnyx_to_string()]]
             )
+        }
+
+        // Wire call-establishment timing milestones from the Peer delegate
+        // callbacks into the per-call timing recorder. The hooks are appended
+        // to the existing log-only hooks so logging behavior is unchanged.
+        // Each milestone is recorded at most once per establishment
+        // generation — recovery, ICE restart, and reconnect paths keep the
+        // original timeline intact.
+        peer.onIceConnectionChange = { [weak self] state in
+            guard let self = self else { return }
+            switch state {
+            case .checking:
+                self.callReportCollector?.timingRecorder?.record(.iceGatheringStarted)
+            case .connected:
+                self.callReportCollector?.timingRecorder?.record(.iceConnected)
+            case .completed:
+                self.callReportCollector?.timingRecorder?.record(.dtlsConnected)
+            default:
+                break
+            }
+        }
+
+        peer.onIceGatheringChange = { [weak self] state in
+            guard let self = self else { return }
+            switch state {
+            case .gathering:
+                self.callReportCollector?.timingRecorder?.record(.iceGatheringStarted)
+            case .complete:
+                self.callReportCollector?.timingRecorder?.record(.iceGatheringComplete)
+            default:
+                break
+            }
+        }
+
+        peer.onAddStream = { [weak self] _ in
+            self?.callReportCollector?.timingRecorder?.record(.firstRemoteAudioVideoTrack)
         }
 
         peer.onIceConnectionStateChangeForLog = { [weak self] state in
