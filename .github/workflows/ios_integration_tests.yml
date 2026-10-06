@@ -1,6 +1,8 @@
 name: iOS Integration Tests
 
 on:
+  # Deliberately excluded from pull_request: PR validation stays credential-free;
+  # live credentials are only used after merge or during a manual dispatch.
   push:
     branches:
       - main
@@ -35,41 +37,51 @@ jobs:
           bundler-cache: true
 
       - name: Create on-demand credential
-        id: ondemand-credential
         env:
           TELNYX_SIP_API_KEY: ${{ secrets.TELNYX_SIP_API_KEY }}
           TELNYX_SIP_CONNECTION_ID: ${{ secrets.TELNYX_SIP_CONNECTION_ID }}
         run: |
-          response=$(curl --fail-with-body --silent --show-error \
+          set -euo pipefail
+          umask 077
+          # Bound exposure if a hard runner termination prevents the cleanup step.
+          expires_at=$(date -u -v+6H '+%Y-%m-%dT%H:%M:%SZ')
+          payload=$(jq --null-input --compact-output \
+            --arg connection_id "$TELNYX_SIP_CONNECTION_ID" \
+            --arg expires_at "$expires_at" \
+            '{connection_id: $connection_id, expires_at: $expires_at}')
+          credential_id_file="$RUNNER_TEMP/ondemand_credential_id"
+          curl --fail-with-body --silent --show-error \
             --request POST \
             --header "Content-Type: application/json" \
             --header "Authorization: Bearer $TELNYX_SIP_API_KEY" \
-            --data "{\"connection_id\":\"$TELNYX_SIP_CONNECTION_ID\"}" \
-            https://api.telnyx.com/v2/telephony_credentials)
-          credential_id=$(jq --exit-status --raw-output '.data.id' <<< "$response")
-          echo "credential_id=$credential_id" >> "$GITHUB_OUTPUT"
+            --data "$payload" \
+            https://api.telnyx.com/v2/telephony_credentials \
+            | jq --exit-status --raw-output '.data.id // empty' \
+            > "${credential_id_file}.tmp"
+          mv "${credential_id_file}.tmp" "$credential_id_file"
 
       - name: Generate login token
-        id: login-token
         env:
           TELNYX_SIP_API_KEY: ${{ secrets.TELNYX_SIP_API_KEY }}
-          CREDENTIAL_ID: ${{ steps.ondemand-credential.outputs.credential_id }}
         run: |
+          set -euo pipefail
+          credential_id=$(< "$RUNNER_TEMP/ondemand_credential_id")
           token=$(curl --fail-with-body --silent --show-error \
             --request POST \
             --header "Content-Type: application/json" \
             --header "Authorization: Bearer $TELNYX_SIP_API_KEY" \
             --data '{}' \
-            "https://api.telnyx.com/v2/telephony_credentials/$CREDENTIAL_ID/token")
+            "https://api.telnyx.com/v2/telephony_credentials/$credential_id/token")
           echo "::add-mask::$token"
-          echo "token=$token" >> "$GITHUB_OUTPUT"
+          umask 077
+          printf '%s' "$token" > "$RUNNER_TEMP/sip_token"
 
       - name: Configure integration credentials
         env:
           TELNYX_SIP_USER: ${{ secrets.TELNYX_SIP_USER }}
           TELNYX_SIP_PASSWORD: ${{ secrets.TELNYX_SIP_PASSWORD }}
-          TELNYX_SIP_TOKEN: ${{ steps.login-token.outputs.token }}
-        run: sh scripts/setup_env.sh -u "$TELNYX_SIP_USER" -p "$TELNYX_SIP_PASSWORD" -t "$TELNYX_SIP_TOKEN"
+          TELNYX_SIP_TOKEN_FILE: ${{ runner.temp }}/sip_token
+        run: bash scripts/setup_env.sh -u "$TELNYX_SIP_USER" -p "$TELNYX_SIP_PASSWORD" -f "$TELNYX_SIP_TOKEN_FILE"
 
       - name: Install Pods
         run: pod install
@@ -78,12 +90,21 @@ jobs:
         run: bundle exec fastlane integration_tests
 
       - name: Delete on-demand credential
-        if: ${{ always() && steps.ondemand-credential.outputs.credential_id != '' }}
+        if: ${{ always() }}
         env:
           TELNYX_SIP_API_KEY: ${{ secrets.TELNYX_SIP_API_KEY }}
-          CREDENTIAL_ID: ${{ steps.ondemand-credential.outputs.credential_id }}
         run: |
+          credential_id_file="$RUNNER_TEMP/ondemand_credential_id"
+          # A cancellation between writing and renaming leaves a usable .tmp file.
+          if [[ ! -s "$credential_id_file" && -s "${credential_id_file}.tmp" ]]; then
+            credential_id_file="${credential_id_file}.tmp"
+          fi
+          if [[ ! -s "$credential_id_file" ]]; then
+            echo "No on-demand credential was created; skipping cleanup."
+            exit 0
+          fi
+          credential_id=$(< "$credential_id_file")
           curl --fail-with-body --silent --show-error \
             --request DELETE \
             --header "Authorization: Bearer $TELNYX_SIP_API_KEY" \
-            "https://api.telnyx.com/v2/telephony_credentials/$CREDENTIAL_ID"
+            "https://api.telnyx.com/v2/telephony_credentials/$credential_id"
