@@ -31,9 +31,10 @@ final class TxClientRouteObserverTests: XCTestCase {
 
     override func tearDown() {
         txClient.delegate = nil
-        // `NetworkMonitor.shared` can retain a client beyond the test method. Remove
-        // this fixture's observer explicitly so another test client cannot satisfy a
-        // later notification expectation.
+        // VSDK-736: `NetworkMonitor.shared` no longer retains the client — each
+        // `TxClient` removes its own observer in `deinit`. We still defensively
+        // tear down the AVAudioSession observer here so another test client
+        // cannot satisfy a later notification expectation.
         NotificationCenter.default.removeObserver(
             txClient as Any,
             name: AVAudioSession.routeChangeNotification,
