@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Bug Fixes
+- **Inbound Call Quality Metrics**: Set `Call.debug` and `Call.enableQualityMetrics` *before* `Call.configureStatsReporter()` in `Call.answer(customHeaders:debug:completion:)`, so inbound calls answered with `debug: true` create their stats reporter and `onCallQualityChange` fires as expected. The previous ordering left `statsReporter` nil for inbound calls (outbound and attach paths were unaffected) — GH #378.
+
 ## [4.2.2](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.2.2) (2026-10-05)
 
 ### Bug Fixes
