@@ -12,9 +12,9 @@ public class FileLogger {
     
     static var isCallFromPush = false
     
-    private var logFileURL: URL {
-        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        return documentsDirectory.appendingPathComponent("appLog2.txt")
+    private var logFileURL: URL? {
+        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        return documentsDirectory?.appendingPathComponent("appLog2.txt")
     }
     
     public func log(_ message: String) {
@@ -23,7 +23,13 @@ public class FileLogger {
         appendTextToFile(text: logMessage, fileURL: logFileURL)
     }
     
-    private func appendTextToFile(text: String, fileURL: URL) {
+    private func appendTextToFile(text: String, fileURL: URL?) {
+
+        guard let fileURL else {
+            Logger.log.e(message: "FileLogger :: Invalid log file URL")
+            return
+        }
+
         if(!FileLogger.isCallFromPush){
             return
         }
@@ -48,12 +54,16 @@ public class FileLogger {
     func emptyFile() {
         do {
             // Check if the file exists at the specified URL
-            if FileManager.default.fileExists(atPath: logFileURL.path) {
-                // Try to delete the file
-                try FileManager.default.removeItem(at: logFileURL)
-                Logger.log.i(message: "Log file successfully deleted.")
+            if let logFileURL {
+                if FileManager.default.fileExists(atPath: logFileURL.path) {
+                    // Try to delete the file
+                    try FileManager.default.removeItem(at: logFileURL)
+                    Logger.log.i(message: "Log file successfully deleted.")
+                } else {
+                    Logger.log.i(message: "Log file does not exist.")
+                }
             } else {
-                Logger.log.i(message: "Log file does not exist.")
+                Logger.log.e(message: "FileLogger :: Invalid log file URL")
             }
         } catch {
             // Handle any errors that may occur during file deletion
@@ -63,8 +73,11 @@ public class FileLogger {
     
     func checkIfLogFileNotEmpty() -> Bool {
             let fileManager = FileManager.default
-            let filePath = logFileURL.path
-            
+
+            guard let filePath = logFileURL?.path else {
+                Logger.log.e(message: "FileLogger :: Invalid log file URL")
+                return false
+            }
             // Check if file exists
             if fileManager.fileExists(atPath: filePath) {
                 do {
@@ -86,14 +99,20 @@ public class FileLogger {
     }
     
     func sendLogFile() {
-        let url = URL(string: "https://file_logger_endpoint")! // Change to your server's URL
+        let url = URL(string: "https://file_logger_endpoint") // Change to your server's URL
+
+        guard let url else {
+            Logger.log.e(message: "FileLogger :: Invalid URL")
+            return
+        }
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         
         Logger.log.i(message: "FileLogger :: Sending file to ")
 
         let logFileURL = FileLogger.shared.logFileURL
-        guard let logData = try? Data(contentsOf: logFileURL) else {
+        guard let logFileURL, let logData = try? Data(contentsOf: logFileURL) else {
             Logger.log.e(message: "Failed to read log file")
             return
         }

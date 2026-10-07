@@ -673,7 +673,15 @@ public class TxClient {
             }
             return
         }
-        
+
+        guard let sessionId = sessionId else {
+            Logger.log.e(message: "TxClient:: performLogin - No session id available")
+            if declinePush {
+                cleanupPendingCallKitDecline(reason: "missing session id during decline_push login")
+            }
+            return
+        }
+
         // Set the stored config as current config
         self.txConfig = storedConfig
         
@@ -689,7 +697,7 @@ public class TxClient {
                                         pushNotificationProvider: pushProvider,
                                         startFromPush: self.isCallFromPush,
                                         pushEnvironment: storedConfig.pushEnvironment,
-                                        sessionId: self.sessionId!,
+                                        sessionId: sessionId,
                                         declinePush: declinePush,
                                         enableMissedCallNotifications: storedConfig.enableMissedCallNotifications,
                                         pushWhenActive: storedConfig.pushWhenActive)
@@ -714,7 +722,7 @@ public class TxClient {
                                         pushNotificationProvider: pushProvider,
                                         startFromPush: self.isCallFromPush,
                                         pushEnvironment: storedConfig.pushEnvironment,
-                                        sessionId: self.sessionId!,
+                                        sessionId: sessionId,
                                         declinePush: declinePush,
                                         enableMissedCallNotifications: storedConfig.enableMissedCallNotifications,
                                         pushWhenActive: storedConfig.pushWhenActive)
@@ -852,7 +860,10 @@ public class TxClient {
             } else {
                 Logger.log.i(message: "TxClient:: answerFromCallkit - Socket not connected, connecting first")
                 do {
-                    try connectSocketOnly(serverConfiguration: storedServerConfiguration!)
+                    guard let storedServerConfiguration else {
+                        throw NSError(domain: "TxClient", code: -1, userInfo: [NSLocalizedDescriptionKey: "No stored server configuration available for socket connection"])
+                    }
+                    try connectSocketOnly(serverConfiguration: storedServerConfiguration)
                     // Login will happen in onSocketConnected
                 } catch let error {
                     Logger.log.e(message: "TxClient:: answerFromCallkit connect error \(error.localizedDescription)")
@@ -1947,6 +1958,11 @@ extension TxClient : SocketDelegate {
         let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
         let pushProvider = self.txConfig?.pushNotificationConfig?.pushNotificationProvider
 
+        guard let sessionId = self.sessionId else {
+            Logger.log.e(message: "TxClient:: SocketDelegate onSocketConnected() no session id to perform login")
+            return
+        }
+
         //Login into the signaling server after the connection is produced.
         if let token = self.txConfig?.token  {
             Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected() login with Token")
@@ -1954,7 +1970,7 @@ extension TxClient : SocketDelegate {
                                           pushNotificationProvider: pushProvider,
                                           startFromPush: self.isCallFromPush,
                                           pushEnvironment: self.txConfig?.pushEnvironment,
-                                          sessionId: self.sessionId!,
+                                          sessionId: sessionId,
                                           declinePush: false,
                                           enableMissedCallNotifications: self.txConfig?.enableMissedCallNotifications ?? false,
                                           pushWhenActive: self.txConfig?.pushWhenActive ?? false)
@@ -1970,7 +1986,7 @@ extension TxClient : SocketDelegate {
                                           pushNotificationProvider: pushProvider,
                                           startFromPush: self.isCallFromPush,
                                           pushEnvironment: self.txConfig?.pushEnvironment,
-                                          sessionId: self.sessionId!,
+                                          sessionId: sessionId,
                                           declinePush: false,
                                           enableMissedCallNotifications: self.txConfig?.enableMissedCallNotifications ?? false,
                                           pushWhenActive: self.txConfig?.pushWhenActive ?? false)
@@ -2188,7 +2204,10 @@ extension TxClient : SocketDelegate {
                         var customHeaders = [String:String]()
                         if params["dialogParams"] is [String:Any] {
                             do {
-                                let dataDecoded = try JSONDecoder().decode(CustomHeaderData.self, from: message.data(using: .utf8)!)
+                                guard let dataFromMessage = message.data(using: .utf8) else {
+                                    throw NSError(domain: "Call", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to convert dataMessage to Data"])
+                                }
+                                let dataDecoded = try JSONDecoder().decode(CustomHeaderData.self, from: dataFromMessage)
                                 dataDecoded.params.dialogParams.custom_headers.forEach { xHeader in
                                     customHeaders[xHeader.name] = xHeader.value
                                 }
@@ -2244,7 +2263,10 @@ extension TxClient : SocketDelegate {
                     var customHeaders = [String:String]()
                     if params["dialogParams"] is [String:Any] {
                         do {
-                            let dataDecoded = try JSONDecoder().decode(CustomHeaderData.self, from: message.data(using: .utf8)!)
+                            guard let dataFromMessage = message.data(using: .utf8) else {
+                                throw NSError(domain: "Call", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to convert dataMessage to Data"])
+                            }
+                            let dataDecoded = try JSONDecoder().decode(CustomHeaderData.self, from: dataFromMessage)
                             dataDecoded.params.dialogParams.custom_headers.forEach { xHeader in
                                 customHeaders[xHeader.name] = xHeader.value
                             }
