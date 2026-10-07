@@ -206,7 +206,8 @@ class Peer : NSObject, WebRTCEventHandler {
                   isAttach: Bool = false,
                   forceRelayCandidate: Bool = false,
                   useTrickleIce: Bool = false,
-                  isAnswering: Bool = false) {
+                  isAnswering: Bool = false,
+                  configureAudioSessionOnPeerCreation: Bool = true) {
         self.configuredIceServers = iceServers
         self.isAnswering = isAnswering
 
@@ -233,11 +234,21 @@ class Peer : NSObject, WebRTCEventHandler {
         self.useTrickleIce = useTrickleIce
         Logger.log.i(message: "[TRICKLE-ICE] Peer:: Initialized with useTrickleIce = \(useTrickleIce), isAnswering = \(isAnswering)")
         self.createMediaSenders()
-        if (!isAttach) {
+        if Peer.shouldConfigureAudioSession(
+            isAttach: isAttach,
+            configureAudioSessionOnPeerCreation: configureAudioSessionOnPeerCreation
+        ) {
             self.configureAudioSession()
         }
         //listen RTCPeer connection events
         self.connection?.delegate = self
+    }
+
+    internal static func shouldConfigureAudioSession(
+        isAttach: Bool,
+        configureAudioSessionOnPeerCreation: Bool
+    ) -> Bool {
+        !isAttach && configureAudioSessionOnPeerCreation
     }
 
     private func createMediaSenders() {

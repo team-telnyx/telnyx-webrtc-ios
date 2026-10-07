@@ -336,6 +336,9 @@ public class Call {
     /// `call.answer()` API stays unchanged.
     public internal(set) var pushWhenActive: Bool = false
 
+    /// Whether new WebRTC peers should configure the shared audio session.
+    internal var configureAudioSessionOnPeerCreation: Bool = true
+
     /// The PushKit VoIP token captured from `TxConfig(pushDeviceToken:)`. Used
     /// internally to populate `answered_device_token` on `telnyx_rtc.answer`
     /// when `pushWhenActive` is enabled. Never sent when nil or empty.
@@ -447,6 +450,7 @@ public class Call {
          callReportInterval: TimeInterval = 5.0,
          callReportLogLevel: String = "debug",
          callReportMaxLogEntries: Int = 1000,
+         configureAudioSessionOnPeerCreation: Bool = true,
          pushWhenActive: Bool = false,
          pushDeviceToken: String? = nil
     ) {
@@ -493,6 +497,7 @@ public class Call {
         self.callReportInterval = callReportInterval
         self.callReportLogLevel = callReportLogLevel
         self.callReportMaxLogEntries = callReportMaxLogEntries
+        self.configureAudioSessionOnPeerCreation = configureAudioSessionOnPeerCreation
         self.pushWhenActive = pushWhenActive
         self.pushDeviceToken = pushDeviceToken
 
@@ -519,6 +524,7 @@ public class Call {
          callReportInterval: TimeInterval = 5.0,
          callReportLogLevel: String = "debug",
          callReportMaxLogEntries: Int = 1000,
+         configureAudioSessionOnPeerCreation: Bool = true,
          pushWhenActive: Bool = false,
          pushDeviceToken: String? = nil) {
         self.direction = CallDirection.ATTACH
@@ -547,6 +553,7 @@ public class Call {
         self.callReportInterval = callReportInterval
         self.callReportLogLevel = callReportLogLevel
         self.callReportMaxLogEntries = callReportMaxLogEntries
+        self.configureAudioSessionOnPeerCreation = configureAudioSessionOnPeerCreation
         self.pushWhenActive = pushWhenActive
         self.pushDeviceToken = pushDeviceToken
 
@@ -570,6 +577,7 @@ public class Call {
          callReportInterval: TimeInterval = 5.0,
          callReportLogLevel: String = "debug",
          callReportMaxLogEntries: Int = 1000,
+         configureAudioSessionOnPeerCreation: Bool = true,
          pushWhenActive: Bool = false,
          pushDeviceToken: String? = nil) {
         //Session obtained after login with the signaling socket
@@ -596,6 +604,7 @@ public class Call {
         self.callReportInterval = callReportInterval
         self.callReportLogLevel = callReportLogLevel
         self.callReportMaxLogEntries = callReportMaxLogEntries
+        self.configureAudioSessionOnPeerCreation = configureAudioSessionOnPeerCreation
         self.pushWhenActive = pushWhenActive
         self.pushDeviceToken = pushDeviceToken
 
@@ -628,7 +637,13 @@ public class Call {
         // - Start the reporter once the peer connection is created
         self.configureStatsReporter()
         Logger.log.i(message: "[TRICKLE-ICE] Call:: Creating Peer for outbound call with useTrickleIce = \(self.useTrickleIce)")
-        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate, useTrickleIce: self.useTrickleIce, isAnswering: false)
+        self.peer = Peer(
+            iceServers: self.iceServers,
+            forceRelayCandidate: self.forceRelayCandidate,
+            useTrickleIce: self.useTrickleIce,
+            isAnswering: false,
+            configureAudioSessionOnPeerCreation: self.configureAudioSessionOnPeerCreation
+        )
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
@@ -925,7 +940,13 @@ extension Call {
         self.answerCustomHeaders = customHeaders
         self.configureStatsReporter()
         Logger.log.i(message: "[TRICKLE-ICE] Call:: Creating Peer for inbound call answer with useTrickleIce = \(self.useTrickleIce)")
-        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate, useTrickleIce: self.useTrickleIce, isAnswering: true)
+        self.peer = Peer(
+            iceServers: self.iceServers,
+            forceRelayCandidate: self.forceRelayCandidate,
+            useTrickleIce: self.useTrickleIce,
+            isAnswering: true,
+            configureAudioSessionOnPeerCreation: self.configureAudioSessionOnPeerCreation
+        )
         self.enableQualityMetrics = debug
         self.startStatsReporter()
         self.peer?.delegate = self
@@ -1007,7 +1028,8 @@ extension Call {
                          isAttach: true,
                          forceRelayCandidate: self.forceRelayCandidate,
                          useTrickleIce: self.useTrickleIce,
-                         isAnswering: false)
+                         isAnswering: false,
+                         configureAudioSessionOnPeerCreation: self.configureAudioSessionOnPeerCreation)
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket

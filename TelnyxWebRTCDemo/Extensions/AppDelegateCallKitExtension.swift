@@ -463,7 +463,8 @@ extension AppDelegate : CXProviderDelegate {
                                     // Send WebRTC Stats Via Socket
                                     sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket,
                                     // Use Trickle ICE
-                                    useTrickleIce: useTrickleIce)
+                                    useTrickleIce: useTrickleIce,
+                                    configureAudioSessionOnPeerCreation: false)
 
             do {
                 try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)
@@ -501,7 +502,8 @@ extension AppDelegate : CXProviderDelegate {
                                     // Send WebRTC Stats Via Socket
                                     sendWebRTCStatsViaSocket: sendWebRTCStatsViaSocket,
                                     // Use Trickle ICE
-                                    useTrickleIce: useTrickleIce)
+                                    useTrickleIce: useTrickleIce,
+                                    configureAudioSessionOnPeerCreation: false)
 
             do {
                 try telnyxClient?.processVoIPNotification(txConfig: txConfig, serverConfiguration: serverConfig,pushMetaData: pushMetaData)
