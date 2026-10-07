@@ -167,6 +167,18 @@ struct AIAssistantView: View {
                                 .font(.system(size: 12, weight: .regular))
                                 .foregroundColor(Color(hex: "#525252"))
                         }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            TextField("Conversation ID (Optional)", text: $viewModel.conversationIdInput)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .font(.system(size: 16))
+                                .autocapitalization(.none)
+                                .disableAutocorrection(true)
+                            
+                            Text("Enter a Conversation ID to join an existing conversation.")
+                                .font(.system(size: 12, weight: .regular))
+                                .foregroundColor(Color(hex: "#525252"))
+                        }
                     }
                     .padding(.horizontal, 30)
                 }
