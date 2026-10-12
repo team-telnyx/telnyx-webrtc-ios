@@ -14,6 +14,9 @@ private let PROTOCOL_VERSION: String = "2.0"
 class Message {
     internal static let CLIENT_TYPE = "iOS"
     internal static let SDK_VERSION = "4.2.2"
+    internal static let MOBILE_SDK_NAME = "ios"
+    internal static let MOBILE_SDK_NAME_KEY = "mobile_sdk_name"
+    internal static let MOBILE_SDK_VERSION_KEY = "mobile_sdk_version"
     internal static var USER_AGENT: String {
         get {
             return userAgent(enableMissedCallNotifications: false)
@@ -45,6 +48,9 @@ class Message {
     }
     
     init(_ params: [String: Any], method: Method) {
+        var params = params
+        params[Message.MOBILE_SDK_NAME_KEY] = Message.MOBILE_SDK_NAME
+        params[Message.MOBILE_SDK_VERSION_KEY] = Message.SDK_VERSION
         self.method = method
         self.jsonMessage["jsonrpc"] = self.jsonrpc
         self.jsonMessage["id"] = self.id

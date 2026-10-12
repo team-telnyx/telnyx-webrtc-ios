@@ -11,6 +11,23 @@ import XCTest
 
 class VertoMessagesTests: XCTestCase {
 
+    private func assertMobileSDKIdentity(
+        _ message: Message,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        guard let encoded = message.encode(),
+              let data = encoded.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let params = json["params"] as? [String: Any] else {
+            XCTFail("Expected an encoded Verto message with params", file: file, line: line)
+            return
+        }
+
+        XCTAssertEqual(params["mobile_sdk_name"] as? String, "ios", file: file, line: line)
+        XCTAssertEqual(params["mobile_sdk_version"] as? String, Message.SDK_VERSION, file: file, line: line)
+    }
+
     /**
      Test Login Message with token.
      */
@@ -53,6 +70,7 @@ class VertoMessagesTests: XCTestCase {
         XCTAssertNotNil(userAgent, "User-Agent should not be nil")
         XCTAssertTrue(userAgent!.hasPrefix("iOS-"), "User-Agent should start with 'iOS-'")
         XCTAssertEqual(userAgent, Message.USER_AGENT, "User-Agent should match Message.USER_AGENT computed property")
+        assertMobileSDKIdentity(loginWithToken)
     }
 
     /**
@@ -117,6 +135,7 @@ class VertoMessagesTests: XCTestCase {
         XCTAssertNotNil(userAgent, "User-Agent should not be nil")
         XCTAssertTrue(userAgent!.hasPrefix("iOS-"), "User-Agent should start with 'iOS-'")
         XCTAssertEqual(userAgent, Message.USER_AGENT, "User-Agent should match Message.USER_AGENT computed property")
+        assertMobileSDKIdentity(loginWithUserAndPassoword)
     }
 
     /**
@@ -189,6 +208,7 @@ class VertoMessagesTests: XCTestCase {
 
         let decodedMethod = decodedInviteMessage?.method
         XCTAssertEqual(decodedMethod, Method.INVITE)
+        assertMobileSDKIdentity(inviteMessage)
     }
 
     /**
@@ -279,6 +299,43 @@ class VertoMessagesTests: XCTestCase {
 
         let decodedMethod = decodedMessage?.method
         XCTAssertEqual(decodedMethod, Method.ANSWER)
+        assertMobileSDKIdentity(answerMessage)
+    }
+
+    func testAnonymousLoginPreservesStructuredUserAgentAndAddsMobileSDKIdentity() throws {
+        let message = AnonymousLoginMessage(
+            targetId: "assistant-id",
+            sessionId: "session-id"
+        )
+
+        let encoded = try XCTUnwrap(message.encode())
+        let data = try XCTUnwrap(encoded.data(using: .utf8))
+        let json = try XCTUnwrap(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let params = try XCTUnwrap(json["params"] as? [String: Any])
+        let userAgent = try XCTUnwrap(params["User-Agent"] as? [String: Any])
+
+        XCTAssertEqual(userAgent["data"] as? String, Message.USER_AGENT)
+        XCTAssertNotNil(userAgent["sdkVersion"] as? String)
+        assertMobileSDKIdentity(message)
+    }
+
+    func testAttachMessagesAddMobileSDKIdentity() {
+        assertMobileSDKIdentity(AttachCallMessage())
+
+        let callInfo = TxCallInfo(
+            callId: UUID(),
+            callerName: "caller",
+            callerNumber: "1000"
+        )
+        let callOptions = TxCallOptions(destinationNumber: "1001", audio: true)
+        let reattach = ReAttachMessage(
+            sessionId: "session-id",
+            sdp: "sdp",
+            callInfo: callInfo,
+            callOptions: callOptions
+        )
+        XCTAssertEqual(reattach.params?["User-Agent"] as? String, Message.USER_AGENT)
+        assertMobileSDKIdentity(reattach)
     }
 
     /**
