@@ -581,7 +581,7 @@ class VertoMessagesTests: XCTestCase {
         var callerParams: [String: Any] = ["login_token": "t", "sessid": "s"]
         let callerParamsCopy = callerParams
         _ = Message(callerParams, method: .LOGIN)
-        XCTAssertEqual(callerParams, callerParamsCopy,
+        XCTAssertEqual(callerParams as NSDictionary, callerParamsCopy as NSDictionary,
                        "Message.init(_:method:) must not mutate the caller's params dict")
         XCTAssertNil(callerParams[Message.MOBILE_SDK_NAME_KEY],
                      "Caller's params dict must not receive mobile_sdk_name")
@@ -650,7 +650,7 @@ class VertoMessagesTests: XCTestCase {
                                      callInfo: TxCallInfo(callId: UUID(),
                                                           callerName: "c",
                                                           callerNumber: "n"),
-                                     callOptions: TxCallOptions(destinationNumber: "d", attach: true, audio: true))
+                                     callOptions: TxCallOptions(destinationNumber: "d", audio: true, attach: true))
         XCTAssertEqual(attach.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "ios")
         XCTAssertEqual(attach.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
         XCTAssertEqual(attach.params?["User-Agent"] as? String, Message.USER_AGENT)
