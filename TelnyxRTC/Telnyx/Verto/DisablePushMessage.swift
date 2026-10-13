@@ -48,13 +48,11 @@ class DisablePushMessage : Message {
         }
         
         params["User-Agent"] = userVariables
-        // Independent mobile-SDK identity (VSDK-768 / VSDK-764 cross-SDK
-        // telemetry spec). Added as top-level params so backend telemetry can
-        // key off `mobile_sdk_name` + `mobile_sdk_version` independently of
-        // the `User-Agent` push-variable payload above.
-        for (key, value) in Message.mobileSdkIdentity() {
-            params[key] = value
-        }
+        // `mobile_sdk_name` + `mobile_sdk_version` are added centrally in
+        // `Message.init(_:method:)` (VSDK-768 / VSDK-764). The `User-Agent`
+        // value above is a push-variables dict (token / provider / env), not
+        // a real UA string; identity is intentionally a separate top-level
+        // pair so backend telemetry can key off it independently.
         super.init(params, method: .DISABLE_PUSH)
     }
     
@@ -89,13 +87,11 @@ class DisablePushMessage : Message {
         }
                 
         params["User-Agent"] = userVariables
-        // Independent mobile-SDK identity (VSDK-768 / VSDK-764 cross-SDK
-        // telemetry spec). Added as top-level params so backend telemetry can
-        // key off `mobile_sdk_name` + `mobile_sdk_version` independently of
-        // the `User-Agent` push-variable payload above.
-        for (key, value) in Message.mobileSdkIdentity() {
-            params[key] = value
-        }
+        // `mobile_sdk_name` + `mobile_sdk_version` are added centrally in
+        // `Message.init(_:method:)` (VSDK-768 / VSDK-764). The `User-Agent`
+        // value above is a push-variables dict (token / provider / env), not
+        // a real UA string; identity is intentionally a separate top-level
+        // pair so backend telemetry can key off it independently.
         super.init(params, method: .DISABLE_PUSH)
     }
     

@@ -16,8 +16,14 @@ class Message {
     /// covered signaling message. Mirrors the cross-SDK "Commons Lib Usage
     /// Telemetry" spec (see VSDK-764): backend telemetry keys off
     /// `mobile_sdk_name` + `mobile_sdk_version`, independent of the legacy
-    /// `User-Agent` string.
+    /// `User-Agent` string. See VSDK-768 for the iOS-SDK side of this work.
     internal static let MOBILE_SDK_NAME = "ios"
+
+    /// JSON-RPC parameter key for the mobile SDK library name.
+    internal static let MOBILE_SDK_NAME_KEY = "mobile_sdk_name"
+
+    /// JSON-RPC parameter key for the mobile SDK version.
+    internal static let MOBILE_SDK_VERSION_KEY = "mobile_sdk_version"
 
     internal static let CLIENT_TYPE = "iOS"
     internal static let SDK_VERSION = "4.2.2"
@@ -40,11 +46,11 @@ class Message {
     /// `mobile_sdk_version`) that every covered signaling message must
     /// serialize. Centralized so the values stay in lock-step with
     /// `MOBILE_SDK_NAME` / `SDK_VERSION` (single source of truth) and
-    /// `Message.USER_AGENT`.
+    /// `Message.USER_AGENT`. VSDK-768 / VSDK-764.
     internal static func mobileSdkIdentity() -> [String: String] {
         return [
-            "mobile_sdk_name": MOBILE_SDK_NAME,
-            "mobile_sdk_version": SDK_VERSION,
+            MOBILE_SDK_NAME_KEY: MOBILE_SDK_NAME,
+            MOBILE_SDK_VERSION_KEY: SDK_VERSION,
         ]
     }
 
@@ -62,8 +68,24 @@ class Message {
         self.jsonMessage["jsonrpc"] = self.jsonrpc
         self.jsonMessage["id"] = self.id
     }
-    
+
     init(_ params: [String: Any], method: Method) {
+        // Independent mobile-SDK identity (VSDK-768 / VSDK-764 cross-SDK
+        // telemetry spec). Wired centrally in the base class so every
+        // covered signaling message subclass — login, invite, answer,
+        // reattach, anonymous-login, disable-push, attach-call — emits
+        // `mobile_sdk_name` + `mobile_sdk_version` as top-level params
+        // without each subclass having to remember to wire it.
+        //
+        // The caller's `params` dict is intentionally NOT mutated; only
+        // the local copy (and the stored `self.params` / `jsonMessage`)
+        // gets the identity keys. This keeps the per-message init signatures
+        // and observed behavior unchanged while guaranteeing coverage.
+        var params = params
+        for (key, value) in Message.mobileSdkIdentity() {
+            params[key] = value
+        }
+
         self.method = method
         self.jsonMessage["jsonrpc"] = self.jsonrpc
         self.jsonMessage["id"] = self.id
@@ -73,7 +95,7 @@ class Message {
         self.method = method
 
     }
-    
+
     func encode() -> String? {
         guard let jsonData = try? JSONSerialization.data(withJSONObject: jsonMessage, options: []),
               let jsonString = String(data: jsonData, encoding: .utf8) else {
@@ -83,8 +105,8 @@ class Message {
         Logger.log.i(message: "Message:: encode() " + jsonString)
         return jsonString
     }
-    
-    
+
+
     func decode(message: String) -> Message? {
         guard let data = message.data(using: .utf8) else { return nil }
         guard let jsonMessage =  try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]  else {
@@ -101,7 +123,7 @@ class Message {
         self.jsonMessage = jsonMessage
 
         Logger.log.i(message: "Message:: decode() \(self.jsonMessage)")
-        
+
         return self
     }
 }
