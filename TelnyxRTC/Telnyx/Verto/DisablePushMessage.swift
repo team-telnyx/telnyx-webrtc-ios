@@ -48,6 +48,13 @@ class DisablePushMessage : Message {
         }
         
         params["User-Agent"] = userVariables
+        // Independent mobile-SDK identity (VSDK-768 / VSDK-764 cross-SDK
+        // telemetry spec). Added as top-level params so backend telemetry can
+        // key off `mobile_sdk_name` + `mobile_sdk_version` independently of
+        // the `User-Agent` push-variable payload above.
+        for (key, value) in Message.mobileSdkIdentity() {
+            params[key] = value
+        }
         super.init(params, method: .DISABLE_PUSH)
     }
     
@@ -82,6 +89,13 @@ class DisablePushMessage : Message {
         }
                 
         params["User-Agent"] = userVariables
+        // Independent mobile-SDK identity (VSDK-768 / VSDK-764 cross-SDK
+        // telemetry spec). Added as top-level params so backend telemetry can
+        // key off `mobile_sdk_name` + `mobile_sdk_version` independently of
+        // the `User-Agent` push-variable payload above.
+        for (key, value) in Message.mobileSdkIdentity() {
+            params[key] = value
+        }
         super.init(params, method: .DISABLE_PUSH)
     }
     

@@ -38,6 +38,14 @@ class AnswerMessage : Message {
             params["trickle"] = true
         }
 
+        // Independent mobile-SDK identity (VSDK-768 / VSDK-764 cross-SDK
+        // telemetry spec). Kept separate from `User-Agent` so backend
+        // telemetry can key off `mobile_sdk_name` + `mobile_sdk_version`
+        // without depending on the legacy `User-Agent` string format.
+        for (key, value) in Message.mobileSdkIdentity() {
+            params[key] = value
+        }
+
         // For push-when-active multi-device flows the backend needs to know which
         // device answered so it can exclude that device from the answered-elsewhere
         // / picked-off notification sent to the remaining devices. Only include the
@@ -77,6 +85,13 @@ class ReAttachMessage : Message {
             dialogParams["custom_headers"] = appendCustomHeaders(customHeaders: customHeaders)
         }
         params["dialogParams"] = dialogParams
+        // Independent mobile-SDK identity (VSDK-768 / VSDK-764 cross-SDK
+        // telemetry spec). Kept separate from `User-Agent` so backend
+        // telemetry can key off `mobile_sdk_name` + `mobile_sdk_version`
+        // without depending on the legacy `User-Agent` string format.
+        for (key, value) in Message.mobileSdkIdentity() {
+            params[key] = value
+        }
         super.init(params, method: .ATTACH)
     }
 }

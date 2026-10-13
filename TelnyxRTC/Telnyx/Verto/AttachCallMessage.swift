@@ -34,8 +34,15 @@ class AttachCallMessage : Message {
             #endif
         }
 
-           params["loginParams"] = [String: String]()
-           params["userVariables"] = userVariables
-           super.init(params, method: .ATTACH_CALL)
-       }
+        params["loginParams"] = [String: String]()
+        params["userVariables"] = userVariables
+        // Independent mobile-SDK identity (VSDK-768 / VSDK-764 cross-SDK
+        // telemetry spec). Added as top-level params so backend telemetry can
+        // key off `mobile_sdk_name` + `mobile_sdk_version` regardless of
+        // attach-call flow specifics.
+        for (key, value) in Message.mobileSdkIdentity() {
+            params[key] = value
+        }
+        super.init(params, method: .ATTACH_CALL)
+    }
 }

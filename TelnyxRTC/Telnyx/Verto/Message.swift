@@ -12,6 +12,13 @@ import Foundation
 private let PROTOCOL_VERSION: String = "2.0"
 
 class Message {
+    /// Single source of truth for the mobile SDK library name emitted on every
+    /// covered signaling message. Mirrors the cross-SDK "Commons Lib Usage
+    /// Telemetry" spec (see VSDK-764): backend telemetry keys off
+    /// `mobile_sdk_name` + `mobile_sdk_version`, independent of the legacy
+    /// `User-Agent` string.
+    internal static let MOBILE_SDK_NAME = "ios"
+
     internal static let CLIENT_TYPE = "iOS"
     internal static let SDK_VERSION = "4.2.2"
     internal static var USER_AGENT: String {
@@ -27,6 +34,18 @@ class Message {
             return type + "-mpn-" + version
         }
         return type + "-" + version
+    }
+
+    /// Returns the canonical mobile-SDK identity pair (`mobile_sdk_name` +
+    /// `mobile_sdk_version`) that every covered signaling message must
+    /// serialize. Centralized so the values stay in lock-step with
+    /// `MOBILE_SDK_NAME` / `SDK_VERSION` (single source of truth) and
+    /// `Message.USER_AGENT`.
+    internal static func mobileSdkIdentity() -> [String: String] {
+        return [
+            "mobile_sdk_name": MOBILE_SDK_NAME,
+            "mobile_sdk_version": SDK_VERSION,
+        ]
     }
 
     internal var jsonMessage: [String: Any] = [String: Any]()
