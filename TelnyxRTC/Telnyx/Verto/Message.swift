@@ -12,8 +12,8 @@ import Foundation
 private let PROTOCOL_VERSION: String = "2.0"
 
 class Message {
-    /// Single source of truth for the mobile SDK library name emitted on every
-    /// covered signaling message. Mirrors the cross-SDK "Commons Lib Usage
+    /// Single source of truth for the mobile SDK library name emitted on
+    /// identity-bearing signaling messages. Mirrors the cross-SDK "Commons Lib Usage
     /// Telemetry" spec (see VSDK-764): backend telemetry keys off
     /// `mobile_sdk_name` + `mobile_sdk_version`, independent of the legacy
     /// `User-Agent` string. See VSDK-768 for the iOS-SDK side of this work.
@@ -54,6 +54,19 @@ class Message {
         ]
     }
 
+    /// Methods whose backend contracts carry the public mobile SDK identity.
+    /// Keep this list explicit so unrelated protocol messages (for example
+    /// candidates, BYE, INFO, gateway state, and AI conversation messages)
+    /// are not changed implicitly by the shared base initializer.
+    private static func carriesMobileSdkIdentity(_ method: Method) -> Bool {
+        switch method {
+        case .LOGIN, .ANONYMOUS_LOGIN, .INVITE, .ANSWER, .ATTACH, .ATTACH_CALL, .DISABLE_PUSH:
+            return true
+        default:
+            return false
+        }
+    }
+
     internal var jsonMessage: [String: Any] = [String: Any]()
 
     let jsonrpc = PROTOCOL_VERSION
@@ -71,9 +84,10 @@ class Message {
 
     init(_ params: [String: Any], method: Method) {
         // Independent mobile-SDK identity (VSDK-768 / VSDK-764 cross-SDK
-        // telemetry spec). Wired centrally in the base class so every
-        // covered signaling message subclass — login, invite, answer,
-        // reattach, anonymous-login, disable-push, attach-call — emits
+        // telemetry spec). The explicit method allowlist keeps the shared
+        // initializer from changing unrelated Verto message contracts while
+        // ensuring login, invite, answer, reattach, anonymous-login,
+        // disable-push, and attach-call emit
         // `mobile_sdk_name` + `mobile_sdk_version` as top-level params
         // without each subclass having to remember to wire it.
         //
@@ -82,8 +96,10 @@ class Message {
         // gets the identity keys. This keeps the per-message init signatures
         // and observed behavior unchanged while guaranteeing coverage.
         var params = params
-        for (key, value) in Message.mobileSdkIdentity() {
-            params[key] = value
+        if Message.carriesMobileSdkIdentity(method) {
+            for (key, value) in Message.mobileSdkIdentity() {
+                params[key] = value
+            }
         }
 
         self.method = method

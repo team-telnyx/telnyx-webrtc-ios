@@ -561,7 +561,7 @@ class VertoMessagesTests: XCTestCase {
         XCTAssertEqual(identity[Message.MOBILE_SDK_VERSION_KEY], Message.SDK_VERSION)
     }
 
-    func testMessageBaseInitAddsMobileSdkIdentityCentrally() {
+    func testMessageBaseInitAddsMobileSdkIdentityForCoveredMethod() {
         // The base `Message.init(_:method:)` is the single source of truth
         // for the mobile-SDK identity pair. A bare Message constructed via
         // the params init must emit the identity without any subclass
@@ -571,6 +571,28 @@ class VertoMessagesTests: XCTestCase {
         XCTAssertEqual(message.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
         // Caller-provided keys must still be preserved alongside identity.
         XCTAssertEqual(message.params?["sentinel"] as? String, "value")
+    }
+
+    func testMessageBaseInitDoesNotAddMobileSdkIdentityToUnrelatedMethods() {
+        let unrelatedMethods: [TelnyxRTC.Method] = [
+            .BYE,
+            .CANDIDATE,
+            .END_OF_CANDIDATES,
+            .MODIFY,
+            .RINGING_ACK,
+            .GATEWAY_STATE,
+            .INFO,
+            .AI_CONVERSATION,
+        ]
+
+        for method in unrelatedMethods {
+            let message = Message(["sentinel": "value"], method: method)
+            XCTAssertNil(message.params?[Message.MOBILE_SDK_NAME_KEY],
+                         "\(method.rawValue) must not receive mobile_sdk_name")
+            XCTAssertNil(message.params?[Message.MOBILE_SDK_VERSION_KEY],
+                         "\(method.rawValue) must not receive mobile_sdk_version")
+            XCTAssertEqual(message.params?["sentinel"] as? String, "value")
+        }
     }
 
     func testMessageBaseInitDoesNotMutateCallersParamsDict() {
