@@ -80,6 +80,13 @@ class Peer : NSObject, WebRTCEventHandler {
     weak var delegate: PeerDelegate?
     var connection : RTCPeerConnection?
 
+    /// Per-call call-establishment timing recorder, set by `Call` after Peer
+    /// construction. When non-nil, Peer records its own lifecycle milestones
+    /// (mediaDevicesAcquired, peerSetupComplete, firstIceCandidate) directly
+    /// here. Always non-nil on production paths that go through `Call`;
+    /// stays nil in standalone Peer tests that don't involve a Call.
+    weak var timingRecorder: TelnyxCallTimingRecorder?
+
     /// Configured ICE servers for this peer connection
     /// Used to validate gathered ICE candidates against configured servers
     private var configuredIceServers: [RTCIceServer]
@@ -233,11 +240,20 @@ class Peer : NSObject, WebRTCEventHandler {
         self.useTrickleIce = useTrickleIce
         Logger.log.i(message: "[TRICKLE-ICE] Peer:: Initialized with useTrickleIce = \(useTrickleIce), isAnswering = \(isAnswering)")
         self.createMediaSenders()
+        // mediaDevicesAcquired milestone — local audio track was created
+        // successfully. Recorded here so subsequent SDP/ICE milestones can
+        // be compared against the device-acquisition baseline.
+        self.timingRecorder?.record(.mediaDevicesAcquired)
         if (!isAttach) {
             self.configureAudioSession()
         }
         //listen RTCPeer connection events
         self.connection?.delegate = self
+        // peerSetupComplete — Peer is constructed, the RTCPeerConnection is
+        // open, the local media track is wired, and the audio session is
+        // configured. Subsequent SDP/ICE/track events all happen on top of
+        // this ready peer connection.
+        self.timingRecorder?.record(.peerSetupComplete)
     }
 
     private func createMediaSenders() {
@@ -415,6 +431,13 @@ class Peer : NSObject, WebRTCEventHandler {
                 return
             }
 
+            // Per-call call-establishment timeline: the local SDP offer was
+            // successfully created. Recorded once-per-call by the recorder
+            // so reconnect / ICE restart cannot overwrite the original
+            // establishment timeline. Maps to canonical milestone #6
+            // (sdp_offer_answer_generated) in the shared schema.
+            self.timingRecorder?.record(.sdpOfferAnswerGenerated)
+
             //Once we set the local description, the ICE negotiation starts and at least one ICE candidate should be created.
             //Check RTCPeerConnectionDelegate :: didGenerate candidate
             self.connection?.setLocalDescription(sdp, completionHandler: { (error) in
@@ -429,6 +452,12 @@ class Peer : NSObject, WebRTCEventHandler {
                         let cleanedSDPString = self.removeCandidatesFromSDP(localSDP.sdp)
                         let modifiedSDPString = SdpUtils.addTrickleIceCapability(cleanedSDPString, useTrickleIce: self.useTrickleIce)
                         let cleanedSDP = RTCSessionDescription(type: localSDP.type, sdp: modifiedSDPString)
+                        // Per-call call-establishment timeline: the local
+                        // SDP offer is about to be transmitted to the peer.
+                        // Canonical milestone #9 (sdp_sent). The recorder
+                        // is nil-safe and once-per-milestone, so this is a
+                        // no-op on reconnect / ICE restart paths.
+                        self.timingRecorder?.record(.sdpSent)
                         self.delegate?.onNegotiationEnded(sdp: cleanedSDP)
                     } else {
                         self.delegate?.onNegotiationEnded(sdp: nil)
@@ -483,6 +512,15 @@ class Peer : NSObject, WebRTCEventHandler {
                 return
             }
 
+            // Per-call call-establishment timeline: the local SDP answer was
+            // successfully created. Recorded once-per-call by the recorder
+            // so reconnect / ICE restart cannot overwrite the original
+            // establishment timeline. Maps to canonical milestone #6
+            // (sdp_offer_answer_generated) — same milestone as the offer
+            // path; the recorder's once-per-milestone guard ensures the
+            // timeline is preserved across direction changes.
+            self.timingRecorder?.record(.sdpOfferAnswerGenerated)
+
             //Once we set the local description, the ICE negotiation starts and at least one ICE candidate should be created.
             //Check RTCPeerConnectionDelegate :: didGenerate candidate
             self.connection?.setLocalDescription(sdp, completionHandler: { (error) in
@@ -497,6 +535,12 @@ class Peer : NSObject, WebRTCEventHandler {
                         let cleanedSDPString = self.removeCandidatesFromSDP(localSDP.sdp)
                         let modifiedSDPString = SdpUtils.addTrickleIceCapability(cleanedSDPString, useTrickleIce: self.useTrickleIce)
                         let cleanedSDP = RTCSessionDescription(type: localSDP.type, sdp: modifiedSDPString)
+                        // Per-call call-establishment timeline: the local
+                        // SDP answer is about to be transmitted to the peer.
+                        // Canonical milestone #9 (sdp_sent). The recorder's
+                        // once-per-milestone guard ensures the offer path's
+                        // earlier sdp_sent is preserved across direction.
+                        self.timingRecorder?.record(.sdpSent)
                         self.delegate?.onNegotiationEnded(sdp: cleanedSDP)
                     } else {
                         self.delegate?.onNegotiationEnded(sdp: nil)
@@ -581,6 +625,10 @@ class Peer : NSObject, WebRTCEventHandler {
                 } else {
                     // At this moment we should have at least one ICE candidate.
                     // Lets stop the ICE negotiation process and call the apropiate delegate
+                    // Per-call call-establishment timeline: in traditional
+                    // (non-Trickle) mode the SDP is finally transmitted once ICE
+                    // gathering completes. Canonical milestone #9 (sdp_sent).
+                    self.timingRecorder?.record(.sdpSent)
                     self.delegate?.onNegotiationEnded(sdp: peerConnection.localDescription)
                 }
                 Logger.log.i(message: "Peer:: ICE negotiation ended.")
@@ -898,6 +946,26 @@ extension Peer : RTCPeerConnectionDelegate {
         onSignalingStateChange?(stateChanged, peerConnection)
         onSignalingStateChangeForLog?(stateChanged)
         Logger.log.i(message: "Peer:: connection didChange state: [\(state)]")
+
+        // Map signaling state transitions onto the per-call establishment
+        // timeline so the portal stats UI can render SDP exchange latency.
+        // Recording is once-per-milestone so reconnect / ICE restart does
+        // not overwrite the original establishment timeline. The mappings
+        // follow the canonical 19-step schema:
+        //   - haveLocalOffer  → localDescriptionApplied (#7)
+        //   - haveRemoteOffer → remoteDescriptionApplied (#16)
+        // `stable` is intentionally not recorded — there is no canonical
+        // milestone for "SDP exchange complete" and recording it would
+        // double-count milestones that already fired on the inbound /
+        // outbound path.
+        switch stateChanged {
+        case .haveLocalOffer:
+            self.timingRecorder?.record(.localDescriptionApplied)
+        case .haveRemoteOffer:
+            self.timingRecorder?.record(.remoteDescriptionApplied)
+        default:
+            break
+        }
     }
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didAdd stream: RTCMediaStream) {
@@ -1019,9 +1087,15 @@ extension Peer : RTCPeerConnectionDelegate {
 
     func peerConnection(_ peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
         Logger.log.i(message: "[TRICKLE-ICE] Peer:: ICE candidate generated - sdpMid: \(candidate.sdpMid ?? "nil"), sdpMLineIndex: \(candidate.sdpMLineIndex)")
-        
+
         // Mark first ICE candidate for benchmarking
         CallTimingBenchmark.markFirstCandidate()
+
+        // Per-call call-establishment timeline: record the very first ICE
+        // candidate gathered. Subsequent candidates for the same call are
+        // ignored by the recorder (once-per-milestone), so reconnect /
+        // ICE restart cannot overwrite the original establishment timeline.
+        self.timingRecorder?.record(.firstIceCandidate)
 
         // Record every gathered candidate for the call report, including
         // candidates that legacy non-trickle handling later declines to send.

@@ -33,9 +33,16 @@ public struct CallReportConfig {
 /// - Uses in-memory buffer with size limits for long calls
 /// - Posts aggregated stats to voice-sdk-proxy on call end
 public class TelnyxCallReportCollector {
-    
+
     // MARK: - Properties
-    
+
+    /// Per-call call-establishment timing recorder. Created on `start()` so
+    /// timing data is captured regardless of debug-mode configuration (per
+    /// the issue "Call reporting with normal configuration includes timing
+    /// data regardless of debug mode"). Accessed by `Call` and `Peer` via
+    /// the `timingRecorder` accessor to record milestones.
+    public private(set) var timingRecorder: TelnyxCallTimingRecorder?
+
     /// Shared ISO8601 formatter with fractional seconds for consistent timestamp formatting
     private static let iso8601Formatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
@@ -117,16 +124,34 @@ public class TelnyxCallReportCollector {
     }
     
     // MARK: - Public Methods
-    
+
+    /// Install the per-call call-establishment timing recorder. The collector
+    /// owns the recorder for the lifetime of the call and snapshots its
+    /// breakdown into every `postReport` / `flush` payload. Calling this
+    /// method twice replaces the previous recorder (the prior recorder's
+    /// timeline is dropped, matching the issue's "Reconnect ... must not
+    /// overwrite the original establishment timeline" rule — installs are
+    /// only expected at call init time).
+    /// - Parameters:
+    ///   - callId: Stable identifier for log disambiguation
+    ///   - direction: Outbound / inbound / attach; recorded alongside the
+    ///     timeline so the stats UI can disambiguate
+    public func installTimingRecorder(callId: String?, direction: TelnyxCallTimingRecorder.Direction) {
+        let recorder = TelnyxCallTimingRecorder(callId: callId)
+        recorder.start(direction: direction)
+        self.timingRecorder = recorder
+        Logger.log.i(message: "TelnyxCallReportCollector: Installed timing recorder (callId: \(callId ?? "nil"), direction: \(direction.rawValue))")
+    }
+
     /// Start collecting stats from the peer connection
     /// - Parameter peerConnection: The RTCPeerConnection to monitor
     public func start(peerConnection: RTCPeerConnection) {
         guard config.enabled else { return }
-        
+
         self.peerConnection = peerConnection
         self.intervalStartTime = Date()
         self.lastIntermediateFlushTime = self.intervalStartTime
-        
+
         Logger.log.i(message: "TelnyxCallReportCollector: Starting stats collection (interval: \(config.interval)s, logCollectorActive: \(logCollector?.isActive() ?? false))")
 
         logCollector?.addEntry(
@@ -184,8 +209,13 @@ public class TelnyxCallReportCollector {
     ///   - host: WebSocket host URL (will be converted to HTTP)
     ///   - voiceSdkId: Optional voice SDK ID
     public func postReport(summary: CallReportSummary, callReportId: String, host: String, voiceSdkId: String? = nil) {
-        guard config.enabled && !statsBuffer.isEmpty else {
-            Logger.log.i(message: "TelnyxCallReportCollector: Skipping report post (enabled: \(config.enabled), stats: \(statsBuffer.count))")
+        guard config.enabled else {
+            Logger.log.i(message: "TelnyxCallReportCollector: Skipping report post (enabled: \(config.enabled))")
+            return
+        }
+        let timing = timingRecorder?.breakdown()
+        guard !statsBuffer.isEmpty || timing != nil else {
+            Logger.log.i(message: "TelnyxCallReportCollector: Skipping report post (no stats, no timing)")
             return
         }
 
@@ -200,22 +230,34 @@ public class TelnyxCallReportCollector {
             summary: summary,
             stats: statsBuffer,
             logs: logs,
-            segment: segment
+            segment: segment,
+            timing: timing
         )
 
-        Logger.log.i(message: "TelnyxCallReportCollector: Posting final report (intervals: \(statsBuffer.count), logEntries: \(logs?.count ?? 0), segment: \(segment.map { "\($0)" } ?? "nil"), callId: \(summary.callId))")
+        Logger.log.i(message: "TelnyxCallReportCollector: Posting final report (intervals: \(statsBuffer.count), logEntries: \(logs?.count ?? 0), segment: \(segment.map { "\($0)" } ?? "nil"), timing: \(timing != nil), callId: \(summary.callId))")
 
         sendPayload(payload, callReportId: callReportId, host: host, voiceSdkId: voiceSdkId)
     }
 
     /// Build an intermediate segment payload by snapshotting and clearing the current buffers.
     /// - Parameter summary: Call summary (typically without `endTimestamp` since the call is still active)
-    /// - Returns: A `CallReportPayload` with a `segment` index, or `nil` if already flushing or buffer is empty
+    /// - Returns: A `CallReportPayload` with a `segment` index, or `nil` if already flushing and neither stats nor timing are present
     func flush(summary: CallReportSummary) -> CallReportPayload? {
-        guard !isFlushing && !statsBuffer.isEmpty else { return nil }
+        guard !isFlushing else { return nil }
 
         isFlushing = true
         defer { isFlushing = false }
+
+        // Always include the timing breakdown on intermediate flushes so the
+        // first segment carries the establishment timeline. Subsequent
+        // segments share the same breakdown (the establishment phase is
+        // already complete); the schema permits repetition.
+        let timing = timingRecorder?.breakdown()
+
+        // Skip the flush only if neither stats nor timing are available —
+        // a timing-only flush is valid because the first segment may fire
+        // before any stats interval has elapsed.
+        guard !statsBuffer.isEmpty || timing != nil else { return nil }
 
         let currentSegment = segmentIndex
         segmentIndex += 1
@@ -228,13 +270,14 @@ public class TelnyxCallReportCollector {
         // Drain logs (destructive — prevents re-sending)
         let logs = logCollector?.drain()
 
-        Logger.log.i(message: "TelnyxCallReportCollector: Flushing segment \(currentSegment) (stats: \(stats.count), logs: \(logs?.count ?? 0))")
+        Logger.log.i(message: "TelnyxCallReportCollector: Flushing segment \(currentSegment) (stats: \(stats.count), logs: \(logs?.count ?? 0), timing: \(timing != nil))")
 
         return CallReportPayload(
             summary: summary,
             stats: stats,
             logs: logs,
-            segment: currentSegment
+            segment: currentSegment,
+            timing: timing
         )
     }
 
