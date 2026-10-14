@@ -923,10 +923,15 @@ extension Call {
             return
         }
         self.answerCustomHeaders = customHeaders
+        // [VSUP-269] Establish the quality-metrics/debug state before `configureStatsReporter()`
+        // so the inbound stats reporter is created when `answer(debug: true)` is requested.
+        // Previously these assignments ran *after* `configureStatsReporter()`, leaving
+        // `statsReporter` nil and `onCallQualityChange` never firing for inbound calls.
+        self.debug = debug
+        self.enableQualityMetrics = debug
         self.configureStatsReporter()
         Logger.log.i(message: "[TRICKLE-ICE] Call:: Creating Peer for inbound call answer with useTrickleIce = \(self.useTrickleIce)")
         self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate, useTrickleIce: self.useTrickleIce, isAnswering: true)
-        self.enableQualityMetrics = debug
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
