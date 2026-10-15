@@ -525,7 +525,7 @@ class VertoMessagesTests: XCTestCase {
     // The following tests pin the VSDK-768 / VSDK-764 cross-SDK "Commons Lib
     // Usage Telemetry" contract:
     //
-    //   * Every covered signaling message emits `mobile_sdk_name = "ios"`
+    //   * Every covered signaling message emits `mobile_sdk_name = "webrtc-ios"`
     //     and `mobile_sdk_version = Message.SDK_VERSION` as independent
     //     top-level params, wired centrally in `Message.init(_:method:)`.
     //   * The legacy `User-Agent` payload is byte-for-byte compatible with
@@ -540,13 +540,13 @@ class VertoMessagesTests: XCTestCase {
 
     func testMobileSdkIdentityExposesCanonicalPair() {
         let identity = Message.mobileSdkIdentity()
-        XCTAssertEqual(identity[Message.MOBILE_SDK_NAME_KEY], "ios",
+        XCTAssertEqual(identity[Message.MOBILE_SDK_NAME_KEY], "webrtc-ios",
                        "mobile_sdk_name must be the canonical iOS SDK identifier")
         XCTAssertEqual(identity[Message.MOBILE_SDK_VERSION_KEY], Message.SDK_VERSION,
                        "mobile_sdk_version must resolve to Message.SDK_VERSION")
         XCTAssertFalse(Message.SDK_VERSION.isEmpty,
                        "Message.SDK_VERSION must not be empty")
-        XCTAssertEqual(Message.MOBILE_SDK_NAME, "ios",
+        XCTAssertEqual(Message.MOBILE_SDK_NAME, "webrtc-ios",
                        "MOBILE_SDK_NAME constant must equal \"ios\"")
     }
 
@@ -567,7 +567,7 @@ class VertoMessagesTests: XCTestCase {
         // the params init must emit the identity without any subclass
         // involvement — this is the central-wiring contract.
         let message = Message(["sentinel": "value"], method: .LOGIN)
-        XCTAssertEqual(message.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "ios")
+        XCTAssertEqual(message.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
         XCTAssertEqual(message.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
         // Caller-provided keys must still be preserved alongside identity.
         XCTAssertEqual(message.params?["sentinel"] as? String, "value")
@@ -613,7 +613,7 @@ class VertoMessagesTests: XCTestCase {
 
     func testLoginMessageCredentialEmitsMobileSdkIdentity() {
         let login = LoginMessage(user: "u", password: "p", sessionId: "s")
-        XCTAssertEqual(login.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "ios")
+        XCTAssertEqual(login.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
         XCTAssertEqual(login.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
         // Legacy User-Agent is byte-for-byte preserved.
         XCTAssertEqual(login.params?["User-Agent"] as? String,
@@ -622,7 +622,7 @@ class VertoMessagesTests: XCTestCase {
 
     func testLoginMessageTokenEmitsMobileSdkIdentity() {
         let login = LoginMessage(token: "t", sessionId: "s")
-        XCTAssertEqual(login.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "ios")
+        XCTAssertEqual(login.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
         XCTAssertEqual(login.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
         XCTAssertEqual(login.params?["User-Agent"] as? String,
                        Message.userAgent(enableMissedCallNotifications: false))
@@ -638,7 +638,7 @@ class VertoMessagesTests: XCTestCase {
                                  enableMissedCallNotifications: true)
         XCTAssertEqual(login.params?["User-Agent"] as? String,
                        Message.userAgent(enableMissedCallNotifications: true))
-        XCTAssertEqual(login.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "ios")
+        XCTAssertEqual(login.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
         XCTAssertEqual(login.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
     }
 
@@ -649,7 +649,7 @@ class VertoMessagesTests: XCTestCase {
                                                         callerName: "c",
                                                         callerNumber: "n"),
                                    callOptions: TxCallOptions(destinationNumber: "d", audio: true))
-        XCTAssertEqual(invite.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "ios")
+        XCTAssertEqual(invite.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
         XCTAssertEqual(invite.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
         XCTAssertEqual(invite.params?["User-Agent"] as? String, Message.USER_AGENT)
     }
@@ -661,7 +661,7 @@ class VertoMessagesTests: XCTestCase {
                                                         callerName: "c",
                                                         callerNumber: "n"),
                                    callOptions: TxCallOptions(destinationNumber: "d", audio: true))
-        XCTAssertEqual(answer.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "ios")
+        XCTAssertEqual(answer.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
         XCTAssertEqual(answer.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
         XCTAssertEqual(answer.params?["User-Agent"] as? String, Message.USER_AGENT)
     }
@@ -673,14 +673,14 @@ class VertoMessagesTests: XCTestCase {
                                                           callerName: "c",
                                                           callerNumber: "n"),
                                      callOptions: TxCallOptions(destinationNumber: "d", audio: true, attach: true))
-        XCTAssertEqual(attach.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "ios")
+        XCTAssertEqual(attach.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
         XCTAssertEqual(attach.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
         XCTAssertEqual(attach.params?["User-Agent"] as? String, Message.USER_AGENT)
     }
 
     func testAnonymousLoginMessageEmitsMobileSdkIdentityAndPreservesObjectShapedUserAgent() {
         let anonymous = AnonymousLoginMessage(targetId: "tid", sessionId: "s")
-        XCTAssertEqual(anonymous.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "ios")
+        XCTAssertEqual(anonymous.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
         XCTAssertEqual(anonymous.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
 
         // Anonymous login must keep its existing object-shaped User-Agent
@@ -695,7 +695,7 @@ class VertoMessagesTests: XCTestCase {
 
     func testDisablePushMessageEmitsMobileSdkIdentity() {
         let disable = DisablePushMessage(user: "u")
-        XCTAssertEqual(disable.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "ios")
+        XCTAssertEqual(disable.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
         XCTAssertEqual(disable.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
         // The DisablePush `User-Agent` field is the push-variable dict
         // (backend convention quirk). Adding mobile_sdk_* must not
@@ -705,13 +705,13 @@ class VertoMessagesTests: XCTestCase {
 
     func testDisablePushMessageTokenLoginEmitsMobileSdkIdentity() {
         let disable = DisablePushMessage(loginToken: "t")
-        XCTAssertEqual(disable.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "ios")
+        XCTAssertEqual(disable.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
         XCTAssertEqual(disable.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
     }
 
     func testAttachCallMessageEmitsMobileSdkIdentity() {
         let attach = AttachCallMessage()
-        XCTAssertEqual(attach.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "ios")
+        XCTAssertEqual(attach.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
         XCTAssertEqual(attach.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
     }
 
@@ -722,7 +722,7 @@ class VertoMessagesTests: XCTestCase {
         let login = LoginMessage(token: "t", sessionId: "s")
         let encoded = login.encode() ?? ""
         let decoded = Message().decode(message: encoded)
-        XCTAssertEqual(decoded?.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "ios")
+        XCTAssertEqual(decoded?.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
         XCTAssertEqual(decoded?.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
     }
 }
