@@ -17,7 +17,7 @@ class Message {
     /// Telemetry" spec (see VSDK-764): backend telemetry keys off
     /// `mobile_sdk_name` + `mobile_sdk_version`, independent of the legacy
     /// `User-Agent` string. See VSDK-768 for the iOS-SDK side of this work.
-    internal static let MOBILE_SDK_NAME = "ios"
+    internal static let MOBILE_SDK_NAME = "webrtc-ios"
 
     /// JSON-RPC parameter key for the mobile SDK library name.
     internal static let MOBILE_SDK_NAME_KEY = "mobile_sdk_name"
