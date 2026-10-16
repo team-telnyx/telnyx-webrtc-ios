@@ -188,7 +188,7 @@ The SDK includes an automatic reconnection mechanism to handle temporary network
 2. **Network Monitoring**:
    - The SDK includes a `NetworkMonitor` class that continuously monitors network connectivity
    - When network state changes (e.g., from no connection to WiFi), the SDK attempts to reconnect automatically
-   - Network state changes are handled in the `onNetworkStateChange` callback
+   - Network state changes are delivered to every active `TxClient` via a multi-subscriber observer; destroying one client does not cancel the shared `NWPathMonitor` for other live or replacement clients (see VSDK-736)
 
 3. **Call Reconnection**:
    - When network connectivity is lost during an active call, the call state is updated to `DROPPED` with a `networkLost` reason
