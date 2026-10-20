@@ -212,8 +212,21 @@ The token is sourced internally from `pushNotificationConfig.pushDeviceToken`,
 so apps do not need to pass it again when calling `call.answer()`.
 - Important: Default is `false` to preserve existing single-device behaviour.
 
+### `configureAudioSessionOnPeerCreation`
+
+```swift
+public internal(set) var configureAudioSessionOnPeerCreation: Bool = true
+```
+
+Controls whether each new WebRTC peer configures the shared audio session.
+
+Set this to `false` when the app configures `AVAudioSession` before
+reporting a CallKit call and lets CallKit activate that session. This
+prevents peer creation from changing the category of an active CallKit
+audio session. The default is `true` for backward compatibility.
+
 ## Methods
-### `init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:enableMissedCallNotifications:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:useTrickleIce:enableCallReports:callReportInterval:callReportLogLevel:callReportMaxLogEntries:pushWhenActive:)`
+### `init(sipUser:password:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:enableMissedCallNotifications:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:useTrickleIce:enableCallReports:callReportInterval:callReportLogLevel:callReportMaxLogEntries:pushWhenActive:configureAudioSessionOnPeerCreation:)`
 
 ```swift
 public init(sipUser: String, password: String,
@@ -235,7 +248,8 @@ public init(sipUser: String, password: String,
             callReportInterval: TimeInterval = 5.0,
             callReportLogLevel: String = "debug",
             callReportMaxLogEntries: Int = 1000,
-            pushWhenActive: Bool = false
+            pushWhenActive: Bool = false,
+            configureAudioSessionOnPeerCreation: Bool = true
 )
 ```
 
@@ -262,6 +276,7 @@ Constructor for the Telnyx SDK configuration using SIP credentials.
   - enableMissedCallNotifications: (Optional) Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`. Default is false.
   - callReportMaxLogEntries: (Optional) Maximum number of log entries to buffer per call. Default is 1000.
   - pushWhenActive: (Optional) Opt-in flag for push-when-active multi-device flows. When true, the SDK includes the configured VoIP push token in the `telnyx_rtc.answer` payload as `answered_device_token` and signals `push_when_active = "true"` during login. Default is false.
+  - configureAudioSessionOnPeerCreation: (Optional) Whether each new WebRTC peer configures the shared audio session. Set to `false` for CallKit-owned audio sessions. Default is `true`.
 
 #### Parameters
 
@@ -288,8 +303,9 @@ Constructor for the Telnyx SDK configuration using SIP credentials.
 | enableMissedCallNotifications | (Optional) Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`. Default is false. |
 | callReportMaxLogEntries | (Optional) Maximum number of log entries to buffer per call. Default is 1000. |
 | pushWhenActive | (Optional) Opt-in flag for push-when-active multi-device flows. When true, the SDK includes the configured VoIP push token in the `telnyx_rtc.answer` payload as `answered_device_token` and signals `push_when_active = "true"` during login. Default is false. |
+| configureAudioSessionOnPeerCreation | (Optional) Whether each new WebRTC peer configures the shared audio session. Set to `false` for CallKit-owned audio sessions. Default is `true`. |
 
-### `init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:enableMissedCallNotifications:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:useTrickleIce:enableCallReports:callReportInterval:callReportLogLevel:callReportMaxLogEntries:pushWhenActive:)`
+### `init(token:pushDeviceToken:ringtone:ringBackTone:pushEnvironment:enableMissedCallNotifications:logLevel:customLogger:reconnectClient:debug:forceRelayCandidate:enableQualityMetrics:sendWebRTCStatsViaSocket:reconnectTimeOut:useTrickleIce:enableCallReports:callReportInterval:callReportLogLevel:callReportMaxLogEntries:pushWhenActive:configureAudioSessionOnPeerCreation:)`
 
 ```swift
 public init(token: String,
@@ -311,7 +327,8 @@ public init(token: String,
             callReportInterval: TimeInterval = 5.0,
             callReportLogLevel: String = "debug",
             callReportMaxLogEntries: Int = 1000,
-            pushWhenActive: Bool = false
+            pushWhenActive: Bool = false,
+            configureAudioSessionOnPeerCreation: Bool = true
 )
 ```
 
@@ -337,6 +354,7 @@ Constructor for the Telnyx SDK configuration using JWT token authentication.
   - enableMissedCallNotifications: (Optional) Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`. Default is false.
   - callReportMaxLogEntries: (Optional) Maximum number of log entries to buffer per call. Default is 1000.
   - pushWhenActive: (Optional) Opt-in flag for push-when-active multi-device flows. When true, the SDK includes the configured VoIP push token in the `telnyx_rtc.answer` payload as `answered_device_token` and signals `push_when_active = "true"` during login. Default is false.
+  - configureAudioSessionOnPeerCreation: (Optional) Whether each new WebRTC peer configures the shared audio session. Set to `false` for CallKit-owned audio sessions. Default is `true`.
 
 #### Parameters
 
@@ -362,6 +380,7 @@ Constructor for the Telnyx SDK configuration using JWT token authentication.
 | enableMissedCallNotifications | (Optional) Enables native iOS missed call push notifications by tagging the user agent as `iOS-mpn-<version>`. Default is false. |
 | callReportMaxLogEntries | (Optional) Maximum number of log entries to buffer per call. Default is 1000. |
 | pushWhenActive | (Optional) Opt-in flag for push-when-active multi-device flows. When true, the SDK includes the configured VoIP push token in the `telnyx_rtc.answer` payload as `answered_device_token` and signals `push_when_active = "true"` during login. Default is false. |
+| configureAudioSessionOnPeerCreation | (Optional) Whether each new WebRTC peer configures the shared audio session. Set to `false` for CallKit-owned audio sessions. Default is `true`. |
 
 ### `validateParams()`
 
