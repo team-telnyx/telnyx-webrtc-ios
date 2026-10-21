@@ -55,8 +55,6 @@ private let devTurns443 = RTCIceServer(urlStrings: [devTurns443Url],
 private let devStun = RTCIceServer(urlStrings: [devStunUrl])
 private let devIceServers = [devStun, googleStun, devTurnUdp, devTurnTcp, devTurns443]
 
-// Set this to the machine's address which runs the signaling server
-private let defaultSignalingServerUrl = URL(string: prodHost)!
 
 struct InternalConfig {
     let prodSignalingServer: URL

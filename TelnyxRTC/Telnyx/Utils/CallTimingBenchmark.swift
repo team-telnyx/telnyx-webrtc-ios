@@ -138,9 +138,16 @@ public class CallTimingBenchmark {
             
             var previousTime: TimeInterval?
             for (milestone, time) in sortedMilestones {
-                let delta = previousTime != nil ? time - previousTime! : time
-                let deltaString = previousTime != nil ? "(+\(Int(delta))ms)" : ""
-                
+                let delta: TimeInterval
+                let deltaString: String
+                if let previousTime {
+                    delta = time - previousTime
+                    deltaString = "(+\(Int(delta))ms)"
+                } else {
+                    delta = time
+                    deltaString = ""
+                }
+
                 let milestoneFormatted = String(milestone.padding(toLength: 35, withPad: " ", startingAt: 0))
                 let timeFormatted = String("\(Int(time))ms".padding(toLength: 6, withPad: " ", startingAt: 0))
                 let deltaFormatted = String(deltaString.padding(toLength: 10, withPad: " ", startingAt: 0))
