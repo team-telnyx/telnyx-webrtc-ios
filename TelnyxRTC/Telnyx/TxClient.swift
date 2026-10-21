@@ -172,6 +172,10 @@ public class TxClient {
     private let AUTH_ERROR_CODE = "-32001"
     private var reconnectTimeoutTimer: DispatchSourceTimer?
     private let reconnectQueue = DispatchQueue(label: "TelnyxClient.ReconnectQueue")
+    /// Subscription token returned by `NetworkMonitor.shared.addNetworkStateObserver`.
+    /// Held so the observer can be removed deterministically in `deinit`. See
+    /// VSDK-736 / GitHub issue #374 for the lifecycle bug this fixes.
+    private var networkObserverToken: NetworkMonitor.Token?
     private var _isSpeakerEnabled: Bool = false
     private var enableQualityMetrics: Bool = false
     private var isACMResetInProgress: Bool = false
@@ -356,10 +360,12 @@ public class TxClient {
         // Start monitoring audio route changes
         setupAudioRouteChangeMonitoring()
 
-        NetworkMonitor.shared.startMonitoring()
-        
-        // Set up a closure to handle network state changes
-        NetworkMonitor.shared.onNetworkStateChange = { [weak self] state in
+        // Register a network-state observer and store the subscription token so
+        // we can remove it deterministically in `deinit`. Each TxClient owns
+        // exactly one subscription; destroying it removes the subscription and
+        // leaves the shared `NWPathMonitor` running while any other live
+        // client is still subscribed.
+        networkObserverToken = NetworkMonitor.shared.addNetworkStateObserver { [weak self] state in
             guard let self = self else { return }
 
             DispatchQueue.main.async {
@@ -397,9 +403,15 @@ public class TxClient {
         // Cancel reconnect timeout timer if it exists
         reconnectTimeoutTimer?.cancel()
         reconnectTimeoutTimer = nil
-        
-        // Stop network monitoring
-        NetworkMonitor.shared.stopMonitoring()
+
+        // Remove our network-state observer so destroying this client does not
+        // cancel the singleton `NWPathMonitor` for any other live client. The
+        // underlying monitor is only cancelled when the last subscriber is
+        // removed inside `NetworkMonitor.removeNetworkStateObserver`.
+        if let token = networkObserverToken {
+            NetworkMonitor.shared.removeNetworkStateObserver(token)
+            networkObserverToken = nil
+        }
         
         // Remove audio route change observer
         NotificationCenter.default.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
