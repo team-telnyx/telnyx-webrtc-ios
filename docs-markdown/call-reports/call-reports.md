@@ -15,6 +15,7 @@ The SDK collects:
 - **Call quality metrics** - Audio quality indicators like jitter, packet loss, and bitrate
 - **Connection statistics** - Network performance data including round-trip time
 - **Call lifecycle events** - State changes and important milestones during the call
+- **Call setup timings** - How long each setup step took, from peer creation through ICE, DTLS and answer, as `[CallTimings]` log lines in the same format as the JS and Android SDKs. These lines are included whatever `callReportLogLevel` is set to.
 
 All data is collected locally during the call and sent to Telnyx servers after the call ends.
 

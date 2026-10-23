@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Enhancements
+- **Call Setup Timings in Call Reports**: Inbound and outbound call reports now include a `[CallTimings]` breakdown of call setup (peer creation, SDP, ICE, DTLS, ringing, answer, and call active), in the same log format as the JS and Android SDKs ([#409](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/409)).
+
 ## [4.2.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.2.1) (2026-09-24)
 
 ### Bug Fixes

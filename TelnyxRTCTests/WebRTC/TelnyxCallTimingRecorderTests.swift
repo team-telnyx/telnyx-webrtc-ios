@@ -2,267 +2,336 @@
 //  TelnyxCallTimingRecorderTests.swift
 //  TelnyxRTCTests
 //
-//  Unit tests for the per-call call-establishment timing recorder.
-//  Uses the bundled `ManualCallTimingClock` so milestones and elapsed
-//  deltas are deterministic and independent of wall-clock time. Covers
-//  the canonical 19-step schema, once-per-milestone dedup, schema
-//  snapshot stability, concurrent-call isolation, and the cross-SDK
-//  payload compatibility contract (field names + values).
-//
 //  Copyright © 2026 Telnyx LLC. All rights reserved.
 //
 
 import XCTest
+import WebRTC
 @testable import TelnyxRTC
+
+/// Row pattern the portal uses to parse `[CallTimings]` lines, anchored to the full row.
+private let callTimingsRowPattern = try! NSRegularExpression(
+    pattern: #"^\[CallTimings\]\[(outbound|inbound)\]\[(trickle|standard)\]\s{2}(.+?)\s{2,}([\d.]+ms|-)\s{2,}([\d.]+ms)$"#
+)
+
+/// Step labels of the rows in a `[CallTimings]` block, in order.
+private func stepLabels(_ lines: [String]) -> [String] {
+    lines.compactMap { line in
+        let range = NSRange(line.startIndex..., in: line)
+        guard let match = callTimingsRowPattern.firstMatch(in: line, range: range),
+              let stepRange = Range(match.range(at: 3), in: line) else {
+            return nil
+        }
+        return String(line[stepRange])
+    }
+}
+
+/// Emits the recorder's block through `finish()` and returns it.
+private func finishedLines(_ recorder: TelnyxCallTimingRecorder) -> [String] {
+    var lines: [String] = []
+    recorder.onCallTimingsReady = { lines = $0 }
+    recorder.finish()
+    return lines
+}
 
 class TelnyxCallTimingRecorderTests: XCTestCase {
 
-    // MARK: - Init / start
+    private var currentTime: TimeInterval = 100
 
-    func testStartSeedsCallStartMilestone() {
-        let clock = ManualCallTimingClock()
-        let recorder = TelnyxCallTimingRecorder(clock: clock)
-
-        recorder.start(direction: .outbound)
-
-        let breakdown = recorder.breakdown()
-        XCTAssertNotNil(breakdown.callStart, "callStart must be recorded by start()")
-        // First entry's fromStartMs is 0 (no predecessor other than itself).
-        XCTAssertEqual(breakdown.callStart?.fromStartMs, 0.0, accuracy: 0.001)
-        XCTAssertNil(breakdown.callStart?.deltaMs, "callStart has no predecessor")
-        // No other milestones should be present yet.
-        XCTAssertNil(breakdown.peerCreated)
-        XCTAssertNil(breakdown.mediaDevicesAcquired)
-    }
-
-    func testStartIsIdempotent() {
-        let clock = ManualCallTimingClock()
-        let recorder = TelnyxCallTimingRecorder(clock: clock)
-
-        recorder.start(direction: .outbound)
-        clock.advance(byMilliseconds: 100)
-        recorder.start(direction: .inbound) // must NOT reset startNanos
-
-        let b = recorder.breakdown()
-        XCTAssertNotNil(b.callStart)
-        // The callStart fromStartMs stays 0 because start() is no-op on re-entry.
-        XCTAssertEqual(b.callStart?.fromStartMs, 0.0, accuracy: 0.001)
-        XCTAssertEqual(recorder.recordedCount(), 1)
-    }
-
-    // MARK: - Recording
-
-    func testRecordOncePerMilestone() {
-        let clock = ManualCallTimingClock()
-        let recorder = TelnyxCallTimingRecorder(clock: clock)
-        recorder.start(direction: .outbound)
-
-        recorder.record(.peerCreated)
-        recorder.record(.peerCreated) // duplicate — must be ignored
-        recorder.record(.peerCreated) // duplicate — must be ignored
-
-        XCTAssertEqual(recorder.recordedCount(), 2) // callStart + peerCreated only
-        XCTAssertNotNil(recorder.breakdown().peerCreated)
-    }
-
-    func testFromStartAndDeltaMath() {
-        let clock = ManualCallTimingClock()
-        let recorder = TelnyxCallTimingRecorder(clock: clock)
-        recorder.start(direction: .outbound)
-
-        clock.advance(byMilliseconds: 50)
-        recorder.record(.peerCreated)
-
-        clock.advance(byMilliseconds: 30)
-        recorder.record(.mediaDevicesAcquired)
-
-        clock.advance(byMilliseconds: 20)
-        recorder.record(.peerSetupComplete)
-
-        let b = recorder.breakdown()
-        XCTAssertEqual(b.peerCreated?.fromStartMs ?? 0, 50.0, accuracy: 0.001)
-        XCTAssertEqual(b.peerCreated?.deltaMs ?? 0, 50.0, accuracy: 0.001) // vs callStart
-
-        XCTAssertEqual(b.mediaDevicesAcquired?.fromStartMs ?? 0, 80.0, accuracy: 0.001)
-        XCTAssertEqual(b.mediaDevicesAcquired?.deltaMs ?? 0, 30.0, accuracy: 0.001) // vs peerCreated
-
-        XCTAssertEqual(b.peerSetupComplete?.fromStartMs ?? 0, 100.0, accuracy: 0.001)
-        XCTAssertEqual(b.peerSetupComplete?.deltaMs ?? 0, 20.0, accuracy: 0.001) // vs mediaDevicesAcquired
-    }
-
-    func testDeltaComputedAgainstCanonicalPredecessor() {
-        // Even if the user records .iceConnected before .peerCreated, the
-        // delta must be computed against the canonical predecessor
-        // (callStart) — not the actual recording order. This matches the
-        // cross-SDK/backend interpretation.
-        let clock = ManualCallTimingClock()
-        let recorder = TelnyxCallTimingRecorder(clock: clock)
-        recorder.start(direction: .outbound)
-
-        clock.advance(byMilliseconds: 1)
-        recorder.record(.iceConnected) // order=18, but recorded first
-
-        let b = recorder.breakdown()
-        XCTAssertEqual(b.iceConnected?.fromStartMs ?? 0, 1.0, accuracy: 0.001)
-        XCTAssertEqual(b.iceConnected?.deltaMs ?? 0, 1.0, accuracy: 0.001, // vs callStart
-            "delta must use the canonical predecessor (callStart), not the recording order")
-    }
-
-    // MARK: - Schema / cross-SDK compatibility
-
-    func testAllNineteenCanonicalMilestonesExist() {
-        // The recorder MUST export all 19 canonical milestones. Adding
-        // cases is allowed (in fact, used by some integrations) but
-        // removing any of these breaks cross-SDK/backend parity.
-        let canonical: Set<String> = [
-            "call_start",
-            "peer_created",
-            "media_devices_acquired",
-            "peer_setup_complete",
-            "sdp_negotiation_started",
-            "sdp_offer_answer_generated",
-            "local_description_applied",
-            "ice_gathering_started",
-            "sdp_sent",
-            "first_ice_candidate",
-            "first_server_reflexive_or_relay",
-            "ice_gathering_complete",
-            "remote_ringing",
-            "answer",
-            "first_remote_audio_video_track",
-            "remote_description_applied",
-            "call_active",
-            "ice_connected",
-            "dtls_connected",
-        ]
-        let actual = Set(CallTimingMilestone.allCases.map { $0.rawValue })
-        XCTAssertEqual(actual, canonical, "Milestone schema drifted from canonical 19-step list")
-    }
-
-    func testBreakdownEncodesEveryCanonicalKey() {
-        // The Codable payload uses the snake_case rawValues as keys; the
-        // backend stats UI keys off these strings verbatim. A change to
-        // any rawValue would silently break rendering for every call.
-        let clock = ManualCallTimingClock()
-        let recorder = TelnyxCallTimingRecorder(clock: clock)
-        recorder.start(direction: .outbound)
-        recorder.record(.peerCreated)
-        recorder.record(.mediaDevicesAcquired)
-        recorder.record(.peerSetupComplete)
-        recorder.record(.sdpNegotiationStarted)
-        recorder.record(.sdpOfferAnswerGenerated)
-        recorder.record(.localDescriptionApplied)
-        recorder.record(.iceGatheringStarted)
-        recorder.record(.sdpSent)
-        recorder.record(.firstIceCandidate)
-        recorder.record(.firstServerReflexiveOrRelay)
-        recorder.record(.iceGatheringComplete)
-        recorder.record(.remoteRinging)
-        recorder.record(.answer)
-        recorder.record(.firstRemoteAudioVideoTrack)
-        recorder.record(.remoteDescriptionApplied)
-        recorder.record(.callActive)
-        recorder.record(.iceConnected)
-        recorder.record(.dtlsConnected)
-
-        let breakdown = recorder.breakdown()
-        let data = (try? JSONEncoder().encode(breakdown)) ?? Data()
-        let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] ?? [:]
-
-        let expectedKeys: Set<String> = [
-            "call_start", "peer_created", "media_devices_acquired",
-            "peer_setup_complete", "sdp_negotiation_started",
-            "sdp_offer_answer_generated", "local_description_applied",
-            "ice_gathering_started", "sdp_sent", "first_ice_candidate",
-            "first_server_reflexive_or_relay", "ice_gathering_complete",
-            "remote_ringing", "answer", "first_remote_audio_video_track",
-            "remote_description_applied", "call_active", "ice_connected",
-            "dtls_connected",
-        ]
-        XCTAssertEqual(Set(json.keys), expectedKeys,
-            "Serialized breakdown keys must match canonical snake_case schema")
-    }
-
-    // MARK: - Snapshot semantics
-
-    func testBreakdownBeforeStartIsAllNil() {
-        let recorder = TelnyxCallTimingRecorder()
-        let b = recorder.breakdown()
-        XCTAssertNil(b.callStart)
-        XCTAssertNil(b.peerCreated)
-        XCTAssertNil(b.mediaDevicesAcquired)
-        XCTAssertNil(b.dtlsConnected)
-    }
-
-    func testResetClearsTimeline() {
-        let clock = ManualCallTimingClock()
-        let recorder = TelnyxCallTimingRecorder(clock: clock)
-        recorder.start(direction: .outbound)
-        recorder.record(.peerCreated)
-        recorder.record(.mediaDevicesAcquired)
-        XCTAssertEqual(recorder.recordedCount(), 3)
-
-        recorder.reset()
-        XCTAssertEqual(recorder.recordedCount(), 0)
-        XCTAssertNil(recorder.breakdown().callStart)
-        XCTAssertNil(recorder.breakdown().peerCreated)
-    }
-
-    // MARK: - Isolation
-
-    func testConcurrentRecordersAreIndependent() {
-        // Two recorders using the same clock must NOT share recorded
-        // milestones. Each call (and thus each recorder) owns its own
-        // timeline so concurrent calls stay isolated.
-        let clock = ManualCallTimingClock()
-        let r1 = TelnyxCallTimingRecorder(callId: "c1", clock: clock)
-        let r2 = TelnyxCallTimingRecorder(callId: "c2", clock: clock)
-        r1.start(direction: .outbound)
-        r2.start(direction: .inbound)
-
-        r1.record(.peerCreated)
-        r2.record(.peerCreated)
-        r1.record(.mediaDevicesAcquired)
-
-        XCTAssertEqual(r1.recordedCount(), 3)
-        XCTAssertEqual(r2.recordedCount(), 2)
-    }
-
-    // MARK: - Clock
-
-    func testMonotonicClockIsNondecreasing() {
-        let clock = MonotonicCallTimingClock()
-        var prev = clock.nowNanoseconds()
-        for _ in 0..<100 {
-            let now = clock.nowNanoseconds()
-            XCTAssertGreaterThanOrEqual(now, prev)
-            prev = now
+    private func makeRecorder(direction: TelnyxCallTimingRecorder.Direction,
+                              useTrickleIce: Bool = true) -> TelnyxCallTimingRecorder {
+        TelnyxCallTimingRecorder(direction: direction, useTrickleIce: useTrickleIce) { [unowned self] in
+            self.currentTime
         }
     }
 
-    func testManualClockAdvanceIsDeterministic() {
-        let clock = ManualCallTimingClock(initialNanos: 0)
-        let t0 = clock.nowNanoseconds()
-        clock.advance(byMilliseconds: 10)
-        let t1 = clock.nowNanoseconds()
-        clock.advance(byMilliseconds: 25.5)
-        let t2 = clock.nowNanoseconds()
-
-        XCTAssertEqual(t1 - t0, 10_000_000, accuracy: 1)
-        XCTAssertEqual(t2 - t1, 25_500_000, accuracy: 1)
+    private func advance(ms: Double) {
+        currentTime += ms / 1000
     }
 
-    // MARK: - Error semantics
-
-    func testRecordBeforeStartIsNoOp() {
-        let clock = ManualCallTimingClock()
-        let recorder = TelnyxCallTimingRecorder(clock: clock)
-
-        // Recording before start() must be a silent no-op — never crashes,
-        // never records anything. This guarantees the recorder cannot
-        // affect the outcome of the underlying call.
+    func testBlockMatchesCallTimingsLogFormat() {
+        let recorder = makeRecorder(direction: .outbound)
+        advance(ms: 10)
         recorder.record(.peerCreated)
-        recorder.record(.mediaDevicesAcquired)
-        XCTAssertEqual(recorder.recordedCount(), 0)
+        advance(ms: 6)
+        recorder.record(.localSdpCreated)
+
+        let separator = "[CallTimings][outbound][trickle] " + String(repeating: "-", count: 74)
+        XCTAssertEqual(finishedLines(recorder), [
+            "[CallTimings][outbound][trickle] Call establishment timing breakdown:",
+            "[CallTimings][outbound][trickle]  Step  Delta  From Start",
+            separator,
+            "[CallTimings][outbound][trickle]  Call Start  -  0.00ms",
+            "[CallTimings][outbound][trickle]  Peer object created  10.00ms  10.00ms",
+            "[CallTimings][outbound][trickle]  SDP offer generated  6.00ms  16.00ms",
+            separator
+        ])
     }
+
+    func testEveryOutboundStepRowMatchesPortalPattern() {
+        let recorder = makeRecorder(direction: .outbound)
+        let milestones: [CallTimingMilestone] = [
+            .peerCreated, .mediaDevicesAcquired, .peerSetupComplete, .sdpNegotiationStarted,
+            .localSdpCreated, .localSdpSet, .iceGatheringStarted, .inviteSent, .firstIceCandidate,
+            .firstSrflxRelayCandidate, .remoteRinging, .earlyMedia, .remoteSdpReceived, .remoteSdpSet,
+            .iceGatheringComplete, .iceConnected, .dtlsConnected, .callAnsweredByRemote, .callActive
+        ]
+        var lines: [String] = []
+        recorder.onCallTimingsReady = { lines = $0 }
+        milestones.forEach {
+            advance(ms: 1)
+            recorder.record($0)
+        }
+
+        XCTAssertEqual(stepLabels(lines), [
+            "Call Start", "Peer object created", "Media devices acquired", "Peer setup complete",
+            "SDP negotiation started", "SDP offer generated", "Local description applied",
+            "ICE candidate gathering started", "SDP sent to server", "First ICE candidate found",
+            "First server-reflexive/relay candidate found", "Remote side ringing",
+            "Early media received from server", "Remote SDP received", "Remote description applied",
+            "All ICE candidates gathered", "ICE connection established",
+            "Secure media channel established (DTLS)", "Call answered by remote side", "Call is active"
+        ])
+    }
+
+    func testEveryInboundStepRowMatchesPortalPattern() {
+        let recorder = makeRecorder(direction: .inbound, useTrickleIce: false)
+        let milestones: [CallTimingMilestone] = [
+            .inviteReceived, .answerInitiated, .peerCreated, .mediaDevicesAcquired, .peerSetupComplete,
+            .sdpNegotiationStarted, .localSdpCreated, .localSdpSet, .iceGatheringStarted,
+            .firstIceCandidate, .firstSrflxRelayCandidate, .answerSent, .remoteSdpReceived,
+            .remoteSdpSet, .iceGatheringComplete, .iceConnected, .dtlsConnected, .callActive
+        ]
+        var lines: [String] = []
+        recorder.onCallTimingsReady = { lines = $0 }
+        milestones.forEach {
+            advance(ms: 1)
+            recorder.record($0)
+        }
+
+        XCTAssertTrue(lines.allSatisfy { $0.hasPrefix("[CallTimings][inbound][standard]") })
+        XCTAssertEqual(stepLabels(lines), [
+            "Call Start", "Invite received", "Answer initiated", "Peer object created",
+            "Media devices acquired", "Peer setup complete", "SDP negotiation started",
+            "SDP answer generated", "Local description applied", "ICE candidate gathering started",
+            "First ICE candidate found", "First server-reflexive/relay candidate found",
+            "Answer sent to server", "Remote SDP received", "Remote description applied",
+            "All ICE candidates gathered", "ICE connection established",
+            "Secure media channel established (DTLS)", "Call is active"
+        ])
+    }
+
+    func testStepsFromTheOtherDirectionAreLeftOut() {
+        let recorder = makeRecorder(direction: .inbound)
+        advance(ms: 1)
+        recorder.record(.remoteRinging)
+        recorder.record(.callAnsweredByRemote)
+        recorder.record(.inviteSent)
+        recorder.record(.answerSent)
+
+        XCTAssertEqual(stepLabels(finishedLines(recorder)), ["Call Start", "Answer sent to server"])
+    }
+
+    func testRowsFollowTheTimeEachStepHappened() {
+        let recorder = makeRecorder(direction: .outbound)
+        advance(ms: 10)
+        recorder.record(.dtlsConnected)
+        advance(ms: 10)
+        recorder.record(.iceConnected)
+
+        let lines = finishedLines(recorder)
+        XCTAssertEqual(stepLabels(lines), [
+            "Call Start", "Secure media channel established (DTLS)", "ICE connection established"
+        ])
+        XCTAssertTrue(lines.contains("[CallTimings][outbound][trickle]  ICE connection established  10.00ms  20.00ms"))
+    }
+
+    func testMilestoneKeepsTheFirstRecordedTime() {
+        let recorder = makeRecorder(direction: .outbound)
+        advance(ms: 10)
+        recorder.record(.peerCreated)
+        advance(ms: 40)
+        recorder.record(.peerCreated)
+
+        XCTAssertTrue(finishedLines(recorder).contains("[CallTimings][outbound][trickle]  Peer object created  10.00ms  10.00ms"))
+    }
+
+    func testEmitsOnceWhenCallIsActiveAndDtlsConnectedInEitherOrder() {
+        for order in [[CallTimingMilestone.callActive, .dtlsConnected], [.dtlsConnected, .callActive]] {
+            let recorder = makeRecorder(direction: .outbound)
+            var emitted: [[String]] = []
+            recorder.onCallTimingsReady = { emitted.append($0) }
+
+            recorder.record(order[0])
+            XCTAssertTrue(emitted.isEmpty, "Must wait for both active and DTLS")
+            recorder.record(order[1])
+            recorder.finish()
+
+            XCTAssertEqual(emitted.count, 1)
+            XCTAssertTrue(stepLabels(emitted.first ?? []).contains("Call is active"))
+        }
+    }
+
+    func testFinishEmitsWhenCallNeverBecameActive() {
+        let recorder = makeRecorder(direction: .outbound)
+        var emitted: [[String]] = []
+        recorder.onCallTimingsReady = { emitted.append($0) }
+        advance(ms: 5)
+        recorder.record(.peerCreated)
+
+        recorder.finish()
+        recorder.finish()
+
+        XCTAssertEqual(emitted.count, 1)
+        XCTAssertEqual(stepLabels(emitted.first ?? []), ["Call Start", "Peer object created"])
+    }
+}
+
+// MARK: - Peer milestones
+
+class PeerCallTimingTests: XCTestCase {
+
+    private var peer: Peer?
+
+    override func tearDown() {
+        peer?.connection?.close()
+        peer = nil
+        super.tearDown()
+    }
+
+    private func makePeer(_ recorder: TelnyxCallTimingRecorder) throws -> (Peer, RTCPeerConnection) {
+        let peer = Peer(iceServers: InternalConfig.default.prodWebRTCIceServers, timingRecorder: recorder)
+        self.peer = peer
+        return (peer, try XCTUnwrap(peer.connection))
+    }
+
+    func testPeerRecordsSetupMilestonesDuringInit() throws {
+        let recorder = TelnyxCallTimingRecorder(direction: .outbound, useTrickleIce: true)
+        _ = try makePeer(recorder)
+
+        let labels = stepLabels(finishedLines(recorder))
+        XCTAssertTrue(labels.contains("Peer object created"))
+        XCTAssertTrue(labels.contains("Media devices acquired"))
+        XCTAssertTrue(labels.contains("Peer setup complete"))
+    }
+
+    func testIceCompletedDoesNotCountAsDtlsConnected() throws {
+        let recorder = TelnyxCallTimingRecorder(direction: .outbound, useTrickleIce: true)
+        let (peer, connection) = try makePeer(recorder)
+
+        peer.peerConnection(connection, didChange: RTCIceConnectionState.completed)
+
+        let labels = stepLabels(finishedLines(recorder))
+        XCTAssertTrue(labels.contains("ICE connection established"))
+        XCTAssertFalse(labels.contains("Secure media channel established (DTLS)"))
+    }
+
+    func testDtlsConnectedComesFromPeerConnectionState() throws {
+        let recorder = TelnyxCallTimingRecorder(direction: .outbound, useTrickleIce: true)
+        let (peer, connection) = try makePeer(recorder)
+
+        peer.peerConnection(connection, didChange: RTCPeerConnectionState.connected)
+
+        XCTAssertTrue(stepLabels(finishedLines(recorder)).contains("Secure media channel established (DTLS)"))
+    }
+
+    /// The stats reporter owns these callbacks; timing must work without replacing them.
+    func testTimingDoesNotReplaceExistingPeerCallbacks() throws {
+        let recorder = TelnyxCallTimingRecorder(direction: .outbound, useTrickleIce: true)
+        let (peer, connection) = try makePeer(recorder)
+        var iceConnectionEvents = 0
+        var iceGatheringEvents = 0
+        peer.onIceConnectionChange = { _ in iceConnectionEvents += 1 }
+        peer.onIceGatheringChange = { _ in iceGatheringEvents += 1 }
+
+        peer.peerConnection(connection, didChange: RTCIceGatheringState.gathering)
+        peer.peerConnection(connection, didChange: RTCIceGatheringState.complete)
+        peer.peerConnection(connection, didChange: RTCIceConnectionState.connected)
+
+        XCTAssertEqual(iceGatheringEvents, 2)
+        XCTAssertEqual(iceConnectionEvents, 1)
+        let labels = stepLabels(finishedLines(recorder))
+        XCTAssertTrue(labels.contains("ICE candidate gathering started"))
+        XCTAssertTrue(labels.contains("All ICE candidates gathered"))
+        XCTAssertTrue(labels.contains("ICE connection established"))
+    }
+
+    func testServerReflexiveOrRelayCandidateDetection() {
+        let base = "candidate:842163049 1 udp 1677729535 203.0.113.7 54321 typ"
+        XCTAssertTrue(Peer.isServerReflexiveOrRelay("\(base) srflx raddr 0.0.0.0 rport 0 generation 0"))
+        XCTAssertTrue(Peer.isServerReflexiveOrRelay("\(base) relay raddr 198.51.100.2 rport 3478"))
+        XCTAssertFalse(Peer.isServerReflexiveOrRelay("\(base) host generation 0"))
+        XCTAssertFalse(Peer.isServerReflexiveOrRelay("\(base) prflx"))
+        XCTAssertFalse(Peer.isServerReflexiveOrRelay("candidate:1 1 udp 1 203.0.113.7 54321"))
+    }
+}
+
+// MARK: - Call report wiring
+
+class CallTimingsReportTests: XCTestCase {
+
+    private func makeInboundCall(callReportLogLevel: String = "debug", isAttach: Bool = false) -> Call {
+        Call(callId: UUID(),
+             remoteSdp: "v=0\r\n",
+             sessionId: "<sessionId>",
+             socket: Socket(),
+             delegate: self,
+             iceServers: InternalConfig.default.prodWebRTCIceServers,
+             isAttach: isAttach,
+             callReportLogLevel: callReportLogLevel)
+    }
+
+    private func callTimingsMessages(_ call: Call) -> [String] {
+        (call.callReportCollector?.getLogs() ?? [])
+            .map(\.message)
+            .filter { $0.hasPrefix("[CallTimings]") }
+    }
+
+    func testInboundCallAddsCallTimingsBlockWhenItEnds() {
+        let call = makeInboundCall()
+
+        call.updateCallState(callState: .DONE(reason: nil))
+
+        XCTAssertEqual(stepLabels(callTimingsMessages(call)), ["Call Start", "Invite received"])
+    }
+
+    func testCallTimingsAreKeptWhenReportLogLevelIsHigher() {
+        let call = makeInboundCall(callReportLogLevel: "error")
+
+        call.updateCallState(callState: .DONE(reason: nil))
+
+        XCTAssertFalse(callTimingsMessages(call).isEmpty)
+        XCTAssertFalse(call.callReportCollector?.getLogs().contains { $0.message == "Call state changed" } ?? true,
+                       "Other info logs must still follow the configured level")
+    }
+
+    func testReattachedCallsAreNotTimed() {
+        let call = makeInboundCall(isAttach: true)
+
+        call.updateCallState(callState: .DONE(reason: nil))
+
+        XCTAssertNil(call.timingRecorder)
+        XCTAssertTrue(callTimingsMessages(call).isEmpty)
+    }
+
+    func testOutboundCallStartsTimingAtInviteAndPassesItToPeer() {
+        let call = Call(callId: UUID(),
+                        sessionId: "<sessionId>",
+                        socket: Socket(),
+                        delegate: self,
+                        iceServers: InternalConfig.default.prodWebRTCIceServers)
+        XCTAssertNil(call.timingRecorder)
+
+        call.newCall(callerName: "callerName", callerNumber: "callerNumber", destinationNumber: "destinationNumber")
+        call.updateCallState(callState: .DONE(reason: nil))
+
+        let lines = callTimingsMessages(call)
+        XCTAssertTrue(lines.allSatisfy { $0.hasPrefix("[CallTimings][outbound][standard]") })
+        XCTAssertTrue(stepLabels(lines).contains("Peer object created"))
+        call.peer?.connection?.close()
+    }
+}
+
+extension CallTimingsReportTests: CallProtocol {
+    func callStateUpdated(call: Call) {}
 }
