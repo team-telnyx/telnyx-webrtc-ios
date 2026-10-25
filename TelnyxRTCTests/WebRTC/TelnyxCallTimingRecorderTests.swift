@@ -283,7 +283,8 @@ class CallTimingsReportTests: XCTestCase {
         call.updateCallState(callState: .ACTIVE)
 
         XCTAssertEqual(stepLabels(callTimingsMessages(call)), [
-            "Call Start", "Invite received", "Secure media channel established (DTLS)", "Call is active"
+            "Call Start", "Invite received", "Remote SDP received",
+            "Secure media channel established (DTLS)", "Call is active"
         ])
     }
 
@@ -330,6 +331,25 @@ class CallTimingsReportTests: XCTestCase {
         let lines = call.timingRecorder?.callTimingsLines() ?? []
         XCTAssertTrue(lines.allSatisfy { $0.hasPrefix("[CallTimings][outbound][standard]") })
         XCTAssertTrue(stepLabels(lines).contains("Peer object created"))
+        call.peer?.connection?.close()
+    }
+
+    /// The ANSWER that follows early media may carry no SDP, so receipt is taken from MEDIA.
+    func testEarlyMediaRecordsRemoteSdpReceived() {
+        let call = Call(callId: UUID(),
+                        sessionId: "<sessionId>",
+                        socket: Socket(),
+                        delegate: self,
+                        iceServers: InternalConfig.default.prodWebRTCIceServers)
+        call.newCall(callerName: "callerName", callerNumber: "callerNumber", destinationNumber: "destinationNumber")
+        let txClient = TxClient()
+
+        call.handleVertoMessage(message: Message(["sdp": "v=0\r\n"], method: .MEDIA), dataMessage: "", txClient: txClient)
+        call.handleVertoMessage(message: Message([:], method: .ANSWER), dataMessage: "", txClient: txClient)
+
+        let labels = stepLabels(call.timingRecorder?.callTimingsLines() ?? [])
+        XCTAssertTrue(labels.contains("Early media received from server"))
+        XCTAssertTrue(labels.contains("Remote SDP received"))
         call.peer?.connection?.close()
     }
 }

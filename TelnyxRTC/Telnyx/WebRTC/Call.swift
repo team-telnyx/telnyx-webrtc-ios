@@ -505,6 +505,7 @@ public class Call {
         if self.direction == .INBOUND && !remoteSdp.isEmpty {
             self.startCallTimings(direction: .inbound)
             self.timingRecorder?.record(.inviteReceived)
+            self.timingRecorder?.record(.remoteSdpReceived)
         }
     }
     
@@ -1652,6 +1653,8 @@ extension Call {
                     Logger.log.w(message: "Call:: .MEDIA missing SDP")
                     return
                 }
+                // An ANSWER that follows early media may carry no SDP, so this is when it arrives.
+                self.timingRecorder?.record(.remoteSdpReceived)
                 self.remoteSdp = remoteSdp
                 self.streamMedia(sdp: remoteSdp)
             }
