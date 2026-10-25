@@ -5,6 +5,12 @@
 ### Enhancements
 - **Call Setup Timings in Call Reports**: Inbound and outbound call reports now include a `[CallTimings]` breakdown of call setup (peer creation, SDP, ICE, DTLS, ringing, answer, and call active), in the same log format as the JS and Android SDKs ([#409](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/409)).
 
+## [4.2.2](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.2.2) (2026-10-05)
+
+### Bug Fixes
+- **Consecutive VoIP Push Handling**: Tear down an unresolved push placeholder before storing the next push configuration and connect with that configuration directly, preventing a nil force-unwrap crash when duplicate or rapid VoIP pushes arrive after the first socket connects ([#414](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/414)).
+- **Inbound Call Acceptance Serialization**: Serialize CallKit answer ownership across the client and make in-flight call answering idempotent, preventing duplicate or concurrent answer attempts while releasing ownership when setup fails or a call ends ([#407](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/407)).
+
 ## [4.2.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.2.1) (2026-09-24)
 
 ### Bug Fixes

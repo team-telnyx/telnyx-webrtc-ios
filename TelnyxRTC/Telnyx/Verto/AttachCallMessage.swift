@@ -34,8 +34,10 @@ class AttachCallMessage : Message {
             #endif
         }
 
-           params["loginParams"] = [String: String]()
-           params["userVariables"] = userVariables
-           super.init(params, method: .ATTACH_CALL)
-       }
+        params["loginParams"] = [String: String]()
+        params["userVariables"] = userVariables
+        // `mobile_sdk_name` + `mobile_sdk_version` are added centrally in
+        // `Message.init(_:method:)` (VSDK-768 / VSDK-764).
+        super.init(params, method: .ATTACH_CALL)
+    }
 }
