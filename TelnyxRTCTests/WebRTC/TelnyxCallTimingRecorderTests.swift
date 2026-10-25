@@ -26,14 +26,6 @@ private func stepLabels(_ lines: [String]) -> [String] {
     }
 }
 
-/// Emits the recorder's block through `finish()` and returns it.
-private func finishedLines(_ recorder: TelnyxCallTimingRecorder) -> [String] {
-    var lines: [String] = []
-    recorder.onCallTimingsReady = { lines = $0 }
-    recorder.finish()
-    return lines
-}
-
 class TelnyxCallTimingRecorderTests: XCTestCase {
 
     private var currentTime: TimeInterval = 100
@@ -57,7 +49,7 @@ class TelnyxCallTimingRecorderTests: XCTestCase {
         recorder.record(.localSdpCreated)
 
         let separator = "[CallTimings][outbound][trickle] " + String(repeating: "-", count: 74)
-        XCTAssertEqual(finishedLines(recorder), [
+        XCTAssertEqual(recorder.callTimingsLines(), [
             "[CallTimings][outbound][trickle] Call establishment timing breakdown:",
             "[CallTimings][outbound][trickle]  Step  Delta  From Start",
             separator,
@@ -129,7 +121,7 @@ class TelnyxCallTimingRecorderTests: XCTestCase {
         recorder.record(.inviteSent)
         recorder.record(.answerSent)
 
-        XCTAssertEqual(stepLabels(finishedLines(recorder)), ["Call Start", "Answer sent to server"])
+        XCTAssertEqual(stepLabels(recorder.callTimingsLines()), ["Call Start", "Answer sent to server"])
     }
 
     func testRowsFollowTheTimeEachStepHappened() {
@@ -139,7 +131,7 @@ class TelnyxCallTimingRecorderTests: XCTestCase {
         advance(ms: 10)
         recorder.record(.iceConnected)
 
-        let lines = finishedLines(recorder)
+        let lines = recorder.callTimingsLines()
         XCTAssertEqual(stepLabels(lines), [
             "Call Start", "Secure media channel established (DTLS)", "ICE connection established"
         ])
@@ -153,7 +145,7 @@ class TelnyxCallTimingRecorderTests: XCTestCase {
         advance(ms: 40)
         recorder.record(.peerCreated)
 
-        XCTAssertTrue(finishedLines(recorder).contains("[CallTimings][outbound][trickle]  Peer object created  10.00ms  10.00ms"))
+        XCTAssertTrue(recorder.callTimingsLines().contains("[CallTimings][outbound][trickle]  Peer object created  10.00ms  10.00ms"))
     }
 
     func testEmitsOnceWhenCallIsActiveAndDtlsConnectedInEitherOrder() {
@@ -165,25 +157,22 @@ class TelnyxCallTimingRecorderTests: XCTestCase {
             recorder.record(order[0])
             XCTAssertTrue(emitted.isEmpty, "Must wait for both active and DTLS")
             recorder.record(order[1])
-            recorder.finish()
+            recorder.record(.iceConnected)
 
             XCTAssertEqual(emitted.count, 1)
             XCTAssertTrue(stepLabels(emitted.first ?? []).contains("Call is active"))
         }
     }
 
-    func testFinishEmitsWhenCallNeverBecameActive() {
+    func testReadingLinesDoesNotEmit() {
         let recorder = makeRecorder(direction: .outbound)
         var emitted: [[String]] = []
         recorder.onCallTimingsReady = { emitted.append($0) }
         advance(ms: 5)
         recorder.record(.peerCreated)
 
-        recorder.finish()
-        recorder.finish()
-
-        XCTAssertEqual(emitted.count, 1)
-        XCTAssertEqual(stepLabels(emitted.first ?? []), ["Call Start", "Peer object created"])
+        XCTAssertEqual(stepLabels(recorder.callTimingsLines()), ["Call Start", "Peer object created"])
+        XCTAssertTrue(emitted.isEmpty)
     }
 }
 
@@ -209,7 +198,7 @@ class PeerCallTimingTests: XCTestCase {
         let recorder = TelnyxCallTimingRecorder(direction: .outbound, useTrickleIce: true)
         _ = try makePeer(recorder)
 
-        let labels = stepLabels(finishedLines(recorder))
+        let labels = stepLabels(recorder.callTimingsLines())
         XCTAssertTrue(labels.contains("Peer object created"))
         XCTAssertTrue(labels.contains("Media devices acquired"))
         XCTAssertTrue(labels.contains("Peer setup complete"))
@@ -221,7 +210,7 @@ class PeerCallTimingTests: XCTestCase {
 
         peer.peerConnection(connection, didChange: RTCIceConnectionState.completed)
 
-        let labels = stepLabels(finishedLines(recorder))
+        let labels = stepLabels(recorder.callTimingsLines())
         XCTAssertTrue(labels.contains("ICE connection established"))
         XCTAssertFalse(labels.contains("Secure media channel established (DTLS)"))
     }
@@ -232,7 +221,7 @@ class PeerCallTimingTests: XCTestCase {
 
         peer.peerConnection(connection, didChange: RTCPeerConnectionState.connected)
 
-        XCTAssertTrue(stepLabels(finishedLines(recorder)).contains("Secure media channel established (DTLS)"))
+        XCTAssertTrue(stepLabels(recorder.callTimingsLines()).contains("Secure media channel established (DTLS)"))
     }
 
     /// The stats reporter owns these callbacks; timing must work without replacing them.
@@ -250,7 +239,7 @@ class PeerCallTimingTests: XCTestCase {
 
         XCTAssertEqual(iceGatheringEvents, 2)
         XCTAssertEqual(iceConnectionEvents, 1)
-        let labels = stepLabels(finishedLines(recorder))
+        let labels = stepLabels(recorder.callTimingsLines())
         XCTAssertTrue(labels.contains("ICE candidate gathering started"))
         XCTAssertTrue(labels.contains("All ICE candidates gathered"))
         XCTAssertTrue(labels.contains("ICE connection established"))
@@ -287,18 +276,32 @@ class CallTimingsReportTests: XCTestCase {
             .filter { $0.hasPrefix("[CallTimings]") }
     }
 
-    func testInboundCallAddsCallTimingsBlockWhenItEnds() {
+    func testInboundCallAddsCallTimingsBlockWhenActiveAndDtlsConnected() {
         let call = makeInboundCall()
 
+        call.timingRecorder?.record(.dtlsConnected)
+        call.updateCallState(callState: .ACTIVE)
+
+        XCTAssertEqual(stepLabels(callTimingsMessages(call)), [
+            "Call Start", "Invite received", "Secure media channel established (DTLS)", "Call is active"
+        ])
+    }
+
+    /// Like the JS SDK, a call that ends before it is active has no `[CallTimings]` block.
+    func testCallThatEndsBeforeBecomingActiveHasNoCallTimingsBlock() {
+        let call = makeInboundCall()
+
+        call.timingRecorder?.record(.dtlsConnected)
         call.updateCallState(callState: .DONE(reason: nil))
 
-        XCTAssertEqual(stepLabels(callTimingsMessages(call)), ["Call Start", "Invite received"])
+        XCTAssertTrue(callTimingsMessages(call).isEmpty)
     }
 
     func testCallTimingsAreKeptWhenReportLogLevelIsHigher() {
         let call = makeInboundCall(callReportLogLevel: "error")
 
-        call.updateCallState(callState: .DONE(reason: nil))
+        call.timingRecorder?.record(.dtlsConnected)
+        call.updateCallState(callState: .ACTIVE)
 
         XCTAssertFalse(callTimingsMessages(call).isEmpty)
         XCTAssertFalse(call.callReportCollector?.getLogs().contains { $0.message == "Call state changed" } ?? true,
@@ -323,9 +326,8 @@ class CallTimingsReportTests: XCTestCase {
         XCTAssertNil(call.timingRecorder)
 
         call.newCall(callerName: "callerName", callerNumber: "callerNumber", destinationNumber: "destinationNumber")
-        call.updateCallState(callState: .DONE(reason: nil))
 
-        let lines = callTimingsMessages(call)
+        let lines = call.timingRecorder?.callTimingsLines() ?? []
         XCTAssertTrue(lines.allSatisfy { $0.hasPrefix("[CallTimings][outbound][standard]") })
         XCTAssertTrue(stepLabels(lines).contains("Peer object created"))
         call.peer?.connection?.close()

@@ -37,8 +37,9 @@ enum CallTimingMilestone {
 /// Records the call-establishment milestones of one call and turns them into the
 /// `[CallTimings]` log block that the JS and Android SDKs add to call reports.
 ///
-/// The block is emitted once through `onCallTimingsReady`: when the call is active and
-/// DTLS has connected, whichever comes last, or from `finish()` if either never happened.
+/// The block is emitted once through `onCallTimingsReady`, when the call is active and
+/// DTLS has connected, whichever comes last. Like the JS SDK, calls that never get there
+/// have no block.
 final class TelnyxCallTimingRecorder {
 
     enum Direction: String {
@@ -125,8 +126,9 @@ final class TelnyxCallTimingRecorder {
         var lines: [String]?
         if milestones[milestone] == nil {
             milestones[milestone] = now()
-            if milestones[.callActive] != nil && milestones[.dtlsConnected] != nil {
-                lines = takeCallTimingsLines()
+            if !didEmit && milestones[.callActive] != nil && milestones[.dtlsConnected] != nil {
+                didEmit = true
+                lines = buildCallTimingsLines()
             }
         }
         lock.unlock()
@@ -136,23 +138,15 @@ final class TelnyxCallTimingRecorder {
         }
     }
 
-    /// Emits the block with whatever was recorded, unless it was already emitted.
-    /// Called when the call ends.
-    func finish() {
+    /// The `[CallTimings]` lines for the milestones recorded so far, without emitting them.
+    func callTimingsLines() -> [String] {
         lock.lock()
-        let lines = takeCallTimingsLines()
-        lock.unlock()
-
-        if let lines = lines {
-            onCallTimingsReady?(lines)
-        }
+        defer { lock.unlock() }
+        return buildCallTimingsLines()
     }
 
     /// Must be called with `lock` held.
-    private func takeCallTimingsLines() -> [String]? {
-        guard !didEmit else { return nil }
-        didEmit = true
-
+    private func buildCallTimingsLines() -> [String] {
         let prefix = "[CallTimings][\(direction.rawValue)][\(mode)]"
         let separator = "\(prefix) " + String(repeating: "-", count: 74)
         var lines = [

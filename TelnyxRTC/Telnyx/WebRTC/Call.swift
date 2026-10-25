@@ -824,8 +824,6 @@ public class Call {
         // Stop and post call report when call ends (any terminal state)
         switch callState {
         case .DONE, .DROPPED:
-            // Include the timings even if the call never became active or DTLS never connected.
-            timingRecorder?.finish()
             stopAndPostCallReport()
         default:
             break
