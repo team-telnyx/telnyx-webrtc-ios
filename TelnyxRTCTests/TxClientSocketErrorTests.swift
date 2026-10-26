@@ -234,6 +234,49 @@ class TxClientPingAuthTests: XCTestCase {
         XCTAssertEqual(mockDelegate.doneCallIds, [stalePushUUID, newPushUUID])
     }
 
+    /// VSUP-308: an answer with no push in flight and no call must not be kept for the next push INVITE.
+    func testAnswerWithoutPushOrCallFailsAfterInviteTimeout() {
+        let staleCallUUID = UUID()
+        txClient.inviteTimeoutInterval = 0.01
+
+        let answerAction = TrackingAnswerCallAction(call: staleCallUUID)
+        txClient.answerFromCallkit(answerAction: answerAction)
+        waitForWatchdog()
+
+        XCTAssertEqual(answerAction.failCallCount, 1)
+        XCTAssertEqual(answerAction.fulfillCallCount, 0)
+        XCTAssertFalse(txClient.hasPendingAnswerActionForTesting)
+        XCTAssertEqual(mockDelegate.remoteEndedCallIds, [staleCallUUID])
+        XCTAssertEqual(mockDelegate.doneCallIds, [staleCallUUID])
+    }
+
+    func testNextPushDoesNotInheritExpiredAnswer() throws {
+        txClient.inviteTimeoutInterval = 0.01
+        let answerAction = TrackingAnswerCallAction(call: UUID())
+        txClient.answerFromCallkit(answerAction: answerAction)
+        waitForWatchdog()
+
+        try startPushFlow(callId: UUID())
+
+        XCTAssertFalse(txClient.hasPendingAnswerActionForTesting)
+        XCTAssertEqual(answerAction.failCallCount, 1)
+    }
+
+    /// Apps can report the call to CallKit and get the answer before calling `processVoIPNotification`.
+    func testAnswerBeforeProcessVoIPNotificationIsKeptForThePush() throws {
+        let callUUID = UUID()
+        txClient.inviteTimeoutInterval = 0.01
+
+        let answerAction = TrackingAnswerCallAction(call: callUUID)
+        txClient.answerFromCallkit(answerAction: answerAction)
+        try startPushFlow(callId: callUUID)
+        waitForWatchdog()
+
+        XCTAssertTrue(txClient.hasPendingAnswerActionForTesting)
+        XCTAssertEqual(answerAction.failCallCount, 0)
+        XCTAssertTrue(mockDelegate.doneCallIds.isEmpty)
+    }
+
     private func waitForWatchdog() {
         let expectation = expectation(description: "Wait beyond INVITE watchdog")
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { expectation.fulfill() }
