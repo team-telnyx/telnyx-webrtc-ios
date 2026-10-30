@@ -157,6 +157,28 @@ extension AppDelegate : CXProviderDelegate {
         }
     }
 
+    /// Answer a waiting call and hold or end the ongoing call in one CallKit transaction.
+    /// These are the same actions the system Hold & Accept / End & Accept sheet sends.
+    /// - Parameters:
+    ///   - waitingCallUUID: the UUID of the incoming call to answer.
+    ///   - ongoingCallUUID: the UUID of the call that is active or held.
+    ///   - holdOngoingCall: true to hold the ongoing call, false to end it.
+    func executeAcceptWaitingCallAction(waitingCallUUID: UUID, ongoingCallUUID: UUID, holdOngoingCall: Bool) {
+        print("AppDelegate:: execute ACCEPT waiting call action: waiting [\(waitingCallUUID)] ongoing [\(ongoingCallUUID)] hold [\(holdOngoingCall)]")
+        let ongoingCallAction: CXCallAction = holdOngoingCall
+            ? CXSetHeldCallAction(call: ongoingCallUUID, onHold: true)
+            : CXEndCallAction(call: ongoingCallUUID)
+        let answerCallAction = CXAnswerCallAction(call: waitingCallUUID)
+        let transaction = CXTransaction(actions: [ongoingCallAction, answerCallAction])
+        callKitCallController.request(transaction) { error in
+            if let error = error {
+                print("AppDelegate:: Accept waiting call transaction request failed: \(error.localizedDescription).")
+            } else {
+                print("AppDelegate:: Accept waiting call transaction request successful")
+            }
+        }
+    }
+
     /// End the active CallKit/current call when one is known.
     func executeEndCurrentCallAction() {
         guard let endUUID = self.callKitUUID ?? self.currentCall?.callInfo?.callId else {
@@ -348,6 +370,9 @@ extension AppDelegate : CXProviderDelegate {
         } else {
             //request to end Previous Call
             print("AppDelegate:: End Previous Call")
+            if previousCall?.callInfo?.callId == action.callUUID {
+                previousCall = nil
+            }
         }
         telnyxClient.endCallFromCallkit(endAction: action)
     }

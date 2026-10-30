@@ -60,6 +60,12 @@ class HomeViewController: UIViewController {
             onAnswerCall: { [weak self] in
                 self?.onAnswerButton()
             },
+            onHoldAndAcceptCall: { [weak self] in
+                self?.onAcceptWaitingCallButton(holdOngoingCall: true)
+            },
+            onEndAndAcceptCall: { [weak self] in
+                self?.onAcceptWaitingCallButton(holdOngoingCall: false)
+            },
             onMuteUnmuteSwitch: { [weak self] mute in
                 self?.onMuteUnmuteSwitch(mute: mute)
             },
@@ -574,6 +580,25 @@ extension HomeViewController {
     func onRejectButton() {
         guard let callID = appDelegate.currentCall?.callInfo?.callId else { return }
         appDelegate.executeEndCallAction(uuid: callID)
+    }
+
+    /// Answer the waiting call, holding or ending the ongoing call first.
+    func onAcceptWaitingCallButton(holdOngoingCall: Bool) {
+        guard let waitingCallId = appDelegate.currentCall?.callInfo?.callId,
+              let ongoingCall = appDelegate.previousCall,
+              let ongoingCallId = ongoingCall.callInfo?.callId,
+              ongoingCall.callState.isConsideredActive else {
+            // The other call ended while this one was ringing.
+            onAnswerButton()
+            return
+        }
+
+        callViewModel.isCallWaiting = false
+        appDelegate.executeAcceptWaitingCallAction(
+            waitingCallUUID: waitingCallId,
+            ongoingCallUUID: ongoingCallId,
+            holdOngoingCall: holdOngoingCall
+        )
     }
 }
 

@@ -12,6 +12,8 @@ struct CallView: View {
     let onEndCall: () -> Void
     let onRejectCall: () -> Void
     let onAnswerCall: () -> Void
+    let onHoldAndAcceptCall: () -> Void
+    let onEndAndAcceptCall: () -> Void
     let onMuteUnmuteSwitch: (Bool) -> Void
     let onToggleSpeaker: () -> Void
     let onHold: (Bool) -> Void
@@ -313,9 +315,85 @@ struct CallView: View {
 
     @ViewBuilder
     private var incomingCallView: some View {
+        if viewModel.isCallWaiting {
+            callWaitingView
+        } else {
+            singleIncomingCallView
+        }
+    }
+
+    /// Shown when a call arrives while another call is active or held.
+    @ViewBuilder
+    private var callWaitingView: some View {
         VStack {
             Spacer()
-            
+
+            Text("Incoming call while on another call")
+                .font(.headline)
+                .foregroundColor(Color(hex: "#1D1D1D"))
+
+            HStack(alignment: .top, spacing: 24) {
+                callWaitingButton(
+                    title: "Decline",
+                    systemImage: "phone.down.fill",
+                    background: Color(hex: "#EB0000"),
+                    foreground: .white,
+                    accessibilityIdentifier: AccessibilityIdentifiers.rejectButton,
+                    action: onRejectCall
+                )
+
+                callWaitingButton(
+                    title: "End & Accept",
+                    systemImage: "phone.fill",
+                    background: Color(hex: "#F5F3E4"),
+                    foreground: Color(hex: "#1D1D1D"),
+                    accessibilityIdentifier: AccessibilityIdentifiers.endAndAcceptButton,
+                    action: onEndAndAcceptCall
+                )
+
+                callWaitingButton(
+                    title: "Hold & Accept",
+                    systemImage: "pause.fill",
+                    background: Color(hex: "#00E3AA"),
+                    foreground: Color(hex: "#1D1D1D"),
+                    accessibilityIdentifier: AccessibilityIdentifiers.holdAndAcceptButton,
+                    action: onHoldAndAcceptCall
+                )
+            }
+            .padding()
+
+            Spacer()
+        }
+    }
+
+    private func callWaitingButton(
+        title: String,
+        systemImage: String,
+        background: Color,
+        foreground: Color,
+        accessibilityIdentifier: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Image(systemName: systemImage)
+                    .foregroundColor(foreground)
+                    .frame(width: 60, height: 60)
+                    .background(background)
+                    .clipShape(Circle())
+                Text(title)
+                    .font(.caption)
+                    .foregroundColor(Color(hex: "#1D1D1D"))
+            }
+        }
+        .accessibilityIdentifier(accessibilityIdentifier)
+    }
+
+    @ViewBuilder
+    private var singleIncomingCallView: some View {
+        VStack {
+            Spacer()
+
             HStack {
                 Button(action: {
                     onRejectCall()
@@ -355,6 +433,8 @@ struct CallView_Previews: PreviewProvider {
             onEndCall: {},
             onRejectCall: {},
             onAnswerCall: {},
+            onHoldAndAcceptCall: {},
+            onEndAndAcceptCall: {},
             onMuteUnmuteSwitch: { _ in },
             onToggleSpeaker: {},
             onHold: { _ in },
