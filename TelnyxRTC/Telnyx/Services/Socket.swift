@@ -82,17 +82,26 @@ class Socket {
         self.socket?.disconnect()
     }
     
-    func sendMessage(message: String?) {
+    /// Sends a message over the signaling socket.
+    /// - Returns: `true` if the message was handed to the underlying WebSocket
+    ///   connection, `false` when the socket is not connected (the message was
+    ///   silently dropped) or the message/connection was missing. Callers that
+    ///   must know whether termination intent was delivered (e.g., hangup BYE)
+    ///   use this result to reconcile over a reattached signaling session.
+    @discardableResult
+    func sendMessage(message: String?) -> Bool {
         if self.isConnected == false {
             Logger.log.e(message: "Socket:: not connected...")
-            return
+            return false
         }
         if let message = message,
            let socket = self.socket {
             socket.write(string: message)
             Logger.log.verto(message: "Socket:: sendMessage() message: \(message)", direction: .outbound)
+            return true
         } else {
             Logger.log.e(message: "Socket:: sendMessage() Error sending message...")
+            return false
         }
     }
     
