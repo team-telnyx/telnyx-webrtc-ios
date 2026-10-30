@@ -119,6 +119,12 @@ extension AppDelegate : CXProviderDelegate {
         let callHandle = CXHandle(type: .generic, value: from)
         let callUpdate = CXCallUpdate()
         callUpdate.remoteHandle = callHandle
+        callUpdate.supportsDTMF = true
+        // Without holding support, CallKit offers only "End & Accept" when
+        // another call arrives during this one, and cannot swap between them.
+        callUpdate.supportsHolding = true
+        callUpdate.supportsGrouping = false
+        callUpdate.supportsUngrouping = false
         callUpdate.hasVideo = false
 
         provider.reportNewIncomingCall(with: uuid, update: callUpdate) { error in
