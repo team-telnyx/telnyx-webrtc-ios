@@ -154,8 +154,8 @@ final class TxClientPendingEndedCallTests: XCTestCase {
         let signalingId = UUID()
         let socket = RecordingSocket(connected: false)
         let call = makeCall(callId: appFacingId,
-                            signalingCallId: signalingId,
-                            socket: socket)
+                            socket: socket,
+                            signalingCallId: signalingId)
         client.calls[appFacingId] = call
         call.updateCallState(callState: .ACTIVE)
 
