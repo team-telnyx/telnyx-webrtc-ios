@@ -1,10 +1,17 @@
 # CHANGELOG
 
-## [Unreleased]
+## [4.2.3](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.2.3) (2026-10-30)
 
 ### Enhancements
 - **Call Setup Timings in Call Reports**: Inbound and outbound call reports now include a `[CallTimings]` breakdown of call setup (peer creation, SDP, ICE, DTLS, ringing, answer, and call active), in the same log format as the JS and Android SDKs ([#409](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/409)).
 - **Call Reports for Calls That Never Become Active**: Missed, rejected and failed calls now send a call report with their logs, as the JS SDK does. Previously no report was sent when no stats had been collected ([#409](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/409)).
+- **SDK Identity in Signaling**: Signaling messages, including login, invite and answer, now send `mobile_sdk_name` (`webrtc-ios`) and `mobile_sdk_version`. The existing `User-Agent` values are unchanged ([#420](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/420), [#421](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/421)).
+
+### Bug Fixes
+- **CallKit Call Waiting**: Answering a second call while another call is active, held or still being put on hold works again, so CallKit Hold & Accept and End & Accept connect the waiting call. In 4.2.2 the second answer was rejected. Answering the same call twice is still ignored, and each answer completes only its own CallKit action ([#423](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/423)).
+
+### Testing
+- **Integration Test Isolation**: Pull requests now run only the tests that need no credentials. Live integration tests run after merges to `main` or on manual dispatch, and remove the temporary credentials they create ([#410](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/410)).
 
 ## [4.2.2](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.2.2) (2026-10-05)
 
