@@ -310,21 +310,26 @@ final class TxClientCallWaitingTests: XCTestCase {
         XCTAssertEqual(client.calls.count, 2)
     }
 
-    func testAnswersSecondCallWhileFirstHoldAwaitsServerAcknowledgment() throws {
+    func testAnswersSecondCallRightAfterHoldIsSentBeforeServerAcknowledgment() throws {
         let offer = try makeOffer()
         let first = makeCall(offer: offer)
         let firstAction = answerAction(for: first, description: "A answered")
         client.answerFromCallkit(answerAction: firstAction.action)
         wait(for: [firstAction.done], timeout: 10)
+
+        // hold() sends the hold request and marks the call HELD locally right away;
+        // the SDK has no state for "hold sent, awaiting server acknowledgment".
+        // Answer B immediately, before any acknowledgment for A is modeled.
         first.hold()
-        XCTAssertEqual(first.callState, .ACTIVE)
+        XCTAssertEqual(first.callState, .HELD)
 
         let second = makeCall(offer: offer)
         let secondAction = answerAction(for: second, description: "B answered during hold")
         client.answerFromCallkit(answerAction: secondAction.action)
         wait(for: [secondAction.done], timeout: 10)
-        first.updateCallState(callState: .HELD)
 
+        XCTAssertEqual(first.callState, .HELD)
+        XCTAssertEqual(firstAction.action.fulfillCallCount, 1)
         XCTAssertEqual(second.callState, .ACTIVE)
         XCTAssertEqual(secondAction.action.fulfillCallCount, 1)
         XCTAssertEqual(secondAction.action.failCallCount, 0)
