@@ -119,6 +119,12 @@ extension AppDelegate : CXProviderDelegate {
         let callHandle = CXHandle(type: .generic, value: from)
         let callUpdate = CXCallUpdate()
         callUpdate.remoteHandle = callHandle
+        callUpdate.supportsDTMF = true
+        // Without holding support, CallKit offers only "End & Accept" when
+        // another call arrives during this one, and cannot swap between them.
+        callUpdate.supportsHolding = true
+        callUpdate.supportsGrouping = false
+        callUpdate.supportsUngrouping = false
         callUpdate.hasVideo = false
 
         provider.reportNewIncomingCall(with: uuid, update: callUpdate) { error in
@@ -147,6 +153,35 @@ extension AppDelegate : CXProviderDelegate {
                 print("AppDelegate:: AnswerCallAction transaction request failed: \(error.localizedDescription).")
             } else {
                 print("AppDelegate:: AnswerCallAction transaction request successful")
+            }
+        }
+    }
+
+    /// Answer a waiting call and hold or end the ongoing call in one CallKit transaction.
+    /// These are the same actions the system Hold & Accept / End & Accept sheet sends.
+    /// - Parameters:
+    ///   - waitingCallUUID: the UUID of the incoming call to answer.
+    ///   - ongoingCallUUID: the UUID of the call that is active or held.
+    ///   - holdOngoingCall: true to hold the ongoing call, false to end it.
+    ///   - completion: called on the main queue with whether CallKit accepted the request.
+    func executeAcceptWaitingCallAction(waitingCallUUID: UUID,
+                                        ongoingCallUUID: UUID,
+                                        holdOngoingCall: Bool,
+                                        completion: @escaping (Bool) -> Void) {
+        print("AppDelegate:: execute ACCEPT waiting call action: waiting [\(waitingCallUUID)] ongoing [\(ongoingCallUUID)] hold [\(holdOngoingCall)]")
+        let ongoingCallAction: CXCallAction = holdOngoingCall
+            ? CXSetHeldCallAction(call: ongoingCallUUID, onHold: true)
+            : CXEndCallAction(call: ongoingCallUUID)
+        let answerCallAction = CXAnswerCallAction(call: waitingCallUUID)
+        let transaction = CXTransaction(actions: [ongoingCallAction, answerCallAction])
+        callKitCallController.request(transaction) { error in
+            if let error = error {
+                print("AppDelegate:: Accept waiting call transaction request failed: \(error.localizedDescription).")
+            } else {
+                print("AppDelegate:: Accept waiting call transaction request successful")
+            }
+            DispatchQueue.main.async {
+                completion(error == nil)
             }
         }
     }
@@ -342,6 +377,9 @@ extension AppDelegate : CXProviderDelegate {
         } else {
             //request to end Previous Call
             print("AppDelegate:: End Previous Call")
+            if previousCall?.callInfo?.callId == action.callUUID {
+                previousCall = nil
+            }
         }
         telnyxClient.endCallFromCallkit(endAction: action)
     }

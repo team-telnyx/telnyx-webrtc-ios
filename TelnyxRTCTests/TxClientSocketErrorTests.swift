@@ -7,6 +7,7 @@
 
 import XCTest
 import CallKit
+import WebRTC
 @testable import TelnyxRTC
 
 /// Tests verifying that the SDK does not reply to server pings on an
@@ -380,15 +381,150 @@ class TxClientPingAuthTests: XCTestCase {
     }
 }
 
+// These tests generate local WebRTC offers and call the real answerFromCallkit
+// path. No SIP account, signaling connection, or physical CallKit UI is used.
+final class TxClientCallWaitingTests: XCTestCase {
+    private var client: TxClient!
+    private var socket: Socket!
+
+    override func setUp() {
+        super.setUp()
+        client = TxClient()
+        socket = Socket()
+    }
+
+    override func tearDown() {
+        for call in client.calls.values {
+            call.peer?.dispose()
+        }
+        client.calls.removeAll()
+        client = nil
+        socket = nil
+        super.tearDown()
+    }
+
+    func testAnswersSecondCallAfterFirstCallIsHeld() throws {
+        let offer = try makeOffer()
+        let first = makeCall(offer: offer)
+        let firstAction = answerAction(for: first, description: "A answered")
+        client.answerFromCallkit(answerAction: firstAction.action)
+        wait(for: [firstAction.done], timeout: 10)
+        XCTAssertEqual(first.callState, .ACTIVE)
+
+        first.hold()
+        // Model the server's successful hold acknowledgment.
+        first.updateCallState(callState: .HELD)
+        let second = makeCall(offer: offer)
+        let secondAction = answerAction(for: second, description: "B answered while A held")
+        client.answerFromCallkit(answerAction: secondAction.action)
+        wait(for: [secondAction.done], timeout: 10)
+
+        XCTAssertEqual(first.callState, .HELD)
+        XCTAssertEqual(second.callState, .ACTIVE)
+        XCTAssertEqual(firstAction.action.fulfillCallCount, 1)
+        XCTAssertEqual(secondAction.action.fulfillCallCount, 1)
+        XCTAssertEqual(firstAction.action.failCallCount, 0)
+        XCTAssertEqual(secondAction.action.failCallCount, 0)
+        XCTAssertEqual(client.calls.count, 2)
+    }
+
+    func testAnswersSecondCallRightAfterHoldIsSentBeforeServerAcknowledgment() throws {
+        let offer = try makeOffer()
+        let first = makeCall(offer: offer)
+        let firstAction = answerAction(for: first, description: "A answered")
+        client.answerFromCallkit(answerAction: firstAction.action)
+        wait(for: [firstAction.done], timeout: 10)
+
+        // hold() sends the hold request and marks the call HELD locally right away;
+        // the SDK has no state for "hold sent, awaiting server acknowledgment".
+        // Answer B immediately, before any acknowledgment for A is modeled.
+        first.hold()
+        XCTAssertEqual(first.callState, .HELD)
+
+        let second = makeCall(offer: offer)
+        let secondAction = answerAction(for: second, description: "B answered during hold")
+        client.answerFromCallkit(answerAction: secondAction.action)
+        wait(for: [secondAction.done], timeout: 10)
+
+        XCTAssertEqual(first.callState, .HELD)
+        XCTAssertEqual(firstAction.action.fulfillCallCount, 1)
+        XCTAssertEqual(second.callState, .ACTIVE)
+        XCTAssertEqual(secondAction.action.fulfillCallCount, 1)
+        XCTAssertEqual(secondAction.action.failCallCount, 0)
+        XCTAssertEqual(client.calls.count, 2)
+    }
+
+    func testOverlappingAnswersCompleteTheirOwnActionsAndTargetTheirUUIDs() throws {
+        let offer = try makeOffer()
+        let first = makeCall(offer: offer)
+        let second = makeCall(offer: offer)
+        let a = answerAction(for: first, description: "A action completed")
+        let b = answerAction(for: second, description: "B action completed")
+        client.answerFromCallkit(answerAction: a.action, customHeaders: ["X-Test": "A"])
+        client.answerFromCallkit(answerAction: b.action, customHeaders: ["X-Test": "B"])
+        wait(for: [a.done, b.done], timeout: 10)
+
+        XCTAssertEqual(first.answerCustomHeaders?["X-Test"], "A")
+        XCTAssertEqual(second.answerCustomHeaders?["X-Test"], "B")
+        XCTAssertEqual(a.action.fulfillCallCount, 1)
+        XCTAssertEqual(b.action.fulfillCallCount, 1)
+        XCTAssertEqual(a.action.failCallCount, 0)
+        XCTAssertEqual(b.action.failCallCount, 0)
+    }
+
+    private func makeCall(offer: String) -> Call {
+        let callId = UUID()
+        let call = Call(callId: callId, remoteSdp: offer, sessionId: "test-session",
+                        socket: socket, delegate: client, iceServers: [],
+                        enableCallReports: false)
+        client.calls[callId] = call
+        return call
+    }
+
+    private func answerAction(for call: Call, description: String)
+        -> (action: TrackingAnswerCallAction, done: XCTestExpectation) {
+        let done = expectation(description: description)
+        let action = TrackingAnswerCallAction(call: call.callInfo!.callId)
+        action.onFulfill = { done.fulfill() }
+        return (action, done)
+    }
+
+    private func makeOffer() throws -> String {
+        let factory = RTCPeerConnectionFactory()
+        let configuration = RTCConfiguration()
+        configuration.sdpSemantics = .unifiedPlan
+        let constraints = RTCMediaConstraints(mandatoryConstraints: nil, optionalConstraints: nil)
+        let peer = try XCTUnwrap(factory.peerConnection(with: configuration,
+                                                        constraints: constraints, delegate: nil))
+        defer { peer.close() }
+        let source = factory.audioSource(with: constraints)
+        let track = factory.audioTrack(with: source, trackId: "test-audio")
+        peer.add(track, streamIds: ["test-stream"])
+        let ready = expectation(description: "Local WebRTC offer generated")
+        var offer: RTCSessionDescription?
+        var offerError: Error?
+        peer.offer(for: constraints) { sdp, error in
+            offer = sdp
+            offerError = error
+            ready.fulfill()
+        }
+        wait(for: [ready], timeout: 10)
+        XCTAssertNil(offerError)
+        return try XCTUnwrap(offer).sdp
+    }
+}
+
 // MARK: - Test Helpers
 
 private final class TrackingAnswerCallAction: CXAnswerCallAction {
     private(set) var fulfillCallCount = 0
     private(set) var failCallCount = 0
+    var onFulfill: (() -> Void)?
 
     override func fulfill() {
         fulfillCallCount += 1
         super.fulfill()
+        onFulfill?()
     }
 
     override func fail() {

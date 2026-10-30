@@ -50,32 +50,6 @@ class CallTests: XCTestCase {
         waitForExpectations(timeout: timeout)
     }
 
-    func testTxClientAllowsOnlyOneActiveOrAnsweringCall() {
-        let client = TxClient()
-        let firstCallId = UUID()
-        let secondCallId = UUID()
-
-        XCTAssertTrue(client.claimActiveCallForTesting(firstCallId))
-        XCTAssertTrue(client.claimActiveCallForTesting(firstCallId))
-        XCTAssertFalse(client.claimActiveCallForTesting(secondCallId))
-
-        client.releaseActiveCallForTesting(secondCallId)
-        XCTAssertFalse(client.claimActiveCallForTesting(secondCallId))
-
-        client.releaseActiveCallForTesting(firstCallId)
-        XCTAssertTrue(client.claimActiveCallForTesting(secondCallId))
-    }
-
-    func testDisconnectReleasesActiveOrAnsweringCall() {
-        let client = TxClient()
-        let firstCallId = UUID()
-        let secondCallId = UUID()
-
-        XCTAssertTrue(client.claimActiveCallForTesting(firstCallId))
-        client.disconnect()
-        XCTAssertTrue(client.claimActiveCallForTesting(secondCallId))
-    }
-    
     /**
      Test that the invite message is sent through the socket with custom headers.
      - Wait socket connection to be completed.

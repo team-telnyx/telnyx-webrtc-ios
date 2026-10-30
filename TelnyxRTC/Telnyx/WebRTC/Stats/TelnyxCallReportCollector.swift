@@ -184,13 +184,14 @@ public class TelnyxCallReportCollector {
     ///   - host: WebSocket host URL (will be converted to HTTP)
     ///   - voiceSdkId: Optional voice SDK ID
     public func postReport(summary: CallReportSummary, callReportId: String, host: String, voiceSdkId: String? = nil) {
-        guard config.enabled && !statsBuffer.isEmpty else {
-            Logger.log.i(message: "TelnyxCallReportCollector: Skipping report post (enabled: \(config.enabled), stats: \(statsBuffer.count))")
-            return
-        }
-
         // Get collected logs (non-destructive for final report)
         let logs = logCollector?.getLogs()
+
+        // Like the JS SDK, calls that never became active still report their logs.
+        guard config.enabled && (!statsBuffer.isEmpty || !(logs ?? []).isEmpty) else {
+            Logger.log.i(message: "TelnyxCallReportCollector: Skipping report post (enabled: \(config.enabled), stats: \(statsBuffer.count), logs: \(logs?.count ?? 0))")
+            return
+        }
 
         // Only include segment in final report if intermediate flushes happened
         let segment: Int? = segmentIndex > 0 ? segmentIndex : nil
@@ -210,9 +211,9 @@ public class TelnyxCallReportCollector {
 
     /// Build an intermediate segment payload by snapshotting and clearing the current buffers.
     /// - Parameter summary: Call summary (typically without `endTimestamp` since the call is still active)
-    /// - Returns: A `CallReportPayload` with a `segment` index, or `nil` if already flushing or buffer is empty
+    /// - Returns: A `CallReportPayload` with a `segment` index, or `nil` if already flushing or both buffers are empty
     func flush(summary: CallReportSummary) -> CallReportPayload? {
-        guard !isFlushing && !statsBuffer.isEmpty else { return nil }
+        guard !isFlushing && (!statsBuffer.isEmpty || (logCollector?.getLogCount() ?? 0) > 0) else { return nil }
 
         isFlushing = true
         defer { isFlushing = false }
@@ -597,6 +598,14 @@ public class TelnyxCallReportCollector {
     ///   - context: Optional dictionary with structured event data
     public func addLogEntry(level: String, message: String, context: [String: Any]? = nil) {
         logCollector?.addEntry(level: level, message: message, context: context)
+    }
+
+    /// Add the `[CallTimings]` lines regardless of the configured log level, as the JS and
+    /// Android SDKs always include them in the report.
+    func addCallTimingsLogEntries(_ messages: [String]) {
+        messages.forEach {
+            logCollector?.addEntry(level: "info", message: $0, context: nil, ignoringLevelFilter: true)
+        }
     }
 
     /// Get the current stats buffer (for debugging)
