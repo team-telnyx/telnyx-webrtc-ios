@@ -277,6 +277,81 @@ class TxClientPingAuthTests: XCTestCase {
         XCTAssertTrue(mockDelegate.doneCallIds.isEmpty)
     }
 
+    /// A stale answer still waiting on its INVITE timeout must be failed and cleared when
+    /// the next push arrives (socket down, so no connected-socket teardown), and must not
+    /// survive into that push flow (VSUP-308).
+    func testStaleAnswerFailedWhenNextPushArrivesBeforeTimeout() throws {
+        let staleCallUUID = UUID()
+        let newPushUUID = UUID()
+        txClient.inviteTimeoutInterval = 0.01
+
+        let staleAnswerAction = TrackingAnswerCallAction(call: staleCallUUID)
+        txClient.answerFromCallkit(answerAction: staleAnswerAction)
+        try startPushFlow(callId: newPushUUID)
+        waitForWatchdog()
+
+        XCTAssertEqual(staleAnswerAction.failCallCount, 1)
+        XCTAssertEqual(staleAnswerAction.fulfillCallCount, 0)
+        XCTAssertFalse(txClient.hasPendingAnswerActionForTesting)
+        // The stale call is resolved by the failed CallKit action - no DONE or remote-ended
+        // events are emitted for it, and the new push flow keeps its own placeholder.
+        XCTAssertTrue(mockDelegate.remoteEndedCallIds.isEmpty)
+        XCTAssertTrue(mockDelegate.doneCallIds.isEmpty)
+        XCTAssertNotNil(txClient.calls[newPushUUID])
+    }
+
+    /// The INVITE watchdog armed for push call A must not terminate the newer push flow B
+    /// that arrived before A's timer fired (VSUP-308).
+    func testStaleInviteTimerCannotTerminateNextPushFlow() throws {
+        let stalePushUUID = UUID()
+        let newPushUUID = UUID()
+        txClient.inviteTimeoutInterval = 0.01
+
+        // Push flow for A, answered and registered - arms the INVITE watchdog for A.
+        try startPushFlow(callId: stalePushUUID)
+        txClient.onSocketConnected()
+        let staleAnswerAction = TrackingAnswerCallAction(call: stalePushUUID)
+        txClient.answerFromCallkit(answerAction: staleAnswerAction)
+        txClient.onMessageReceived(message: gatewayStateMessage(state: "REGED"))
+
+        // The next push arrives BEFORE A's watchdog fires. The socket is down, so the
+        // connected-socket teardown does not run and A's timer stays armed.
+        try startPushFlow(callId: newPushUUID)
+        waitForWatchdog()
+
+        // A's answer was failed and cleared by the new push...
+        XCTAssertEqual(staleAnswerAction.failCallCount, 1)
+        XCTAssertEqual(staleAnswerAction.fulfillCallCount, 0)
+        XCTAssertFalse(txClient.hasPendingAnswerActionForTesting)
+        // ...and A's delayed watchdog did not terminate the newer push flow.
+        XCTAssertTrue(mockDelegate.remoteEndedCallIds.isEmpty)
+        XCTAssertTrue(mockDelegate.doneCallIds.isEmpty)
+        XCTAssertNotNil(txClient.calls[newPushUUID])
+    }
+
+    /// A pending CallKit answer for a different call must not be consumed to auto-answer
+    /// this push INVITE (VSUP-308): the stale action is failed and the push call is
+    /// propagated to the app without being answered.
+    func testMismatchedPendingAnswerIsFailedInsteadOfAutoAnsweringPushInvite() throws {
+        let pushCallUUID = UUID()
+        try startPushFlow(callId: pushCallUUID)
+
+        // CallKit answer for an unrelated call arrives after the push was processed.
+        let staleAnswerAction = TrackingAnswerCallAction(call: UUID())
+        txClient.answerFromCallkit(answerAction: staleAnswerAction)
+
+        // INVITE for the push flow arrives - signaling callID differs from the push call_id.
+        txClient.onMessageReceived(message: """
+        {"jsonrpc":"2.0","method":"telnyx_rtc.invite","params":{"sdp":"v=0\\r\\n","callID":"\(UUID().uuidString)","caller_id_name":"","caller_id_number":"","telnyx_session_id":"","telnyx_leg_id":""}}
+        """)
+
+        XCTAssertEqual(staleAnswerAction.failCallCount, 1)
+        XCTAssertEqual(staleAnswerAction.fulfillCallCount, 0)
+        XCTAssertFalse(txClient.hasPendingAnswerActionForTesting)
+        // The push call was created and propagated, but not auto-answered.
+        XCTAssertNotNil(txClient.calls[pushCallUUID])
+    }
+
     private func waitForWatchdog() {
         let expectation = expectation(description: "Wait beyond INVITE watchdog")
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { expectation.fulfill() }

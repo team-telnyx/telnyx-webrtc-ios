@@ -3,7 +3,7 @@
 ## [Unreleased]
 
 ### Bug Fixes
-- **Stale CallKit Answer on the Next Push Call**: An answer from CallKit with no VoIP push in flight and no call is now failed and cleared by the INVITE timeout, instead of being kept and used to auto-answer the next push INVITE without a CallKit answer, which left the caller on a silent line. An answer made before `processVoIPNotification` is still used for its push.
+- **Stale CallKit Answer on the Next Push Call**: An answer from CallKit with no VoIP push in flight and no call is now failed and cleared by the INVITE timeout, instead of being kept and used to auto-answer the next push INVITE without a CallKit answer, which left the caller on a silent line. Pending answers are now also scoped to their own call, so a stale answer for an unrelated call is failed instead of being consumed by the next push INVITE, and a delayed stale timer can no longer terminate the newer push flow. An answer made before `processVoIPNotification` is still used for its push.
 
 ## [4.2.2](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.2.2) (2026-10-05)
 
