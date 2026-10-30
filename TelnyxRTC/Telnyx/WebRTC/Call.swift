@@ -229,6 +229,8 @@ public class Call {
     
     var statsReporter: WebRTCStatsReporter?
     var callReportCollector: TelnyxCallReportCollector?
+    /// Records call-establishment milestones and adds the `[CallTimings]` block to the call report.
+    private(set) var timingRecorder: TelnyxCallTimingRecorder?
     var onInboundRtpSample: ((Call, Int) -> Void)?
     
     /// Flag to track if we're currently performing ICE restart
@@ -498,6 +500,13 @@ public class Call {
 
         // Initialize call report collector
         self.configureCallReportCollector()
+
+        // An inbound call starts when its INVITE arrives. Push placeholders have no SDP yet.
+        if self.direction == .INBOUND && !remoteSdp.isEmpty {
+            self.startCallTimings(direction: .inbound)
+            self.timingRecorder?.record(.inviteReceived)
+            self.timingRecorder?.record(.remoteSdpReceived)
+        }
     }
     
     //Contructor for attachCalls
@@ -615,6 +624,7 @@ public class Call {
                         preferredCodecs: [TxCodecCapability]? = nil,
                         debug:Bool = false) {
         self.direction = .OUTBOUND
+        self.startCallTimings(direction: .outbound)
         self.inviteCustomHeaders = customHeaders
         self.callInfo?.callerName = callerName
         self.callInfo?.callerNumber = callerNumber
@@ -628,7 +638,7 @@ public class Call {
         // - Start the reporter once the peer connection is created
         self.configureStatsReporter()
         Logger.log.i(message: "[TRICKLE-ICE] Call:: Creating Peer for outbound call with useTrickleIce = \(self.useTrickleIce)")
-        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate, useTrickleIce: self.useTrickleIce, isAnswering: false)
+        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate, useTrickleIce: self.useTrickleIce, isAnswering: false, timingRecorder: self.timingRecorder)
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
@@ -669,6 +679,7 @@ public class Call {
             }
             
             CallTimingBenchmark.mark(CallBenchmarkMilestone.remoteDescriptionSet)
+            self.timingRecorder?.record(.remoteSdpSet)
             
             self.answerCustomHeaders = custumHeaders
             self.updateCallState(callState: .ACTIVE)
@@ -698,6 +709,7 @@ public class Call {
         let remoteDescription = RTCSessionDescription(type: .offer, sdp: sdp)
         self.peer?.connection?.setRemoteDescription(remoteDescription, completionHandler: { (error) in
             guard let error = error else {
+                self.timingRecorder?.record(.remoteSdpSet)
                 return
             }
             Logger.log.e(message: "Call:: Error setting remote description: \(error)")
@@ -796,6 +808,7 @@ public class Call {
         // Setup or remove ICE connection state monitoring based on call state
         switch callState {
         case .ACTIVE:
+            timingRecorder?.record(.callActive)
             setupIceConnectionStateMonitoring()
             setupPeerConnectionStateMonitoring()
             setupRttMonitoring()
@@ -913,6 +926,7 @@ extension Call {
         // Start benchmarking for inbound calls when answer is called
         CallTimingBenchmark.start(isOutbound: false)
         CallTimingBenchmark.mark(CallBenchmarkMilestone.acceptCallStarted)
+        self.timingRecorder?.record(.answerInitiated)
         
         self.stopRingtone()
         self.stopRingbackTone()
@@ -931,7 +945,7 @@ extension Call {
         self.enableQualityMetrics = debug
         self.configureStatsReporter()
         Logger.log.i(message: "[TRICKLE-ICE] Call:: Creating Peer for inbound call answer with useTrickleIce = \(self.useTrickleIce)")
-        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate, useTrickleIce: self.useTrickleIce, isAnswering: true)
+        self.peer = Peer(iceServers: self.iceServers, forceRelayCandidate: self.forceRelayCandidate, useTrickleIce: self.useTrickleIce, isAnswering: true, timingRecorder: self.timingRecorder)
         self.startStatsReporter()
         self.peer?.delegate = self
         self.peer?.socket = self.socket
@@ -1075,6 +1089,17 @@ extension Call {
             self.onInboundRtpSample?(self, packetsReceived)
         }
         self.callReportCollector = collector
+    }
+
+    /// Starts recording call-establishment milestones. Reattached calls are not timed.
+    private func startCallTimings(direction: TelnyxCallTimingRecorder.Direction) {
+        guard enableCallReports, timingRecorder == nil else { return }
+
+        let recorder = TelnyxCallTimingRecorder(direction: direction, useTrickleIce: useTrickleIce)
+        recorder.onCallTimingsReady = { [weak self] lines in
+            self?.callReportCollector?.addCallTimingsLogEntries(lines)
+        }
+        self.timingRecorder = recorder
     }
 
     func setCallReportMediaVerificationSamplingEnabled(_ enabled: Bool) {
@@ -1533,6 +1558,7 @@ extension Call : PeerDelegate {
             
             let message = inviteMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
+            self.timingRecorder?.record(.inviteSent)
             self.updateCallState(callState: .CONNECTING)
             Logger.log.s(message: "Send invite >> \(message)")
             self.playRingbackTone()
@@ -1559,6 +1585,7 @@ extension Call : PeerDelegate {
             )
             let message = answerMessage.encode() ?? ""
             self.socket?.sendMessage(message: message)
+            self.timingRecorder?.record(.answerSent)
             Logger.log.s(message:"Send answer >> \(answerMessage)")
 
             // Flush queued ICE candidates after sending ANSWER (for trickle ICE on answering side)
@@ -1619,6 +1646,7 @@ extension Call {
             }
             break
         case .MEDIA:
+            self.timingRecorder?.record(.earlyMedia)
             self.stopRingtone()
             self.stopRingbackTone()
             //Whenever we place a call from a client and the "Generate ring back tone" is enabled in the portal,
@@ -1630,6 +1658,8 @@ extension Call {
                     Logger.log.w(message: "Call:: .MEDIA missing SDP")
                     return
                 }
+                // An ANSWER that follows early media may carry no SDP, so this is when it arrives.
+                self.timingRecorder?.record(.remoteSdpReceived)
                 self.remoteSdp = remoteSdp
                 self.streamMedia(sdp: remoteSdp)
             }
@@ -1637,12 +1667,14 @@ extension Call {
             break
 
         case .ANSWER:
+            self.timingRecorder?.record(.callAnsweredByRemote)
             self.stopRingtone()
             self.stopRingbackTone()
             //When the remote peer answers the call
             //Set the remote SDP into the current RTCPConnection and the call should start!
             if let params = message.params {
                 if let remoteSdp = params["sdp"] as? String {
+                    self.timingRecorder?.record(.remoteSdpReceived)
                     self.remoteSdp = remoteSdp
                 } else {
                     Logger.log.w(message: "Call:: .ANSWER missing SDP")
@@ -1686,6 +1718,7 @@ extension Call {
             break;
 
         case .RINGING:
+            self.timingRecorder?.record(.remoteRinging)
 
             if let params = message.params {
                 if let telnyxSessionId = params["telnyx_session_id"] as? String,

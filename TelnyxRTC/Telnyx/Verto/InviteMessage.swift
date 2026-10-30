@@ -48,6 +48,8 @@ class InviteMessage : Message {
         params["sessionId"] = sessionId
         params["sdp"] = sdp
         params["dialogParams"] = dialogParams
+        // `mobile_sdk_name` + `mobile_sdk_version` are added centrally in
+        // `Message.init(_:method:)` (VSDK-768 / VSDK-764).
         if trickle {
             params["trickle"] = true
         }

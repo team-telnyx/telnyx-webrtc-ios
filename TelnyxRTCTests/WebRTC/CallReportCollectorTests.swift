@@ -231,6 +231,8 @@ class CallReportCollectorTests: XCTestCase {
     
     func testFlushWithEmptyBufferReturnsNil() {
         // Don't start the collector, so buffer remains empty
+        collector = TelnyxCallReportCollector(config: CallReportConfig(enabled: true, interval: 0.1),
+                                              logCollectorConfig: LogCollectorConfig(enabled: false))
         
         let summary = CallReportSummary(
             callId: "test-call-123",
@@ -312,6 +314,54 @@ class CallReportCollectorTests: XCTestCase {
         // No assertion needed - just ensuring no crash
     }
     
+    /// Like the JS SDK, a call that never became active still reports its logs.
+    func testPostReportSendsLogsWhenNoStatsWereCollected() throws {
+        let collector = CapturingCallReportCollector(config: CallReportConfig(enabled: true, interval: 0.1),
+                                                     logCollectorConfig: LogCollectorConfig(enabled: true, level: "debug"))
+        collector.addCallTimingsLogEntries(["[CallTimings][inbound][trickle] Call establishment timing breakdown:"])
+        collector.stop()
+
+        collector.postReport(summary: makeDoneSummary(), callReportId: "report-123", host: "wss://rtc.telnyx.com")
+
+        let payload = try XCTUnwrap(collector.sentPayloads.first)
+        XCTAssertEqual(collector.sentPayloads.count, 1)
+        XCTAssertTrue(payload.stats.isEmpty)
+        XCTAssertTrue(payload.logs?.contains { $0.message.hasPrefix("[CallTimings]") } ?? false)
+    }
+
+    func testPostReportIsSkippedWithoutStatsOrLogs() {
+        let collector = CapturingCallReportCollector(config: CallReportConfig(enabled: true, interval: 0.1),
+                                                     logCollectorConfig: LogCollectorConfig(enabled: false))
+        collector.stop()
+
+        collector.postReport(summary: makeDoneSummary(), callReportId: "report-123", host: "wss://rtc.telnyx.com")
+
+        XCTAssertTrue(collector.sentPayloads.isEmpty)
+    }
+
+    func testFlushWithOnlyLogsReturnsPayload() {
+        collector.addLogEntry(level: "info", message: "Call state changed")
+
+        let payload = collector.flush(summary: makeDoneSummary())
+
+        XCTAssertNotNil(payload)
+        XCTAssertTrue(payload?.stats.isEmpty ?? false)
+        XCTAssertFalse(payload?.logs?.isEmpty ?? true)
+    }
+
+    private func makeDoneSummary() -> CallReportSummary {
+        CallReportSummary(
+            callId: "test-call-123",
+            state: "done",
+            durationSeconds: nil,
+            telnyxSessionId: "session-456",
+            telnyxLegId: "leg-789",
+            voiceSdkSessionId: "test-session",
+            startTimestamp: ISO8601DateFormatter().string(from: Date()),
+            endTimestamp: nil
+        )
+    }
+
     // MARK: - Integration Tests
     
     func testCallStateTransitionTriggersReport() {
@@ -638,5 +688,14 @@ class CallReportCollectorTests: XCTestCase {
             file: file,
             line: line
         )
+    }
+}
+
+/// Records payloads instead of uploading them.
+private final class CapturingCallReportCollector: TelnyxCallReportCollector {
+    private(set) var sentPayloads: [CallReportPayload] = []
+
+    override func sendPayload(_ payload: CallReportPayload, callReportId: String, host: String, voiceSdkId: String? = nil) {
+        sentPayloads.append(payload)
     }
 }

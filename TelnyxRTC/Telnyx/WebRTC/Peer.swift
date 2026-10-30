@@ -80,6 +80,9 @@ class Peer : NSObject, WebRTCEventHandler {
     weak var delegate: PeerDelegate?
     var connection : RTCPeerConnection?
 
+    /// Records call-establishment milestones for the call report. Owned by the `Call`.
+    private weak var timingRecorder: TelnyxCallTimingRecorder?
+
     /// Configured ICE servers for this peer connection
     /// Used to validate gathered ICE candidates against configured servers
     private var configuredIceServers: [RTCIceServer]
@@ -206,7 +209,8 @@ class Peer : NSObject, WebRTCEventHandler {
                   isAttach: Bool = false,
                   forceRelayCandidate: Bool = false,
                   useTrickleIce: Bool = false,
-                  isAnswering: Bool = false) {
+                  isAnswering: Bool = false,
+                  timingRecorder: TelnyxCallTimingRecorder? = nil) {
         self.configuredIceServers = iceServers
         self.isAnswering = isAnswering
 
@@ -228,16 +232,20 @@ class Peer : NSObject, WebRTCEventHandler {
         let constraints = RTCMediaConstraints(mandatoryConstraints: nil,
                                               optionalConstraints: ["DtlsSrtpKeyAgreement": kRTCMediaConstraintsValueTrue])
         self.connection = Peer.factory.peerConnection(with: config, constraints: constraints, delegate: nil)
+        self.timingRecorder = timingRecorder
+        timingRecorder?.record(.peerCreated)
 
         super.init()
         self.useTrickleIce = useTrickleIce
         Logger.log.i(message: "[TRICKLE-ICE] Peer:: Initialized with useTrickleIce = \(useTrickleIce), isAnswering = \(isAnswering)")
         self.createMediaSenders()
+        self.timingRecorder?.record(.mediaDevicesAcquired)
         if (!isAttach) {
             self.configureAudioSession()
         }
         //listen RTCPeer connection events
         self.connection?.delegate = self
+        self.timingRecorder?.record(.peerSetupComplete)
     }
 
     private func createMediaSenders() {
@@ -402,6 +410,7 @@ class Peer : NSObject, WebRTCEventHandler {
                                              optionalConstraints: nil)
         self.negotiationEnded = false
         self.endOfCandidatesSent = false
+        self.timingRecorder?.record(.sdpNegotiationStarted)
         self.connection?.offer(for: constrains) { (sdp, error) in
 
             if let error = error {
@@ -414,10 +423,14 @@ class Peer : NSObject, WebRTCEventHandler {
                 Logger.log.w(message: "Peer:: SDP is missing")
                 return
             }
+            self.timingRecorder?.record(.localSdpCreated)
 
             //Once we set the local description, the ICE negotiation starts and at least one ICE candidate should be created.
             //Check RTCPeerConnectionDelegate :: didGenerate candidate
             self.connection?.setLocalDescription(sdp, completionHandler: { (error) in
+                if error == nil {
+                    self.timingRecorder?.record(.localSdpSet)
+                }
                 // For Trickle ICE, send the SDP immediately via delegate without waiting for candidates
                 if self.useTrickleIce {
                     Logger.log.i(message: "[TRICKLE-ICE] Peer:: offer() completed - sending SDP immediately without candidates (Trickle ICE mode)")
@@ -469,6 +482,7 @@ class Peer : NSObject, WebRTCEventHandler {
         self.callLegID = callLegId
         Logger.log.i(message: "[TRICKLE-ICE] Peer:: answer() - callLegID received: \(callLegId) (note: using callId for trickle ICE)")
 
+        self.timingRecorder?.record(.sdpNegotiationStarted)
         self.connection?.answer(for: constrains) { (sdp, error) in
 
             if let error = error {
@@ -482,10 +496,14 @@ class Peer : NSObject, WebRTCEventHandler {
                 Logger.log.w(message: "Peer:: SDP is missing")
                 return
             }
+            self.timingRecorder?.record(.localSdpCreated)
 
             //Once we set the local description, the ICE negotiation starts and at least one ICE candidate should be created.
             //Check RTCPeerConnectionDelegate :: didGenerate candidate
             self.connection?.setLocalDescription(sdp, completionHandler: { (error) in
+                if error == nil {
+                    self.timingRecorder?.record(.localSdpSet)
+                }
                 // For Trickle ICE, send the SDP immediately via delegate without waiting for candidates
                 if self.useTrickleIce {
                     Logger.log.i(message: "[TRICKLE-ICE] Peer:: answer() completed - sending SDP immediately without candidates (Trickle ICE mode)")
@@ -522,6 +540,15 @@ class Peer : NSObject, WebRTCEventHandler {
      - Waits for candidates to accumulate using a timer
      - Sends SDP with all candidates included after timeout
      */
+    /// `true` for `srflx` and `relay` candidates, read from the candidate's `typ` attribute.
+    static func isServerReflexiveOrRelay(_ candidateSdp: String) -> Bool {
+        let fields = candidateSdp.split(separator: " ")
+        guard let typIndex = fields.firstIndex(of: "typ"), typIndex + 1 < fields.endIndex else {
+            return false
+        }
+        return fields[typIndex + 1] == "srflx" || fields[typIndex + 1] == "relay"
+    }
+
     fileprivate func startNegotiation(peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
         guard !isDisposed else {
             Logger.log.i(message: "[TRICKLE-ICE] Peer:: Skipping negotiation timer - peer is disposed")
@@ -932,6 +959,9 @@ extension Peer : RTCPeerConnectionDelegate {
         onIceConnectionChange?(newState)
         onIceConnectionStateChange?(newState)
         onIceConnectionStateChangeForLog?(newState)
+        if newState == .connected || newState == .completed {
+            timingRecorder?.record(.iceConnected)
+        }
         Logger.log.i(message: "Peer:: connection didChange ICE connection state: [\(newState.telnyx_to_string().uppercased())]")
         
         // Track ICE connection state changes for benchmarking
@@ -958,6 +988,10 @@ extension Peer : RTCPeerConnectionDelegate {
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCPeerConnectionState) {
         onPeerConnectionStateChange?(newState)
         onPeerConnectionStateChangeForLog?(newState)
+        // The peer connection only reports connected once ICE and DTLS are both connected.
+        if newState == .connected {
+            timingRecorder?.record(.dtlsConnected)
+        }
         Logger.log.i(message: "Peer:: connection didChange peer connection state: [\(newState.telnyx_to_string().uppercased())]")
         
         // Track peer connection state changes for benchmarking
@@ -984,6 +1018,14 @@ extension Peer : RTCPeerConnectionDelegate {
     func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {
         onIceGatheringChange?(newState)
         onIceGatheringStateChangeForLog?(newState)
+        switch newState {
+        case .gathering:
+            timingRecorder?.record(.iceGatheringStarted)
+        case .complete:
+            timingRecorder?.record(.iceGatheringComplete)
+        default:
+            break
+        }
         Logger.log.s(message: "[TRICKLE-ICE] Peer:: ICE gathering state changed to: [\(newState.telnyx_to_string().uppercased())] (useTrickleIce: \(useTrickleIce), callId: \(callId ?? "nil"))")
         
         // Track ICE gathering state changes for benchmarking
@@ -1022,6 +1064,10 @@ extension Peer : RTCPeerConnectionDelegate {
         
         // Mark first ICE candidate for benchmarking
         CallTimingBenchmark.markFirstCandidate()
+        timingRecorder?.record(.firstIceCandidate)
+        if Peer.isServerReflexiveOrRelay(candidate.sdp) {
+            timingRecorder?.record(.firstSrflxRelayCandidate)
+        }
 
         // Record every gathered candidate for the call report, including
         // candidates that legacy non-trickle handling later declines to send.
