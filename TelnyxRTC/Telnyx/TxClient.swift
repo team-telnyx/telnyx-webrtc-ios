@@ -878,8 +878,18 @@ public class TxClient {
             pendingAnswerHeaders = customHeaders
             /// Set call quality metrics
             self.enableQualityMetrics = debug
+            // The push for this answer may still be on its way. If no INVITE follows, the
+            // timeout fails and clears the action so the next push INVITE is not auto-answered with it.
+            self.currentCallId = answerAction.callUUID
+            startInviteTimeout()
         }
     }
+
+#if DEBUG
+    internal var hasPendingAnswerActionForTesting: Bool {
+        answerCallAction != nil
+    }
+#endif
 
     private func resetPushVariables() {
         answerCallAction = nil
@@ -917,8 +927,12 @@ public class TxClient {
         Logger.log.i(message: "TxClient:: Starting INVITE timeout timer (\(inviteTimeoutInterval) seconds)")
         isWaitingForInviteAfterPush = true
         
+        // VSUP-308: snapshot the call this timer belongs to. A delayed expiry must not
+        // terminate a newer call that already replaced this one (e.g. the next push
+        // arriving before the stale timer fires).
+        let timedOutCallId = currentCallId
         inviteTimeoutTimer = Timer.scheduledTimer(withTimeInterval: inviteTimeoutInterval, repeats: false) { [weak self] _ in
-            self?.handleInviteTimeout()
+            self?.handleInviteTimeout(timedOutCallId: timedOutCallId)
         }
     }
     
@@ -930,7 +944,13 @@ public class TxClient {
     }
     
     /// Handles the timeout when no INVITE is received after accepting a VoIP push call
-    private func handleInviteTimeout() {
+    private func handleInviteTimeout(timedOutCallId capturedCallId: UUID? = nil) {
+        // VSUP-308: ignore a timer that was armed for a call that is no longer the
+        // current one, so a delayed expiry cannot terminate a newer call's state.
+        if let capturedCallId = capturedCallId, capturedCallId != currentCallId {
+            Logger.log.i(message: "TxClient:: INVITE timeout ignored - timer was started for call \(capturedCallId), current call is \(currentCallId)")
+            return
+        }
         Logger.log.w(message: "TxClient:: INVITE timeout - No INVITE received within \(inviteTimeoutInterval) seconds after attachCalls")
         let timedOutCallId = currentCallId
         let pendingAnswerAction = answerCallAction
@@ -1509,19 +1529,28 @@ extension TxClient {
         if isCallFromPush {
             self.delegate?.onPushCall(call: call)
             //Answer is pending from push - Answer Call
-            if(answerCallAction != nil){
-                let pendingAction = answerCallAction
-                call.answer(customHeaders: pendingAnswerHeaders,
-                            debug: enableQualityMetrics) { [weak self] answered in
-                    guard let self else { return }
-                    if answered {
-                        pendingAction?.fulfill()
-                    } else {
-                        pendingAction?.fail()
+            // VSUP-308: only consume a pending CallKit answer that belongs to this call.
+            if let pendingAction = answerCallAction {
+                if pendingAction.callUUID == appFacingCallId {
+                    call.answer(customHeaders: pendingAnswerHeaders,
+                                debug: enableQualityMetrics) { [weak self] answered in
+                        guard let self else { return }
+                        if answered {
+                            pendingAction.fulfill()
+                        } else {
+                            pendingAction.fail()
+                        }
+                        if self.answerCallAction === pendingAction {
+                            self.resetPushVariables()
+                        }
                     }
-                    if self.answerCallAction === pendingAction {
-                        self.resetPushVariables()
-                    }
+                } else {
+                    // The pending answer belongs to a different call - do not auto-answer
+                    // this INVITE with it. Fail it so CallKit resolves the stale answer.
+                    Logger.log.i(message: "TxClient:: createIncomingCall - pending answer \(pendingAction.callUUID) does not match call \(appFacingCallId), failing it")
+                    answerCallAction = nil
+                    pendingAnswerHeaders = [:]
+                    pendingAction.fail()
                 }
             }
             
@@ -1566,6 +1595,23 @@ extension TxClient {
         }
 
         self.pushMetaData = pushMetaData
+        // An answer tapped before this push arrived is now handled by the push flow and its own timeout.
+        if !isCallFromPush {
+            stopInviteTimeout()
+        }
+        // VSUP-308: a pending CallKit answer that does not belong to this push's call
+        // must not survive into the new push flow - it would otherwise be consumed to
+        // auto-answer the next INVITE without a live CallKit answer. Fail it so
+        // CallKit resolves the stale answer.
+        if let pushCallIdString = pushMetaData["call_id"] as? String,
+           let pushCallId = UUID(uuidString: pushCallIdString),
+           let pendingAction = answerCallAction,
+           pendingAction.callUUID != pushCallId {
+            Logger.log.i(message: "TxClient:: processVoIPNotification - failing stale answer action for unrelated call \(pendingAction.callUUID)")
+            answerCallAction = nil
+            pendingAnswerHeaders = [:]
+            pendingAction.fail()
+        }
         // A VoIP push is authoritative for this incoming call. Update the
         // cached ID before any reconnect path can call the normal connect API.
         self.voiceSdkId = rtc_id
