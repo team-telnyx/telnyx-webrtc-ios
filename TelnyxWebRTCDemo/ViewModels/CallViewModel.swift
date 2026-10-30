@@ -8,6 +8,8 @@ class CallViewModel: ObservableObject {
     @Published var isSpeakerOn: Bool = false
     @Published var callState: CallState = .DONE(reason: nil)
     @Published var isOnHold: Bool = false
+    /// True when the incoming call arrived while another call is active or held.
+    @Published var isCallWaiting: Bool = false
     @Published var showDTMFKeyboard: Bool = false
     @Published var showCallMetricsPopup = false
     @Published var callQualityMetrics: CallQualityMetrics? = nil
