@@ -125,6 +125,30 @@ public extension Notification.Name {
 /// }
 /// ```
 public class TxClient {
+
+    /// Retained identity of a call the app ended locally while the signaling
+    /// socket was disconnected (see `Call.byeMayBeLost`). The hangup BYE was
+    /// silently dropped, so the remote leg can still be alive; when the
+    /// signaling session is reestablished the server may reattach the ended
+    /// call. In that case the reattached session must carry the pending BYE
+    /// instead of restoring local media (which would resurrect a dead leg).
+    struct PendingEndedCallRecord {
+        /// The app-facing call ID reported to the application.
+        let appFacingCallId: UUID
+        /// The call ID used on the signaling socket (may differ from the
+        /// app-facing one in push flows).
+        let signalingCallId: UUID
+        /// Termination cause the app requested when hanging up.
+        let causeCode: CauseCode
+        /// When the record was created; used for retention expiry.
+        let recordedAt: Date
+        /// Set once the pending BYE was delivered over a reattached signaling
+        /// session. The record is kept (until expiry) so that duplicate or
+        /// repeated ATTACH messages cannot resurrect the ended call.
+        var reconciled: Bool = false
+        /// When the pending BYE was reconciled, if it was.
+        var reconciledAt: Date? = nil
+    }
     /// Tracks the internal VoIP push handoff before a real incoming `Call` may exist.
     ///
     /// This state is intentionally separate from `CallState`: it coordinates socket/login/INVITE
@@ -166,6 +190,14 @@ public class TxClient {
     internal var sendFileLogs: Bool = false
     private var attachCallId: String?
     internal var pendingAttachCallIdForTesting: String? { attachCallId }
+    /// Test seam that lets unit tests inject a socket and signaling session
+    /// without opening a real network connection. Not part of the public API.
+    #if DEBUG
+    internal func injectSignalingForTesting(socket: Socket?, sessionId: String?) {
+        self.socket = socket
+        self.sessionId = sessionId
+    }
+    #endif
     private var pushMetaData: [String:Any]?
     private let AUTH_ERROR_CODE = "-32001"
     private var reconnectTimeoutTimer: DispatchSourceTimer?
@@ -176,7 +208,22 @@ public class TxClient {
     private var pendingAnonymousLoginMessage: AnonymousLoginMessage?
     private var forceRelayForNextRecoveredCall = false
     private let forceRelayForNextRecoveredCallLock = NSLock()
-    
+    /// Retains calls that were hung up while the signaling socket was down:
+    /// their BYE was silently dropped by `Socket.sendMessage`, so the remote
+    /// leg can still be alive. When the session is reestablished, an ATTACH for
+    /// any of these identities is treated as pending termination: the BYE is
+    /// delivered over the reattached session instead of restoring local media.
+    /// Keyed by the app-facing call ID; both the app-facing and signaling IDs
+    /// resolve to the same record (see `PendingEndedCallRecord`).
+    internal var callsEndedWithoutBye: [UUID: PendingEndedCallRecord] = [:]
+    /// Guards `callsEndedWithoutBye`: call-state callbacks run on app threads
+    /// while signaling messages arrive on the socket receive queue.
+    private let pendingEndedCallsLock = NSLock()
+    /// How long a pending ended-call record is kept before expiry.
+    private static let pendingEndedCallRetention: TimeInterval = 24 * 60 * 60
+    /// Upper bound on retained pending ended-call records to bound memory use.
+    private static let pendingEndedCallMaxRecords = 50
+
     /// AI Assistant Manager for handling AI-related functionality
     public let aiAssistantManager = AIAssistantManager()
 
@@ -1693,6 +1740,17 @@ extension TxClient: CallProtocol {
            let callId = call.callInfo?.callId {
             Logger.log.i(message: "TxClient:: Remove call")
             self.calls.removeValue(forKey: callId)
+            // Retain the termination intent of calls hung up while the signaling
+            // socket was down: their BYE was dropped, so when the session is
+            // reestablished a subsequent ATTACH must terminate the remote leg
+            // instead of restoring the ended call locally.
+            if call.byeMayBeLost, case let .DONE(terminationReason) = call.callState {
+                let causeCode = terminationReason?.causeCode
+                    .flatMap { CauseCode(rawValue: $0) } ?? .NORMAL_CLEARING
+                self.recordPendingEndedCall(appFacingCallId: callId,
+                                            signalingCallId: call.signalingCallId,
+                                            causeCode: causeCode)
+            }
             // Clean up reverse mapping if this was a push call with different signaling ID
             if call.signalingCallId != callId {
                 socketToAppCallId.removeValue(forKey: call.signalingCallId)
@@ -1717,7 +1775,111 @@ extension TxClient: CallProtocol {
             }
         }
     }
+}
 
+// MARK: - Pending ended-call reconciliation
+
+extension TxClient {
+
+    /// Retains the termination intent of a call the app hung up while the
+    /// signaling socket was down (`Call.byeMayBeLost`): its BYE was silently
+    /// dropped by `Socket.sendMessage`, so the remote leg can still be alive.
+    /// The record is keyed by both the app-facing and the signaling call ID so
+    /// a subsequent ATTACH for either identity resolves to the same record
+    /// (mirroring `socketToAppCallId`).
+    internal func recordPendingEndedCall(appFacingCallId: UUID,
+                                         signalingCallId: UUID,
+                                         causeCode: CauseCode) {
+        pendingEndedCallsLock.lock()
+        defer { pendingEndedCallsLock.unlock() }
+        purgeExpiredPendingEndedCallsLocked()
+        let record = PendingEndedCallRecord(appFacingCallId: appFacingCallId,
+                                            signalingCallId: signalingCallId,
+                                            causeCode: causeCode,
+                                            recordedAt: Date())
+        self.callsEndedWithoutBye[appFacingCallId] = record
+        if signalingCallId != appFacingCallId {
+            self.callsEndedWithoutBye[signalingCallId] = record
+        }
+        // Bound memory: evict the oldest records when the cap is exceeded.
+        while self.callsEndedWithoutBye.count > Self.pendingEndedCallMaxRecords {
+            guard let oldestKey = self.callsEndedWithoutBye
+                .min(by: { $0.value.recordedAt < $1.value.recordedAt })?.key else {
+                break
+            }
+            self.callsEndedWithoutBye.removeValue(forKey: oldestKey)
+        }
+        Logger.log.i(message: "TxClient:: recorded pending ended call \(appFacingCallId) (signal \(signalingCallId), cause \(causeCode.rawValue))")
+    }
+
+    /// Looks up a pending ended-call record matching the given socket call ID
+    /// (either the app-facing or the signaling identity resolves to the same
+    /// record). Returns the record's app-facing call ID, or `nil` when no
+    /// pending-ended call matches.
+    internal func pendingEndedCallKey(matching callId: UUID) -> UUID? {
+        pendingEndedCallsLock.lock()
+        defer { pendingEndedCallsLock.unlock() }
+        purgeExpiredPendingEndedCallsLocked()
+        return self.callsEndedWithoutBye[callId]?.appFacingCallId
+    }
+
+    /// Delivers the pending BYE over the reattached signaling session for a
+    /// call the app already ended while the socket was down. The call is never
+    /// restored locally (no `Call` object, no ACTIVE state): the BYE is sent
+    /// with the current signaling session and the record is marked reconciled
+    /// so repeated ATTACH messages cannot resurrect the ended call. An ATTACH
+    /// that arrives while the socket is down again leaves the record
+    /// unreconciled so the next ATTACH can retry the BYE.
+    internal func reconcilePendingEndedCall(matching callId: UUID) {
+        pendingEndedCallsLock.lock()
+        purgeExpiredPendingEndedCallsLocked()
+        let record = self.callsEndedWithoutBye[callId]
+        pendingEndedCallsLock.unlock()
+        guard let record = record else { return }
+
+        if record.reconciled {
+            Logger.log.i(message: "TxClient:: pending ended call \(record.appFacingCallId) already reconciled - suppressing duplicate ATTACH")
+            return
+        }
+
+        guard let sessionId = self.sessionId else {
+            Logger.log.w(message: "TxClient:: pending ended call \(record.appFacingCallId) cannot reconcile - no signaling session")
+            return
+        }
+
+        let byeMessage = ByeMessage(sessionId: sessionId,
+                                    callId: record.signalingCallId.uuidString,
+                                    causeCode: record.causeCode)
+        let message = byeMessage.encode() ?? ""
+        let delivered = self.socket?.sendMessage(message: message) ?? false
+        Logger.log.i(message: "TxClient:: pending ended call \(record.appFacingCallId) BYE \(delivered ? "delivered" : "dropped") on reattach")
+
+        pendingEndedCallsLock.lock()
+        defer { pendingEndedCallsLock.unlock() }
+        if delivered, let current = self.callsEndedWithoutBye[callId], !current.reconciled {
+            var updated = current
+            updated.reconciled = true
+            updated.reconciledAt = Date()
+            for (key, value) in self.callsEndedWithoutBye
+            where value.appFacingCallId == updated.appFacingCallId {
+                self.callsEndedWithoutBye[key] = updated
+            }
+        }
+    }
+
+    /// Drops pending-ended records past the retention window. Must be called
+    /// with `pendingEndedCallsLock` held.
+    private func purgeExpiredPendingEndedCallsLocked() {
+        let now = Date()
+        let expiredKeys = self.callsEndedWithoutBye
+            .filter { _, record in
+                now.timeIntervalSince(record.reconciledAt ?? record.recordedAt) >= Self.pendingEndedCallRetention
+            }
+            .map { $0.key }
+        for key in expiredKeys {
+            self.callsEndedWithoutBye.removeValue(forKey: key)
+        }
+    }
 }
 
 // MARK: - SocketDelegate
@@ -2181,6 +2343,18 @@ extension TxClient : SocketDelegate {
                           let callId = params["callID"] as? String,
                           let uuid = UUID(uuidString: callId) else {
                         return
+                    }
+
+                    // Preserve local termination intent: an ATTACH for a call the
+                    // app already ended while the signaling socket was down must
+                    // terminate the remote leg over the reattached session instead
+                    // of restoring local media (no new call, no ACTIVE state).
+                    if pendingEndedCallKey(matching: uuid) != nil {
+                        Logger.log.i(message: "TxClient:: ATTACH for locally ended call \(uuid) - reconciling pending termination")
+                        self.reconcilePendingEndedCall(matching: uuid)
+                        currentCallId = UUID()
+                        resetPushVariables()
+                        break
                     }
 
                     // ATTACH is a successful terminal outcome for the pending

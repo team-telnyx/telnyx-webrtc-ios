@@ -293,8 +293,11 @@ class MockSocket: Socket {
         self.mockDelegate?.onSocketDisconnected(reconnect: reconnect, region: nil)
     }
     
-    override func sendMessage(message: String?) {
-        sentMessages.append(message!)
+    override func sendMessage(message: String?) -> Bool {
+        if let message = message {
+            sentMessages.append(message)
+        }
+        return true
     }
     
     // Simulate connection error for testing

@@ -368,6 +368,14 @@ public class Call {
         return info
     }
 
+    /// Set when a local `hangup()` could not deliver its BYE because the
+    /// signaling socket was disconnected (e.g., reconnecting after a network
+    /// switch). The remote leg keeps ringing or stays active, so `TxClient`
+    /// retains the call identity and terminates it with a BYE over the
+    /// reattached signaling session instead of restoring it as a dead leg.
+    /// See `TxClient.callsEndedWithoutBye`.
+    internal var byeMayBeLost: Bool = false
+
     /// The current state of the call. Possible values:
     /// - NEW: Call object created but not yet initiated
     /// - CONNECTING: Outbound call is being established
@@ -886,7 +894,16 @@ extension Call {
 
         let byeMessage = ByeMessage(sessionId: sessionId, callId: signalingCallId.uuidString, causeCode: causeCode)
         let message = byeMessage.encode() ?? ""
-        self.socket?.sendMessage(message: message)
+        // Capture the BYE delivery result BEFORE local teardown: when the
+        // signaling socket is down (or reconnecting), `Socket.sendMessage`
+        // silently drops the message and the remote leg stays alive. Retaining
+        // this intent lets `TxClient` terminate the remote leg over a later
+        // reattached signaling session instead of restoring the ended call.
+        let byeDelivered = self.socket?.sendMessage(message: message) ?? false
+        if !byeDelivered {
+            Logger.log.w(message: "Call:: hangup() - BYE not delivered (signaling socket down); marking call for reconnect reconciliation")
+            self.byeMayBeLost = true
+        }
         self.endCall(terminationReason: terminationReason)
     }
 

@@ -349,9 +349,12 @@ class AIAssistantManagerTests: XCTestCase {
 
 class MockSocket: Socket {
     var sentMessages: [String] = []
-    
-    override func sendMessage(message: String) {
-        sentMessages.append(message)
+
+    override func sendMessage(message: String?) -> Bool {
+        if let message = message {
+            sentMessages.append(message)
+        }
+        return true
     }
 }
 
