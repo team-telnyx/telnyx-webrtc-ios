@@ -163,7 +163,11 @@ extension AppDelegate : CXProviderDelegate {
     ///   - waitingCallUUID: the UUID of the incoming call to answer.
     ///   - ongoingCallUUID: the UUID of the call that is active or held.
     ///   - holdOngoingCall: true to hold the ongoing call, false to end it.
-    func executeAcceptWaitingCallAction(waitingCallUUID: UUID, ongoingCallUUID: UUID, holdOngoingCall: Bool) {
+    ///   - completion: called on the main queue with whether CallKit accepted the request.
+    func executeAcceptWaitingCallAction(waitingCallUUID: UUID,
+                                        ongoingCallUUID: UUID,
+                                        holdOngoingCall: Bool,
+                                        completion: @escaping (Bool) -> Void) {
         print("AppDelegate:: execute ACCEPT waiting call action: waiting [\(waitingCallUUID)] ongoing [\(ongoingCallUUID)] hold [\(holdOngoingCall)]")
         let ongoingCallAction: CXCallAction = holdOngoingCall
             ? CXSetHeldCallAction(call: ongoingCallUUID, onHold: true)
@@ -175,6 +179,9 @@ extension AppDelegate : CXProviderDelegate {
                 print("AppDelegate:: Accept waiting call transaction request failed: \(error.localizedDescription).")
             } else {
                 print("AppDelegate:: Accept waiting call transaction request successful")
+            }
+            DispatchQueue.main.async {
+                completion(error == nil)
             }
         }
     }

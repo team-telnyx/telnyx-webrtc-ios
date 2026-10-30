@@ -18,6 +18,7 @@ class HomeViewController: UIViewController {
     var serverConfig: TxServerConfiguration?
 
     var incomingCall: Bool = false
+    var isAcceptingWaitingCall: Bool = false
     var isSpeakerActive: Bool = false
     let reachability = try! Reachability()
 
@@ -584,6 +585,8 @@ extension HomeViewController {
 
     /// Answer the waiting call, holding or ending the ongoing call first.
     func onAcceptWaitingCallButton(holdOngoingCall: Bool) {
+        // Ignore repeated taps while a request for this choice is in flight.
+        guard !isAcceptingWaitingCall else { return }
         guard let waitingCallId = appDelegate.currentCall?.callInfo?.callId,
               let ongoingCall = appDelegate.previousCall,
               let ongoingCallId = ongoingCall.callInfo?.callId,
@@ -593,12 +596,21 @@ extension HomeViewController {
             return
         }
 
-        callViewModel.isCallWaiting = false
+        // Keep the waiting-call choices on screen until CallKit accepts the request,
+        // so a rejected request leaves both options available for a retry.
+        isAcceptingWaitingCall = true
         appDelegate.executeAcceptWaitingCallAction(
             waitingCallUUID: waitingCallId,
             ongoingCallUUID: ongoingCallId,
             holdOngoingCall: holdOngoingCall
-        )
+        ) { [weak self] accepted in
+            guard let self else { return }
+            self.isAcceptingWaitingCall = false
+            // A late completion must not change the screen of a newer incoming call.
+            guard accepted,
+                  self.appDelegate.currentCall?.callInfo?.callId == waitingCallId else { return }
+            self.callViewModel.isCallWaiting = false
+        }
     }
 }
 
