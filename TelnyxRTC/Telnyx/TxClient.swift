@@ -166,6 +166,12 @@ public class TxClient {
     internal var sendFileLogs: Bool = false
     private var attachCallId: String?
     internal var pendingAttachCallIdForTesting: String? { attachCallId }
+    #if DEBUG
+    internal func injectSignalingForTesting(socket: Socket?, sessionId: String?) {
+        self.socket = socket
+        self.sessionId = sessionId
+    }
+    #endif
     private var pushMetaData: [String:Any]?
     private let AUTH_ERROR_CODE = "-32001"
     private var reconnectTimeoutTimer: DispatchSourceTimer?
@@ -176,7 +182,10 @@ public class TxClient {
     private var pendingAnonymousLoginMessage: AnonymousLoginMessage?
     private var forceRelayForNextRecoveredCall = false
     private let forceRelayForNextRecoveredCallLock = NSLock()
-    
+    /// Local hangups are retained by signaling ID so a stale ATTACH cannot
+    /// restore a call whose BYE was lost during a disconnect.
+    private var localHangups: [UUID: CauseCode] = [:]
+
     /// AI Assistant Manager for handling AI-related functionality
     public let aiAssistantManager = AIAssistantManager()
 
@@ -752,6 +761,7 @@ public class TxClient {
         }
         self.calls.removeAll()
         self.socketToAppCallId.removeAll()
+        localHangups.removeAll()
         self.stopReconnectTimeout()
         self.stopInviteTimeout()
 
@@ -1692,6 +1702,11 @@ extension TxClient: CallProtocol {
         if case .DONE = call.callState,
            let callId = call.callInfo?.callId {
             Logger.log.i(message: "TxClient:: Remove call")
+            if call.endedLocally, case let .DONE(terminationReason) = call.callState {
+                let causeCode = terminationReason?.causeCode
+                    .flatMap { CauseCode(rawValue: $0) } ?? .NORMAL_CLEARING
+                localHangups[call.signalingCallId] = causeCode
+            }
             self.calls.removeValue(forKey: callId)
             // Clean up reverse mapping if this was a push call with different signaling ID
             if call.signalingCallId != callId {
@@ -1715,9 +1730,12 @@ extension TxClient: CallProtocol {
             if isCallFromPush && callId == currentCallId {
                 resetPushVariables()
             }
+
+            if !isCallsActive {
+                stopReconnectTimeout()
+            }
         }
     }
-
 }
 
 // MARK: - SocketDelegate
@@ -1735,21 +1753,17 @@ extension TxClient : SocketDelegate {
     /// the DispatchSourceTimer lifecycle and avoiding double-cancellation.
     func stopReconnectTimeout() {
         Logger.log.i(message: "Reconnect TimeOut stopped")
-        
-        // Ensure thread safety by dispatching to the reconnect queue
-        guard reconnectTimeoutTimer != nil else {
-            Logger.log.i(message: "Reconnect timeout timer is already nil")
-            return
-        }
-        
+
+        // Always enqueue cancellation. If startReconnectTimeout() was just
+        // queued, the serial reconnect queue will create and then cancel it.
         reconnectQueue.async { [weak self] in
             guard let self = self else { return }
-            
-            // Check if timer exists and is not already cancelled
             if let timer = self.reconnectTimeoutTimer {
                 timer.cancel()
                 self.reconnectTimeoutTimer = nil
                 Logger.log.i(message: "Reconnect timeout timer cancelled successfully")
+            } else {
+                Logger.log.i(message: "Reconnect timeout timer is already nil")
             }
         }
     }
@@ -2174,14 +2188,29 @@ extension TxClient : SocketDelegate {
                     break;
             case .ATTACH:
                 Logger.log.i(message: "Attach Received")
-                // Stop the timeout
-                stopReconnectTimeout()
                 if let params = vertoMessage.params {
                     guard let sdp = params["sdp"] as? String,
                           let callId = params["callID"] as? String,
                           let uuid = UUID(uuidString: callId) else {
                         return
                     }
+
+                    let localHangupCause = localHangups[uuid]
+
+                    // A locally ended call must never be restored. Re-send BYE
+                    // on every stale ATTACH so a previously lost write is retried.
+                    if let causeCode = localHangupCause {
+                        if let sessionId = self.sessionId {
+                            let byeMessage = ByeMessage(sessionId: sessionId,
+                                                        callId: uuid.uuidString,
+                                                        causeCode: causeCode)
+                            self.socket?.sendMessage(message: byeMessage.encode())
+                        }
+                        break
+                    }
+
+                    // This ATTACH belongs to the live call being recovered.
+                    stopReconnectTimeout()
 
                     // ATTACH is a successful terminal outcome for the pending
                     // replay wait. Do not let the INVITE watchdog end this call.
