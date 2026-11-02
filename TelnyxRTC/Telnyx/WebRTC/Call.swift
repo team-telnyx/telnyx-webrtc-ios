@@ -368,6 +368,9 @@ public class Call {
         return info
     }
 
+    /// Prevents a locally ended call from being restored by a later ATTACH.
+    internal var endedLocally: Bool = false
+
     /// The current state of the call. Possible values:
     /// - NEW: Call object created but not yet initiated
     /// - CONNECTING: Outbound call is being established
@@ -886,6 +889,7 @@ extension Call {
 
         let byeMessage = ByeMessage(sessionId: sessionId, callId: signalingCallId.uuidString, causeCode: causeCode)
         let message = byeMessage.encode() ?? ""
+        self.endedLocally = true
         self.socket?.sendMessage(message: message)
         self.endCall(terminationReason: terminationReason)
     }
