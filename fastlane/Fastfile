@@ -15,10 +15,25 @@ lane :lint do
 end
   
   
-desc "Run unit tests."
+credentialed_tests = [
+  "TelnyxRTCTests/TelnyxRTCTests/testReconnectUser",
+  "TelnyxRTCTests/TelnyxRTCTests/testLoginValidCredentials",
+  "TelnyxRTCTests/TelnyxRTCTests/testLoginValidToken",
+  "TelnyxRTCTests/TelnyxRTCMulticallTests/testMultipleOutgoingCalls"
+]
+
+desc "Run credential-free tests."
 lane :tests do
-   run_tests(workspace: "TelnyxRTC.xcworkspace",
-            scheme: "TelnyxRTCTests")
+  run_tests(workspace: "TelnyxRTC.xcworkspace",
+            scheme: "TelnyxRTCTests",
+            skip_testing: credentialed_tests)
+end
+
+desc "Run tests that require live SIP credentials."
+lane :integration_tests do
+  run_tests(workspace: "TelnyxRTC.xcworkspace",
+            scheme: "TelnyxRTCTests",
+            only_testing: credentialed_tests)
 end
 
 desc "Create a file with the Changelog output between a specific TAG and HEAD"

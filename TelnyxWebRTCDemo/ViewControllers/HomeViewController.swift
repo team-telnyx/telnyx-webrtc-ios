@@ -1,7 +1,9 @@
+import AVFoundation
 import Reachability
 import SwiftUI
 import TelnyxRTC
 import UIKit
+import WebRTC
 
 class HomeViewController: UIViewController {
     private var hostingController: UIHostingController<HomeView>?
@@ -16,6 +18,7 @@ class HomeViewController: UIViewController {
     var serverConfig: TxServerConfiguration?
 
     var incomingCall: Bool = false
+    var isAcceptingWaitingCall: Bool = false
     var isSpeakerActive: Bool = false
     let reachability = try! Reachability()
 
@@ -58,6 +61,12 @@ class HomeViewController: UIViewController {
             onAnswerCall: { [weak self] in
                 self?.onAnswerButton()
             },
+            onHoldAndAcceptCall: { [weak self] in
+                self?.onAcceptWaitingCallButton(holdOngoingCall: true)
+            },
+            onEndAndAcceptCall: { [weak self] in
+                self?.onAcceptWaitingCallButton(holdOngoingCall: false)
+            },
             onMuteUnmuteSwitch: { [weak self] mute in
                 self?.onMuteUnmuteSwitch(mute: mute)
             },
@@ -79,6 +88,9 @@ class HomeViewController: UIViewController {
             },
             onResetAudio: { [weak self] in
                 self?.onResetAudio()
+            },
+            onInjectAudioRace: { [weak self] in
+                self?.onInjectAudioRace()
             }
         )
 
@@ -570,6 +582,36 @@ extension HomeViewController {
         guard let callID = appDelegate.currentCall?.callInfo?.callId else { return }
         appDelegate.executeEndCallAction(uuid: callID)
     }
+
+    /// Answer the waiting call, holding or ending the ongoing call first.
+    func onAcceptWaitingCallButton(holdOngoingCall: Bool) {
+        // Ignore repeated taps while a request for this choice is in flight.
+        guard !isAcceptingWaitingCall else { return }
+        guard let waitingCallId = appDelegate.currentCall?.callInfo?.callId,
+              let ongoingCall = appDelegate.previousCall,
+              let ongoingCallId = ongoingCall.callInfo?.callId,
+              ongoingCall.callState.isConsideredActive else {
+            // The other call ended while this one was ringing.
+            onAnswerButton()
+            return
+        }
+
+        // Keep the waiting-call choices on screen until CallKit accepts the request,
+        // so a rejected request leaves both options available for a retry.
+        isAcceptingWaitingCall = true
+        appDelegate.executeAcceptWaitingCallAction(
+            waitingCallUUID: waitingCallId,
+            ongoingCallUUID: ongoingCallId,
+            holdOngoingCall: holdOngoingCall
+        ) { [weak self] accepted in
+            guard let self else { return }
+            self.isAcceptingWaitingCall = false
+            // A late completion must not change the screen of a newer incoming call.
+            guard accepted,
+                  self.appDelegate.currentCall?.callInfo?.callId == waitingCallId else { return }
+            self.callViewModel.isCallWaiting = false
+        }
+    }
 }
 
 // MARK: - Handle call
@@ -659,5 +701,26 @@ extension HomeViewController {
         print("[RESET-AUDIO] HomeViewController:: Resetting audio device to clear delay")
         call.resetAudioDevice()
         print("[RESET-AUDIO] HomeViewController:: Audio device reset completed")
+    }
+
+    func onInjectAudioRace() {
+        #if DEBUG
+        print("[VSUP-226] Scheduling a late audio disable in 250 ms")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+            let rtcAudioSession = RTCAudioSession.sharedInstance()
+            rtcAudioSession.lockForConfiguration()
+            rtcAudioSession.isAudioEnabled = false
+            rtcAudioSession.unlockForConfiguration()
+            print("[VSUP-226] Injected late setup reset; audio disabled")
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [weak self] in
+                guard let client = self?.telnyxClient else { return }
+                print("[VSUP-226] Recovering through enableAudioSession")
+                client.enableAudioSession(audioSession: AVAudioSession.sharedInstance())
+            }
+        }
+        #else
+        print("[VSUP-226] Audio race injection is available only in DEBUG builds")
+        #endif
     }
 }

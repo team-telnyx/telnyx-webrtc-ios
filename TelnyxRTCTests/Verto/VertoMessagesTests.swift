@@ -519,4 +519,210 @@ class VertoMessagesTests: XCTestCase {
         let userAgent = login.params?["User-Agent"] as? String
         XCTAssertEqual(userAgent, "iOS-\(Message.SDK_VERSION)")
     }
+
+    // MARK: - VSDK-768 mobile-SDK identity contract tests
+    //
+    // The following tests pin the VSDK-768 / VSDK-764 cross-SDK "Commons Lib
+    // Usage Telemetry" contract:
+    //
+    //   * Every covered signaling message emits `mobile_sdk_name = "webrtc-ios"`
+    //     and `mobile_sdk_version = Message.SDK_VERSION` as independent
+    //     top-level params, wired centrally in `Message.init(_:method:)`.
+    //   * The legacy `User-Agent` payload is byte-for-byte compatible with
+    //     the pre-change behavior (`iOS-<version>` or `iOS-mpn-<version>`
+    //     for missed-call notifications) for all messages whose UA is a
+    //     string, and the structured UA payloads (AnonymousLoginMessage
+    //     object, DisablePushMessage push-vars dict) are preserved
+    //     unchanged.
+    //   * The version-string source-of-truth is `Message.SDK_VERSION`; no
+    //     test or message references a hardcoded `"4.2.2"` literal — every
+    //     read goes through the constant.
+
+    func testMobileSdkIdentityExposesCanonicalPair() {
+        let identity = Message.mobileSdkIdentity()
+        XCTAssertEqual(identity[Message.MOBILE_SDK_NAME_KEY], "webrtc-ios",
+                       "mobile_sdk_name must be the canonical iOS SDK identifier")
+        XCTAssertEqual(identity[Message.MOBILE_SDK_VERSION_KEY], Message.SDK_VERSION,
+                       "mobile_sdk_version must resolve to Message.SDK_VERSION")
+        XCTAssertFalse(Message.SDK_VERSION.isEmpty,
+                       "Message.SDK_VERSION must not be empty")
+        XCTAssertEqual(Message.MOBILE_SDK_NAME, "webrtc-ios",
+                       "MOBILE_SDK_NAME constant must equal \"ios\"")
+    }
+
+    func testUserAgentAndMobileSdkIdentityShareSameVersionSource() {
+        // Version-source consistency: USER_AGENT and mobileSdkIdentity()
+        // both pull from `Message.SDK_VERSION` so any future version bump
+        // propagates atomically.
+        let ua = Message.USER_AGENT
+        let identity = Message.mobileSdkIdentity()
+        XCTAssertTrue(ua.hasSuffix(Message.SDK_VERSION),
+                      "USER_AGENT (\(ua)) must end with Message.SDK_VERSION (\(Message.SDK_VERSION))")
+        XCTAssertEqual(identity[Message.MOBILE_SDK_VERSION_KEY], Message.SDK_VERSION)
+    }
+
+    func testMessageBaseInitAddsMobileSdkIdentityForCoveredMethod() {
+        // The base `Message.init(_:method:)` is the single source of truth
+        // for the mobile-SDK identity pair. A bare Message constructed via
+        // the params init must emit the identity without any subclass
+        // involvement — this is the central-wiring contract.
+        let message = Message(["sentinel": "value"], method: .LOGIN)
+        XCTAssertEqual(message.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
+        XCTAssertEqual(message.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
+        // Caller-provided keys must still be preserved alongside identity.
+        XCTAssertEqual(message.params?["sentinel"] as? String, "value")
+    }
+
+    func testMessageBaseInitDoesNotAddMobileSdkIdentityToUnrelatedMethods() {
+        let unrelatedMethods: [TelnyxRTC.Method] = [
+            .BYE,
+            .CANDIDATE,
+            .END_OF_CANDIDATES,
+            .MODIFY,
+            .RINGING_ACK,
+            .GATEWAY_STATE,
+            .INFO,
+            .AI_CONVERSATION,
+        ]
+
+        for method in unrelatedMethods {
+            let message = Message(["sentinel": "value"], method: method)
+            XCTAssertNil(message.params?[Message.MOBILE_SDK_NAME_KEY],
+                         "\(method.rawValue) must not receive mobile_sdk_name")
+            XCTAssertNil(message.params?[Message.MOBILE_SDK_VERSION_KEY],
+                         "\(method.rawValue) must not receive mobile_sdk_version")
+            XCTAssertEqual(message.params?["sentinel"] as? String, "value")
+        }
+    }
+
+    func testMessageBaseInitDoesNotMutateCallersParamsDict() {
+        // Defensive contract: the identity injection in the base init must
+        // not mutate the caller's `params` dict. This protects callers who
+        // reuse the same dict across multiple Message constructions (e.g.
+        // TxClient log/cache paths).
+        var callerParams: [String: Any] = ["login_token": "t", "sessid": "s"]
+        let callerParamsCopy = callerParams
+        _ = Message(callerParams, method: .LOGIN)
+        XCTAssertEqual(callerParams as NSDictionary, callerParamsCopy as NSDictionary,
+                       "Message.init(_:method:) must not mutate the caller's params dict")
+        XCTAssertNil(callerParams[Message.MOBILE_SDK_NAME_KEY],
+                     "Caller's params dict must not receive mobile_sdk_name")
+        XCTAssertNil(callerParams[Message.MOBILE_SDK_VERSION_KEY],
+                     "Caller's params dict must not receive mobile_sdk_version")
+    }
+
+    func testLoginMessageCredentialEmitsMobileSdkIdentity() {
+        let login = LoginMessage(user: "u", password: "p", sessionId: "s")
+        XCTAssertEqual(login.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
+        XCTAssertEqual(login.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
+        // Legacy User-Agent is byte-for-byte preserved.
+        XCTAssertEqual(login.params?["User-Agent"] as? String,
+                       Message.userAgent(enableMissedCallNotifications: false))
+    }
+
+    func testLoginMessageTokenEmitsMobileSdkIdentity() {
+        let login = LoginMessage(token: "t", sessionId: "s")
+        XCTAssertEqual(login.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
+        XCTAssertEqual(login.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
+        XCTAssertEqual(login.params?["User-Agent"] as? String,
+                       Message.userAgent(enableMissedCallNotifications: false))
+    }
+
+    func testLoginMessageMpnUserAgentPreservedAlongsideMobileSdkIdentity() {
+        // The `mpn` form of User-Agent (used for missed-call push routing)
+        // must remain byte-for-byte compatible. We assert both legacy
+        // User-Agent and the new identity pair coexist.
+        let login = LoginMessage(user: "u",
+                                 password: "p",
+                                 sessionId: "s",
+                                 enableMissedCallNotifications: true)
+        XCTAssertEqual(login.params?["User-Agent"] as? String,
+                       Message.userAgent(enableMissedCallNotifications: true))
+        XCTAssertEqual(login.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
+        XCTAssertEqual(login.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
+    }
+
+    func testInviteMessageEmitsMobileSdkIdentity() {
+        let invite = InviteMessage(sessionId: "s",
+                                   sdp: "v=0\r\n",
+                                   callInfo: TxCallInfo(callId: UUID(),
+                                                        callerName: "c",
+                                                        callerNumber: "n"),
+                                   callOptions: TxCallOptions(destinationNumber: "d", audio: true))
+        XCTAssertEqual(invite.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
+        XCTAssertEqual(invite.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
+        XCTAssertEqual(invite.params?["User-Agent"] as? String, Message.USER_AGENT)
+    }
+
+    func testAnswerMessageEmitsMobileSdkIdentity() {
+        let answer = AnswerMessage(sessionId: "s",
+                                   sdp: "v=0\r\n",
+                                   callInfo: TxCallInfo(callId: UUID(),
+                                                        callerName: "c",
+                                                        callerNumber: "n"),
+                                   callOptions: TxCallOptions(destinationNumber: "d", audio: true))
+        XCTAssertEqual(answer.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
+        XCTAssertEqual(answer.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
+        XCTAssertEqual(answer.params?["User-Agent"] as? String, Message.USER_AGENT)
+    }
+
+    func testReAttachMessageEmitsMobileSdkIdentity() {
+        let attach = ReAttachMessage(sessionId: "s",
+                                     sdp: "v=0\r\n",
+                                     callInfo: TxCallInfo(callId: UUID(),
+                                                          callerName: "c",
+                                                          callerNumber: "n"),
+                                     callOptions: TxCallOptions(destinationNumber: "d", audio: true, attach: true))
+        XCTAssertEqual(attach.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
+        XCTAssertEqual(attach.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
+        XCTAssertEqual(attach.params?["User-Agent"] as? String, Message.USER_AGENT)
+    }
+
+    func testAnonymousLoginMessageEmitsMobileSdkIdentityAndPreservesObjectShapedUserAgent() {
+        let anonymous = AnonymousLoginMessage(targetId: "tid", sessionId: "s")
+        XCTAssertEqual(anonymous.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
+        XCTAssertEqual(anonymous.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
+
+        // Anonymous login must keep its existing object-shaped User-Agent
+        // payload (TS-style). Adding mobile_sdk_* must not perturb it.
+        guard let ua = anonymous.params?["User-Agent"] as? [String: Any] else {
+            XCTFail("AnonymousLoginMessage User-Agent must remain an object payload")
+            return
+        }
+        XCTAssertNotNil(ua["sdkVersion"])
+        XCTAssertEqual(ua["data"] as? String, Message.USER_AGENT)
+    }
+
+    func testDisablePushMessageEmitsMobileSdkIdentity() {
+        let disable = DisablePushMessage(user: "u")
+        XCTAssertEqual(disable.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
+        XCTAssertEqual(disable.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
+        // The DisablePush `User-Agent` field is the push-variable dict
+        // (backend convention quirk). Adding mobile_sdk_* must not
+        // overwrite or restructure it.
+        XCTAssertNotNil(disable.params?["User-Agent"] as? [String: Any])
+    }
+
+    func testDisablePushMessageTokenLoginEmitsMobileSdkIdentity() {
+        let disable = DisablePushMessage(loginToken: "t")
+        XCTAssertEqual(disable.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
+        XCTAssertEqual(disable.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
+    }
+
+    func testAttachCallMessageEmitsMobileSdkIdentity() {
+        let attach = AttachCallMessage()
+        XCTAssertEqual(attach.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
+        XCTAssertEqual(attach.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
+    }
+
+    func testCoveredMessagesEncodeMobileSdkIdentityOnWire() {
+        // End-to-end: encode() round-trip must surface the new fields.
+        // This catches any case where the params dict is short-circuited
+        // before reaching JSONSerialization.
+        let login = LoginMessage(token: "t", sessionId: "s")
+        let encoded = login.encode() ?? ""
+        let decoded = Message().decode(message: encoded)
+        XCTAssertEqual(decoded?.params?[Message.MOBILE_SDK_NAME_KEY] as? String, "webrtc-ios")
+        XCTAssertEqual(decoded?.params?[Message.MOBILE_SDK_VERSION_KEY] as? String, Message.SDK_VERSION)
+    }
 }

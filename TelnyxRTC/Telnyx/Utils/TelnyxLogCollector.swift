@@ -84,6 +84,11 @@ public class TelnyxLogCollector {
     ///   - message: Log message
     ///   - context: Optional context dictionary
     public func addEntry(level: String, message: String, context: [String: Any]? = nil) {
+        addEntry(level: level, message: message, context: context, ignoringLevelFilter: false)
+    }
+
+    /// Add a log entry if capturing is active, optionally skipping the level filter
+    internal func addEntry(level: String, message: String, context: [String: Any]?, ignoringLevelFilter: Bool) {
         lock.lock()
         defer { lock.unlock() }
         
@@ -93,7 +98,7 @@ public class TelnyxLogCollector {
         let currentLevelPriority = levelPriority[level.lowercased()] ?? 0
         let configLevelPriority = levelPriority[config.level.lowercased()] ?? 0
         
-        guard currentLevelPriority >= configLevelPriority else { return }
+        guard ignoringLevelFilter || currentLevelPriority >= configLevelPriority else { return }
         
         // Convert context to AnyCodable if present
         let anyCodableContext = context?.mapValues { AnyCodable($0) }

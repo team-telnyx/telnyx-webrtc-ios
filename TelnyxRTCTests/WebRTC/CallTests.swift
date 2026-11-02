@@ -49,7 +49,7 @@ class CallTests: XCTestCase {
         self.call?.newCall(callerName: "callerName", callerNumber: "callerNumber", destinationNumber: "destinationNumber")
         waitForExpectations(timeout: timeout)
     }
-    
+
     /**
      Test that the invite message is sent through the socket with custom headers.
      - Wait socket connection to be completed.
@@ -119,6 +119,23 @@ class CallTests: XCTestCase {
 
         XCTAssertFalse(Call.selectedCandidateUsesDirectVPN(relayStatistics))
         XCTAssertFalse(Call.selectedCandidateUsesDirectVPN(wifiStatistics))
+    }
+
+    func testAnswerAttemptIsClaimedUntilItFailsOrCompletes() {
+        guard let call else {
+            XCTFail("Call should be created")
+            return
+        }
+
+        XCTAssertFalse(call.claimAnswerAttemptForTesting())
+        call.remoteSdp = "test-sdp"
+        XCTAssertTrue(call.claimAnswerAttemptForTesting())
+        XCTAssertFalse(call.claimAnswerAttemptForTesting())
+        call.releaseAnswerAttemptForTesting()
+        XCTAssertTrue(call.claimAnswerAttemptForTesting())
+        call.releaseAnswerAttemptForTesting()
+        call.updateCallState(callState: .ACTIVE)
+        XCTAssertFalse(call.claimAnswerAttemptForTesting())
     }
 }
 

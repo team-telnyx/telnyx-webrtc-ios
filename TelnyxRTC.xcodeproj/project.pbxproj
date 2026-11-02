@@ -53,6 +53,7 @@
 		9906F63B2E391F5C00A02FE7 /* TxClientReconnectTimeoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F63A2E391F5C00A02FE7 /* TxClientReconnectTimeoutTests.swift */; };
 		4D5F8793C506BFCB739EDBCF /* TxClientRouteObserverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 278C8050A45D6D8B747161B4 /* TxClientRouteObserverTests.swift */; };
 		A1B2C3D4E5F6071829A0B1C2 /* TxClientCallsRaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4E5F6A7B8C9D0E1F2A3B4C5 /* TxClientCallsRaceTests.swift */; };
+		9906F63D2E3C159B00A02FE7 /* TxClientPendingEndedCallTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F63C2E3C159B00A02FE7 /* TxClientPendingEndedCallTests.swift */; };
 			AA0002012F0F0A0100000001 /* TxClientSocketErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0002002F0F0A0100000001 /* TxClientSocketErrorTests.swift */; };
 		9906F8C52E3C159900A02FE7 /* RingingAckMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8C42E3C159900A02FE7 /* RingingAckMessage.swift */; };
 		9906F8C72E3C15CA00A02FE7 /* AIAssistantManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906F8C62E3C15CA00A02FE7 /* AIAssistantManager.swift */; };
@@ -122,8 +123,10 @@
 		99FF7B102D4BC4F700DB1408 /* DTMFKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FF7B0F2D4BC4F700DB1408 /* DTMFKeyboardView.swift */; };
 		99FF7B122D4BC71800DB1408 /* DTMFKeyboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FF7B112D4BC71800DB1408 /* DTMFKeyboardViewModel.swift */; };
 		AA0001002F3E000100000001 /* CallReportCollectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00FF002F3E000100000001 /* CallReportCollectorTests.swift */; };
+		AA0006812F3E000100000004 /* TelnyxCallTimingRecorderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0006812F3E000100000003 /* TelnyxCallTimingRecorderTests.swift */; };
 		A28400022F84000000000001 /* TurnServerConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A28400012F84000000000001 /* TurnServerConfigurationTests.swift */; };
 		AA0001022F3E000100000001 /* TelnyxCallReportCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001012F3E000100000001 /* TelnyxCallReportCollector.swift */; };
+		AA0006812F3E000100000002 /* TelnyxCallTimingRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0006812F3E000100000001 /* TelnyxCallTimingRecorder.swift */; };
 		AA0001042F3E000100000001 /* CallReportModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001032F3E000100000001 /* CallReportModels.swift */; };
 		AA0001062F3E000100000001 /* TelnyxLogCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001052F3E000100000001 /* TelnyxLogCollector.swift */; };
 		AA0002012F0F0A0100000001 /* TxClientSocketErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0002002F0F0A0100000001 /* TxClientSocketErrorTests.swift */; };
@@ -283,6 +286,7 @@
 		9906F63A2E391F5C00A02FE7 /* TxClientReconnectTimeoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxClientReconnectTimeoutTests.swift; sourceTree = "<group>"; };
 		278C8050A45D6D8B747161B4 /* TxClientRouteObserverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxClientRouteObserverTests.swift; sourceTree = "<group>"; };
 		D4E5F6A7B8C9D0E1F2A3B4C5 /* TxClientCallsRaceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxClientCallsRaceTests.swift; sourceTree = "<group>"; };
+		9906F63C2E3C159B00A02FE7 /* TxClientPendingEndedCallTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxClientPendingEndedCallTests.swift; sourceTree = "<group>"; };
 			AA0002002F0F0A0100000001 /* TxClientSocketErrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxClientSocketErrorTests.swift; sourceTree = "<group>"; };
 		9906F8C42E3C159900A02FE7 /* RingingAckMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RingingAckMessage.swift; sourceTree = "<group>"; };
 		9906F8C62E3C15CA00A02FE7 /* AIAssistantManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistantManager.swift; sourceTree = "<group>"; };
@@ -352,10 +356,12 @@
 		99FF7B0F2D4BC4F700DB1408 /* DTMFKeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTMFKeyboardView.swift; sourceTree = "<group>"; };
 		99FF7B112D4BC71800DB1408 /* DTMFKeyboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTMFKeyboardViewModel.swift; sourceTree = "<group>"; };
 		AA0001012F3E000100000001 /* TelnyxCallReportCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnyxCallReportCollector.swift; sourceTree = "<group>"; };
+		AA0006812F3E000100000001 /* TelnyxCallTimingRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnyxCallTimingRecorder.swift; sourceTree = "<group>"; };
 		AA0001032F3E000100000001 /* CallReportModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallReportModels.swift; sourceTree = "<group>"; };
 		AA0001052F3E000100000001 /* TelnyxLogCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnyxLogCollector.swift; sourceTree = "<group>"; };
 		AA0002002F0F0A0100000001 /* TxClientSocketErrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxClientSocketErrorTests.swift; sourceTree = "<group>"; };
 		AA00FF002F3E000100000001 /* CallReportCollectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallReportCollectorTests.swift; sourceTree = "<group>"; };
+		AA0006812F3E000100000003 /* TelnyxCallTimingRecorderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnyxCallTimingRecorderTests.swift; sourceTree = "<group>"; };
 		A28400012F84000000000001 /* TurnServerConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurnServerConfigurationTests.swift; sourceTree = "<group>"; };
 		B187B019200FB14E90B2870B /* Pods-TelnyxWebRTCDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxWebRTCDemo.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo.debug.xcconfig"; sourceTree = "<group>"; };
 		B309D11125EF107F00A2AADF /* Starscream.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Starscream.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -486,6 +492,7 @@
 				99B6DFF72CF522070010CA96 /* WebRTCStatsEvent.swift */,
 				99CC5BAD2CF80D3400EF43DC /* WebRTCEventHandler.swift */,
 				AA0001012F3E000100000001 /* TelnyxCallReportCollector.swift */,
+				AA0006812F3E000100000001 /* TelnyxCallTimingRecorder.swift */,
 			);
 			path = Stats;
 			sourceTree = "<group>";
@@ -754,6 +761,7 @@
 				99D717752D6E229000471D44 /* TelnyxRTCLoggerTests.swift */,
 				B3912263260F6A050051E076 /* TelnyxRTCMulticallTests.swift */,
 				9906F63A2E391F5C00A02FE7 /* TxClientReconnectTimeoutTests.swift */,
+				9906F63C2E3C159B00A02FE7 /* TxClientPendingEndedCallTests.swift */,
 				278C8050A45D6D8B747161B4 /* TxClientRouteObserverTests.swift */,
 				D4E5F6A7B8C9D0E1F2A3B4C5 /* TxClientCallsRaceTests.swift */,
 				AA0002002F0F0A0100000001 /* TxClientSocketErrorTests.swift */,
@@ -853,6 +861,7 @@
 				B391220B2604D9C50051E076 /* PeerConnectionTests.swift */,
 				B391221F260502650051E076 /* CallTests.swift */,
 				AA00FF002F3E000100000001 /* CallReportCollectorTests.swift */,
+				AA0006812F3E000100000003 /* TelnyxCallTimingRecorderTests.swift */,
 				36D59B37D5C89B9A69EEC3F5 /* CallReportCollectorSSLTests.swift */,
 			);
 			path = WebRTC;
@@ -1231,6 +1240,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA0001022F3E000100000001 /* TelnyxCallReportCollector.swift in Sources */,
+				AA0006812F3E000100000002 /* TelnyxCallTimingRecorder.swift in Sources */,
 				AA0001042F3E000100000001 /* CallReportModels.swift in Sources */,
 				AA0001062F3E000100000001 /* TelnyxLogCollector.swift in Sources */,
 				3B0F56CB2C7F15830011A48A /* StatsMessage.swift in Sources */,
@@ -1320,6 +1330,7 @@
 				B39121ED2602F22F0051E076 /* SocketTests.swift in Sources */,
 				B39122122604FBC00051E076 /* TestConstants.swift in Sources */,
 				9906F63B2E391F5C00A02FE7 /* TxClientReconnectTimeoutTests.swift in Sources */,
+				9906F63D2E3C159B00A02FE7 /* TxClientPendingEndedCallTests.swift in Sources */,
 			AA0002012F0F0A0100000001 /* TxClientSocketErrorTests.swift in Sources */,
 			C14000112F52000000000001 /* PushCallUUIDResolver.swift in Sources */,
 			C14000122F52000000000001 /* PushCallUUIDResolverTests.swift in Sources */,
@@ -1329,6 +1340,7 @@
 				B366D3FB26150D1100156FE1 /* StringExtension.swift in Sources */,
 				B391220C2604D9C50051E076 /* PeerConnectionTests.swift in Sources */,
 				AA0001002F3E000100000001 /* CallReportCollectorTests.swift in Sources */,
+				AA0006812F3E000100000004 /* TelnyxCallTimingRecorderTests.swift in Sources */,
 				A28400022F84000000000001 /* TurnServerConfigurationTests.swift in Sources */,
 				B3912264260F6A050051E076 /* TelnyxRTCMulticallTests.swift in Sources */,
 				B3912220260502650051E076 /* CallTests.swift in Sources */,
@@ -1451,7 +1463,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 4.2.0;
+				MARKETING_VERSION = 4.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp.TelnyxWebRTCDemoUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
@@ -1475,7 +1487,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 4.2.0;
+				MARKETING_VERSION = 4.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp.TelnyxWebRTCDemoUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -1636,7 +1648,7 @@
 					"@loader_path/Frameworks",
 					"$(BUILT_PRODUCTS_DIR)/Starscream",
 				);
-				MARKETING_VERSION = 4.2.0;
+				MARKETING_VERSION = 4.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.WebRTCSDK;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1672,7 +1684,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 4.2.0;
+				MARKETING_VERSION = 4.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.WebRTCSDK;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -1743,7 +1755,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 4.2.0;
+				MARKETING_VERSION = 4.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp;
 				PRODUCT_NAME = "Telnyx WebRTC";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1770,7 +1782,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 4.2.0;
+				MARKETING_VERSION = 4.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.telnyx.webrtcapp;
 				PRODUCT_NAME = "Telnyx WebRTC";
 				PROVISIONING_PROFILE_SPECIFIER = "";

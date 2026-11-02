@@ -166,6 +166,12 @@ public class TxClient {
     internal var sendFileLogs: Bool = false
     private var attachCallId: String?
     internal var pendingAttachCallIdForTesting: String? { attachCallId }
+    #if DEBUG
+    internal func injectSignalingForTesting(socket: Socket?, sessionId: String?) {
+        self.socket = socket
+        self.sessionId = sessionId
+    }
+    #endif
     private var pushMetaData: [String:Any]?
     private let AUTH_ERROR_CODE = "-32001"
     private var reconnectTimeoutTimer: DispatchSourceTimer?
@@ -176,7 +182,10 @@ public class TxClient {
     private var pendingAnonymousLoginMessage: AnonymousLoginMessage?
     private var forceRelayForNextRecoveredCall = false
     private let forceRelayForNextRecoveredCallLock = NSLock()
-    
+    /// Local hangups are retained by signaling ID so a stale ATTACH cannot
+    /// restore a call whose BYE was lost during a disconnect.
+    private var localHangups: [UUID: CauseCode] = [:]
+
     /// AI Assistant Manager for handling AI-related functionality
     public let aiAssistantManager = AIAssistantManager()
 
@@ -297,8 +306,15 @@ public class TxClient {
     /// }
     /// ```
     public func enableAudioSession(audioSession: AVAudioSession) {
+        let rtcAudioSession = RTCAudioSession.sharedInstance()
+        let wasAudioEnabled = rtcAudioSession.isAudioEnabled
+        Logger.log.i(message: "TxClient:: enabling CallKit audio session; currentlyEnabled=\(rtcAudioSession.isAudioEnabled)")
         setupCorrectAudioConfiguration()
-        setAudioSessionActive(true)
+        let activationSucceeded = setAudioSessionActive(true)
+        if activationSucceeded && !wasAudioEnabled {
+            rtcAudioSession.audioSessionDidActivate(audioSession)
+        }
+        Logger.log.i(message: "TxClient:: CallKit audio session enable completed; isAudioEnabled=\(rtcAudioSession.isAudioEnabled)")
     }
     
     /// Disables and resets the audio session.
@@ -316,8 +332,15 @@ public class TxClient {
     /// }
     /// ```
     public func disableAudioSession(audioSession: AVAudioSession) {
+        let rtcAudioSession = RTCAudioSession.sharedInstance()
+        let wasAudioEnabled = rtcAudioSession.isAudioEnabled
+        Logger.log.i(message: "TxClient:: disabling CallKit audio session; currentlyEnabled=\(rtcAudioSession.isAudioEnabled)")
+        if wasAudioEnabled {
+            rtcAudioSession.audioSessionDidDeactivate(audioSession)
+        }
         resetAudioConfiguration()
-        setAudioSessionActive(false)
+        _ = setAudioSessionActive(false)
+        Logger.log.i(message: "TxClient:: CallKit audio session disable completed; isAudioEnabled=\(rtcAudioSession.isAudioEnabled)")
     }
     
     /// The current audio route configuration.
@@ -721,13 +744,19 @@ public class TxClient {
                 Logger.log.i(message: "TxClient:: performLogin - Disconnecting socket after decline_push login")
                 // Reset push variables after decline_push login is complete
                 self.resetPushVariables()
-                self.disconnect()
+                self.disconnect(preservingLocalHangups: true)
             }
         }
     }
 
     /// Disconnects the TxClient from the Telnyx signaling server.
     public func disconnect() {
+        disconnect(preservingLocalHangups: false)
+    }
+
+    /// Internal transport resets preserve local termination intent so a later
+    /// ATTACH can still finish a BYE that may have been lost.
+    private func disconnect(preservingLocalHangups: Bool) {
         Logger.log.i(message: "TxClient:: disconnect()")
         self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
         self.gatewayState = .NOREG
@@ -738,6 +767,9 @@ public class TxClient {
         }
         self.calls.removeAll()
         self.socketToAppCallId.removeAll()
+        if !preservingLocalHangups {
+            localHangups.removeAll()
+        }
         self.stopReconnectTimeout()
         self.stopInviteTimeout()
 
@@ -807,6 +839,8 @@ public class TxClient {
                                   customHeaders: [String:String] = [:],
                                   debug: Bool = false) {
         Logger.log.i(message: "TxClient:: answerFromCallkit - started for callId: \(String(describing: answerAction.callUUID))")
+        // CallKit/the app coordinates hold and swap across calls. Do not reject
+        // a new answer merely because a different call is active or held.
         self.answerCallAction = answerAction
 
         // Check if the call was initiated by a push notification
@@ -841,12 +875,22 @@ public class TxClient {
         }
 
         // If already connected and there's a pending INVITE, immediately accept the call
-        if let currentCall = self.calls[currentCallId] {
+        if let currentCall = self.calls[answerAction.callUUID] {
             currentCall.answer(customHeaders: customHeaders,
-                               debug: debug)
-            answerCallAction?.fulfill()
-            resetPushVariables()
-            Logger.log.i(message: "answered from callkit")
+                               debug: debug) { [weak self] answered in
+                guard let self else { return }
+                if answered {
+                    answerAction.fulfill()
+                    Logger.log.i(message: "answered from callkit")
+                } else {
+                    answerAction.fail()
+                }
+                // A different answer may have arrived while this call generated SDP.
+                // Complete only this action and do not clear the newer pending action.
+                if self.answerCallAction === answerAction {
+                    self.resetPushVariables()
+                }
+            }
         } else {
             /// Let's Keep track of the `customHeaders` passed
             pendingAnswerHeaders = customHeaders
@@ -854,7 +898,7 @@ public class TxClient {
             self.enableQualityMetrics = debug
         }
     }
-    
+
     private func resetPushVariables() {
         answerCallAction = nil
         endCallAction = nil
@@ -923,7 +967,7 @@ public class TxClient {
                                      callId: timedOutCallId)
         
         // Resolve the CallKit action before reset clears the stored action reference.
-        pendingAnswerAction?.fulfill()
+        pendingAnswerAction?.fail()
         resetPushVariables()
         
         Logger.log.i(message: "TxClient:: INVITE timeout handled - Call terminated with ORIGINATOR_CANCEL, CallKit events emitted")
@@ -1165,7 +1209,7 @@ public class TxClient {
                 if pendingCallDecline {
                     Logger.log.i(message: "TxClient:: updateGatewayState() decline_push completed, disconnecting")
                     pendingCallDecline = false
-                    self.disconnect()
+                    self.disconnect(preservingLocalHangups: true)
                     return
                 }
                 
@@ -1484,9 +1528,19 @@ extension TxClient {
             self.delegate?.onPushCall(call: call)
             //Answer is pending from push - Answer Call
             if(answerCallAction != nil){
-                call.answer(customHeaders: pendingAnswerHeaders,debug: enableQualityMetrics)
-                answerCallAction?.fulfill()
-                resetPushVariables()
+                let pendingAction = answerCallAction
+                call.answer(customHeaders: pendingAnswerHeaders,
+                            debug: enableQualityMetrics) { [weak self] answered in
+                    guard let self else { return }
+                    if answered {
+                        pendingAction?.fulfill()
+                    } else {
+                        pendingAction?.fail()
+                    }
+                    if self.answerCallAction === pendingAction {
+                        self.resetPushVariables()
+                    }
+                }
             }
             
             //End is pending from callkit
@@ -1528,48 +1582,50 @@ extension TxClient {
             Logger.log.e(message: "TxClient:: processVoIPNotification - pushMetaData is empty")
             throw TxError.clientConfigurationFailed(reason: .voiceSdkIsRequired)
         }
-        
+
         self.pushMetaData = pushMetaData
         // A VoIP push is authoritative for this incoming call. Update the
         // cached ID before any reconnect path can call the normal connect API.
         self.voiceSdkId = rtc_id
+
+        let noActiveCalls = !self.calls.values.contains {
+            $0.callState.isConsideredActive
+        }
+
+        // Tear down the previous push before storing the new push state.
+        if noActiveCalls && isConnected() {
+            Logger.log.i(message: "TxClient:: processVoIPNotification - No Active Calls disconnect")
+            self.disconnect(preservingLocalHangups: true)
+        }
+
         self.pushCallState = .idle
-        
+
         // Store config objects for later use (don't login immediately)
-        self.storedTxConfig = txConfig
-        self.storedServerConfiguration = TxServerConfiguration(
+        let pushServerConfiguration = TxServerConfiguration(
             signalingServer:nil,
             webRTCIceServers: serverConfiguration.webRTCIceServers,
             environment: serverConfiguration.environment,
             pushMetaData: pushMetaData,
             region: serverConfiguration.region)
-                
-        let noActiveCalls = self.calls.filter { 
-            $0.value.callState.isConsideredActive
-        }.isEmpty
-
-        if noActiveCalls && isConnected() {
-            Logger.log.i(message: "TxClient:: processVoIPNotification - No Active Calls disconnect")
-            self.disconnect()
-        }
+        self.storedTxConfig = txConfig
+        self.storedServerConfiguration = pushServerConfiguration
         
         if noActiveCalls {
             do {
                 Logger.log.i(message: "TxClient:: No Active Calls - Only connecting socket, not logging in")
                 // Only initiate socket connection, don't login yet
-                try self.connectSocketOnly(serverConfiguration: self.storedServerConfiguration!)
+                try self.connectSocketOnly(serverConfiguration: pushServerConfiguration)
                 
                 // Create an initial call_object to handle early bye message
                 if let newCallId = pushMetaData["call_id"] as? String,
                    let callUUID = UUID(uuidString: newCallId),
-                   let socket = self.socket,
-                   let iceServers = self.storedServerConfiguration?.webRTCIceServers {
+                   let socket = self.socket {
                     self.calls[callUUID] = Call(callId: callUUID,
                                                remoteSdp: "",
                                                sessionId: newCallId,
                                                socket: socket,
                                                delegate: self,
-                                               iceServers: iceServers,
+                                               iceServers: pushServerConfiguration.webRTCIceServers,
                                                debug: self.txConfig?.debug ?? false,
                                                forceRelayCandidate: self.txConfig?.forceRelayCandidate ?? false,
                                                sendWebRTCStatsViaSocket: self.txConfig?.sendWebRTCStatsViaSocket ?? false,
@@ -1583,14 +1639,13 @@ extension TxClient {
                                                pushDeviceToken: self.storedTxConfig?.pushNotificationConfig?.pushDeviceToken)
                     self.currentCallId = callUUID
                 } else {
-                    Logger.log.e(message: "TxClient:: processVoIPNotification - Invalid call_id, socket, or ICE servers. Cannot create call object.")
+                    Logger.log.e(message: "TxClient:: processVoIPNotification - Invalid call_id or socket. Cannot create call object.")
                 }
             } catch let error {
                 Logger.log.e(message: "TxClient:: push flow connect error \(error.localizedDescription)")
             }
         }
-       
-    
+
         self.isCallFromPush = true
     }
 
@@ -1655,8 +1710,12 @@ extension TxClient: CallProtocol {
         if case .DONE = call.callState,
            let callId = call.callInfo?.callId {
             Logger.log.i(message: "TxClient:: Remove call")
+            if call.endedLocally, case let .DONE(terminationReason) = call.callState {
+                let causeCode = terminationReason?.causeCode
+                    .flatMap { CauseCode(rawValue: $0) } ?? .NORMAL_CLEARING
+                localHangups[call.signalingCallId] = causeCode
+            }
             self.calls.removeValue(forKey: callId)
-
             // Clean up reverse mapping if this was a push call with different signaling ID
             if call.signalingCallId != callId {
                 socketToAppCallId.removeValue(forKey: call.signalingCallId)
@@ -1679,9 +1738,12 @@ extension TxClient: CallProtocol {
             if isCallFromPush && callId == currentCallId {
                 resetPushVariables()
             }
+
+            if !isCallsActive {
+                stopReconnectTimeout()
+            }
         }
     }
-
 }
 
 // MARK: - SocketDelegate
@@ -1699,21 +1761,17 @@ extension TxClient : SocketDelegate {
     /// the DispatchSourceTimer lifecycle and avoiding double-cancellation.
     func stopReconnectTimeout() {
         Logger.log.i(message: "Reconnect TimeOut stopped")
-        
-        // Ensure thread safety by dispatching to the reconnect queue
-        guard reconnectTimeoutTimer != nil else {
-            Logger.log.i(message: "Reconnect timeout timer is already nil")
-            return
-        }
-        
+
+        // Always enqueue cancellation. If startReconnectTimeout() was just
+        // queued, the serial reconnect queue will create and then cancel it.
         reconnectQueue.async { [weak self] in
             guard let self = self else { return }
-            
-            // Check if timer exists and is not already cancelled
             if let timer = self.reconnectTimeoutTimer {
                 timer.cancel()
                 self.reconnectTimeoutTimer = nil
                 Logger.log.i(message: "Reconnect timeout timer cancelled successfully")
+            } else {
+                Logger.log.i(message: "Reconnect timeout timer is already nil")
             }
         }
     }
@@ -1766,11 +1824,12 @@ extension TxClient : SocketDelegate {
                 // Dispatching the calls-touching work to `.main` serializes every read and
                 // write of `self.calls` on a single thread and matches the comment that
                 // already documented this intent ("Execute timeout actions on main queue
-                // for UI updates").
+                // for UI updates"). The `preservingLocalHangups: true` argument carries the
+                // VSUP-307 hangup-preservation semantics adopted when main advanced.
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
                     self.updateActiveCallsState(callState: CallState.DONE(reason: nil))
-                    self.disconnect()
+                    self.disconnect(preservingLocalHangups: true)
                     self.delegate?.onClientError(error: TxError.callFailed(reason: .reconnectFailed))
                 }
 
@@ -2157,14 +2216,29 @@ extension TxClient : SocketDelegate {
                     break;
             case .ATTACH:
                 Logger.log.i(message: "Attach Received")
-                // Stop the timeout
-                stopReconnectTimeout()
                 if let params = vertoMessage.params {
                     guard let sdp = params["sdp"] as? String,
                           let callId = params["callID"] as? String,
                           let uuid = UUID(uuidString: callId) else {
                         return
                     }
+
+                    let localHangupCause = localHangups[uuid]
+
+                    // A locally ended call must never be restored. Re-send BYE
+                    // on every stale ATTACH so a previously lost write is retried.
+                    if let causeCode = localHangupCause {
+                        if let sessionId = self.sessionId {
+                            let byeMessage = ByeMessage(sessionId: sessionId,
+                                                        callId: uuid.uuidString,
+                                                        causeCode: causeCode)
+                            self.socket?.sendMessage(message: byeMessage.encode())
+                        }
+                        break
+                    }
+
+                    // This ATTACH belongs to the live call being recovered.
+                    stopReconnectTimeout()
 
                     // ATTACH is a successful terminal outcome for the pending
                     // replay wait. Do not let the INVITE watchdog end this call.
@@ -2281,16 +2355,19 @@ extension TxClient {
         rtcAudioSession.unlockForConfiguration()
     }
 
-    internal func setAudioSessionActive(_ active: Bool) {
+    @discardableResult
+    internal func setAudioSessionActive(_ active: Bool) -> Bool {
         let rtcAudioSession = RTCAudioSession.sharedInstance()
-        
+        var succeeded = false
         rtcAudioSession.lockForConfiguration()
         do {
             try rtcAudioSession.setActive(active)
             rtcAudioSession.isAudioEnabled = active
+            succeeded = true
         } catch {
             Logger.log.e(message: "Failed to set audio session active: \(error)")
         }
         rtcAudioSession.unlockForConfiguration()
+        return succeeded
     }
 }

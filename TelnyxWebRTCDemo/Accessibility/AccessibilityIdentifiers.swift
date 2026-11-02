@@ -39,6 +39,8 @@ enum AccessibilityIdentifiers {
     static let callButton = "callButton"
     static let answerButton = "answerButton"
     static let rejectButton = "rejectButton"
+    static let endAndAcceptButton = "endAndAcceptButton"
+    static let holdAndAcceptButton = "holdAndAcceptButton"
     static let hangupButton = "hangupButton"
     static let muteButton = "muteButton"
     static let speakerButton = "speakerButton"

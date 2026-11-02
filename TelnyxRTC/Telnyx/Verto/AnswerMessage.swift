@@ -38,6 +38,9 @@ class AnswerMessage : Message {
             params["trickle"] = true
         }
 
+        // `mobile_sdk_name` + `mobile_sdk_version` are added centrally in
+        // `Message.init(_:method:)` (VSDK-768 / VSDK-764).
+
         // For push-when-active multi-device flows the backend needs to know which
         // device answered so it can exclude that device from the answered-elsewhere
         // / picked-off notification sent to the remaining devices. Only include the
@@ -77,6 +80,8 @@ class ReAttachMessage : Message {
             dialogParams["custom_headers"] = appendCustomHeaders(customHeaders: customHeaders)
         }
         params["dialogParams"] = dialogParams
+        // `mobile_sdk_name` + `mobile_sdk_version` are added centrally in
+        // `Message.init(_:method:)` (VSDK-768 / VSDK-764).
         super.init(params, method: .ATTACH)
     }
 }

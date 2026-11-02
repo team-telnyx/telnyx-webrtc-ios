@@ -25,11 +25,15 @@ class AnonymousLoginMessage : Message {
         params["sessid"] = sessionId
         
         // Add User-Agent information similar to the TypeScript implementation
+        // (object-shaped payload: { sdkVersion, data }) — preserved unchanged
+        // for backend compat. The independent `mobile_sdk_name` +
+        // `mobile_sdk_version` identity is added centrally in
+        // `Message.init(_:method:)` (VSDK-768 / VSDK-764).
         var userAgent = [String: Any]()
         userAgent["sdkVersion"] = Bundle(for: Message.self).infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
         userAgent["data"] = Message.USER_AGENT
         params["User-Agent"] = userAgent
-        
+
         // Add target_version_id if provided
         if let versionId = targetVersionId {
             params["target_version_id"] = versionId

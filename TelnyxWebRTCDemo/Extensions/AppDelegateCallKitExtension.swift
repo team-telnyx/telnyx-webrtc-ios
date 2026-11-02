@@ -119,6 +119,12 @@ extension AppDelegate : CXProviderDelegate {
         let callHandle = CXHandle(type: .generic, value: from)
         let callUpdate = CXCallUpdate()
         callUpdate.remoteHandle = callHandle
+        callUpdate.supportsDTMF = true
+        // Without holding support, CallKit offers only "End & Accept" when
+        // another call arrives during this one, and cannot swap between them.
+        callUpdate.supportsHolding = true
+        callUpdate.supportsGrouping = false
+        callUpdate.supportsUngrouping = false
         callUpdate.hasVideo = false
 
         provider.reportNewIncomingCall(with: uuid, update: callUpdate) { error in
@@ -147,6 +153,35 @@ extension AppDelegate : CXProviderDelegate {
                 print("AppDelegate:: AnswerCallAction transaction request failed: \(error.localizedDescription).")
             } else {
                 print("AppDelegate:: AnswerCallAction transaction request successful")
+            }
+        }
+    }
+
+    /// Answer a waiting call and hold or end the ongoing call in one CallKit transaction.
+    /// These are the same actions the system Hold & Accept / End & Accept sheet sends.
+    /// - Parameters:
+    ///   - waitingCallUUID: the UUID of the incoming call to answer.
+    ///   - ongoingCallUUID: the UUID of the call that is active or held.
+    ///   - holdOngoingCall: true to hold the ongoing call, false to end it.
+    ///   - completion: called on the main queue with whether CallKit accepted the request.
+    func executeAcceptWaitingCallAction(waitingCallUUID: UUID,
+                                        ongoingCallUUID: UUID,
+                                        holdOngoingCall: Bool,
+                                        completion: @escaping (Bool) -> Void) {
+        print("AppDelegate:: execute ACCEPT waiting call action: waiting [\(waitingCallUUID)] ongoing [\(ongoingCallUUID)] hold [\(holdOngoingCall)]")
+        let ongoingCallAction: CXCallAction = holdOngoingCall
+            ? CXSetHeldCallAction(call: ongoingCallUUID, onHold: true)
+            : CXEndCallAction(call: ongoingCallUUID)
+        let answerCallAction = CXAnswerCallAction(call: waitingCallUUID)
+        let transaction = CXTransaction(actions: [ongoingCallAction, answerCallAction])
+        callKitCallController.request(transaction) { error in
+            if let error = error {
+                print("AppDelegate:: Accept waiting call transaction request failed: \(error.localizedDescription).")
+            } else {
+                print("AppDelegate:: Accept waiting call transaction request successful")
+            }
+            DispatchQueue.main.async {
+                completion(error == nil)
             }
         }
     }
@@ -272,7 +307,27 @@ extension AppDelegate : CXProviderDelegate {
             )
         }
 
+        audioLifecycleGeneration += 1
+        let verificationGeneration = audioLifecycleGeneration
         self.telnyxClient?.answerFromCallkit(answerAction: action, customHeaders:  ["X-test-answer":"ios-test"], debug: true)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [weak self] in
+            guard let self,
+                  self.audioLifecycleGeneration == verificationGeneration,
+                  self.call(for: action.callUUID) != nil,
+                  let client = self.telnyxClient else {
+                print("[CALLKIT_AUDIO] Skipping stale post-answer verification")
+                return
+            }
+            if client.isAudioDeviceEnabled {
+                print("[CALLKIT_AUDIO] Post-answer verification passed")
+            } else if AVAudioSession.sharedInstance().category == .playAndRecord {
+                print("[CALLKIT_AUDIO] Recovering disabled audio after CallKit answer")
+                client.enableAudioSession(audioSession: AVAudioSession.sharedInstance())
+            } else {
+                print("[CALLKIT_AUDIO] Verification skipped; CallKit session is not active")
+            }
+        }
         if let call = self.currentCall {
             print("📞 [ID-MAP] After answerFromCallkit -> appFacingId: \(call.callInfo?.callId.uuidString ?? "nil")")
         }
@@ -282,6 +337,7 @@ extension AppDelegate : CXProviderDelegate {
         print("AppDelegate:: END call action: callKitUUID [\(String(describing: self.callKitUUID))] action [\(action.callUUID)]")
         print("📞 [ID-MAP] CXEndCallAction -> actionUUID: \(action.callUUID) | callKitUUID: \(self.callKitUUID?.uuidString ?? "nil") | currentCall: \(self.currentCall?.callInfo?.callId.uuidString ?? "nil") | match: \(action.callUUID == self.callKitUUID)")
 
+        audioLifecycleGeneration += 1
         guard let telnyxClient = self.telnyxClient else {
             print("AppDelegate:: END call action failed because Telnyx client is unavailable")
             action.fail()
@@ -321,6 +377,9 @@ extension AppDelegate : CXProviderDelegate {
         } else {
             //request to end Previous Call
             print("AppDelegate:: End Previous Call")
+            if previousCall?.callInfo?.callId == action.callUUID {
+                previousCall = nil
+            }
         }
         telnyxClient.endCallFromCallkit(endAction: action)
     }
@@ -335,11 +394,13 @@ extension AppDelegate : CXProviderDelegate {
     
     func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
         print("provider:didActivateAudioSession:")
+        audioLifecycleGeneration += 1
         self.telnyxClient?.enableAudioSession(audioSession: audioSession)
     }
     
     func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
         print("provider:didDeactivateAudioSession:")
+        audioLifecycleGeneration += 1
         self.telnyxClient?.disableAudioSession(audioSession: audioSession)
     }
     
