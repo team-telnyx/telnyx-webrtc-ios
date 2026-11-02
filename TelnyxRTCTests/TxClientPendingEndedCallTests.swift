@@ -125,6 +125,47 @@ final class TxClientPendingEndedCallTests: XCTestCase {
         XCTAssertTrue(signalingSocket.byeMessages.isEmpty)
     }
 
+    func testNewPushTransportResetPreservesEarlierLocalHangup() throws {
+        let endedCallId = UUID()
+        hangup(callId: endedCallId, connected: false)
+
+        let newerPushCallId = UUID()
+        try client.processVoIPNotification(
+            txConfig: TxConfig(sipUser: "test-user", password: "test-password"),
+            serverConfiguration: TxServerConfiguration(),
+            pushMetaData: [
+                "voice_sdk_id": "newer-push-sdk-id",
+                "call_id": newerPushCallId.uuidString
+            ]
+        )
+
+        client.injectSignalingForTesting(socket: signalingSocket,
+                                         sessionId: "reattached-session")
+        client.onMessageReceived(message: attachMessage(callId: endedCallId))
+
+        XCTAssertEqual(signalingSocket.byeMessages.count, 1)
+        XCTAssertNil(client.calls[endedCallId])
+
+        // A's late ATTACH must not reset the newer push B flow.
+        client.onMessageReceived(message: """
+        {"jsonrpc":"2.0","result":{"params":{"state":"REGED"}}}
+        """)
+        XCTAssertNotNil(client.pendingAttachCallIdForTesting)
+    }
+
+    func testExplicitDisconnectClearsLocalHangups() {
+        let endedCallId = UUID()
+        hangup(callId: endedCallId, connected: false)
+
+        client.disconnect()
+        client.injectSignalingForTesting(socket: signalingSocket,
+                                         sessionId: "new-logical-session")
+        client.onMessageReceived(message: attachMessage(callId: endedCallId))
+
+        XCTAssertTrue(signalingSocket.byeMessages.isEmpty)
+        XCTAssertNotNil(client.calls[endedCallId])
+    }
+
     private func makeCall(appCallId: UUID,
                           signalingCallId: UUID? = nil,
                           socket: Socket) -> Call {
