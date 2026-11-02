@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Bug Fixes
+- **Stale CallKit Answer on the Next Push Call**: Pending CallKit answers are now scoped by call UUID and can only be consumed by the matching push INVITE, preventing an abruptly ended call's action from auto-answering a later unrelated call. Completed or expired CallKit actions are pruned using CallKit's own lifecycle, while a legitimate answer made before `processVoIPNotification` remains available for its matching call.
+
 ### Enhancements
 - **Call Setup Timings in Call Reports**: Inbound and outbound call reports now include a `[CallTimings]` breakdown of call setup (peer creation, SDP, ICE, DTLS, ringing, answer, and call active), in the same log format as the JS and Android SDKs ([#409](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/409)).
 - **Call Reports for Calls That Never Become Active**: Missed, rejected and failed calls now send a call report with their logs, as the JS SDK does. Previously no report was sent when no stats had been collected ([#409](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/409)).

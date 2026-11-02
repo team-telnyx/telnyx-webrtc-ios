@@ -212,6 +212,26 @@ class TxClientPingAuthTests: XCTestCase {
         XCTAssertTrue(mockDelegate.doneCallIds.isEmpty)
     }
 
+    func testAttachConsumesOnlyItsMatchingPendingAnswer() throws {
+        let pushCallUUID = UUID()
+        let unrelatedCallUUID = UUID()
+        try startPushFlow(callId: pushCallUUID)
+
+        let pushAnswerAction = TrackingAnswerCallAction(call: pushCallUUID)
+        txClient.answerFromCallkit(answerAction: pushAnswerAction)
+        let unrelatedAnswerAction = TrackingAnswerCallAction(call: unrelatedCallUUID)
+        txClient.answerFromCallkit(answerAction: unrelatedAnswerAction)
+
+        txClient.onMessageReceived(message: """
+        {"jsonrpc":"2.0","method":"telnyx_rtc.attach","params":{"sdp":"v=0\\r\\n","callID":"\(UUID().uuidString)"}}
+        """)
+
+        XCTAssertFalse(txClient.hasPendingAnswerActionForTesting(callId: pushCallUUID))
+        XCTAssertTrue(txClient.hasPendingAnswerActionForTesting(callId: unrelatedCallUUID))
+        XCTAssertEqual(unrelatedAnswerAction.failCallCount, 0)
+        XCTAssertEqual(unrelatedAnswerAction.fulfillCallCount, 0)
+    }
+
     /// A push placeholder that never got an INVITE, answer, or decline is still `currentCallId`
     /// when the next push arrives on a connected socket. The teardown in
     /// `processVoIPNotification` ends it, which resets push state; the new push must keep its own.
@@ -233,6 +253,123 @@ class TxClientPingAuthTests: XCTestCase {
         txClient.onSocketConnected()
 
         XCTAssertEqual(mockDelegate.doneCallIds, [stalePushUUID, newPushUUID])
+    }
+
+    /// VSUP-308: CallKit owns the action deadline. The SDK keeps an early
+    /// answer scoped to its UUID instead of starting a second timeout.
+    func testAnswerWithoutPushWaitsForMatchingCallUUID() {
+        let callUUID = UUID()
+        txClient.inviteTimeoutInterval = 0.01
+
+        let answerAction = TrackingAnswerCallAction(call: callUUID)
+        txClient.answerFromCallkit(answerAction: answerAction)
+        waitForWatchdog()
+
+        XCTAssertEqual(answerAction.failCallCount, 0)
+        XCTAssertEqual(answerAction.fulfillCallCount, 0)
+        XCTAssertTrue(txClient.hasPendingAnswerActionForTesting(callId: callUUID))
+        XCTAssertTrue(mockDelegate.remoteEndedCallIds.isEmpty)
+        XCTAssertTrue(mockDelegate.doneCallIds.isEmpty)
+    }
+
+    func testExpiredAnswerIsPrunedBeforeNextPush() throws {
+        let oldCallUUID = UUID()
+        let answerAction = TrackingAnswerCallAction(call: oldCallUUID)
+        txClient.answerFromCallkit(answerAction: answerAction)
+        txClient.prunePendingAnswerActionsForTesting(now: .distantFuture)
+
+        try startPushFlow(callId: UUID())
+
+        XCTAssertFalse(txClient.hasPendingAnswerActionForTesting)
+        XCTAssertEqual(answerAction.failCallCount, 1)
+    }
+
+    /// Apps can report the call to CallKit and get the answer before calling `processVoIPNotification`.
+    func testAnswerBeforeProcessVoIPNotificationIsKeptForThePush() throws {
+        let callUUID = UUID()
+        txClient.inviteTimeoutInterval = 0.01
+
+        let answerAction = TrackingAnswerCallAction(call: callUUID)
+        txClient.answerFromCallkit(answerAction: answerAction)
+        try startPushFlow(callId: callUUID)
+        waitForWatchdog()
+
+        XCTAssertTrue(txClient.hasPendingAnswerActionForTesting(callId: callUUID))
+        XCTAssertEqual(answerAction.failCallCount, 0)
+        XCTAssertTrue(mockDelegate.doneCallIds.isEmpty)
+    }
+
+    /// An incomplete action for A may represent a legitimate concurrent call.
+    /// A later push for B must neither consume nor fail it.
+    func testUnrelatedPushDoesNotConsumeOrFailPendingAnswer() throws {
+        let firstCallUUID = UUID()
+        let newPushUUID = UUID()
+
+        let firstAnswerAction = TrackingAnswerCallAction(call: firstCallUUID)
+        txClient.answerFromCallkit(answerAction: firstAnswerAction)
+        try startPushFlow(callId: newPushUUID)
+
+        XCTAssertEqual(firstAnswerAction.failCallCount, 0)
+        XCTAssertEqual(firstAnswerAction.fulfillCallCount, 0)
+        XCTAssertTrue(txClient.hasPendingAnswerActionForTesting(callId: firstCallUUID))
+        XCTAssertFalse(txClient.hasPendingAnswerActionForTesting(callId: newPushUUID))
+        XCTAssertEqual(txClient.currentCallIdForTesting, newPushUUID)
+        XCTAssertTrue(mockDelegate.remoteEndedCallIds.isEmpty)
+        XCTAssertTrue(mockDelegate.doneCallIds.isEmpty)
+        XCTAssertNotNil(txClient.calls[newPushUUID])
+    }
+
+    /// The INVITE watchdog armed for push call A must not terminate the newer push flow B
+    /// that arrived before A's timer fired (VSUP-308).
+    func testStaleInviteTimerCannotTerminateNextPushFlow() throws {
+        let stalePushUUID = UUID()
+        let newPushUUID = UUID()
+        txClient.inviteTimeoutInterval = 0.01
+
+        // Push flow for A, answered and registered - arms the INVITE watchdog for A.
+        try startPushFlow(callId: stalePushUUID)
+        txClient.onSocketConnected()
+        let staleAnswerAction = TrackingAnswerCallAction(call: stalePushUUID)
+        txClient.answerFromCallkit(answerAction: staleAnswerAction)
+        txClient.onMessageReceived(message: gatewayStateMessage(state: "REGED"))
+
+        // The next push arrives BEFORE A's watchdog fires. The socket is down, so the
+        // connected-socket teardown does not run and A's timer stays armed.
+        try startPushFlow(callId: newPushUUID)
+        waitForWatchdog()
+
+        // A's pending action remains scoped to A and cannot affect B.
+        XCTAssertEqual(staleAnswerAction.failCallCount, 0)
+        XCTAssertEqual(staleAnswerAction.fulfillCallCount, 0)
+        XCTAssertTrue(txClient.hasPendingAnswerActionForTesting(callId: stalePushUUID))
+        // ...and A's delayed watchdog did not terminate the newer push flow.
+        XCTAssertTrue(mockDelegate.remoteEndedCallIds.isEmpty)
+        XCTAssertTrue(mockDelegate.doneCallIds.isEmpty)
+        XCTAssertNotNil(txClient.calls[newPushUUID])
+    }
+
+    /// A pending CallKit answer for a different call must not be consumed to
+    /// auto-answer this push INVITE. It remains available for its own call.
+    func testMismatchedPendingAnswerIsIsolatedFromPushInvite() throws {
+        let pushCallUUID = UUID()
+        try startPushFlow(callId: pushCallUUID)
+
+        // CallKit answer for an unrelated call arrives after the push was processed.
+        let otherCallUUID = UUID()
+        let otherAnswerAction = TrackingAnswerCallAction(call: otherCallUUID)
+        txClient.answerFromCallkit(answerAction: otherAnswerAction)
+
+        // INVITE for the push flow arrives - signaling callID differs from the push call_id.
+        txClient.onMessageReceived(message: """
+        {"jsonrpc":"2.0","method":"telnyx_rtc.invite","params":{"sdp":"v=0\\r\\n","callID":"\(UUID().uuidString)","caller_id_name":"","caller_id_number":"","telnyx_session_id":"","telnyx_leg_id":""}}
+        """)
+
+        XCTAssertEqual(otherAnswerAction.failCallCount, 0)
+        XCTAssertEqual(otherAnswerAction.fulfillCallCount, 0)
+        XCTAssertTrue(txClient.hasPendingAnswerActionForTesting(callId: otherCallUUID))
+        XCTAssertFalse(txClient.hasPendingAnswerActionForTesting(callId: pushCallUUID))
+        // The push call was created and propagated, but not auto-answered.
+        XCTAssertNotNil(txClient.calls[pushCallUUID])
     }
 
     private func waitForWatchdog() {
