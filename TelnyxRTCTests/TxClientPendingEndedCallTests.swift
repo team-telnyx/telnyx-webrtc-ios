@@ -199,6 +199,26 @@ final class TxClientPendingEndedCallTests: XCTestCase {
         XCTAssertNil(client.calls[endedCallId])
     }
 
+    func testExplicitDisconnectWaitsForExplicitReconnectBeforeSendingPendingBye() {
+        client.txConfig = TxConfig(sipUser: "test-user", password: "test-password")
+        client.onMessageReceived(message: gatewayStateMessage())
+
+        let endedCallId = UUID()
+        hangup(callId: endedCallId, connected: false)
+        client.disconnect()
+
+        client.reconnectClient()
+        XCTAssertEqual(signalingSocket.reconnectRequests, [false])
+        XCTAssertTrue(signalingSocket.byeMessages.isEmpty)
+
+        client.injectSignalingForTesting(socket: signalingSocket,
+                                         sessionId: "explicit-reconnect-session")
+        client.onMessageReceived(message: gatewayStateMessage())
+
+        XCTAssertEqual(signalingSocket.byeMessages.count, 1)
+        XCTAssertNil(client.calls[endedCallId])
+    }
+
     func testLocalHangupsAreLimitedToMostRecentSixteenCalls() {
         let callIds = (0..<17).map { _ in UUID() }
         callIds.forEach { hangup(callId: $0, connected: false) }
