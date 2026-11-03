@@ -151,7 +151,7 @@ public class TxClient {
     // MARK: - Properties
     private static let DEFAULT_REGISTER_INTERVAL = 3.0 // In seconds
     private static let MAX_REGISTER_RETRY = 3 // Number of retry
-    private static let localHangupsLimit = 16
+    private static let LOCAL_HANGUPS_LIMIT = 16
     //re_connect buffer in secondds
     private static let RECONNECT_BUFFER = 1.0
     /// Keeps track of all the created calls by theirs UUIDs
@@ -1865,7 +1865,7 @@ extension TxClient: CallProtocol {
                     localHangupOrder.append(signalingCallId)
                 }
                 localHangups[signalingCallId] = causeCode
-                if localHangupOrder.count > Self.localHangupsLimit {
+                if localHangupOrder.count > Self.LOCAL_HANGUPS_LIMIT {
                     localHangups.removeValue(forKey: localHangupOrder.removeFirst())
                 }
             }
