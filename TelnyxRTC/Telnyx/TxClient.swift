@@ -139,9 +139,24 @@ public class TxClient {
         case inviteReceived
     }
 
+    /// A CallKit answer can arrive before its VoIP push or INVITE. Keep that
+    /// intent scoped to the CallKit UUID so it cannot be consumed by another
+    /// call while signaling catches up.
+    private struct PendingCallKitAnswer {
+        let action: CXAnswerCallAction
+        let headers: [String: String]
+        let debug: Bool
+    }
+
+    private struct LocalHangup {
+        let causeCode: CauseCode
+        var byePending: Bool
+    }
+
     // MARK: - Properties
     private static let DEFAULT_REGISTER_INTERVAL = 3.0 // In seconds
     private static let MAX_REGISTER_RETRY = 3 // Number of retry
+    private static let LOCAL_HANGUPS_LIMIT = 16
     //re_connect buffer in secondds
     private static let RECONNECT_BUFFER = 1.0
     /// Keeps track of all the created calls by theirs UUIDs
@@ -150,7 +165,8 @@ public class TxClient {
     public weak var delegate: TxClientDelegate?
     private var socket : Socket?
 
-    private var answerCallAction: CXAnswerCallAction? = nil
+    private var pendingCallKitAnswers: [UUID: PendingCallKitAnswer] = [:]
+    private let pendingCallKitAnswersLock = NSLock()
     private var endCallAction: CXEndCallAction? = nil
     private var sessionId : String?
     internal var txConfig: TxConfig?
@@ -162,7 +178,6 @@ public class TxClient {
     private var gatewayState: GatewayStates = .NOREG
     private var isCallFromPush: Bool = false
     private var currentCallId: UUID = UUID()
-    private var pendingAnswerHeaders = [String:String]()
     internal var sendFileLogs: Bool = false
     private var attachCallId: String?
     internal var pendingAttachCallIdForTesting: String? { attachCallId }
@@ -184,7 +199,8 @@ public class TxClient {
     private let forceRelayForNextRecoveredCallLock = NSLock()
     /// Local hangups are retained by signaling ID so a stale ATTACH cannot
     /// restore a call whose BYE was lost during a disconnect.
-    private var localHangups: [UUID: CauseCode] = [:]
+    private var localHangups: [UUID: LocalHangup] = [:]
+    private var localHangupOrder: [UUID] = []
 
     /// AI Assistant Manager for handling AI-related functionality
     public let aiAssistantManager = AIAssistantManager()
@@ -401,6 +417,8 @@ public class TxClient {
     
     /// Deinitializer to ensure proper cleanup of resources
     deinit {
+        failAllPendingCallKitAnswers()
+
         // Cancel reconnect timeout timer if it exists
         reconnectTimeoutTimer?.cancel()
         reconnectTimeoutTimer = nil
@@ -744,19 +762,13 @@ public class TxClient {
                 Logger.log.i(message: "TxClient:: performLogin - Disconnecting socket after decline_push login")
                 // Reset push variables after decline_push login is complete
                 self.resetPushVariables()
-                self.disconnect(preservingLocalHangups: true)
+                self.disconnect()
             }
         }
     }
 
     /// Disconnects the TxClient from the Telnyx signaling server.
     public func disconnect() {
-        disconnect(preservingLocalHangups: false)
-    }
-
-    /// Internal transport resets preserve local termination intent so a later
-    /// ATTACH can still finish a BYE that may have been lost.
-    private func disconnect(preservingLocalHangups: Bool) {
         Logger.log.i(message: "TxClient:: disconnect()")
         self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
         self.gatewayState = .NOREG
@@ -767,9 +779,6 @@ public class TxClient {
         }
         self.calls.removeAll()
         self.socketToAppCallId.removeAll()
-        if !preservingLocalHangups {
-            localHangups.removeAll()
-        }
         self.stopReconnectTimeout()
         self.stopInviteTimeout()
 
@@ -839,20 +848,28 @@ public class TxClient {
                                   customHeaders: [String:String] = [:],
                                   debug: Bool = false) {
         Logger.log.i(message: "TxClient:: answerFromCallkit - started for callId: \(String(describing: answerAction.callUUID))")
-        // CallKit/the app coordinates hold and swap across calls. Do not reject
-        // a new answer merely because a different call is active or held.
-        self.answerCallAction = answerAction
 
-        // Check if the call was initiated by a push notification
+        // A push placeholder can exist in `calls` before its real INVITE. Keep
+        // push handling ahead of the normal-call lookup so we do not attempt to
+        // answer that placeholder's empty SDP.
         if isCallFromPush {
+            storePendingCallKitAnswer(
+                PendingCallKitAnswer(action: answerAction,
+                                     headers: customHeaders,
+                                     debug: debug)
+            )
+
+            // An action for another UUID must not log in or mutate the current
+            // push. It remains isolated until its own signaling arrives or
+            // CallKit completes it.
+            guard answerAction.callUUID == currentCallId else {
+                Logger.log.i(message: "TxClient:: answerFromCallkit - Stored answer for unrelated call \(answerAction.callUUID)")
+                return
+            }
+
             Logger.log.i(message: "TxClient:: answerFromCallkit - Call initiated by push notification")
-            /// Let's Keep track of the `customHeaders` passed
-            pendingAnswerHeaders = customHeaders
-            /// Set call quality metrics
             self.enableQualityMetrics = debug
 
-            // Start the login process by sending a login message with decline_push: false
-            // Automatically accept the call once the INVITE is received
             if isConnected() {
                 if pushCallState == .loginSent {
                     Logger.log.i(message: "TxClient:: answerFromCallkit - Push login already sent, waiting for INVITE")
@@ -863,12 +880,17 @@ public class TxClient {
                 }
             } else {
                 Logger.log.i(message: "TxClient:: answerFromCallkit - Socket not connected, connecting first")
+                guard let storedServerConfiguration else {
+                    Logger.log.e(message: "TxClient:: answerFromCallkit missing stored server configuration")
+                    failPendingCallKitAnswer(for: answerAction.callUUID)
+                    return
+                }
                 do {
-                    try connectSocketOnly(serverConfiguration: storedServerConfiguration!)
-                    // Login will happen in onSocketConnected
+                    try connectSocketOnly(serverConfiguration: storedServerConfiguration)
+                    // Login will happen in onSocketConnected.
                 } catch let error {
                     Logger.log.e(message: "TxClient:: answerFromCallkit connect error \(error.localizedDescription)")
-                    answerCallAction?.fail()
+                    failPendingCallKitAnswer(for: answerAction.callUUID)
                 }
             }
             return
@@ -876,6 +898,7 @@ public class TxClient {
 
         // If already connected and there's a pending INVITE, immediately accept the call
         if let currentCall = self.calls[answerAction.callUUID] {
+            failPendingCallKitAnswer(for: answerAction.callUUID)
             currentCall.answer(customHeaders: customHeaders,
                                debug: debug) { [weak self] answered in
                 guard let self else { return }
@@ -885,22 +908,114 @@ public class TxClient {
                 } else {
                     answerAction.fail()
                 }
-                // A different answer may have arrived while this call generated SDP.
-                // Complete only this action and do not clear the newer pending action.
-                if self.answerCallAction === answerAction {
+                // A newer push may have started while SDP was generated. Only
+                // reset transport state when this is still the current call.
+                if self.currentCallId == answerAction.callUUID {
                     self.resetPushVariables()
                 }
             }
-        } else {
-            /// Let's Keep track of the `customHeaders` passed
-            pendingAnswerHeaders = customHeaders
-            /// Set call quality metrics
-            self.enableQualityMetrics = debug
+            return
+        }
+
+        storePendingCallKitAnswer(
+            PendingCallKitAnswer(action: answerAction,
+                                 headers: customHeaders,
+                                 debug: debug)
+        )
+        Logger.log.i(message: "TxClient:: answerFromCallkit - Stored early answer for \(answerAction.callUUID)")
+    }
+
+    private func storePendingCallKitAnswer(_ pendingAnswer: PendingCallKitAnswer) {
+        pruneCompletedOrExpiredPendingCallKitAnswers()
+
+        pendingCallKitAnswersLock.lock()
+        let replaced = pendingCallKitAnswers.updateValue(
+            pendingAnswer,
+            forKey: pendingAnswer.action.callUUID
+        )
+        pendingCallKitAnswersLock.unlock()
+
+        if let replaced,
+           replaced.action !== pendingAnswer.action,
+           !replaced.action.isComplete {
+            replaced.action.fail()
         }
     }
 
+    private func pendingCallKitAnswer(for callId: UUID) -> PendingCallKitAnswer? {
+        pruneCompletedOrExpiredPendingCallKitAnswers()
+        pendingCallKitAnswersLock.lock()
+        defer { pendingCallKitAnswersLock.unlock() }
+        return pendingCallKitAnswers[callId]
+    }
+
+    private func takePendingCallKitAnswer(for callId: UUID) -> PendingCallKitAnswer? {
+        pruneCompletedOrExpiredPendingCallKitAnswers()
+        pendingCallKitAnswersLock.lock()
+        defer { pendingCallKitAnswersLock.unlock() }
+        return pendingCallKitAnswers.removeValue(forKey: callId)
+    }
+
+    private func failPendingCallKitAnswer(for callId: UUID) {
+        pendingCallKitAnswersLock.lock()
+        let pendingAnswer = pendingCallKitAnswers.removeValue(forKey: callId)
+        pendingCallKitAnswersLock.unlock()
+
+        if let pendingAnswer, !pendingAnswer.action.isComplete {
+            pendingAnswer.action.fail()
+        }
+    }
+
+    private func pruneCompletedOrExpiredPendingCallKitAnswers(now: Date = Date()) {
+        pendingCallKitAnswersLock.lock()
+        let staleCallIds = pendingCallKitAnswers.compactMap { callId, pendingAnswer in
+            pendingAnswer.action.isComplete || pendingAnswer.action.timeoutDate <= now
+                ? callId
+                : nil
+        }
+        let staleAnswers = staleCallIds.compactMap {
+            pendingCallKitAnswers.removeValue(forKey: $0)
+        }
+        pendingCallKitAnswersLock.unlock()
+
+        for pendingAnswer in staleAnswers where !pendingAnswer.action.isComplete {
+            pendingAnswer.action.fail()
+        }
+    }
+
+    private func failAllPendingCallKitAnswers() {
+        pendingCallKitAnswersLock.lock()
+        let pendingAnswers = Array(pendingCallKitAnswers.values)
+        pendingCallKitAnswers.removeAll()
+        pendingCallKitAnswersLock.unlock()
+
+        for pendingAnswer in pendingAnswers where !pendingAnswer.action.isComplete {
+            pendingAnswer.action.fail()
+        }
+    }
+
+#if DEBUG
+    internal var currentCallIdForTesting: UUID {
+        currentCallId
+    }
+
+    internal var hasPendingAnswerActionForTesting: Bool {
+        pruneCompletedOrExpiredPendingCallKitAnswers()
+        pendingCallKitAnswersLock.lock()
+        defer { pendingCallKitAnswersLock.unlock() }
+        return !pendingCallKitAnswers.isEmpty
+    }
+
+    internal func hasPendingAnswerActionForTesting(callId: UUID) -> Bool {
+        pendingCallKitAnswer(for: callId) != nil
+    }
+
+    internal func prunePendingAnswerActionsForTesting(now: Date) {
+        pruneCompletedOrExpiredPendingCallKitAnswers(now: now)
+    }
+#endif
+
     private func resetPushVariables() {
-        answerCallAction = nil
         endCallAction = nil
         storedTxConfig = nil
         storedServerConfiguration = nil
@@ -935,8 +1050,12 @@ public class TxClient {
         Logger.log.i(message: "TxClient:: Starting INVITE timeout timer (\(inviteTimeoutInterval) seconds)")
         isWaitingForInviteAfterPush = true
         
+        // VSUP-308: snapshot the call this timer belongs to. A delayed expiry must not
+        // terminate a newer call that already replaced this one (e.g. the next push
+        // arriving before the stale timer fires).
+        let timedOutCallId = currentCallId
         inviteTimeoutTimer = Timer.scheduledTimer(withTimeInterval: inviteTimeoutInterval, repeats: false) { [weak self] _ in
-            self?.handleInviteTimeout()
+            self?.handleInviteTimeout(timedOutCallId: timedOutCallId)
         }
     }
     
@@ -948,10 +1067,16 @@ public class TxClient {
     }
     
     /// Handles the timeout when no INVITE is received after accepting a VoIP push call
-    private func handleInviteTimeout() {
+    private func handleInviteTimeout(timedOutCallId capturedCallId: UUID? = nil) {
+        // VSUP-308: ignore a timer that was armed for a call that is no longer the
+        // current one, so a delayed expiry cannot terminate a newer call's state.
+        if let capturedCallId = capturedCallId, capturedCallId != currentCallId {
+            Logger.log.i(message: "TxClient:: INVITE timeout ignored - timer was started for call \(capturedCallId), current call is \(currentCallId)")
+            return
+        }
         Logger.log.w(message: "TxClient:: INVITE timeout - No INVITE received within \(inviteTimeoutInterval) seconds after attachCalls")
-        let timedOutCallId = currentCallId
-        let pendingAnswerAction = answerCallAction
+        let timedOutCallId = capturedCallId ?? currentCallId
+        let pendingAnswer = takePendingCallKitAnswer(for: timedOutCallId)
         
         // Create the termination reason as specified in the ticket
         let terminationReason = CallTerminationReason(
@@ -966,9 +1091,14 @@ public class TxClient {
         delegate?.onCallStateUpdated(callState: CallState.DONE(reason: terminationReason),
                                      callId: timedOutCallId)
         
-        // Resolve the CallKit action before reset clears the stored action reference.
-        pendingAnswerAction?.fail()
-        resetPushVariables()
+        // The transport watchdog may resolve only the answer for this exact
+        // push. Pending answers for other calls remain untouched.
+        if let pendingAnswer, !pendingAnswer.action.isComplete {
+            pendingAnswer.action.fail()
+        }
+        if currentCallId == timedOutCallId {
+            resetPushVariables()
+        }
         
         Logger.log.i(message: "TxClient:: INVITE timeout handled - Call terminated with ORIGINATOR_CANCEL, CallKit events emitted")
     }
@@ -978,6 +1108,7 @@ public class TxClient {
                                    callId: UUID? = nil) {
         Logger.log.i(message: "TxClient:: endCallFromCallkit - started for callID \(String(describing: endAction.callUUID))")
 
+        failPendingCallKitAnswer(for: endAction.callUUID)
         self.endCallAction = endAction
         
         // Check if the call was initiated by a push notification
@@ -1209,9 +1340,11 @@ public class TxClient {
                 if pendingCallDecline {
                     Logger.log.i(message: "TxClient:: updateGatewayState() decline_push completed, disconnecting")
                     pendingCallDecline = false
-                    self.disconnect(preservingLocalHangups: true)
+                    self.disconnect()
                     return
                 }
+
+                resendPendingByes()
                 
                 self.delegate?.onClientReady()
                 //Check if isCallFromPush and sendAttachCall Message
@@ -1257,6 +1390,30 @@ public class TxClient {
         let message = gatewayMessage.encode() ?? ""
         // Request gateway state
         self.socket?.sendMessage(message: message)
+    }
+
+    private func resendPendingByes() {
+        let pendingCallIds = localHangupOrder.filter {
+            localHangups[$0]?.byePending == true
+        }
+
+        for callId in pendingCallIds {
+            sendByeForLocalHangup(callId: callId)
+        }
+    }
+
+    private func sendByeForLocalHangup(callId: UUID) {
+        guard let socket = socket, socket.isConnected,
+              let sessionId = sessionId,
+              var hangup = localHangups[callId] else { return }
+
+        Logger.log.i(message: "TxClient:: Sending BYE for locally ended call [\(callId)]")
+        let byeMessage = ByeMessage(sessionId: sessionId,
+                                    callId: callId.uuidString,
+                                    causeCode: hangup.causeCode)
+        socket.sendMessage(message: byeMessage.encode())
+        hangup.byePending = false
+        localHangups[callId] = hangup
     }
 }
 
@@ -1520,24 +1677,36 @@ extension TxClient {
         
         if isAttach {
             Logger.log.i(message: "TxClient :: Attaching Call....")
-            call.acceptReAttach(peer: nil,debug: enableQualityMetrics)
+            // ATTACH is another valid server response to an answered push.
+            // Resolve only the action whose app-facing UUID maps to this call.
+            let pendingAnswer = takePendingCallKitAnswer(for: appFacingCallId)
+            call.acceptReAttach(peer: nil,
+                                customHeaders: pendingAnswer?.headers ?? [:],
+                                debug: pendingAnswer?.debug ?? enableQualityMetrics) { attached in
+                guard let pendingAnswer, !pendingAnswer.action.isComplete else { return }
+                if attached {
+                    pendingAnswer.action.fulfill()
+                } else {
+                    pendingAnswer.action.fail()
+                }
+            }
             return
         }
 
         if isCallFromPush {
             self.delegate?.onPushCall(call: call)
-            //Answer is pending from push - Answer Call
-            if(answerCallAction != nil){
-                let pendingAction = answerCallAction
-                call.answer(customHeaders: pendingAnswerHeaders,
-                            debug: enableQualityMetrics) { [weak self] answered in
+            // Consume only the CallKit answer registered for this app-facing
+            // call. An action for call A can never auto-answer call B.
+            if let pendingAnswer = takePendingCallKitAnswer(for: appFacingCallId) {
+                call.answer(customHeaders: pendingAnswer.headers,
+                            debug: pendingAnswer.debug) { [weak self] answered in
                     guard let self else { return }
                     if answered {
-                        pendingAction?.fulfill()
+                        pendingAnswer.action.fulfill()
                     } else {
-                        pendingAction?.fail()
+                        pendingAnswer.action.fail()
                     }
-                    if self.answerCallAction === pendingAction {
+                    if self.currentCallId == appFacingCallId {
                         self.resetPushVariables()
                     }
                 }
@@ -1584,6 +1753,15 @@ extension TxClient {
         }
 
         self.pushMetaData = pushMetaData
+        pruneCompletedOrExpiredPendingCallKitAnswers()
+
+        // Preserve an early answer only for the push with the same CallKit UUID.
+        // Answers for other UUIDs remain isolated and cannot affect this flow.
+        if let pushCallIdString = pushMetaData["call_id"] as? String,
+           let pushCallId = UUID(uuidString: pushCallIdString),
+           let pendingAnswer = pendingCallKitAnswer(for: pushCallId) {
+            self.enableQualityMetrics = pendingAnswer.debug
+        }
         // A VoIP push is authoritative for this incoming call. Update the
         // cached ID before any reconnect path can call the normal connect API.
         self.voiceSdkId = rtc_id
@@ -1595,7 +1773,7 @@ extension TxClient {
         // Tear down the previous push before storing the new push state.
         if noActiveCalls && isConnected() {
             Logger.log.i(message: "TxClient:: processVoIPNotification - No Active Calls disconnect")
-            self.disconnect(preservingLocalHangups: true)
+            self.disconnect()
         }
 
         self.pushCallState = .idle
@@ -1713,8 +1891,23 @@ extension TxClient: CallProtocol {
             if call.endedLocally, case let .DONE(terminationReason) = call.callState {
                 let causeCode = terminationReason?.causeCode
                     .flatMap { CauseCode(rawValue: $0) } ?? .NORMAL_CLEARING
-                localHangups[call.signalingCallId] = causeCode
+                let signalingCallId = call.signalingCallId
+                if localHangups[signalingCallId] == nil {
+                    localHangupOrder.append(signalingCallId)
+                }
+                localHangups[signalingCallId] = LocalHangup(
+                    causeCode: causeCode,
+                    byePending: localHangups[signalingCallId]?.byePending == true
+                        || call.socket?.isConnected != true
+                )
+                if localHangups[signalingCallId]?.byePending == true {
+                    Logger.log.i(message: "TxClient:: Stored pending BYE for call [\(signalingCallId)]")
+                }
+                if localHangupOrder.count > Self.LOCAL_HANGUPS_LIMIT {
+                    localHangups.removeValue(forKey: localHangupOrder.removeFirst())
+                }
             }
+            failPendingCallKitAnswer(for: callId)
             self.calls.removeValue(forKey: callId)
             // Clean up reverse mapping if this was a push call with different signaling ID
             if call.signalingCallId != callId {
@@ -1824,12 +2017,14 @@ extension TxClient : SocketDelegate {
                 // Dispatching the calls-touching work to `.main` serializes every read and
                 // write of `self.calls` on a single thread and matches the comment that
                 // already documented this intent ("Execute timeout actions on main queue
-                // for UI updates"). The `preservingLocalHangups: true` argument carries the
-                // VSUP-307 hangup-preservation semantics adopted when main advanced.
+                // for UI updates"). `disconnect()` preserves local hangups without
+                // arguments now (VSUP-307 / PR #429 made preservation unconditional), so
+                // the reconnect-timeout path keeps calling the plain API.
+
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
                     self.updateActiveCallsState(callState: CallState.DONE(reason: nil))
-                    self.disconnect(preservingLocalHangups: true)
+                    self.disconnect()
                     self.delegate?.onClientError(error: TxError.callFailed(reason: .reconnectFailed))
                 }
 
@@ -1849,22 +2044,40 @@ extension TxClient : SocketDelegate {
         forceRelayForNextRecoveredCallLock.lock()
         forceRelayForNextRecoveredCall = forceRelayCandidateForRecovery
         forceRelayForNextRecoveredCallLock.unlock()
-        if self.isCallsActive {
+        let hasActiveCalls = self.isCallsActive
+        let hasPendingByes = localHangups.values.contains { $0.byePending }
+        let shouldReconnectForPendingBye = self.gatewayState != .NOREG
+            && hasPendingByes
+
+        if hasActiveCalls {
             updateActiveCallsState(callState: CallState.RECONNECTING(reason: .networkSwitch))
             startReconnectTimeout()
             Logger.log.i(message: "Reconnect Called : Calls are active")
-        }else {
+        } else if shouldReconnectForPendingBye {
+            Logger.log.i(message: "TxClient:: Reconnecting to deliver pending BYE")
+        } else {
             return
         }
         if let txConfig = self.txConfig {
             if(txConfig.reconnectClient){
-                guard let currentCall = self.calls[self.currentCallId] else {
+                if hasActiveCalls {
+                    guard let currentCall = self.calls[self.currentCallId] else {
 
-                    Logger.log.e(message: "Current Call not available for ATTACH")
-                    return
+                        Logger.log.e(message: "Current Call not available for ATTACH")
+                        return
+                    }
+                    currentCall.endForAttachCall()
                 }
-                currentCall.endForAttachCall()
-                self.socket?.disconnect(reconnect: true)
+                if let socket = self.socket {
+                    socket.disconnect(reconnect: true)
+                } else {
+                    do {
+                        try self.connect(txConfig: txConfig,
+                                         serverConfiguration: self.serverConfiguration)
+                    } catch {
+                        Logger.log.e(message: "TxClient:: Pending BYE reconnect failed: \(error.localizedDescription)")
+                    }
+                }
             }else {
                 Logger.log.i(message: "TxClient:: Reconnect Disabled")
             }
@@ -1905,7 +2118,7 @@ extension TxClient : SocketDelegate {
                 Logger.log.i(message: "TxClient:: Socket connected for decline_push flow")
                 performLogin(declinePush: true)
                 return
-            } else if answerCallAction != nil {
+            } else if pendingCallKitAnswer(for: currentCallId) != nil {
                 if pushCallState == .loginSent {
                     Logger.log.i(message: "TxClient:: Socket connected for answer flow - push login already sent")
                 } else {
@@ -2067,6 +2280,7 @@ extension TxClient : SocketDelegate {
                   self.delegate?.onRemoteCallEnded(callId: callUUID, reason: terminationReason)
                   self.delegate?.onCallStateUpdated(callState: .DONE(reason: terminationReason), callId: callUUID)
                 }
+                failPendingCallKitAnswer(for: currentCallId)
                 resetPushVariables()
                 return
             }
@@ -2223,17 +2437,10 @@ extension TxClient : SocketDelegate {
                         return
                     }
 
-                    let localHangupCause = localHangups[uuid]
-
                     // A locally ended call must never be restored. Re-send BYE
                     // on every stale ATTACH so a previously lost write is retried.
-                    if let causeCode = localHangupCause {
-                        if let sessionId = self.sessionId {
-                            let byeMessage = ByeMessage(sessionId: sessionId,
-                                                        callId: uuid.uuidString,
-                                                        causeCode: causeCode)
-                            self.socket?.sendMessage(message: byeMessage.encode())
-                        }
+                    if localHangups[uuid] != nil {
+                        sendByeForLocalHangup(callId: uuid)
                         break
                     }
 
