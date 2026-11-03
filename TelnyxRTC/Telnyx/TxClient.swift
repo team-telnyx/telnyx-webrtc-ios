@@ -148,6 +148,11 @@ public class TxClient {
         let debug: Bool
     }
 
+    private struct LocalHangup {
+        let causeCode: CauseCode
+        var byePending: Bool
+    }
+
     // MARK: - Properties
     private static let DEFAULT_REGISTER_INTERVAL = 3.0 // In seconds
     private static let MAX_REGISTER_RETRY = 3 // Number of retry
@@ -194,7 +199,7 @@ public class TxClient {
     private let forceRelayForNextRecoveredCallLock = NSLock()
     /// Local hangups are retained by signaling ID so a stale ATTACH cannot
     /// restore a call whose BYE was lost during a disconnect.
-    private var localHangups: [UUID: CauseCode] = [:]
+    private var localHangups: [UUID: LocalHangup] = [:]
     private var localHangupOrder: [UUID] = []
 
     /// AI Assistant Manager for handling AI-related functionality
@@ -1338,6 +1343,8 @@ public class TxClient {
                     self.disconnect()
                     return
                 }
+
+                resendPendingByes()
                 
                 self.delegate?.onClientReady()
                 //Check if isCallFromPush and sendAttachCall Message
@@ -1383,6 +1390,25 @@ public class TxClient {
         let message = gatewayMessage.encode() ?? ""
         // Request gateway state
         self.socket?.sendMessage(message: message)
+    }
+
+    private func resendPendingByes() {
+        guard let socket = socket, socket.isConnected,
+              let sessionId = sessionId else { return }
+
+        let pendingCallIds = localHangupOrder.filter {
+            localHangups[$0]?.byePending == true
+        }
+
+        for callId in pendingCallIds {
+            guard var hangup = localHangups[callId] else { continue }
+            let byeMessage = ByeMessage(sessionId: sessionId,
+                                        callId: callId.uuidString,
+                                        causeCode: hangup.causeCode)
+            socket.sendMessage(message: byeMessage.encode())
+            hangup.byePending = false
+            localHangups[callId] = hangup
+        }
     }
 }
 
@@ -1864,7 +1890,11 @@ extension TxClient: CallProtocol {
                 if localHangups[signalingCallId] == nil {
                     localHangupOrder.append(signalingCallId)
                 }
-                localHangups[signalingCallId] = causeCode
+                localHangups[signalingCallId] = LocalHangup(
+                    causeCode: causeCode,
+                    byePending: localHangups[signalingCallId]?.byePending == true
+                        || call.socket?.isConnected != true
+                )
                 if localHangupOrder.count > Self.LOCAL_HANGUPS_LIMIT {
                     localHangups.removeValue(forKey: localHangupOrder.removeFirst())
                 }
@@ -2359,16 +2389,18 @@ extension TxClient : SocketDelegate {
                         return
                     }
 
-                    let localHangupCause = localHangups[uuid]
+                    let localHangup = localHangups[uuid]
 
                     // A locally ended call must never be restored. Re-send BYE
                     // on every stale ATTACH so a previously lost write is retried.
-                    if let causeCode = localHangupCause {
+                    if var localHangup = localHangup {
                         if let sessionId = self.sessionId {
                             let byeMessage = ByeMessage(sessionId: sessionId,
                                                         callId: uuid.uuidString,
-                                                        causeCode: causeCode)
+                                                        causeCode: localHangup.causeCode)
                             self.socket?.sendMessage(message: byeMessage.encode())
+                            localHangup.byePending = false
+                            localHangups[uuid] = localHangup
                         }
                         break
                     }

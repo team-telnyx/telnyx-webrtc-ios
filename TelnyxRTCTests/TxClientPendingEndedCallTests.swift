@@ -52,9 +52,32 @@ final class TxClientPendingEndedCallTests: XCTestCase {
         XCTAssertEqual(socket.byeMessages.count, 1)
         XCTAssertNil(client.calls[appCallId])
 
+        client.onMessageReceived(message: gatewayStateMessage())
+        XCTAssertTrue(signalingSocket.byeMessages.isEmpty)
+
         client.onMessageReceived(message: attachMessage(callId: signalingCallId))
         XCTAssertEqual(signalingSocket.byeMessages.count, 1)
         XCTAssertTrue(client.calls.isEmpty)
+    }
+
+    func testRegedRetriesPendingByeWithoutAttach() throws {
+        let callId = UUID()
+        hangup(callId: callId, connected: false)
+
+        client.onMessageReceived(message: gatewayStateMessage())
+
+        XCTAssertEqual(signalingSocket.byeMessages.count, 1)
+        try assertBye(signalingSocket.byeMessages[0],
+                      callId: callId,
+                      sessionId: client.getSessionId(),
+                      causeCode: .NORMAL_CLEARING)
+
+        client.disconnect()
+        client.injectSignalingForTesting(socket: signalingSocket,
+                                         sessionId: "another-session")
+        client.onMessageReceived(message: gatewayStateMessage())
+
+        XCTAssertEqual(signalingSocket.byeMessages.count, 1)
     }
 
     func testAttachForLocallyEndedCallRetriesByeWithoutRestoringCall() throws {
@@ -202,6 +225,10 @@ final class TxClientPendingEndedCallTests: XCTestCase {
 
     private func attachMessage(callId: UUID) -> String {
         "{\"jsonrpc\":\"2.0\",\"method\":\"telnyx_rtc.attach\",\"params\":{\"sdp\":\"v=0\\r\\n\",\"callID\":\"\(callId.uuidString)\"}}"
+    }
+
+    private func gatewayStateMessage() -> String {
+        "{\"jsonrpc\":\"2.0\",\"result\":{\"params\":{\"state\":\"REGED\"}}}"
     }
 
     private func assertBye(_ message: String,
