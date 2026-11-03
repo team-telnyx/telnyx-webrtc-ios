@@ -26,7 +26,7 @@ class Message {
     internal static let MOBILE_SDK_VERSION_KEY = "mobile_sdk_version"
 
     internal static let CLIENT_TYPE = "iOS"
-    internal static let SDK_VERSION = "4.2.2"
+    internal static let SDK_VERSION = "4.2.3"
     internal static var USER_AGENT: String {
         get {
             return userAgent(enableMissedCallNotifications: false)
