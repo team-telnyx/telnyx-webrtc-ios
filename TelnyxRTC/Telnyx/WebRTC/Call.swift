@@ -1014,9 +1014,13 @@ extension Call {
     ///  - Parameters:
     ///         - customHeaders: (optional) Custom Headers to be passed over webRTC Messages, should be in the
     ///     format `X-key:Value` `X` is required for headers to be passed.
-    internal func acceptReAttach(peer: Peer?, customHeaders:[String:String] = [:],debug:Bool = false) {
+    internal func acceptReAttach(peer: Peer?,
+                                 customHeaders:[String:String] = [:],
+                                 debug:Bool = false,
+                                 completion: ((Bool) -> Void)? = nil) {
         //TODO: Create an error if there's no remote SDP
         guard let remoteSdp = self.remoteSdp else {
+            completion?(false)
             return
         }
         peer?.dispose()
@@ -1044,13 +1048,16 @@ extension Call {
 
             if let error = error {
                 Logger.log.e(message: "Call:: Error creating the answering: \(error)")
+                completion?(false)
                 return
             }
 
             guard let sdp = sdp else {
+                completion?(false)
                 return
             }
             Logger.log.i(message: "Call:: Attach completed >> SDP: \(sdp)")
+            completion?(true)
         })
     }
     
