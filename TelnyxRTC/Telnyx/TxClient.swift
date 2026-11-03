@@ -755,19 +755,15 @@ public class TxClient {
                 Logger.log.i(message: "TxClient:: performLogin - Disconnecting socket after decline_push login")
                 // Reset push variables after decline_push login is complete
                 self.resetPushVariables()
-                self.disconnect(preservingLocalHangups: true)
+                self.disconnect()
             }
         }
     }
 
     /// Disconnects the TxClient from the Telnyx signaling server.
+    /// Local hangup intent is retained in memory so a later connection can
+    /// reject a stale ATTACH for a call whose BYE may not have been delivered.
     public func disconnect() {
-        disconnect(preservingLocalHangups: false)
-    }
-
-    /// Internal transport resets preserve local termination intent so a later
-    /// ATTACH can still finish a BYE that may have been lost.
-    private func disconnect(preservingLocalHangups: Bool) {
         Logger.log.i(message: "TxClient:: disconnect()")
         self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
         self.gatewayState = .NOREG
@@ -778,9 +774,6 @@ public class TxClient {
         }
         self.calls.removeAll()
         self.socketToAppCallId.removeAll()
-        if !preservingLocalHangups {
-            localHangups.removeAll()
-        }
         self.stopReconnectTimeout()
         self.stopInviteTimeout()
 
@@ -1342,7 +1335,7 @@ public class TxClient {
                 if pendingCallDecline {
                     Logger.log.i(message: "TxClient:: updateGatewayState() decline_push completed, disconnecting")
                     pendingCallDecline = false
-                    self.disconnect(preservingLocalHangups: true)
+                    self.disconnect()
                     return
                 }
                 
@@ -1749,7 +1742,7 @@ extension TxClient {
         // Tear down the previous push before storing the new push state.
         if noActiveCalls && isConnected() {
             Logger.log.i(message: "TxClient:: processVoIPNotification - No Active Calls disconnect")
-            self.disconnect(preservingLocalHangups: true)
+            self.disconnect()
         }
 
         self.pushCallState = .idle
@@ -1967,7 +1960,7 @@ extension TxClient : SocketDelegate {
                 
                 // Execute timeout actions on main queue for UI updates
                 self.updateActiveCallsState(callState: CallState.DONE(reason: nil))
-                self.disconnect(preservingLocalHangups: true)
+                self.disconnect()
                 self.delegate?.onClientError(error: TxError.callFailed(reason: .reconnectFailed))
                 
                 // Clean up timer reference

@@ -153,7 +153,7 @@ final class TxClientPendingEndedCallTests: XCTestCase {
         XCTAssertNotNil(client.pendingAttachCallIdForTesting)
     }
 
-    func testExplicitDisconnectClearsLocalHangups() {
+    func testExplicitDisconnectPreservesLocalHangups() {
         let endedCallId = UUID()
         hangup(callId: endedCallId, connected: false)
 
@@ -162,8 +162,8 @@ final class TxClientPendingEndedCallTests: XCTestCase {
                                          sessionId: "new-logical-session")
         client.onMessageReceived(message: attachMessage(callId: endedCallId))
 
-        XCTAssertTrue(signalingSocket.byeMessages.isEmpty)
-        XCTAssertNotNil(client.calls[endedCallId])
+        XCTAssertEqual(signalingSocket.byeMessages.count, 1)
+        XCTAssertNil(client.calls[endedCallId])
     }
 
     private func makeCall(appCallId: UUID,
