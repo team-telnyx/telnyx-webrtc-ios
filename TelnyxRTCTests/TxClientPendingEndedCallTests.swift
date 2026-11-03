@@ -52,9 +52,52 @@ final class TxClientPendingEndedCallTests: XCTestCase {
         XCTAssertEqual(socket.byeMessages.count, 1)
         XCTAssertNil(client.calls[appCallId])
 
+        client.onMessageReceived(message: gatewayStateMessage())
+        XCTAssertTrue(signalingSocket.byeMessages.isEmpty)
+
         client.onMessageReceived(message: attachMessage(callId: signalingCallId))
         XCTAssertEqual(signalingSocket.byeMessages.count, 1)
         XCTAssertTrue(client.calls.isEmpty)
+    }
+
+    func testRegedRetriesPendingByeWithoutAttach() throws {
+        let callId = UUID()
+        hangup(callId: callId, connected: false)
+
+        client.onMessageReceived(message: gatewayStateMessage())
+
+        XCTAssertEqual(signalingSocket.byeMessages.count, 1)
+        try assertBye(signalingSocket.byeMessages[0],
+                      callId: callId,
+                      sessionId: client.getSessionId(),
+                      causeCode: .NORMAL_CLEARING)
+
+        client.disconnect()
+        client.injectSignalingForTesting(socket: signalingSocket,
+                                         sessionId: "another-session")
+        client.onMessageReceived(message: gatewayStateMessage())
+
+        XCTAssertEqual(signalingSocket.byeMessages.count, 1)
+    }
+
+    func testPendingByeAllowsReconnectWithoutActiveCall() {
+        client.txConfig = TxConfig(sipUser: "test-user", password: "test-password")
+        client.onMessageReceived(message: gatewayStateMessage())
+
+        hangup(callId: UUID(), connected: false)
+        client.reconnectClient()
+
+        XCTAssertEqual(signalingSocket.reconnectRequests, [true])
+    }
+
+    func testPendingByeReconnectsWhenGatewayIsNotNoreg() {
+        client.txConfig = TxConfig(sipUser: "test-user", password: "test-password")
+        client.onMessageReceived(message: gatewayStateMessage(state: "TRYING"))
+
+        hangup(callId: UUID(), connected: false)
+        client.reconnectClient()
+
+        XCTAssertEqual(signalingSocket.reconnectRequests, [true])
     }
 
     func testAttachForLocallyEndedCallRetriesByeWithoutRestoringCall() throws {
@@ -153,7 +196,7 @@ final class TxClientPendingEndedCallTests: XCTestCase {
         XCTAssertNotNil(client.pendingAttachCallIdForTesting)
     }
 
-    func testExplicitDisconnectClearsLocalHangups() {
+    func testExplicitDisconnectPreservesLocalHangups() {
         let endedCallId = UUID()
         hangup(callId: endedCallId, connected: false)
 
@@ -162,8 +205,41 @@ final class TxClientPendingEndedCallTests: XCTestCase {
                                          sessionId: "new-logical-session")
         client.onMessageReceived(message: attachMessage(callId: endedCallId))
 
+        XCTAssertEqual(signalingSocket.byeMessages.count, 1)
+        XCTAssertNil(client.calls[endedCallId])
+    }
+
+    func testExplicitDisconnectWaitsForExplicitReconnectBeforeSendingPendingBye() {
+        client.txConfig = TxConfig(sipUser: "test-user", password: "test-password")
+        client.onMessageReceived(message: gatewayStateMessage())
+
+        let endedCallId = UUID()
+        hangup(callId: endedCallId, connected: false)
+        client.disconnect()
+
+        client.reconnectClient()
+        XCTAssertEqual(signalingSocket.reconnectRequests, [false])
         XCTAssertTrue(signalingSocket.byeMessages.isEmpty)
-        XCTAssertNotNil(client.calls[endedCallId])
+
+        client.injectSignalingForTesting(socket: signalingSocket,
+                                         sessionId: "explicit-reconnect-session")
+        client.onMessageReceived(message: gatewayStateMessage())
+
+        XCTAssertEqual(signalingSocket.byeMessages.count, 1)
+        XCTAssertNil(client.calls[endedCallId])
+    }
+
+    func testLocalHangupsAreLimitedToMostRecentSixteenCalls() {
+        let callIds = (0..<17).map { _ in UUID() }
+        callIds.forEach { hangup(callId: $0, connected: false) }
+
+        callIds.forEach {
+            client.onMessageReceived(message: attachMessage(callId: $0))
+        }
+
+        XCTAssertNotNil(client.calls[callIds[0]])
+        XCTAssertEqual(signalingSocket.byeMessages.count, 16)
+        XCTAssertNil(client.calls[callIds[16]])
     }
 
     private func makeCall(appCallId: UUID,
@@ -191,6 +267,10 @@ final class TxClientPendingEndedCallTests: XCTestCase {
         "{\"jsonrpc\":\"2.0\",\"method\":\"telnyx_rtc.attach\",\"params\":{\"sdp\":\"v=0\\r\\n\",\"callID\":\"\(callId.uuidString)\"}}"
     }
 
+    private func gatewayStateMessage(state: String = "REGED") -> String {
+        "{\"jsonrpc\":\"2.0\",\"result\":{\"params\":{\"state\":\"\(state)\"}}}"
+    }
+
     private func assertBye(_ message: String,
                            callId: UUID,
                            sessionId: String,
@@ -210,6 +290,7 @@ final class TxClientPendingEndedCallTests: XCTestCase {
 
 private final class PendingHangupSocket: Socket {
     private(set) var sentMessages: [String] = []
+    private(set) var reconnectRequests: [Bool] = []
 
     init(connected: Bool) {
         super.init()
@@ -219,6 +300,10 @@ private final class PendingHangupSocket: Socket {
     override func sendMessage(message: String?) {
         guard isConnected, let message = message else { return }
         sentMessages.append(message)
+    }
+
+    override func disconnect(reconnect: Bool) {
+        reconnectRequests.append(reconnect)
     }
 
     var byeMessages: [String] {

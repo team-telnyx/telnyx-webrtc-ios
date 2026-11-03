@@ -148,9 +148,15 @@ public class TxClient {
         let debug: Bool
     }
 
+    private struct LocalHangup {
+        let causeCode: CauseCode
+        var byePending: Bool
+    }
+
     // MARK: - Properties
     private static let DEFAULT_REGISTER_INTERVAL = 3.0 // In seconds
     private static let MAX_REGISTER_RETRY = 3 // Number of retry
+    private static let LOCAL_HANGUPS_LIMIT = 16
     //re_connect buffer in secondds
     private static let RECONNECT_BUFFER = 1.0
     /// Keeps track of all the created calls by theirs UUIDs
@@ -193,7 +199,8 @@ public class TxClient {
     private let forceRelayForNextRecoveredCallLock = NSLock()
     /// Local hangups are retained by signaling ID so a stale ATTACH cannot
     /// restore a call whose BYE was lost during a disconnect.
-    private var localHangups: [UUID: CauseCode] = [:]
+    private var localHangups: [UUID: LocalHangup] = [:]
+    private var localHangupOrder: [UUID] = []
 
     /// AI Assistant Manager for handling AI-related functionality
     public let aiAssistantManager = AIAssistantManager()
@@ -755,19 +762,13 @@ public class TxClient {
                 Logger.log.i(message: "TxClient:: performLogin - Disconnecting socket after decline_push login")
                 // Reset push variables after decline_push login is complete
                 self.resetPushVariables()
-                self.disconnect(preservingLocalHangups: true)
+                self.disconnect()
             }
         }
     }
 
     /// Disconnects the TxClient from the Telnyx signaling server.
     public func disconnect() {
-        disconnect(preservingLocalHangups: false)
-    }
-
-    /// Internal transport resets preserve local termination intent so a later
-    /// ATTACH can still finish a BYE that may have been lost.
-    private func disconnect(preservingLocalHangups: Bool) {
         Logger.log.i(message: "TxClient:: disconnect()")
         self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
         self.gatewayState = .NOREG
@@ -778,9 +779,6 @@ public class TxClient {
         }
         self.calls.removeAll()
         self.socketToAppCallId.removeAll()
-        if !preservingLocalHangups {
-            localHangups.removeAll()
-        }
         self.stopReconnectTimeout()
         self.stopInviteTimeout()
 
@@ -1342,9 +1340,11 @@ public class TxClient {
                 if pendingCallDecline {
                     Logger.log.i(message: "TxClient:: updateGatewayState() decline_push completed, disconnecting")
                     pendingCallDecline = false
-                    self.disconnect(preservingLocalHangups: true)
+                    self.disconnect()
                     return
                 }
+
+                resendPendingByes()
                 
                 self.delegate?.onClientReady()
                 //Check if isCallFromPush and sendAttachCall Message
@@ -1390,6 +1390,30 @@ public class TxClient {
         let message = gatewayMessage.encode() ?? ""
         // Request gateway state
         self.socket?.sendMessage(message: message)
+    }
+
+    private func resendPendingByes() {
+        let pendingCallIds = localHangupOrder.filter {
+            localHangups[$0]?.byePending == true
+        }
+
+        for callId in pendingCallIds {
+            sendByeForLocalHangup(callId: callId)
+        }
+    }
+
+    private func sendByeForLocalHangup(callId: UUID) {
+        guard let socket = socket, socket.isConnected,
+              let sessionId = sessionId,
+              var hangup = localHangups[callId] else { return }
+
+        Logger.log.i(message: "TxClient:: Sending BYE for locally ended call [\(callId)]")
+        let byeMessage = ByeMessage(sessionId: sessionId,
+                                    callId: callId.uuidString,
+                                    causeCode: hangup.causeCode)
+        socket.sendMessage(message: byeMessage.encode())
+        hangup.byePending = false
+        localHangups[callId] = hangup
     }
 }
 
@@ -1749,7 +1773,7 @@ extension TxClient {
         // Tear down the previous push before storing the new push state.
         if noActiveCalls && isConnected() {
             Logger.log.i(message: "TxClient:: processVoIPNotification - No Active Calls disconnect")
-            self.disconnect(preservingLocalHangups: true)
+            self.disconnect()
         }
 
         self.pushCallState = .idle
@@ -1867,7 +1891,21 @@ extension TxClient: CallProtocol {
             if call.endedLocally, case let .DONE(terminationReason) = call.callState {
                 let causeCode = terminationReason?.causeCode
                     .flatMap { CauseCode(rawValue: $0) } ?? .NORMAL_CLEARING
-                localHangups[call.signalingCallId] = causeCode
+                let signalingCallId = call.signalingCallId
+                if localHangups[signalingCallId] == nil {
+                    localHangupOrder.append(signalingCallId)
+                }
+                localHangups[signalingCallId] = LocalHangup(
+                    causeCode: causeCode,
+                    byePending: localHangups[signalingCallId]?.byePending == true
+                        || call.socket?.isConnected != true
+                )
+                if localHangups[signalingCallId]?.byePending == true {
+                    Logger.log.i(message: "TxClient:: Stored pending BYE for call [\(signalingCallId)]")
+                }
+                if localHangupOrder.count > Self.LOCAL_HANGUPS_LIMIT {
+                    localHangups.removeValue(forKey: localHangupOrder.removeFirst())
+                }
             }
             failPendingCallKitAnswer(for: callId)
             self.calls.removeValue(forKey: callId)
@@ -1967,7 +2005,7 @@ extension TxClient : SocketDelegate {
                 
                 // Execute timeout actions on main queue for UI updates
                 self.updateActiveCallsState(callState: CallState.DONE(reason: nil))
-                self.disconnect(preservingLocalHangups: true)
+                self.disconnect()
                 self.delegate?.onClientError(error: TxError.callFailed(reason: .reconnectFailed))
                 
                 // Clean up timer reference
@@ -1984,22 +2022,40 @@ extension TxClient : SocketDelegate {
         forceRelayForNextRecoveredCallLock.lock()
         forceRelayForNextRecoveredCall = forceRelayCandidateForRecovery
         forceRelayForNextRecoveredCallLock.unlock()
-        if self.isCallsActive {
+        let hasActiveCalls = self.isCallsActive
+        let hasPendingByes = localHangups.values.contains { $0.byePending }
+        let shouldReconnectForPendingBye = self.gatewayState != .NOREG
+            && hasPendingByes
+
+        if hasActiveCalls {
             updateActiveCallsState(callState: CallState.RECONNECTING(reason: .networkSwitch))
             startReconnectTimeout()
             Logger.log.i(message: "Reconnect Called : Calls are active")
-        }else {
+        } else if shouldReconnectForPendingBye {
+            Logger.log.i(message: "TxClient:: Reconnecting to deliver pending BYE")
+        } else {
             return
         }
         if let txConfig = self.txConfig {
             if(txConfig.reconnectClient){
-                guard let currentCall = self.calls[self.currentCallId] else {
+                if hasActiveCalls {
+                    guard let currentCall = self.calls[self.currentCallId] else {
 
-                    Logger.log.e(message: "Current Call not available for ATTACH")
-                    return
+                        Logger.log.e(message: "Current Call not available for ATTACH")
+                        return
+                    }
+                    currentCall.endForAttachCall()
                 }
-                currentCall.endForAttachCall()
-                self.socket?.disconnect(reconnect: true)
+                if let socket = self.socket {
+                    socket.disconnect(reconnect: true)
+                } else {
+                    do {
+                        try self.connect(txConfig: txConfig,
+                                         serverConfiguration: self.serverConfiguration)
+                    } catch {
+                        Logger.log.e(message: "TxClient:: Pending BYE reconnect failed: \(error.localizedDescription)")
+                    }
+                }
             }else {
                 Logger.log.i(message: "TxClient:: Reconnect Disabled")
             }
@@ -2359,17 +2415,10 @@ extension TxClient : SocketDelegate {
                         return
                     }
 
-                    let localHangupCause = localHangups[uuid]
-
                     // A locally ended call must never be restored. Re-send BYE
                     // on every stale ATTACH so a previously lost write is retried.
-                    if let causeCode = localHangupCause {
-                        if let sessionId = self.sessionId {
-                            let byeMessage = ByeMessage(sessionId: sessionId,
-                                                        callId: uuid.uuidString,
-                                                        causeCode: causeCode)
-                            self.socket?.sendMessage(message: byeMessage.encode())
-                        }
+                    if localHangups[uuid] != nil {
+                        sendByeForLocalHangup(callId: uuid)
                         break
                     }
 
