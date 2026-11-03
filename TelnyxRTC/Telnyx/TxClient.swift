@@ -761,8 +761,6 @@ public class TxClient {
     }
 
     /// Disconnects the TxClient from the Telnyx signaling server.
-    /// Local hangup intent is retained in memory so a later connection can
-    /// reject a stale ATTACH for a call whose BYE may not have been delivered.
     public func disconnect() {
         Logger.log.i(message: "TxClient:: disconnect()")
         self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
