@@ -80,6 +80,16 @@ final class TxClientPendingEndedCallTests: XCTestCase {
         XCTAssertEqual(signalingSocket.byeMessages.count, 1)
     }
 
+    func testPendingByeAllowsReconnectWithoutActiveCall() {
+        client.txConfig = TxConfig(sipUser: "test-user", password: "test-password")
+        client.onMessageReceived(message: gatewayStateMessage())
+
+        hangup(callId: UUID(), connected: false)
+        client.reconnectClient()
+
+        XCTAssertEqual(signalingSocket.reconnectRequests, [true])
+    }
+
     func testAttachForLocallyEndedCallRetriesByeWithoutRestoringCall() throws {
         let callId = UUID()
         hangup(callId: callId, connected: false)
@@ -250,6 +260,7 @@ final class TxClientPendingEndedCallTests: XCTestCase {
 
 private final class PendingHangupSocket: Socket {
     private(set) var sentMessages: [String] = []
+    private(set) var reconnectRequests: [Bool] = []
 
     init(connected: Bool) {
         super.init()
@@ -259,6 +270,10 @@ private final class PendingHangupSocket: Socket {
     override func sendMessage(message: String?) {
         guard isConnected, let message = message else { return }
         sentMessages.append(message)
+    }
+
+    override func disconnect(reconnect: Bool) {
+        reconnectRequests.append(reconnect)
     }
 
     var byeMessages: [String] {

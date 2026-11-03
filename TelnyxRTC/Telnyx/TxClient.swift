@@ -1402,6 +1402,7 @@ public class TxClient {
 
         for callId in pendingCallIds {
             guard var hangup = localHangups[callId] else { continue }
+            Logger.log.i(message: "TxClient:: Resending pending BYE for call [\(callId)]")
             let byeMessage = ByeMessage(sessionId: sessionId,
                                         callId: callId.uuidString,
                                         causeCode: hangup.causeCode)
@@ -1895,6 +1896,9 @@ extension TxClient: CallProtocol {
                     byePending: localHangups[signalingCallId]?.byePending == true
                         || call.socket?.isConnected != true
                 )
+                if localHangups[signalingCallId]?.byePending == true {
+                    Logger.log.i(message: "TxClient:: Stored pending BYE for call [\(signalingCallId)]")
+                }
                 if localHangupOrder.count > Self.LOCAL_HANGUPS_LIMIT {
                     localHangups.removeValue(forKey: localHangupOrder.removeFirst())
                 }
@@ -2014,22 +2018,39 @@ extension TxClient : SocketDelegate {
         forceRelayForNextRecoveredCallLock.lock()
         forceRelayForNextRecoveredCall = forceRelayCandidateForRecovery
         forceRelayForNextRecoveredCallLock.unlock()
-        if self.isCallsActive {
+        let hasActiveCalls = self.isCallsActive
+        let hasPendingByes = self.gatewayState == .REGED
+            && localHangups.values.contains { $0.byePending }
+
+        if hasActiveCalls {
             updateActiveCallsState(callState: CallState.RECONNECTING(reason: .networkSwitch))
             startReconnectTimeout()
             Logger.log.i(message: "Reconnect Called : Calls are active")
-        }else {
+        } else if hasPendingByes {
+            Logger.log.i(message: "TxClient:: Reconnecting to deliver pending BYE")
+        } else {
             return
         }
         if let txConfig = self.txConfig {
             if(txConfig.reconnectClient){
-                guard let currentCall = self.calls[self.currentCallId] else {
+                if hasActiveCalls {
+                    guard let currentCall = self.calls[self.currentCallId] else {
 
-                    Logger.log.e(message: "Current Call not available for ATTACH")
-                    return
+                        Logger.log.e(message: "Current Call not available for ATTACH")
+                        return
+                    }
+                    currentCall.endForAttachCall()
                 }
-                currentCall.endForAttachCall()
-                self.socket?.disconnect(reconnect: true)
+                if let socket = self.socket {
+                    socket.disconnect(reconnect: true)
+                } else {
+                    do {
+                        try self.connect(txConfig: txConfig,
+                                         serverConfiguration: self.serverConfiguration)
+                    } catch {
+                        Logger.log.e(message: "TxClient:: Pending BYE reconnect failed: \(error.localizedDescription)")
+                    }
+                }
             }else {
                 Logger.log.i(message: "TxClient:: Reconnect Disabled")
             }
