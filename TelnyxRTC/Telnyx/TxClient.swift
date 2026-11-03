@@ -2023,14 +2023,15 @@ extension TxClient : SocketDelegate {
         forceRelayForNextRecoveredCall = forceRelayCandidateForRecovery
         forceRelayForNextRecoveredCallLock.unlock()
         let hasActiveCalls = self.isCallsActive
-        let hasPendingByes = self.gatewayState == .REGED
-            && localHangups.values.contains { $0.byePending }
+        let hasPendingByes = localHangups.values.contains { $0.byePending }
+        let shouldReconnectForPendingBye = self.gatewayState != .NOREG
+            && hasPendingByes
 
         if hasActiveCalls {
             updateActiveCallsState(callState: CallState.RECONNECTING(reason: .networkSwitch))
             startReconnectTimeout()
             Logger.log.i(message: "Reconnect Called : Calls are active")
-        } else if hasPendingByes {
+        } else if shouldReconnectForPendingBye {
             Logger.log.i(message: "TxClient:: Reconnecting to deliver pending BYE")
         } else {
             return

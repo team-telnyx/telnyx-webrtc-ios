@@ -90,6 +90,16 @@ final class TxClientPendingEndedCallTests: XCTestCase {
         XCTAssertEqual(signalingSocket.reconnectRequests, [true])
     }
 
+    func testPendingByeReconnectsWhenGatewayIsNotNoreg() {
+        client.txConfig = TxConfig(sipUser: "test-user", password: "test-password")
+        client.onMessageReceived(message: gatewayStateMessage(state: "TRYING"))
+
+        hangup(callId: UUID(), connected: false)
+        client.reconnectClient()
+
+        XCTAssertEqual(signalingSocket.reconnectRequests, [true])
+    }
+
     func testAttachForLocallyEndedCallRetriesByeWithoutRestoringCall() throws {
         let callId = UUID()
         hangup(callId: callId, connected: false)
@@ -257,8 +267,8 @@ final class TxClientPendingEndedCallTests: XCTestCase {
         "{\"jsonrpc\":\"2.0\",\"method\":\"telnyx_rtc.attach\",\"params\":{\"sdp\":\"v=0\\r\\n\",\"callID\":\"\(callId.uuidString)\"}}"
     }
 
-    private func gatewayStateMessage() -> String {
-        "{\"jsonrpc\":\"2.0\",\"result\":{\"params\":{\"state\":\"REGED\"}}}"
+    private func gatewayStateMessage(state: String = "REGED") -> String {
+        "{\"jsonrpc\":\"2.0\",\"result\":{\"params\":{\"state\":\"\(state)\"}}}"
     }
 
     private func assertBye(_ message: String,
