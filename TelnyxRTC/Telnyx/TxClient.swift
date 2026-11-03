@@ -1393,23 +1393,27 @@ public class TxClient {
     }
 
     private func resendPendingByes() {
-        guard let socket = socket, socket.isConnected,
-              let sessionId = sessionId else { return }
-
         let pendingCallIds = localHangupOrder.filter {
             localHangups[$0]?.byePending == true
         }
 
         for callId in pendingCallIds {
-            guard var hangup = localHangups[callId] else { continue }
-            Logger.log.i(message: "TxClient:: Resending pending BYE for call [\(callId)]")
-            let byeMessage = ByeMessage(sessionId: sessionId,
-                                        callId: callId.uuidString,
-                                        causeCode: hangup.causeCode)
-            socket.sendMessage(message: byeMessage.encode())
-            hangup.byePending = false
-            localHangups[callId] = hangup
+            sendByeForLocalHangup(callId: callId)
         }
+    }
+
+    private func sendByeForLocalHangup(callId: UUID) {
+        guard let socket = socket, socket.isConnected,
+              let sessionId = sessionId,
+              var hangup = localHangups[callId] else { return }
+
+        Logger.log.i(message: "TxClient:: Sending BYE for locally ended call [\(callId)]")
+        let byeMessage = ByeMessage(sessionId: sessionId,
+                                    callId: callId.uuidString,
+                                    causeCode: hangup.causeCode)
+        socket.sendMessage(message: byeMessage.encode())
+        hangup.byePending = false
+        localHangups[callId] = hangup
     }
 }
 
@@ -2410,19 +2414,10 @@ extension TxClient : SocketDelegate {
                         return
                     }
 
-                    let localHangup = localHangups[uuid]
-
                     // A locally ended call must never be restored. Re-send BYE
                     // on every stale ATTACH so a previously lost write is retried.
-                    if var localHangup = localHangup {
-                        if let sessionId = self.sessionId {
-                            let byeMessage = ByeMessage(sessionId: sessionId,
-                                                        callId: uuid.uuidString,
-                                                        causeCode: localHangup.causeCode)
-                            self.socket?.sendMessage(message: byeMessage.encode())
-                            localHangup.byePending = false
-                            localHangups[uuid] = localHangup
-                        }
+                    if localHangups[uuid] != nil {
+                        sendByeForLocalHangup(callId: uuid)
                         break
                     }
 
