@@ -151,6 +151,7 @@ public class TxClient {
     // MARK: - Properties
     private static let DEFAULT_REGISTER_INTERVAL = 3.0 // In seconds
     private static let MAX_REGISTER_RETRY = 3 // Number of retry
+    private static let localHangupsLimit = 16
     //re_connect buffer in secondds
     private static let RECONNECT_BUFFER = 1.0
     /// Keeps track of all the created calls by theirs UUIDs
@@ -194,6 +195,7 @@ public class TxClient {
     /// Local hangups are retained by signaling ID so a stale ATTACH cannot
     /// restore a call whose BYE was lost during a disconnect.
     private var localHangups: [UUID: CauseCode] = [:]
+    private var localHangupOrder: [UUID] = []
 
     /// AI Assistant Manager for handling AI-related functionality
     public let aiAssistantManager = AIAssistantManager()
@@ -1858,7 +1860,14 @@ extension TxClient: CallProtocol {
             if call.endedLocally, case let .DONE(terminationReason) = call.callState {
                 let causeCode = terminationReason?.causeCode
                     .flatMap { CauseCode(rawValue: $0) } ?? .NORMAL_CLEARING
-                localHangups[call.signalingCallId] = causeCode
+                let signalingCallId = call.signalingCallId
+                if localHangups[signalingCallId] == nil {
+                    localHangupOrder.append(signalingCallId)
+                }
+                localHangups[signalingCallId] = causeCode
+                if localHangupOrder.count > Self.localHangupsLimit {
+                    localHangups.removeValue(forKey: localHangupOrder.removeFirst())
+                }
             }
             failPendingCallKitAnswer(for: callId)
             self.calls.removeValue(forKey: callId)

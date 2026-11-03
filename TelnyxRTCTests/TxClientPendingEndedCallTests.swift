@@ -166,6 +166,19 @@ final class TxClientPendingEndedCallTests: XCTestCase {
         XCTAssertNil(client.calls[endedCallId])
     }
 
+    func testLocalHangupsAreLimitedToMostRecentSixteenCalls() {
+        let callIds = (0..<17).map { _ in UUID() }
+        callIds.forEach { hangup(callId: $0, connected: false) }
+
+        callIds.forEach {
+            client.onMessageReceived(message: attachMessage(callId: $0))
+        }
+
+        XCTAssertNotNil(client.calls[callIds[0]])
+        XCTAssertEqual(signalingSocket.byeMessages.count, 16)
+        XCTAssertNil(client.calls[callIds[16]])
+    }
+
     private func makeCall(appCallId: UUID,
                           signalingCallId: UUID? = nil,
                           socket: Socket) -> Call {
