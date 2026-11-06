@@ -4,6 +4,7 @@
 
 ### Bug Fixes
 - **Inbound Call Quality Metrics**: Set `Call.debug` and `Call.enableQualityMetrics` *before* `Call.configureStatsReporter()` in `Call.answer(customHeaders:debug:completion:)`, so inbound calls answered with `debug: true` create their stats reporter and `onCallQualityChange` fires as expected. The previous ordering left `statsReporter` nil for inbound calls (outbound and attach paths were unaffected) — GH #378.
+- **VoIP Push Token Rotation Cleanup**: Remember the last PushKit registration in device-only Keychain storage and, after a later `connect()` reaches `REGED` with a different token, disable that exact previous registration so the device stops receiving duplicate pushes. Cleanup is best effort and does not affect other devices.
 
 ## [4.2.3](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.2.3) (2026-11-03)
 

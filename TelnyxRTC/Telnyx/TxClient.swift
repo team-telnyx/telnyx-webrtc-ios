@@ -188,9 +188,18 @@ public class TxClient {
     }
     #endif
     private var pushMetaData: [String:Any]?
+    internal var pushTokenRegistrationStore: PushTokenRegistrationStoring = KeychainPushTokenRegistrationStore()
+    /// `true` only after the app calls `connect()`. Push and anonymous logins can carry a
+    /// cached token or an earlier user's config, so they must not trigger cleanup.
+    internal var cleansUpStalePushToken = false
+    /// Only touched from socket delegate callbacks, which all run on the main queue.
+    private var pendingPushCleanup: (messageId: String, current: StoredPushTokenRegistration)?
     private let AUTH_ERROR_CODE = "-32001"
     private var reconnectTimeoutTimer: DispatchSourceTimer?
     private let reconnectQueue = DispatchQueue(label: "TelnyxClient.ReconnectQueue")
+    /// Owned per client: a shared monitor let one client replace another's callback,
+    /// and a cancelled `NWPathMonitor` cannot be restarted.
+    let networkMonitor = NetworkMonitor()
     private var _isSpeakerEnabled: Bool = false
     private var enableQualityMetrics: Bool = false
     private var isACMResetInProgress: Bool = false
@@ -379,10 +388,8 @@ public class TxClient {
         // Start monitoring audio route changes
         setupAudioRouteChangeMonitoring()
 
-        NetworkMonitor.shared.startMonitoring()
-        
         // Set up a closure to handle network state changes
-        NetworkMonitor.shared.onNetworkStateChange = { [weak self] state in
+        networkMonitor.onNetworkStateChange = { [weak self] state in
             guard let self = self else { return }
 
             DispatchQueue.main.async {
@@ -413,8 +420,10 @@ public class TxClient {
                 }
             }
         }
+
+        networkMonitor.startMonitoring()
     }
-    
+
     /// Deinitializer to ensure proper cleanup of resources
     deinit {
         failAllPendingCallKitAnswers()
@@ -424,7 +433,7 @@ public class TxClient {
         reconnectTimeoutTimer = nil
         
         // Stop network monitoring
-        NetworkMonitor.shared.stopMonitoring()
+        networkMonitor.stopMonitoring()
         
         // Remove audio route change observer
         NotificationCenter.default.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
@@ -613,6 +622,12 @@ public class TxClient {
     /// - Throws: TxConfig parameters errors
     public func connect(txConfig: TxConfig,
                         serverConfiguration: TxServerConfiguration = TxServerConfiguration()) throws {
+        cleansUpStalePushToken = true
+        try startConnection(txConfig: txConfig, serverConfiguration: serverConfiguration)
+    }
+
+    private func startConnection(txConfig: TxConfig,
+                                 serverConfiguration: TxServerConfiguration) throws {
         Logger.log.i(message: "TxClient:: connect()")
         //Check connetion parameters
         try txConfig.validateParams()
@@ -684,6 +699,7 @@ public class TxClient {
         self.serverConfiguration = serverConfiguration
 
         Logger.log.i(message: "TxClient:: serverConfiguration server: [\(self.serverConfiguration.signalingServer)] ICE Servers [\(self.serverConfiguration.webRTCIceServers)]")
+        cleansUpStalePushToken = false
         self.socket = Socket()
         self.socket?.delegate = self
         self.socket?.connect(signalingServer: self.serverConfiguration.signalingServer)
@@ -1178,22 +1194,91 @@ public class TxClient {
     /// To disable push notifications for the current user
     public func disablePushNotifications() {
         Logger.log.i(message: "TxClient:: disablePush()")
-        let pushProvider = self.txConfig?.pushNotificationConfig?.pushNotificationProvider
-
-        if let sipUser = self.txConfig?.sipUser {
-            let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
-            let disablePushMessage = DisablePushMessage(user: sipUser,pushDeviceToken: pushToken,pushNotificationProvider: pushProvider,pushEnvironment: self.txConfig?.pushEnvironment)
-            let message = disablePushMessage.encode() ?? ""
-            self.socket?.sendMessage(message: message)
+        guard let config = self.txConfig,
+              let message = disablePushMessage(config: config,
+                                               token: config.pushNotificationConfig?.pushDeviceToken,
+                                               provider: config.pushNotificationConfig?.pushNotificationProvider,
+                                               environment: config.pushEnvironment) else {
             return
         }
-        
-        if let token = self.txConfig?.token {
-            let pushToken = self.txConfig?.pushNotificationConfig?.pushDeviceToken
-            let disablePushMessage = DisablePushMessage(loginToken:token,pushDeviceToken: pushToken,pushNotificationProvider: pushProvider,pushEnvironment: self.txConfig?.pushEnvironment)
-            let message = disablePushMessage.encode() ?? ""
-            self.socket?.sendMessage(message: message)
+        self.socket?.sendMessage(message: message.encode() ?? "")
+    }
+
+    private func disablePushMessage(
+        config: TxConfig,
+        token: String?,
+        provider: String?,
+        environment: PushEnvironment?
+    ) -> DisablePushMessage? {
+        if let sipUser = config.sipUser {
+            return DisablePushMessage(user: sipUser,
+                                      pushDeviceToken: token,
+                                      pushNotificationProvider: provider,
+                                      pushEnvironment: environment)
         }
+        return config.token.map {
+            DisablePushMessage(loginToken: $0,
+                               pushDeviceToken: token,
+                               pushNotificationProvider: provider,
+                               pushEnvironment: environment)
+        }
+    }
+
+    /// Disables the registration this device last logged in with, if its token has changed.
+    ///
+    /// This is best effort. A missed cleanup only leaves a duplicate push, while disabling the
+    /// wrong registration would stop the phone ringing. So it sends at most one request per
+    /// connection, and sends nothing unless the token has rotated for the same user and server.
+    private func cleanUpStalePushTokenIfNeeded() {
+        guard cleansUpStalePushToken,
+              pendingPushCleanup == nil,
+              let config = txConfig,
+              let current = StoredPushTokenRegistration(
+                config: config,
+                signalingServer: serverConfiguration.signalingServer
+              ) else {
+            return
+        }
+
+        let previous = pushTokenRegistrationStore.load()
+        guard previous != current else { return }
+
+        guard let previous,
+              previous.accountKey == current.accountKey,
+              previous.server == current.server,
+              previous.token != current.token,
+              let environment = PushEnvironment(rawValue: previous.environment),
+              let message = disablePushMessage(
+                config: config,
+                token: previous.token,
+                provider: previous.provider,
+                environment: environment
+              ),
+              let encodedMessage = message.encode() else {
+            pushTokenRegistrationStore.save(current)
+            return
+        }
+
+        Logger.log.i(message: "TxClient:: Disabling the previous push registration after login")
+        pendingPushCleanup = (message.id, current)
+        socket?.sendMessage(message: encodedMessage)
+    }
+
+    /// Consumes the response to an SDK-owned cleanup, so it isn't reported as an app-requested
+    /// `disablePushNotifications()`. Any response ends the cleanup, including an error, so a
+    /// registration the server can't remove isn't resent on every login. If the connection
+    /// drops first, nothing was saved and the next login tries again.
+    private func handleStalePushCleanupResponse(_ message: Message) -> Bool {
+        guard let pending = pendingPushCleanup, pending.messageId == message.id else {
+            return false
+        }
+        pendingPushCleanup = nil
+
+        if let error = message.serverError {
+            Logger.log.w(message: "TxClient:: Previous push registration was not disabled: \(error["message"] ?? "Unknown error")")
+        }
+        pushTokenRegistrationStore.save(pending.current)
+        return true
     }
 
     /// Get the current session ID after logging into Telnyx Backend.
@@ -1225,6 +1310,7 @@ public class TxClient {
         serverConfiguration: TxServerConfiguration = TxServerConfiguration()
     ) {
         Logger.log.i(message: "TxClient:: anonymousLogin() targetId: \(targetId), targetType: \(targetType)")
+        cleansUpStalePushToken = false
         
         // Generate session ID if not available
         if self.sessionId == nil {
@@ -1360,6 +1446,10 @@ public class TxClient {
                         startInviteTimeout()
                     }
                 }
+
+                // disable_push is scoped to the logged-in member, so this has to wait for
+                // REGED. It runs last to keep it out of the way of the call flows above.
+                cleanUpStalePushTokenIfNeeded()
                 break
             default:
                 // The gateway state can transition through multiple states before changing to REGED (Registered).
@@ -2050,8 +2140,8 @@ extension TxClient : SocketDelegate {
                     socket.disconnect(reconnect: true)
                 } else {
                     do {
-                        try self.connect(txConfig: txConfig,
-                                         serverConfiguration: self.serverConfiguration)
+                        try self.startConnection(txConfig: txConfig,
+                                                 serverConfiguration: self.serverConfiguration)
                     } catch {
                         Logger.log.e(message: "TxClient:: Pending BYE reconnect failed: \(error.localizedDescription)")
                     }
@@ -2086,6 +2176,8 @@ extension TxClient : SocketDelegate {
   
     func onSocketConnected() {
         Logger.log.i(message: "TxClient:: SocketDelegate onSocketConnected()")
+        // A cleanup from an earlier connection got no response, so the next REGED retries it.
+        pendingPushCleanup = nil
         isReconnectPendingForCallKitDecline = false
         self.delegate?.onSocketConnected()
 
@@ -2197,7 +2289,7 @@ extension TxClient : SocketDelegate {
                         self.cleanupPendingCallKitDecline(reason: "decline_push reconnect skipped because config is missing")
                         return
                     }
-                    try self.connect(txConfig: reconnectConfig, serverConfiguration: updatedServerConfig)
+                    try self.startConnection(txConfig: reconnectConfig, serverConfiguration: updatedServerConfig)
                     self.isReconnectPendingForCallKitDecline = false
                 } catch let error {
                     Logger.log.e(message: "TxClient:: SocketDelegate reconnect error" + error.localizedDescription)
@@ -2240,6 +2332,10 @@ extension TxClient : SocketDelegate {
         // Process message through AI Assistant Manager
         if let messageDict = try? JSONSerialization.jsonObject(with: Data(message.utf8), options: []) as? [String: Any] {
             _ = self.aiAssistantManager.processIncomingMessage(messageDict)
+        }
+
+        if handleStalePushCleanupResponse(vertoMessage) {
+            return
         }
         
        // FileLogger().log(message)

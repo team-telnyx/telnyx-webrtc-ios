@@ -3,8 +3,6 @@ import Foundation
 import SystemConfiguration
 
 class NetworkMonitor {
-    static let shared = NetworkMonitor() // Singleton instance
-    
     private let monitor = NWPathMonitor()
     private let queue = DispatchQueue(label: "NetworkMonitorQueue")
     
@@ -21,7 +19,7 @@ class NetworkMonitor {
     // Closure to notify when network state changes
     var onNetworkStateChange: ((NetworkState) -> Void)?
     
-    private init() {
+    init() {
         // Set up the path update handler
         monitor.pathUpdateHandler = { [weak self] path in
             guard let self = self else { return }
