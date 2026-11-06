@@ -51,8 +51,8 @@ final class NetworkMonitorLifecycleTests: XCTestCase {
             monitor.removeNetworkStateObserver(tokenB)
         }
 
-        monitor._test_injectState(.cellular)
-        monitor._test_injectState(.cellular)
+        monitor.injectStateForTesting(.cellular)
+        monitor.injectStateForTesting(.cellular)
 
         XCTAssertEqual(first.cellularCount, 2, "Observer A must receive every state (VSDK-736)")
         XCTAssertEqual(second.cellularCount, 2, "Observer B must receive every state (VSDK-736)")
@@ -68,9 +68,9 @@ final class NetworkMonitorLifecycleTests: XCTestCase {
         let removedToken = monitor.addNetworkStateObserver(removed.record)
         defer { monitor.removeNetworkStateObserver(survivorToken) }
 
-        monitor._test_injectState(.cellular)
+        monitor.injectStateForTesting(.cellular)
         monitor.removeNetworkStateObserver(removedToken)
-        monitor._test_injectState(.cellular)
+        monitor.injectStateForTesting(.cellular)
 
         XCTAssertEqual(survivor.cellularCount, 2,
                        "Surviving observer must keep receiving after the other is removed (VSDK-736)")
@@ -89,12 +89,12 @@ final class NetworkMonitorLifecycleTests: XCTestCase {
         let staleToken = monitor.addNetworkStateObserver { _ in }
 
         monitor.removeNetworkStateObserver(staleToken)
-        let countAfterFirstRemoval = monitor._test_subscriberCount
+        let countAfterFirstRemoval = monitor.subscriberCountForTesting
         monitor.removeNetworkStateObserver(staleToken)
 
-        XCTAssertEqual(monitor._test_subscriberCount, countAfterFirstRemoval,
+        XCTAssertEqual(monitor.subscriberCountForTesting, countAfterFirstRemoval,
                        "Removing a stale token must not remove another subscriber (VSDK-736)")
-        monitor._test_injectState(.cellular)
+        monitor.injectStateForTesting(.cellular)
         XCTAssertEqual(survivor.cellularCount, 1)
     }
 
@@ -107,12 +107,12 @@ final class NetworkMonitorLifecycleTests: XCTestCase {
         let monitor = NetworkMonitor.shared
 
         let token = monitor.addNetworkStateObserver { _ in }
-        XCTAssertTrue(monitor._test_isRunning, "Monitor must start on the first subscription")
+        XCTAssertTrue(monitor.isRunningForTesting, "Monitor must start on the first subscription")
 
         monitor.removeNetworkStateObserver(token)
-        monitor._test_drainPending()
+        monitor.drainPendingForTesting()
 
-        XCTAssertTrue(monitor._test_isRunning,
+        XCTAssertTrue(monitor.isRunningForTesting,
                       "Monitor must keep running with no subscribers (VSDK-736)")
     }
 
@@ -133,9 +133,9 @@ final class NetworkMonitorLifecycleTests: XCTestCase {
             }
         }
 
-        monitor._test_injectState(.cellular)
-        monitor._test_drainPending()
-        monitor._test_injectState(.cellular)
+        monitor.injectStateForTesting(.cellular)
+        monitor.drainPendingForTesting()
+        monitor.injectStateForTesting(.cellular)
 
         XCTAssertEqual(recorder.cellularCount, 1,
                        "Observer must stop receiving after removing itself (VSDK-736)")
@@ -160,11 +160,11 @@ final class NetworkMonitorLifecycleTests: XCTestCase {
             }
         }
 
-        monitor._test_injectState(.cellular)
-        monitor._test_drainPending()
+        monitor.injectStateForTesting(.cellular)
+        monitor.drainPendingForTesting()
         XCTAssertEqual(added.cellularCount, 0)
 
-        monitor._test_injectState(.cellular)
+        monitor.injectStateForTesting(.cellular)
         XCTAssertEqual(added.cellularCount, 1,
                        "Observer added from a callback must receive the next state (VSDK-736)")
     }
@@ -182,7 +182,7 @@ final class NetworkMonitorLifecycleTests: XCTestCase {
         let secondClient = TxClient()
         secondClient.delegate = secondDelegate
 
-        NetworkMonitor.shared._test_injectState(.noConnection)
+        NetworkMonitor.shared.injectStateForTesting(.noConnection)
 
         wait(for: [firstDelegate.disconnected, secondDelegate.disconnected], timeout: 2.0)
         withExtendedLifetime((firstClient, secondClient, firstDelegate, secondDelegate)) {}
@@ -193,24 +193,24 @@ final class NetworkMonitorLifecycleTests: XCTestCase {
     /// `NWPathMonitor` on every `deinit`.
     func testReplacementTxClientReceivesNetworkLossAfterPreviousClientIsDestroyed() {
         let monitor = NetworkMonitor.shared
-        monitor._test_drainPending()
-        let subscribersBeforeClient = monitor._test_subscriberCount
+        monitor.drainPendingForTesting()
+        let subscribersBeforeClient = monitor.subscriberCountForTesting
 
         var firstClient: TxClient? = TxClient()
         weak var weakFirstClient = firstClient
         firstClient = nil
 
         XCTAssertNil(weakFirstClient, "The monitor must not keep a destroyed client alive")
-        XCTAssertLessThanOrEqual(monitor._test_subscriberCount, subscribersBeforeClient,
+        XCTAssertLessThanOrEqual(monitor.subscriberCountForTesting, subscribersBeforeClient,
                                  "Destroying a client must remove its subscription (VSDK-736)")
-        XCTAssertTrue(monitor._test_isRunning,
+        XCTAssertTrue(monitor.isRunningForTesting,
                       "Destroying a client must not stop the native monitor (VSDK-736)")
 
         let delegate = DisconnectDelegate(description: "Replacement client notified")
         let replacement = TxClient()
         replacement.delegate = delegate
 
-        monitor._test_injectState(.noConnection)
+        monitor.injectStateForTesting(.noConnection)
 
         wait(for: [delegate.disconnected], timeout: 2.0)
         withExtendedLifetime((replacement, delegate)) {}
@@ -230,7 +230,7 @@ private final class StateRecorder {
 
     /// Ignores states from real path updates, which can arrive at any time.
     var cellularCount: Int {
-        NetworkMonitor.shared._test_drainPending()
+        NetworkMonitor.shared.drainPendingForTesting()
         return states.filter { $0 == .cellular }.count
     }
 }

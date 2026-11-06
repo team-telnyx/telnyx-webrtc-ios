@@ -170,19 +170,19 @@ final class NetworkMonitor {
     /// Synchronously drain pending work on the monitor queue. No-op in
     /// production. Used by regression tests to make subscriber dispatch
     /// deterministic without spinning the run loop.
-    func _test_drainPending() {
+    func drainPendingForTesting() {
         queue.sync { }
     }
 
     /// Current number of registered subscribers. Test-only.
-    var _test_subscriberCount: Int {
+    var subscriberCountForTesting: Int {
         queue.sync { subscribers.count }
     }
 
     /// Deliver a state directly to observers, bypassing `NWPathMonitor` and the
     /// duplicate-state check, so delivery does not depend on the real network.
     /// Does not change `currentState`. Test-only.
-    func _test_injectState(_ newState: NetworkState) {
+    func injectStateForTesting(_ newState: NetworkState) {
         queue.sync {
             for callback in subscribers.values {
                 callback(newState)
@@ -191,7 +191,7 @@ final class NetworkMonitor {
     }
 
     /// Whether the underlying `NWPathMonitor` has been started. Test-only.
-    var _test_isRunning: Bool {
+    var isRunningForTesting: Bool {
         queue.sync { isRunning }
     }
 }
