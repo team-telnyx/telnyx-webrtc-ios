@@ -8,6 +8,8 @@
 # 5. Generates a changelog with the PRs.
 # 6. Creates a GitHub release using the changelog.
 
+# Requires LINEAR_ACCESS_KEY: the iOS Linear release pipeline access key.
+# Linear completion confirms the GitHub Release, not the separate CocoaPods deploy.
 name: release-03-create-gh-release
 
 on:
@@ -24,7 +26,7 @@ jobs:
 
     steps:
     - name: 🔄 Checkout main branch
-      uses: actions/checkout@v2
+      uses: actions/checkout@v5
       with:
         ref: main
         fetch-depth: 0  # needed to access tags and full history
@@ -60,6 +62,19 @@ jobs:
     - name: 📄 Print changelog
       run: cat changelog.txt
 
+    - name: Sync Linear release
+      uses: linear/linear-release-action@v0
+      with:
+        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        command: sync
+        version: ${{ github.event.inputs.version }}
+        name: iOS Voice SDK ${{ github.event.inputs.version }}
+        release_notes: changelog.txt
+        base_ref: ${{ steps.get-previous-tag.outputs.previous_tag }}
+        links: |
+          GitHub Release=${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.event.inputs.version }}
+          Workflow Run=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
     - name: 🚀 Create GitHub Release
       uses: zendesk/action-create-release@v1
       env:
@@ -70,3 +85,10 @@ jobs:
         body: ${{ steps.pr_list.outputs.changelog }}
         draft: false
         prerelease: false
+
+    - name: Complete Linear release
+      uses: linear/linear-release-action@v0
+      with:
+        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        command: complete
+        version: ${{ github.event.inputs.version }}

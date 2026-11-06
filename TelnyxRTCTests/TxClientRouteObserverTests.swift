@@ -31,7 +31,7 @@ final class TxClientRouteObserverTests: XCTestCase {
 
     override func tearDown() {
         txClient.delegate = nil
-        // `NetworkMonitor.shared` can retain a client beyond the test method. Remove
+        // A pending main-queue block can retain a client beyond the test method. Remove
         // this fixture's observer explicitly so another test client cannot satisfy a
         // later notification expectation.
         NotificationCenter.default.removeObserver(
