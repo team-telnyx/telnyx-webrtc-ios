@@ -191,6 +191,9 @@ public class TxClient {
     private let AUTH_ERROR_CODE = "-32001"
     private var reconnectTimeoutTimer: DispatchSourceTimer?
     private let reconnectQueue = DispatchQueue(label: "TelnyxClient.ReconnectQueue")
+    /// Owned per client: a shared monitor let one client replace another's callback,
+    /// and a cancelled `NWPathMonitor` cannot be restarted.
+    let networkMonitor = NetworkMonitor()
     private var _isSpeakerEnabled: Bool = false
     private var enableQualityMetrics: Bool = false
     private var isACMResetInProgress: Bool = false
@@ -379,10 +382,8 @@ public class TxClient {
         // Start monitoring audio route changes
         setupAudioRouteChangeMonitoring()
 
-        NetworkMonitor.shared.startMonitoring()
-        
         // Set up a closure to handle network state changes
-        NetworkMonitor.shared.onNetworkStateChange = { [weak self] state in
+        networkMonitor.onNetworkStateChange = { [weak self] state in
             guard let self = self else { return }
 
             DispatchQueue.main.async {
@@ -413,8 +414,10 @@ public class TxClient {
                 }
             }
         }
+
+        networkMonitor.startMonitoring()
     }
-    
+
     /// Deinitializer to ensure proper cleanup of resources
     deinit {
         failAllPendingCallKitAnswers()
@@ -424,7 +427,7 @@ public class TxClient {
         reconnectTimeoutTimer = nil
         
         // Stop network monitoring
-        NetworkMonitor.shared.stopMonitoring()
+        networkMonitor.stopMonitoring()
         
         // Remove audio route change observer
         NotificationCenter.default.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
