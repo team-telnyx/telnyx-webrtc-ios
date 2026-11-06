@@ -161,6 +161,7 @@
 		B391220C2604D9C50051E076 /* PeerConnectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B391220B2604D9C50051E076 /* PeerConnectionTests.swift */; };
 		B39122122604FBC00051E076 /* TestConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39122112604FBC00051E076 /* TestConstants.swift */; };
 		B3912220260502650051E076 /* CallTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B391221F260502650051E076 /* CallTests.swift */; };
+		AA00BEEF2F8E000100000001 /* CallInboundAnswerStatsReporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00BEEF2F8E000100000002 /* CallInboundAnswerStatsReporterTests.swift */; };
 		B3912264260F6A050051E076 /* TelnyxRTCMulticallTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3912263260F6A050051E076 /* TelnyxRTCMulticallTests.swift */; };
 		B3A1555928767E2D00C70528 /* RTCTestDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A1555828767E2D00C70528 /* RTCTestDelegate.swift */; };
 		B3A728BC2643537E003F3844 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = B3A728BB2643537E003F3844 /* README.md */; };
@@ -401,6 +402,7 @@
 		B391220B2604D9C50051E076 /* PeerConnectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeerConnectionTests.swift; sourceTree = "<group>"; };
 		B39122112604FBC00051E076 /* TestConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConstants.swift; sourceTree = "<group>"; };
 		B391221F260502650051E076 /* CallTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallTests.swift; sourceTree = "<group>"; };
+		AA00BEEF2F8E000100000002 /* CallInboundAnswerStatsReporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallInboundAnswerStatsReporterTests.swift; sourceTree = "<group>"; };
 		B3912263260F6A050051E076 /* TelnyxRTCMulticallTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnyxRTCMulticallTests.swift; sourceTree = "<group>"; };
 		B3A1555828767E2D00C70528 /* RTCTestDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTCTestDelegate.swift; sourceTree = "<group>"; };
 		B3A728BB2643537E003F3844 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -862,6 +864,7 @@
 			children = (
 				B391220B2604D9C50051E076 /* PeerConnectionTests.swift */,
 				B391221F260502650051E076 /* CallTests.swift */,
+				AA00BEEF2F8E000100000002 /* CallInboundAnswerStatsReporterTests.swift */,
 				AA00FF002F3E000100000001 /* CallReportCollectorTests.swift */,
 				AA0006812F3E000100000003 /* TelnyxCallTimingRecorderTests.swift */,
 				36D59B37D5C89B9A69EEC3F5 /* CallReportCollectorSSLTests.swift */,
@@ -1348,6 +1351,7 @@
 				A28400022F84000000000001 /* TurnServerConfigurationTests.swift in Sources */,
 				B3912264260F6A050051E076 /* TelnyxRTCMulticallTests.swift in Sources */,
 				B3912220260502650051E076 /* CallTests.swift in Sources */,
+				AA00BEEF2F8E000100000001 /* CallInboundAnswerStatsReporterTests.swift in Sources */,
 				D10100000000000000000004 /* SignalingHealthMonitorTests.swift in Sources */,
 				B3A1555928767E2D00C70528 /* RTCTestDelegate.swift in Sources */,
 				7530E91BC461EFF5522FF92F /* SSLValidationHelperTests.swift in Sources */,
