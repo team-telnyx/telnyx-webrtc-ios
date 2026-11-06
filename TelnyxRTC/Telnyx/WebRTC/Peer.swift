@@ -262,6 +262,18 @@ class Peer : NSObject, WebRTCEventHandler {
         self.muteUnmuteAudio(mute: false)
     }
 
+    /// Audio session options used for every call configuration.
+    ///
+    /// Keep `.allowBluetoothA2DP`: device testing of the same options in the React Native
+    /// SDK showed the CallKit speaker indicator does not follow the audio route without it.
+    /// Apple does not document why.
+    internal static let callAudioCategoryOptions: AVAudioSession.CategoryOptions = [
+        .allowBluetoothA2DP,
+        .duckOthers,
+        .allowBluetooth,
+        .mixWithOthers,
+    ]
+
     /// Configures the iOS device's audio session for optimal WebRTC call handling.
     /// This setup is crucial for proper audio routing and behavior during calls.
     ///
@@ -290,10 +302,7 @@ class Peer : NSObject, WebRTCEventHandler {
                 self.rtcAudioSession.isAudioEnabled = false
                 try rtcAudioSession.setCategory(AVAudioSession.Category.playAndRecord,
                                                 mode: AVAudioSession.Mode.voiceChat,
-                                                options: [
-                                                    .duckOthers,          // Reduce other apps' volume
-                                                    .allowBluetooth,      // Enable Bluetooth headsets
-                                                ])
+                                                options: Peer.callAudioCategoryOptions)
 
                 try rtcAudioSession.setPreferredIOBufferDuration(0.01) // 10 ms
 
@@ -868,10 +877,7 @@ extension Peer {
                 let configuration = RTCAudioSessionConfiguration.webRTC()
 
                 // Build category options - include .defaultToSpeaker if speaker should be active
-                var categoryOptions: AVAudioSession.CategoryOptions = [
-                    .duckOthers,
-                    .allowBluetooth,
-                ]
+                var categoryOptions = Peer.callAudioCategoryOptions
 
                 if preserveSpeakerState && wasSpeakerActive {
                     categoryOptions.insert(.defaultToSpeaker)
