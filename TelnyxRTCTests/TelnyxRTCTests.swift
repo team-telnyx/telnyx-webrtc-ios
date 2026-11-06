@@ -425,7 +425,7 @@ final class PushTokenRegistrationTrackerTests: XCTestCase {
             pushDeviceToken: current.token,
             pushEnvironment: .debug
         )
-        client.setSocketForTesting(socket)
+        client.injectSignalingForTesting(socket: socket, sessionId: client.getSessionId())
 
         client.onSocketConnected()
 

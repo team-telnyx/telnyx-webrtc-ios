@@ -146,7 +146,10 @@ extension HomeViewController : VoIPDelegate {
     
     func onIncomingCall(call: Call) {
         self.incomingCall = true
+        // AppDelegate moves the ongoing call to previousCall before forwarding the new one.
+        let isCallWaiting = self.appDelegate.previousCall?.callState.isConsideredActive ?? false
         DispatchQueue.main.async {
+            self.callViewModel.isCallWaiting = isCallWaiting
             self.callViewModel.callState = call.callState
             self.viewModel.callState = call.callState
             //Hide the keyboard
@@ -191,10 +194,11 @@ extension HomeViewController : VoIPDelegate {
         return "Call ended"
     }
     
-    func onCallStateUpdated(callState: CallState, callId: UUID) {        
+    func onCallStateUpdated(callState: CallState, callId: UUID) {
         DispatchQueue.main.async {
-            self.callViewModel.callState = callState
-            self.viewModel.callState = callState
+            let displayedCallState = self.displayedCallState(for: callState, callId: callId)
+            self.callViewModel.callState = displayedCallState
+            self.viewModel.callState = displayedCallState
             
             // Forward call state changes to HomeViewModel for PreCall Diagnosis
             self.viewModel.handleCallStateChange(callId: callId, callState: callState)
@@ -239,6 +243,20 @@ extension HomeViewController : VoIPDelegate {
             }
 //            self.updateButtonsState()
         }
+    }
+
+    /// With two calls, an update for the call that is not current (the held call,
+    /// the call ended by End & Accept, or a declined waiting call) must not replace
+    /// the screen of the call that is still going.
+    private func displayedCallState(for callState: CallState, callId: UUID) -> CallState {
+        guard let currentCall = self.appDelegate.currentCall,
+              currentCall.callInfo?.callId != callId else {
+            return callState
+        }
+        if case .DONE = currentCall.callState {
+            return callState
+        }
+        return currentCall.callState
     }
     
     func executeCall(callUUID: UUID, completionHandler: @escaping (Call?) -> Void) {
@@ -293,6 +311,7 @@ extension HomeViewController : VoIPDelegate {
     func onPushCall(call: Call) {
         print("HomeViewController:: onPushCall() callId: \(call.callInfo?.callId ?? UUID())")
         DispatchQueue.main.async {
+            self.callViewModel.isCallWaiting = false
             self.callViewModel.callState = call.callState
             self.viewModel.callState = call.callState
             // Hide the keyboard

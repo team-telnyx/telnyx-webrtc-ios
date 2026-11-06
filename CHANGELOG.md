@@ -5,6 +5,27 @@
 ### Bug Fixes
 - **VoIP Push Token Rotation Cleanup**: Persist the last PushKit registration in device-only Keychain storage and automatically disable exact previous token, provider, and environment registrations when they change. Unconfirmed cleanup is retried without removing push registrations for other devices.
 
+## [4.2.3](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.2.3) (2026-11-03)
+
+### Enhancements
+- **iOS SDK Signaling Identity**: Emit `mobile_sdk_name=webrtc-ios` and `mobile_sdk_version` on the supported signaling messages while preserving the existing `User-Agent` formats, enabling consistent SDK attribution across login and call flows ([#420](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/420), [#421](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/421)).
+- **Call Setup Timings in Call Reports**: Inbound and outbound call reports now include a `[CallTimings]` breakdown of call setup (peer creation, SDP, ICE, DTLS, ringing, answer, and call active), in the same log format as the JS and Android SDKs ([#409](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/409)).
+- **Call Reports for Calls That Never Become Active**: Missed, rejected and failed calls now send a call report with their logs, as the JS SDK does. Previously no report was sent when no stats had been collected ([#409](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/409)).
+
+### Bug Fixes
+- **Native CallKit Call Waiting**: Allow CallKit to answer a waiting call while another call is active, held, or awaiting its hold acknowledgment, and route overlapping asynchronous answer completions to the correct call and CallKit action ([#423](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/423)).
+- **Stale CallKit Answer on the Next Push Call**: Scope pending CallKit answers by call UUID so an abruptly ended call's action cannot auto-answer a later unrelated call, while preserving a legitimate answer made before `processVoIPNotification` for its matching call ([#427](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/427)).
+- **Termination-Intent Preservation on Socket Down**: Prevent a locally ended call from being restored by a later `attach_call=true` login, retain pending BYEs across disconnects, and deliver them after automatic network recovery even when no stale ATTACH arrives ([#425](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/425), [#429](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/429)).
+
+### Testing
+- **Credential-Free Pull Request Checks**: Separate credential-free pull-request tests from live integration coverage and clean up temporary integration resources reliably ([#410](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/410)).
+
+## [4.2.2](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.2.2) (2026-10-05)
+
+### Bug Fixes
+- **Consecutive VoIP Push Handling**: Tear down an unresolved push placeholder before storing the next push configuration and connect with that configuration directly, preventing a nil force-unwrap crash when duplicate or rapid VoIP pushes arrive after the first socket connects ([#414](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/414)).
+- **Inbound Call Acceptance Serialization**: Serialize CallKit answer ownership across the client and make in-flight call answering idempotent, preventing duplicate or concurrent answer attempts while releasing ownership when setup fails or a call ends ([#407](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/407)).
+
 ## [4.2.1](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.2.1) (2026-09-24)
 
 ### Bug Fixes

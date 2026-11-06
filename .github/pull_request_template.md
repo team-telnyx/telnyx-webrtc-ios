@@ -200,6 +200,17 @@ Please attach the screenshots if required
 
 ---
 
+### 📲 Consecutive VoIP Push Scenarios
+- [ ] Send a synthetic VoIP push, leave its placeholder unresolved until the socket connects, then send a second push with a different `call_id`
+  - [ ] App does not crash
+  - [ ] First call ends exactly once
+  - [ ] Second call remains actionable and can be rejected
+- [ ] Deliver the same VoIP push twice with the same `call_id`
+  - [ ] App does not crash
+  - [ ] CallKit does not report duplicate incoming-call UI
+
+---
+
 ### 📊 General Stats Scenarios
 - [ ] Enable stats (config level) -> Establish call -> Verify portal stats appear
 - [ ] Disable stats (config level) -> Establish call -> Verify no portal stats appear

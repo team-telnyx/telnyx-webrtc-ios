@@ -3,21 +3,25 @@ name: tests-ui-sample-app-firebase
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   ui-tests:
+    environment: mobile-sdk-integration
     runs-on: macos-15
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Select Xcode version
-        uses: maxim-lobanov/setup-xcode@v1
+        uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1
         with:
           xcode-version: '26.3.0'
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1
         with:
           ruby-version: 3.3.0
           bundler-cache: true
@@ -29,7 +33,9 @@ jobs:
         run: gem install fastlane
 
       - name: Decode and create GoogleService-Info.plist
-        run: echo "${{ secrets.TEST_UI_FIREBASE_PLIST_BASE64 }}" | base64 --decode > TelnyxWebRTCDemo/GoogleService-Info.plist
+        env:
+          TEST_UI_FIREBASE_PLIST_BASE64: ${{ secrets.TEST_UI_FIREBASE_PLIST_BASE64 }}
+        run: printf '%s' "$TEST_UI_FIREBASE_PLIST_BASE64" | base64 --decode > TelnyxWebRTCDemo/GoogleService-Info.plist
 
       - name: Verify GoogleService-Info.plist
         run: |
@@ -39,21 +45,27 @@ jobs:
           fi
 
       - name: Set up environment
+        env:
+          TEST_UI_SIP_USER: ${{ secrets.TEST_UI_SIP_USER }}
+          TEST_UI_SIP_PASSWORD: ${{ secrets.TEST_UI_SIP_PASSWORD }}
+          TEST_UI_SIP_TOKEN: ${{ secrets.TEST_UI_SIP_TOKEN }}
+          TEST_UI_DESTINATION_NUMBER: ${{ secrets.TEST_UI_DESTINATION_NUMBER }}
+          TEST_UI_CALLER_NUMBER: ${{ secrets.TEST_IU_CALLER_NUMBER }}
         run: |
           sh scripts/setup_uitest_env.sh \
-            -u "${{ secrets.TEST_UI_SIP_USER }}" \
-            -p "${{ secrets.TEST_UI_SIP_PASSWORD }}" \
-            -t "${{ secrets.TEST_UI_SIP_TOKEN }}" \
-            -d "${{ secrets.TEST_UI_DESTINATION_NUMBER }}" \
-            -c "${{ secrets.TEST_IU_CALLER_NUMBER }}"
+            -u "$TEST_UI_SIP_USER" \
+            -p "$TEST_UI_SIP_PASSWORD" \
+            -t "$TEST_UI_SIP_TOKEN" \
+            -d "$TEST_UI_DESTINATION_NUMBER" \
+            -c "$TEST_UI_CALLER_NUMBER"
 
       - name: Authenticate with Google Cloud
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2
         with:
           credentials_json: '${{ secrets.TEST_UI_GCLOUD_SERVICE_KEY }}'
 
       - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f # v2
 
       - name: Create and unlock temporary keychain
         run: |

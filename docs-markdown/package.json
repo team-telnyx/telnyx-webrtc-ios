@@ -14,5 +14,8 @@
   "devDependencies": {
     "eslint": "^9.39.1",
     "eslint-plugin-mdx": "^3.6.2"
+  },
+  "overrides": {
+    "eslint-mdx": "3.8.1"
   }
 }

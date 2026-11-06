@@ -1,0 +1,110 @@
+name: iOS Integration Tests
+
+on:
+  # Deliberately excluded from pull_request: PR validation stays credential-free;
+  # live credentials are only used after merge or during a manual dispatch.
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-integration-tests
+  cancel-in-progress: false
+
+jobs:
+  integration-tests:
+    name: Credentialed login tests
+    environment: mobile-sdk-integration
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Select Xcode Version
+        uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1
+        with:
+          xcode-version: '26.3.0'
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1
+        with:
+          ruby-version: 3.3.0
+          bundler-cache: true
+
+      - name: Create on-demand credential
+        env:
+          TELNYX_SIP_API_KEY: ${{ secrets.TELNYX_SIP_API_KEY }}
+          TELNYX_SIP_CONNECTION_ID: ${{ secrets.TELNYX_SIP_CONNECTION_ID }}
+        run: |
+          set -euo pipefail
+          umask 077
+          # Bound exposure if a hard runner termination prevents the cleanup step.
+          expires_at=$(date -u -v+6H '+%Y-%m-%dT%H:%M:%SZ')
+          payload=$(jq --null-input --compact-output \
+            --arg connection_id "$TELNYX_SIP_CONNECTION_ID" \
+            --arg expires_at "$expires_at" \
+            '{connection_id: $connection_id, expires_at: $expires_at}')
+          credential_id_file="$RUNNER_TEMP/ondemand_credential_id"
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Content-Type: application/json" \
+            --header "Authorization: Bearer $TELNYX_SIP_API_KEY" \
+            --data "$payload" \
+            https://api.telnyx.com/v2/telephony_credentials \
+            | jq --exit-status --raw-output '.data.id // empty' \
+            > "${credential_id_file}.tmp"
+          mv "${credential_id_file}.tmp" "$credential_id_file"
+
+      - name: Generate login token
+        env:
+          TELNYX_SIP_API_KEY: ${{ secrets.TELNYX_SIP_API_KEY }}
+        run: |
+          set -euo pipefail
+          credential_id=$(< "$RUNNER_TEMP/ondemand_credential_id")
+          token=$(curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Content-Type: application/json" \
+            --header "Authorization: Bearer $TELNYX_SIP_API_KEY" \
+            --data '{}' \
+            "https://api.telnyx.com/v2/telephony_credentials/$credential_id/token")
+          echo "::add-mask::$token"
+          umask 077
+          printf '%s' "$token" > "$RUNNER_TEMP/sip_token"
+
+      - name: Configure integration credentials
+        env:
+          TELNYX_SIP_USER: ${{ secrets.TELNYX_SIP_USER }}
+          TELNYX_SIP_PASSWORD: ${{ secrets.TELNYX_SIP_PASSWORD }}
+          TELNYX_SIP_TOKEN_FILE: ${{ runner.temp }}/sip_token
+        run: bash scripts/setup_env.sh -u "$TELNYX_SIP_USER" -p "$TELNYX_SIP_PASSWORD" -f "$TELNYX_SIP_TOKEN_FILE"
+
+      - name: Install Pods
+        run: pod install
+
+      - name: Run credentialed integration tests
+        run: bundle exec fastlane integration_tests
+
+      - name: Delete on-demand credential
+        if: ${{ always() }}
+        env:
+          TELNYX_SIP_API_KEY: ${{ secrets.TELNYX_SIP_API_KEY }}
+        run: |
+          credential_id_file="$RUNNER_TEMP/ondemand_credential_id"
+          # A cancellation between writing and renaming leaves a usable .tmp file.
+          if [[ ! -s "$credential_id_file" && -s "${credential_id_file}.tmp" ]]; then
+            credential_id_file="${credential_id_file}.tmp"
+          fi
+          if [[ ! -s "$credential_id_file" ]]; then
+            echo "No on-demand credential was created; skipping cleanup."
+            exit 0
+          fi
+          credential_id=$(< "$credential_id_file")
+          curl --fail-with-body --silent --show-error \
+            --request DELETE \
+            --header "Authorization: Bearer $TELNYX_SIP_API_KEY" \
+            "https://api.telnyx.com/v2/telephony_credentials/$credential_id"
