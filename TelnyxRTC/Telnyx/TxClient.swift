@@ -362,9 +362,9 @@ public class TxClient {
 
         // Register a network-state observer and store the subscription token so
         // we can remove it deterministically in `deinit`. Each TxClient owns
-        // exactly one subscription; destroying it removes the subscription and
-        // leaves the shared `NWPathMonitor` running while any other live
-        // client is still subscribed.
+        // exactly one subscription; destroying it removes only that subscription
+        // and leaves the shared `NWPathMonitor` running for other live and
+        // future clients.
         networkObserverToken = NetworkMonitor.shared.addNetworkStateObserver { [weak self] state in
             guard let self = self else { return }
 
@@ -404,10 +404,8 @@ public class TxClient {
         reconnectTimeoutTimer?.cancel()
         reconnectTimeoutTimer = nil
 
-        // Remove our network-state observer so destroying this client does not
-        // cancel the singleton `NWPathMonitor` for any other live client. The
-        // underlying monitor is only cancelled when the last subscriber is
-        // removed inside `NetworkMonitor.removeNetworkStateObserver`.
+        // Remove our network-state observer. The shared `NWPathMonitor` keeps
+        // running for other live and future clients.
         if let token = networkObserverToken {
             NetworkMonitor.shared.removeNetworkStateObserver(token)
             networkObserverToken = nil

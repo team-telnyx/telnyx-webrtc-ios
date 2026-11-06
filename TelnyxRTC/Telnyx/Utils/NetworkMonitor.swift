@@ -5,17 +5,20 @@ import SystemConfiguration
 /// Thread-safe, multi-subscriber network monitor.
 ///
 /// `NetworkMonitor` is shared across all `TxClient` instances in the process.
-/// Subscribers register a callback and receive an opaque token; the underlying
-/// `NWPathMonitor` is started on the first subscription and cancelled only when
-/// the last subscriber is removed. This avoids the previous bug where each new
-/// `TxClient` replaced the singleton's `onNetworkStateChange` callback and each
-/// `deinit` cancelled the singleton `NWPathMonitor` for every other live client.
+/// Subscribers register a callback and receive an opaque token. The underlying
+/// `NWPathMonitor` starts on the first subscription and then runs for the rest
+/// of the process, because a cancelled `NWPathMonitor` cannot be restarted. This
+/// avoids the previous bug where each new `TxClient` replaced the singleton's
+/// `onNetworkStateChange` callback and each `deinit` cancelled the singleton
+/// `NWPathMonitor` for every other live and future client.
 ///
-/// All subscriber mutation happens on the monitor's private queue. Subscriber
-/// callbacks are dispatched on the same queue — callers that need main-thread
-/// behaviour must hop themselves (the legacy single-callback implementation
-/// already required `TxClient` to dispatch to Main inside its handler, and this
-/// implementation preserves that contract).
+/// All subscriber mutation is dispatched asynchronously onto the monitor's
+/// private queue, so adding or removing an observer is safe from any thread,
+/// including from inside an observer callback or a `TxClient` `deinit` running
+/// on that queue. Subscriber callbacks are dispatched on the same queue —
+/// callers that need main-thread behaviour must hop themselves (the legacy
+/// single-callback implementation already required `TxClient` to dispatch to
+/// Main inside its handler, and this implementation preserves that contract).
 final class NetworkMonitor {
     static let shared = NetworkMonitor()
 
@@ -44,11 +47,10 @@ final class NetworkMonitor {
     private let monitor = NWPathMonitor()
     private let queue = DispatchQueue(label: "NetworkMonitorQueue")
 
-    /// Live subscriber map. Mutation is funneled through `queue`; reads from
-    /// outside the queue copy a snapshot to avoid races during dispatch.
+    /// Live subscriber map. Only read or mutated on `queue`.
     private var subscribers: [Token: (NetworkState) -> Void] = [:]
-    /// `true` while the underlying `NWPathMonitor` is started. Cancelled when
-    /// the subscriber count drops to zero.
+    /// `true` once the underlying `NWPathMonitor` has started. It is never
+    /// cancelled, so this never returns to `false`.
     private var isRunning = false
 
     /// Last observed network state. Treat as a snapshot from any thread.
@@ -75,8 +77,9 @@ final class NetworkMonitor {
                     newState = .vpn
                 }
 
-                // Check for actual internet connectivity when VPN is active
-                if newState == .vpn {
+                // Check for actual internet connectivity when VPN is active.
+                // Skip the request when no client is alive to act on the result.
+                if newState == .vpn && !self.subscribers.isEmpty {
                     self.checkInternetAccess { hasInternet in
                         self.queue.async {
                             if !hasInternet {
@@ -87,7 +90,8 @@ final class NetworkMonitor {
                         }
                     }
                 } else {
-                    // For Wi-Fi or cellular, assume internet is available
+                    // For Wi-Fi or cellular, assume internet is available.
+                    // An unverified VPN state has no effect without subscribers.
                     self.updateState(newState)
                 }
             } else {
@@ -110,28 +114,23 @@ final class NetworkMonitor {
     ///   `removeNetworkStateObserver(_:)`.
     @discardableResult
     func addNetworkStateObserver(_ observer: @escaping (NetworkState) -> Void) -> Token {
-        var token: Token!
-        queue.sync {
-            token = Token(id: UUID())
-            subscribers[token] = observer
-            if !isRunning {
-                isRunning = true
-                monitor.start(queue: queue)
+        let token = Token(id: UUID())
+        queue.async {
+            self.subscribers[token] = observer
+            if !self.isRunning {
+                self.isRunning = true
+                self.monitor.start(queue: self.queue)
             }
         }
         return token
     }
 
     /// Unsubscribe a previously-registered observer. Safe to call with an
-    /// unknown token (no-op). When the last observer is removed, the
-    /// underlying `NWPathMonitor` is cancelled.
+    /// unknown token (no-op). The underlying `NWPathMonitor` keeps running so a
+    /// later subscriber still receives network changes.
     func removeNetworkStateObserver(_ token: Token) {
-        queue.sync {
-            subscribers.removeValue(forKey: token)
-            if subscribers.isEmpty && isRunning {
-                isRunning = false
-                monitor.cancel()
-            }
+        queue.async {
+            self.subscribers.removeValue(forKey: token)
         }
     }
 
@@ -141,13 +140,8 @@ final class NetworkMonitor {
     private func updateState(_ newState: NetworkState) {
         guard currentState != newState else { return }
         currentState = newState
-        // Snapshot the dictionary so a subscriber that re-enters
-        // `addNetworkStateObserver` / `removeNetworkStateObserver` cannot
-        // mutate the map we are iterating.
-        let snapshot = subscribers
-        let state = newState
-        for (_, callback) in snapshot {
-            callback(state)
+        for callback in subscribers.values {
+            callback(newState)
         }
     }
 
@@ -185,12 +179,18 @@ final class NetworkMonitor {
         queue.sync { subscribers.count }
     }
 
-    /// Inject a state change directly, bypassing `NWPathMonitor`. Test-only.
+    /// Deliver a state directly to observers, bypassing `NWPathMonitor` and the
+    /// duplicate-state check, so delivery does not depend on the real network.
+    /// Does not change `currentState`. Test-only.
     func _test_injectState(_ newState: NetworkState) {
-        queue.sync { self.updateState(newState) }
+        queue.sync {
+            for callback in subscribers.values {
+                callback(newState)
+            }
+        }
     }
 
-    /// Whether the underlying `NWPathMonitor` is currently started. Test-only.
+    /// Whether the underlying `NWPathMonitor` has been started. Test-only.
     var _test_isRunning: Bool {
         queue.sync { isRunning }
     }

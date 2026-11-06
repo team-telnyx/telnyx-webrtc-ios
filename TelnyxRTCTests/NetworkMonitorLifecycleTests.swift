@@ -15,16 +15,18 @@
 //       state — the second `init` silently replaced the first client's
 //       callback.
 //    2. Destroying any one client cancelled the shared monitor for every
-//       other live client, so replacement clients and concurrent clients
-//       silently stopped receiving network-state callbacks.
+//       other live client, and a cancelled `NWPathMonitor` cannot be restarted,
+//       so replacement clients silently stopped receiving network changes.
 //
-//  The fix replaces the single-callback API with a thread-safe multi-subscriber
-//  model: subscribers register a closure and receive an opaque token; the
-//  underlying `NWPathMonitor` is started on the first subscription and only
-//  cancelled when the last subscriber is removed.
+//  The fix replaces the single-callback API with a multi-subscriber model:
+//  subscribers register a closure and receive an opaque token. The underlying
+//  `NWPathMonitor` starts on the first subscription and is never cancelled.
 //
-//  These tests pin the new behaviour so the regression cannot reappear
-//  unnoticed.
+//  `NetworkMonitor.shared` is a process-wide singleton that also receives real
+//  path updates during tests, and clients from other suites may still be
+//  subscribed. These tests therefore inject `.cellular` for observer delivery,
+//  which a simulator never reports by itself, and never assert an absolute
+//  subscriber count.
 //
 
 import XCTest
@@ -32,231 +34,217 @@ import XCTest
 
 final class NetworkMonitorLifecycleTests: XCTestCase {
 
-    override func setUp() {
-        super.setUp()
-        // Drain any leftover subscribers from prior tests so each test starts
-        // from a clean refcount.
-        drainResidualSubscribers()
-    }
-
-    override func tearDown() {
-        drainResidualSubscribers()
-        super.tearDown()
-    }
-
     // MARK: - Multi-subscriber dispatch
 
-    /// Two overlapping observers must each receive every state change. The
+    /// Two overlapping observers must each receive every injected state. The
     /// previous single-callback API silently dropped callbacks for any client
-    /// that registered after the most recent `init`.
+    /// that registered before the most recent `init`.
     func testMultipleObserversEachReceiveStateChanges() {
         let monitor = NetworkMonitor.shared
+        let first = StateRecorder()
+        let second = StateRecorder()
 
-        var firstReceived: [NetworkMonitor.NetworkState] = []
-        var secondReceived: [NetworkMonitor.NetworkState] = []
-
-        let tokenA = monitor.addNetworkStateObserver { state in
-            firstReceived.append(state)
-        }
-        let tokenB = monitor.addNetworkStateObserver { state in
-            secondReceived.append(state)
-        }
+        let tokenA = monitor.addNetworkStateObserver(first.record)
+        let tokenB = monitor.addNetworkStateObserver(second.record)
         defer {
             monitor.removeNetworkStateObserver(tokenA)
             monitor.removeNetworkStateObserver(tokenB)
         }
 
-        monitor._test_injectState(.wifi)
-        monitor._test_drainPending()
         monitor._test_injectState(.cellular)
-        monitor._test_drainPending()
-        monitor._test_injectState(.noConnection)
-        monitor._test_drainPending()
+        monitor._test_injectState(.cellular)
 
-        XCTAssertEqual(firstReceived, [.wifi, .cellular, .noConnection],
-                       "Observer A must receive every state change (VSDK-736)")
-        XCTAssertEqual(secondReceived, [.wifi, .cellular, .noConnection],
-                       "Observer B must receive every state change (VSDK-736)")
+        XCTAssertEqual(first.cellularCount, 2, "Observer A must receive every state (VSDK-736)")
+        XCTAssertEqual(second.cellularCount, 2, "Observer B must receive every state (VSDK-736)")
     }
 
-    /// Removing one observer must not affect the delivery path for the
-    /// remaining observer. The previous API made this impossible because the
-    /// singleton only held a single callback.
+    /// Removing one observer must not affect delivery to the remaining observer.
     func testRemovingOneObserverLeavesOthersIntact() {
         let monitor = NetworkMonitor.shared
+        let survivor = StateRecorder()
+        let removed = StateRecorder()
 
-        var survivorReceived: [NetworkMonitor.NetworkState] = []
-        let survivorToken = monitor.addNetworkStateObserver { state in
-            survivorReceived.append(state)
-        }
-
-        var disposableReceived: [NetworkMonitor.NetworkState] = []
-        let disposableToken = monitor.addNetworkStateObserver { state in
-            disposableReceived.append(state)
-        }
-
-        monitor._test_injectState(.wifi)
-        monitor._test_drainPending()
-        XCTAssertEqual(survivorReceived, [.wifi])
-        XCTAssertEqual(disposableReceived, [.wifi])
-
-        monitor.removeNetworkStateObserver(disposableToken)
+        let survivorToken = monitor.addNetworkStateObserver(survivor.record)
+        let removedToken = monitor.addNetworkStateObserver(removed.record)
+        defer { monitor.removeNetworkStateObserver(survivorToken) }
 
         monitor._test_injectState(.cellular)
-        monitor._test_drainPending()
-        XCTAssertEqual(survivorReceived, [.wifi, .cellular],
+        monitor.removeNetworkStateObserver(removedToken)
+        monitor._test_injectState(.cellular)
+
+        XCTAssertEqual(survivor.cellularCount, 2,
                        "Surviving observer must keep receiving after the other is removed (VSDK-736)")
-        XCTAssertEqual(disposableReceived, [.wifi],
+        XCTAssertEqual(removed.cellularCount, 1,
                        "Removed observer must not receive further callbacks (VSDK-736)")
-
-        monitor.removeNetworkStateObserver(survivorToken)
     }
 
-    // MARK: - Refcount lifecycle
-
-    /// The underlying `NWPathMonitor` must only be cancelled when the last
-    /// subscriber is removed. The previous API cancelled it on every `deinit`,
-    /// which silently broke any other live client.
-    func testUnderlyingMonitorStaysRunningWhileAnySubscriberExists() {
+    /// Removing a token that is already gone is a no-op and must not affect
+    /// other subscribers.
+    func testRemovingStaleTokenLeavesOtherObserversIntact() {
         let monitor = NetworkMonitor.shared
+        let survivor = StateRecorder()
 
-        XCTAssertFalse(monitor._test_isRunning,
-                       "Monitor must not start without any subscribers")
+        let survivorToken = monitor.addNetworkStateObserver(survivor.record)
+        defer { monitor.removeNetworkStateObserver(survivorToken) }
+        let staleToken = monitor.addNetworkStateObserver { _ in }
 
-        let tokenA = monitor.addNetworkStateObserver { _ in }
-        XCTAssertTrue(monitor._test_isRunning,
-                      "Monitor must start on the first subscription")
+        monitor.removeNetworkStateObserver(staleToken)
+        let countAfterFirstRemoval = monitor._test_subscriberCount
+        monitor.removeNetworkStateObserver(staleToken)
 
-        let tokenB = monitor.addNetworkStateObserver { _ in }
-        XCTAssertTrue(monitor._test_isRunning,
-                      "Monitor must keep running while any subscriber is registered")
-
-        monitor.removeNetworkStateObserver(tokenA)
-        XCTAssertTrue(monitor._test_isRunning,
-                      "Monitor must NOT be cancelled while another subscriber is live")
-
-        monitor.removeNetworkStateObserver(tokenB)
-        XCTAssertFalse(monitor._test_isRunning,
-                       "Monitor must be cancelled only after the last subscriber is removed")
+        XCTAssertEqual(monitor._test_subscriberCount, countAfterFirstRemoval,
+                       "Removing a stale token must not remove another subscriber (VSDK-736)")
+        monitor._test_injectState(.cellular)
+        XCTAssertEqual(survivor.cellularCount, 1)
     }
 
-    /// Removing an unknown token is a no-op — callers must be able to
-    /// defensively unsubscribe (e.g. in `tearDown`) without crashing.
-    func testRemovingUnknownTokenIsSafe() {
+    // MARK: - Native monitor lifetime
+
+    /// A cancelled `NWPathMonitor` cannot be restarted, so removing the last
+    /// observer must never cancel it. Otherwise a replacement client would
+    /// never receive another real network change.
+    func testRemovingLastObserverDoesNotStopNativeMonitor() {
         let monitor = NetworkMonitor.shared
 
         let token = monitor.addNetworkStateObserver { _ in }
-        let bogusToken = NetworkMonitor.Token(id: UUID())
-
-        XCTAssertNoThrow(monitor.removeNetworkStateObserver(bogusToken),
-                         "Removing an unknown token must be a no-op (VSDK-736)")
-        XCTAssertEqual(monitor._test_subscriberCount, 1,
-                       "Unknown token removal must not affect real subscribers")
+        XCTAssertTrue(monitor._test_isRunning, "Monitor must start on the first subscription")
 
         monitor.removeNetworkStateObserver(token)
+        monitor._test_drainPending()
+
+        XCTAssertTrue(monitor._test_isRunning,
+                      "Monitor must keep running with no subscribers (VSDK-736)")
+    }
+
+    // MARK: - Re-entrancy
+
+    /// An observer unsubscribing itself runs on the monitor queue, the same
+    /// context as a `TxClient` `deinit` that ends up on that queue. It must not
+    /// trap on a synchronous dispatch to the queue it is already running on.
+    func testObserverCanRemoveItselfFromCallback() {
+        let monitor = NetworkMonitor.shared
+        let recorder = StateRecorder()
+        var token: NetworkMonitor.Token?
+
+        token = monitor.addNetworkStateObserver { state in
+            recorder.record(state)
+            if state == .cellular, let token = token {
+                monitor.removeNetworkStateObserver(token)
+            }
+        }
+
+        monitor._test_injectState(.cellular)
+        monitor._test_drainPending()
+        monitor._test_injectState(.cellular)
+
+        XCTAssertEqual(recorder.cellularCount, 1,
+                       "Observer must stop receiving after removing itself (VSDK-736)")
+    }
+
+    /// An observer may also register another observer from its callback. The
+    /// new observer starts with the next state, not the one being delivered.
+    func testObserverCanAddObserverFromCallback() {
+        let monitor = NetworkMonitor.shared
+        let added = StateRecorder()
+        var addedToken: NetworkMonitor.Token?
+
+        let token = monitor.addNetworkStateObserver { state in
+            if state == .cellular, addedToken == nil {
+                addedToken = monitor.addNetworkStateObserver(added.record)
+            }
+        }
+        defer {
+            monitor.removeNetworkStateObserver(token)
+            if let addedToken = addedToken {
+                monitor.removeNetworkStateObserver(addedToken)
+            }
+        }
+
+        monitor._test_injectState(.cellular)
+        monitor._test_drainPending()
+        XCTAssertEqual(added.cellularCount, 0)
+
+        monitor._test_injectState(.cellular)
+        XCTAssertEqual(added.cellularCount, 1,
+                       "Observer added from a callback must receive the next state (VSDK-736)")
     }
 
     // MARK: - TxClient integration
 
-    /// Two overlapping `TxClient` instances must each receive a state
-    /// callback when the shared monitor fires. The previous single-callback
-    /// API could only deliver to one of them.
-    func testOverlappingTxClientsBothReceiveNetworkUpdates() {
-        let monitor = NetworkMonitor.shared
+    /// Two overlapping `TxClient`s must each act on a network change. The
+    /// previous API replaced the first client's callback when the second was
+    /// created. A client with no active calls reports loss through its delegate.
+    func testOverlappingTxClientsBothReceiveNetworkLoss() {
+        let firstDelegate = DisconnectDelegate(description: "First client notified")
+        let secondDelegate = DisconnectDelegate(description: "Second client notified")
+        let firstClient = TxClient()
+        firstClient.delegate = firstDelegate
+        let secondClient = TxClient()
+        secondClient.delegate = secondDelegate
 
-        var clientAReceived: [NetworkMonitor.NetworkState] = []
-        var clientBReceived: [NetworkMonitor.NetworkState] = []
+        NetworkMonitor.shared._test_injectState(.noConnection)
 
-        let clientA = TxClient()
-        let tokenA = monitor.addNetworkStateObserver { state in
-            clientAReceived.append(state)
-        }
-        let clientB = TxClient()
-        let tokenB = monitor.addNetworkStateObserver { state in
-            clientBReceived.append(state)
-        }
-
-        // Drain any state emitted by the initial TxClient subscriptions so
-        // assertions only count the states we inject below.
-        clientAReceived.removeAll()
-        clientBReceived.removeAll()
-
-        monitor._test_injectState(.wifi)
-        monitor._test_drainPending()
-        monitor._test_injectState(.cellular)
-        monitor._test_drainPending()
-
-        XCTAssertEqual(clientAReceived, [.wifi, .cellular],
-                       "First overlapping client must receive both injected states (VSDK-736)")
-        XCTAssertEqual(clientBReceived, [.wifi, .cellular],
-                       "Second overlapping client must receive both injected states (VSDK-736)")
-
-        monitor.removeNetworkStateObserver(tokenA)
-        monitor.removeNetworkStateObserver(tokenB)
+        wait(for: [firstDelegate.disconnected, secondDelegate.disconnected], timeout: 2.0)
+        withExtendedLifetime((firstClient, secondClient, firstDelegate, secondDelegate)) {}
     }
 
-    /// Destroying one `TxClient` must not cancel the shared monitor for the
-    /// next replacement client. The previous API cancelled the singleton
-    /// `NWPathMonitor` on every `deinit`, so a replacement client never
-    /// received another state callback.
-    func testSequentialTxClientsDoNotCancelSharedMonitor() {
+    /// Destroying a client must remove only its own subscription and leave a
+    /// replacement client working. The previous API cancelled the singleton
+    /// `NWPathMonitor` on every `deinit`.
+    func testReplacementTxClientReceivesNetworkLossAfterPreviousClientIsDestroyed() {
         let monitor = NetworkMonitor.shared
-
-        // Build a first client inside a nested scope so we can observe and
-        // control its lifetime precisely. The monitor must be running while
-        // the client is live and must stop only when the client is fully
-        // deinitialized.
-        do {
-            var firstClient: TxClient? = TxClient()
-            XCTAssertTrue(monitor._test_isRunning,
-                          "Monitor must be running while a TxClient is live (VSDK-736)")
-            _ = firstClient
-            firstClient = nil
-        }
-
-        // Give ARC + the deinit a chance to run on the current thread. After
-        // this, no client from this test should remain live and the monitor
-        // must be cancelled.
         monitor._test_drainPending()
-        XCTAssertFalse(monitor._test_isRunning,
-                       "Monitor must stop after the last TxClient is deinitialized (VSDK-736)")
+        let subscribersBeforeClient = monitor._test_subscriberCount
 
-        // The replacement client must see the monitor start fresh and the
-        // replacement must receive injected callbacks. The previous API would
-        // have left the monitor cancelled forever after the first deinit, so
-        // this inject would never reach the replacement.
-        var replacementReceived: [NetworkMonitor.NetworkState] = []
-        var replacement: TxClient? = TxClient()
-        let replacementToken = monitor.addNetworkStateObserver { state in
-            replacementReceived.append(state)
-        }
-        defer {
-            monitor.removeNetworkStateObserver(replacementToken)
-            replacement = nil
-        }
+        var firstClient: TxClient? = TxClient()
+        weak var weakFirstClient = firstClient
+        firstClient = nil
 
+        XCTAssertNil(weakFirstClient, "The monitor must not keep a destroyed client alive")
+        XCTAssertLessThanOrEqual(monitor._test_subscriberCount, subscribersBeforeClient,
+                                 "Destroying a client must remove its subscription (VSDK-736)")
         XCTAssertTrue(monitor._test_isRunning,
-                      "Monitor must start again for the replacement TxClient (VSDK-736)")
+                      "Destroying a client must not stop the native monitor (VSDK-736)")
 
-        monitor._test_injectState(.wifi)
-        monitor._test_drainPending()
-        XCTAssertEqual(replacementReceived, [.wifi],
-                       "Replacement client must receive callbacks after the prior client was deinitialized (VSDK-736)")
+        let delegate = DisconnectDelegate(description: "Replacement client notified")
+        let replacement = TxClient()
+        replacement.delegate = delegate
+
+        monitor._test_injectState(.noConnection)
+
+        wait(for: [delegate.disconnected], timeout: 2.0)
+        withExtendedLifetime((replacement, delegate)) {}
+    }
+}
+
+// MARK: - Helpers
+
+/// Records states on the monitor queue. Reading a count drains that queue, so
+/// the test thread only reads after every queued delivery has finished.
+private final class StateRecorder {
+    private var states: [NetworkMonitor.NetworkState] = []
+
+    func record(_ state: NetworkMonitor.NetworkState) {
+        states.append(state)
     }
 
-    // MARK: - Helpers
+    /// Ignores states from real path updates, which can arrive at any time.
+    var cellularCount: Int {
+        NetworkMonitor.shared._test_drainPending()
+        return states.filter { $0 == .cellular }.count
+    }
+}
 
-    /// Drains any residual subscribers from prior tests. Each test that
-    /// subscribes via `addNetworkStateObserver` removes its own tokens via
-    /// `defer`, but if a test fails mid-way the refcount can leak across test
-    /// methods. Resetting to zero here keeps each test deterministic.
-    private func drainResidualSubscribers() {
-        let monitor = NetworkMonitor.shared
-        // We cannot reach the private token dictionary, but every test in
-        // this file holds tokens through `defer` so the refcount should be
-        // back to zero at tearDown. If a residual subscriber is present the
-        // next `addNetworkStateObserver` will still work — the leak only
-        // affects `_test_isRunning`, not correctness.
-        monitor._test_drainPending()
+private final class DisconnectDelegate: MockTxClientDelegate {
+    let disconnected: XCTestExpectation
+
+    init(description: String) {
+        disconnected = XCTestExpectation(description: description)
+        // A real network drop during the test may also notify this delegate.
+        disconnected.assertForOverFulfill = false
+    }
+
+    override func onSocketDisconnected() {
+        disconnected.fulfill()
     }
 }
