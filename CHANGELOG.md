@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Bug Fixes
+- **VoIP Push Token Rotation Cleanup**: Remember the last PushKit registration in device-only Keychain storage and, after a later `connect()` reaches `REGED` with a different token, disable that exact previous registration so the device stops receiving duplicate pushes. Cleanup is best effort and does not affect other devices.
+
 ## [4.2.3](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.2.3) (2026-11-03)
 
 ### Enhancements
