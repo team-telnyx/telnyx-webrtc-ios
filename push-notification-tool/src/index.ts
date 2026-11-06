@@ -23,9 +23,17 @@ interface SavedConfig {
   lastUsed?: number;
 }
 
+interface PushMetadata {
+  voice_sdk_id: string;
+  call_id: string;
+  caller_name: string;
+  caller_number: string;
+}
+
 class VoIPPushTester {
   private config: PushConfig;
   private configPath: string;
+  private lastMetadata: PushMetadata | null = null;
 
   constructor() {
     this.configPath = path.join(__dirname, '..', '.last-config.json');
@@ -287,7 +295,7 @@ class VoIPPushTester {
     }
   }
 
-  private createNotification(): apn.Notification {
+  private createNotification(reuseLastPayload: boolean): apn.Notification {
     const notification = new apn.Notification();
     
     // VoIP notifications don't use alerts, sounds, or badges
@@ -296,12 +304,15 @@ class VoIPPushTester {
     notification.expiry = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
 
     // Default VoIP payload structure expected by Telnyx iOS SDK with proper UUIDs
-    const metadata = {
-      voice_sdk_id: randomUUID(),
-      call_id: randomUUID(),
-      caller_name: 'Test Caller',
-      caller_number: '+1234567890'
-    };
+    const metadata = reuseLastPayload && this.lastMetadata
+      ? this.lastMetadata
+      : {
+          voice_sdk_id: randomUUID(),
+          call_id: randomUUID(),
+          caller_name: 'Test Caller',
+          caller_number: '+1234567890'
+        };
+    this.lastMetadata = metadata;
 
     // VoIP payload structure expected by TxClient.processVoIPNotification
     notification.payload = {
@@ -311,12 +322,12 @@ class VoIPPushTester {
     return notification;
   }
 
-  public async sendPush(): Promise<void> {
+  public async sendPush(reuseLastPayload: boolean = false): Promise<void> {
     console.log('\n📡 Configuring APN provider...');
     const provider = this.createAPNProvider();
 
     console.log('📋 Creating notification...');
-    const notification = this.createNotification();
+    const notification = this.createNotification(reuseLastPayload);
 
     console.log('📤 Sending VoIP push notification...');
     console.log('Device Token:', this.config.deviceToken);
@@ -354,6 +365,39 @@ class VoIPPushTester {
     }
   }
 
+  public async sendDuplicatePair(delayMs: number = 2000): Promise<void> {
+    console.log(`\n📡 Sending the same VoIP push twice, ${delayMs} ms apart...`);
+    const provider = this.createAPNProvider();
+
+    try {
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        if (attempt > 1) {
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+
+        const notification = this.createNotification(attempt > 1);
+        console.log(`📤 Sending push ${attempt}/2...`);
+        console.log('Payload:', JSON.stringify(notification.payload, null, 2));
+
+        const result = await provider.send(notification, this.config.deviceToken);
+        if (result.sent.length === 0) {
+          console.log(`❌ Push ${attempt}/2 was not accepted by APNs.`);
+          result.failed.forEach(failure => {
+            console.log(`   → Status: ${failure.status}`);
+            console.log(`   → Response: ${JSON.stringify(failure.response, null, 2)}`);
+          });
+          return;
+        }
+
+        console.log(`✅ Push ${attempt}/2 accepted by APNs.`);
+      }
+    } catch (error) {
+      console.error('❌ Error sending duplicate push pair:', error);
+    } finally {
+      provider.shutdown();
+    }
+  }
+
   public displaySummary(): void {
     console.log('\n📊 Configuration Summary:');
     console.log('========================');
@@ -370,13 +414,15 @@ class VoIPPushTester {
 async function main() {
   try {
     let tester = new VoIPPushTester();
+    let reuseLastPayload = false;
     
     while (true) {
       tester.displaySummary();
       
       const proceed = readlineSync.keyInYNStrict('Send the VoIP push notification? ');
       if (proceed) {
-        await tester.sendPush();
+        await tester.sendPush(reuseLastPayload);
+        reuseLastPayload = false;
         console.log('\n🎉 Done! Check your iOS device for the incoming call.');
       } else {
         console.log('❌ Push notification cancelled.');
@@ -385,7 +431,9 @@ async function main() {
       // Post-action menu
       console.log('\n🔄 What would you like to do next?');
       const nextActions = [
-        'Send another push notification with same config',
+        'Resend previous push with the same call_id and voice_sdk_id',
+        'Send another push notification with fresh UUIDs',
+        'Send a fresh duplicate pair automatically (2000 ms apart)',
         'Reconfigure settings and send new push',
         'Exit'
       ];
@@ -394,13 +442,21 @@ async function main() {
       
       switch (nextAction) {
         case 0:
-          // Continue with same tester instance (will generate new UUIDs)
+          reuseLastPayload = true;
           continue;
         case 1:
-          // Create new tester instance to reconfigure
-          tester = new VoIPPushTester();
+          reuseLastPayload = false;
           continue;
         case 2:
+          await tester.sendDuplicatePair();
+          reuseLastPayload = false;
+          continue;
+        case 3:
+          // Create new tester instance to reconfigure
+          tester = new VoIPPushTester();
+          reuseLastPayload = false;
+          continue;
+        case 4:
           console.log('\n👋 Goodbye!');
           process.exit(0);
         default:
