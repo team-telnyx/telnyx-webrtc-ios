@@ -159,9 +159,11 @@ This effectively means that you can have up to 5 devices that can receive push n
 
 ### PushKit token rotation
 
-Always pass the latest VoIP token received from `pushRegistry(_:didUpdate:for:)` in `TxConfig`. After login reaches the registered (`REGED`) state, the SDK stores the current registration in device-only Keychain storage. When the token, provider, or push environment has changed, it sends a targeted request to disable the exact previous registration using the authenticated member session. Failed or unconfirmed cleanup is retained and retried on a later connection.
+Always pass the latest VoIP token received from `pushRegistry(_:didUpdate:for:)` in `TxConfig`. After a `connect()` login reaches the registered (`REGED`) state, the SDK stores the current registration in device-only Keychain storage. If the token has changed for the same user and server, it sends one request to disable the exact previous registration using the authenticated session. If the connection drops before the server responds, the next `connect()` login tries again.
 
-This cleanup only applies to rotations observed by an SDK version that includes this behavior. It cannot discover historical stale tokens that were registered before the SDK began storing token history. Registrations belonging to other devices remain untouched, so multi-device delivery continues to work.
+Cleanup is best effort, and a missed cleanup can leave a duplicate push until that token expires. It doesn't run for VoIP push logins, anonymous logins or declined calls. For token logins, the SDK can't tell users apart, so if a different user logs in with a new token on the same device, the previous user's registration stays in place.
+
+This cleanup only applies to rotations observed by an SDK version that includes this behavior. It cannot discover stale tokens that were registered before the SDK began storing the last registration. Registrations belonging to other devices remain untouched, so multi-device delivery continues to work.
 
 ### Push-when-active multi-device flows
 

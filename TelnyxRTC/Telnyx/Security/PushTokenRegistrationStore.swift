@@ -8,179 +8,82 @@
 import Foundation
 import Security
 
-/// The APNs registration fields required to remove one exact push destination.
-///
-/// Keeping the environment and provider with the token is important because an
-/// application can move between sandbox and production while the old token is
-/// still accepted by APNs.
+/// The last push registration this device logged in with.
 struct StoredPushTokenRegistration: Codable, Equatable {
     let token: String
-    let provider: String
+    let provider: String?
     let environment: String
+    /// `sip:<user>` for SIP logins. All JWT logins share one value, because a JWT
+    /// has no guaranteed stable user ID and can be refreshed for the same user.
+    let accountKey: String
+    /// Signaling server host, so development and production are never mixed.
+    let server: String
 }
 
-struct StoredPushTokenAccountState: Codable, Equatable {
-    var current: StoredPushTokenRegistration?
-    var pendingCleanup: [StoredPushTokenRegistration]
+extension StoredPushTokenRegistration {
+    // The same default `LoginMessage` uses. Storing the result matters because a later build
+    // type could otherwise send `disable_push` for the wrong environment.
+    #if DEBUG
+    private static let defaultEnvironment = PushEnvironment.debug
+    #else
+    private static let defaultEnvironment = PushEnvironment.production
+    #endif
 
-    init(
-        current: StoredPushTokenRegistration? = nil,
-        pendingCleanup: [StoredPushTokenRegistration] = []
-    ) {
-        self.current = current
-        self.pendingCleanup = pendingCleanup
-    }
-}
-
-struct StoredPushTokenHistory: Codable, Equatable {
-    var accounts: [String: StoredPushTokenAccountState]
-
-    init(accounts: [String: StoredPushTokenAccountState] = [:]) {
-        self.accounts = accounts
+    /// Returns `nil` if the config has no push token or no login identity.
+    init?(config: TxConfig, signalingServer: URL) {
+        guard let token = config.pushNotificationConfig?.pushDeviceToken, !token.isEmpty,
+              let accountKey = config.sipUser.map({ "sip:\($0)" }) ?? config.token.map({ _ in "jwt" }) else {
+            return nil
+        }
+        self.init(token: token,
+                  provider: config.pushNotificationConfig?.pushNotificationProvider,
+                  environment: (config.pushEnvironment ?? Self.defaultEnvironment).rawValue,
+                  accountKey: accountKey,
+                  // Host only: push metadata can add query items to the URL.
+                  server: signalingServer.host ?? signalingServer.absoluteString)
     }
 }
 
 protocol PushTokenRegistrationStoring {
-    func load() throws -> StoredPushTokenHistory
-    func save(_ history: StoredPushTokenHistory) throws
+    func load() -> StoredPushTokenRegistration?
+    func save(_ registration: StoredPushTokenRegistration)
 }
 
-enum PushTokenRegistrationStoreError: Error {
-    case keychain(OSStatus)
-}
-
-/// Persists push-token rotation state in a device-only Keychain item.
+/// Keeps the last registration in a device-only Keychain item.
 ///
-/// `AfterFirstUnlockThisDeviceOnly` allows background VoIP handling after the
-/// first unlock while preventing this device's cleanup history from migrating
-/// to a different physical device through a backup restore.
+/// `AfterFirstUnlockThisDeviceOnly` keeps it out of backups, so restoring a backup onto
+/// another phone can't make that phone disable the original phone's token. A failed read
+/// or write only means a missed cleanup, so errors are not passed to the caller.
 final class KeychainPushTokenRegistrationStore: PushTokenRegistrationStoring {
-    private let service: String
-    private let account: String
+    private let query: [String: Any] = [
+        kSecClass as String: kSecClassGenericPassword,
+        kSecAttrService as String: "com.telnyx.webrtc.push-token-registration.\(Bundle.main.bundleIdentifier ?? "default")",
+        kSecAttrAccount as String: "last-registration-v1"
+    ]
 
-    init(
-        service: String = "com.telnyx.webrtc.push-token-registration.\(Bundle.main.bundleIdentifier ?? "default")",
-        account: String = "history-v1"
-    ) {
-        self.service = service
-        self.account = account
-    }
-
-    func load() throws -> StoredPushTokenHistory {
-        var query = baseQuery
-        query[kSecReturnData as String] = true
-        query[kSecMatchLimit as String] = kSecMatchLimitOne
+    func load() -> StoredPushTokenRegistration? {
+        var lookup = query
+        lookup[kSecReturnData as String] = true
 
         var item: CFTypeRef?
-        let status = SecItemCopyMatching(query as CFDictionary, &item)
-
-        if status == errSecItemNotFound {
-            return StoredPushTokenHistory()
+        guard SecItemCopyMatching(lookup as CFDictionary, &item) == errSecSuccess,
+              let data = item as? Data else {
+            return nil
         }
-
-        guard status == errSecSuccess else {
-            throw PushTokenRegistrationStoreError.keychain(status)
-        }
-
-        guard let data = item as? Data,
-              let history = try? JSONDecoder().decode(StoredPushTokenHistory.self, from: data) else {
-            // A schema or data corruption issue must not permanently block
-            // login. Drop only this SDK-owned item and rebuild its best-effort
-            // history from the next observed token.
-            let deleteStatus = SecItemDelete(baseQuery as CFDictionary)
-            guard deleteStatus == errSecSuccess || deleteStatus == errSecItemNotFound else {
-                throw PushTokenRegistrationStoreError.keychain(deleteStatus)
-            }
-            return StoredPushTokenHistory()
-        }
-
-        return history
+        return try? JSONDecoder().decode(StoredPushTokenRegistration.self, from: data)
     }
 
-    func save(_ history: StoredPushTokenHistory) throws {
-        let data = try JSONEncoder().encode(history)
-        let updateStatus = SecItemUpdate(
-            baseQuery as CFDictionary,
-            [kSecValueData as String: data] as CFDictionary
-        )
+    func save(_ registration: StoredPushTokenRegistration) {
+        guard let data = try? JSONEncoder().encode(registration) else { return }
 
-        if updateStatus == errSecSuccess {
-            return
+        SecItemDelete(query as CFDictionary)
+        var item = query
+        item[kSecValueData as String] = data
+        item[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+
+        let status = SecItemAdd(item as CFDictionary, nil)
+        if status != errSecSuccess {
+            Logger.log.w(message: "KeychainPushTokenRegistrationStore:: save failed: \(status)")
         }
-
-        guard updateStatus == errSecItemNotFound else {
-            throw PushTokenRegistrationStoreError.keychain(updateStatus)
-        }
-
-        var addQuery = baseQuery
-        addQuery[kSecValueData as String] = data
-        addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-
-        let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
-        guard addStatus == errSecSuccess else {
-            throw PushTokenRegistrationStoreError.keychain(addStatus)
-        }
-    }
-
-    private var baseQuery: [String: Any] {
-        [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account
-        ]
-    }
-}
-
-/// Maintains the last token observed for each SDK authentication scope and a
-/// durable cleanup queue for tokens that were replaced.
-final class PushTokenRegistrationTracker {
-    private static let lock = NSLock()
-    private let store: PushTokenRegistrationStoring
-
-    init(store: PushTokenRegistrationStoring = KeychainPushTokenRegistrationStore()) {
-        self.store = store
-    }
-
-    /// Records the current registration and returns stale registrations that
-    /// should be disabled after the current login reaches REGED.
-    func registrationsToCleanup(
-        current: StoredPushTokenRegistration,
-        accountKey: String
-    ) throws -> [StoredPushTokenRegistration] {
-        Self.lock.lock()
-        defer { Self.lock.unlock() }
-
-        var history = try store.load()
-        var state = history.accounts[accountKey] ?? StoredPushTokenAccountState()
-
-        if let previous = state.current, previous != current,
-           !state.pendingCleanup.contains(previous) {
-            state.pendingCleanup.append(previous)
-        }
-
-        state.current = current
-        // Never attempt to disable the registration that is about to log in.
-        state.pendingCleanup.removeAll { $0 == current }
-        history.accounts[accountKey] = state
-        try store.save(history)
-
-        return state.pendingCleanup
-    }
-
-    /// Removes a stale registration only after the signaling server confirms
-    /// that its targeted disable operation succeeded.
-    func markCleanupSucceeded(
-        _ registration: StoredPushTokenRegistration,
-        accountKey: String
-    ) throws {
-        Self.lock.lock()
-        defer { Self.lock.unlock() }
-
-        var history = try store.load()
-        guard var state = history.accounts[accountKey] else { return }
-
-        state.pendingCleanup.removeAll { $0 == registration }
-        history.accounts[accountKey] = state
-        try store.save(history)
     }
 }
