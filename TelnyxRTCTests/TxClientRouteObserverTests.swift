@@ -7,7 +7,42 @@
 
 import XCTest
 import AVFoundation
+import WebRTC
 @testable import TelnyxRTC
+
+/// Regression tests for GitHub issue #377: the CallKit speaker button does not stay in sync
+/// with the audio route unless the session allows A2DP.
+final class CallAudioCategoryOptionsTests: XCTestCase {
+
+    func testCallOptionsIncludeTheOptionsCallKitSpeakerSyncNeeds() {
+        XCTAssertEqual(Peer.callAudioCategoryOptions,
+                       [.allowBluetoothA2DP, .duckOthers, .allowBluetooth, .mixWithOthers])
+    }
+
+    /// WebRTC reapplies its global configuration when its audio unit starts, so the global
+    /// default must hold the same options as the session.
+    func testCreatingTxClientSetsWebRTCDefaultOptions() {
+        let configuration = RTCAudioSessionConfiguration.webRTC()
+        configuration.categoryOptions = [.duckOthers]
+        RTCAudioSessionConfiguration.setWebRTC(configuration)
+
+        _ = TxClient()
+
+        XCTAssertEqual(RTCAudioSessionConfiguration.webRTC().categoryOptions,
+                       Peer.callAudioCategoryOptions)
+    }
+
+    /// `enableAudioSession` applies this inside `provider(_:didActivate:)`, so it must not
+    /// remove the options from a session CallKit has just activated.
+    func testAudioConfigurationAppliedOnActivationKeepsA2DP() {
+        let client = TxClient()
+        defer { client.resetAudioConfiguration() }
+
+        client.setupCorrectAudioConfiguration()
+
+        XCTAssertTrue(AVAudioSession.sharedInstance().categoryOptions.contains(.allowBluetoothA2DP))
+    }
+}
 
 /// Regression tests for IOS-C26 / VSDK-337.
 ///
