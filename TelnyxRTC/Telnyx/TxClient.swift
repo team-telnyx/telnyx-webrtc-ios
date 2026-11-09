@@ -385,6 +385,7 @@ public class TxClient {
         self.serverConfiguration = TxServerConfiguration()
         self.configure()
         sessionId = UUID().uuidString.lowercased()
+        TxClient.setDefaultCallAudioConfiguration()
         // Start monitoring audio route changes
         setupAudioRouteChangeMonitoring()
 
@@ -2617,15 +2618,20 @@ extension TxClient {
         }
     }
 
+    /// WebRTC's audio unit applies this global configuration when it starts. Without it,
+    /// WebRTC would replace the call options on a session CallKit has already activated.
+    internal static func setDefaultCallAudioConfiguration() {
+        let configuration = RTCAudioSessionConfiguration.webRTC()
+        configuration.categoryOptions = Peer.callAudioCategoryOptions
+        RTCAudioSessionConfiguration.setWebRTC(configuration)
+    }
+
     internal func setupCorrectAudioConfiguration() {
         let rtcAudioSession = RTCAudioSession.sharedInstance()
         rtcAudioSession.lockForConfiguration()
         
         let configuration = RTCAudioSessionConfiguration.webRTC()
-        configuration.categoryOptions = [
-            .duckOthers,
-            .allowBluetooth,
-        ]
+        configuration.categoryOptions = Peer.callAudioCategoryOptions
         
         do {
             try rtcAudioSession.setConfiguration(configuration)
