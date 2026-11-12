@@ -1,10 +1,15 @@
 # CHANGELOG
 
-## [Unreleased]
+## [4.2.4](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.2.4) (2026-11-12)
 
 ### Bug Fixes
-- **Inbound Call Quality Metrics**: Set `Call.debug` and `Call.enableQualityMetrics` *before* `Call.configureStatsReporter()` in `Call.answer(customHeaders:debug:completion:)`, so inbound calls answered with `debug: true` create their stats reporter and `onCallQualityChange` fires as expected. The previous ordering left `statsReporter` nil for inbound calls (outbound and attach paths were unaffected) — GH #378.
-- **VoIP Push Token Rotation Cleanup**: Remember the last PushKit registration in device-only Keychain storage and, after a later `connect()` reaches `REGED` with a different token, disable that exact previous registration so the device stops receiving duplicate pushes. Cleanup is best effort and does not affect other devices.
+- **CallKit Speaker Button**: Restored `.allowBluetoothA2DP` and `.mixWithOthers` to the call audio session options and applied the same options as WebRTC's default audio configuration, so the CallKit speaker button no longer switches back to off after being tapped. This changes call audio options for all SDK consumers ([#431](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/431), GH [#377](https://github.com/team-telnyx/telnyx-webrtc-ios/issues/377)).
+- **Inbound Call Quality Metrics**: Set `Call.debug` and `Call.enableQualityMetrics` *before* `Call.configureStatsReporter()` in `Call.answer(customHeaders:debug:completion:)`, so inbound calls answered with `debug: true` create their stats reporter and `onCallQualityChange` fires as expected. The previous ordering left `statsReporter` nil for inbound calls (outbound and attach paths were unaffected) ([#418](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/418), GH [#378](https://github.com/team-telnyx/telnyx-webrtc-ios/issues/378)).
+- **NetworkMonitor Lifecycle Across `TxClient` Instances**: The shared `NetworkMonitor` now supports multiple observers, so overlapping `TxClient` instances each receive network-state changes, and deinitializing or disconnecting one client no longer stops network monitoring for the others ([#417](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/417), GH [#374](https://github.com/team-telnyx/telnyx-webrtc-ios/issues/374)).
+- **VoIP Push Token Rotation Cleanup**: Remember the last PushKit registration in device-only Keychain storage and, after a later `connect()` reaches `REGED` with a different token, disable that exact previous registration so the device stops receiving duplicate pushes. Cleanup is best effort and does not affect other devices ([#408](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/408)).
+
+### CI
+- **Linear Release Sync**: The release workflow now syncs each release to Linear and marks it complete once the GitHub release is created ([#430](https://github.com/team-telnyx/telnyx-webrtc-ios/pull/430)).
 
 ## [4.2.3](https://github.com/team-telnyx/telnyx-webrtc-ios/releases/tag/4.2.3) (2026-11-03)
 
