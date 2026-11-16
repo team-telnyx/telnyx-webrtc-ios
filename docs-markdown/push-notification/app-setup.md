@@ -196,7 +196,7 @@ The default value of `pushWhenActive` is `false`, which preserves the existing s
 call.answer()
 ```
 
-### When a web client is also connected
+#### When a web client is also connected
 
 Enable `pushWhenActive: true` on the **JavaScript web client as well as this mobile client** when they use the same credential identity. The JavaScript default is `false`: a browser logged in with that default can receive the call over its active WebSocket without triggering mobile push. Enabling the option only in the mobile app does not change the browser's login configuration.
 
@@ -218,7 +218,7 @@ These login flags are distinct from the connection-level `simultaneous_ringing` 
 
 See [cross-client setup and verification](https://developers.telnyx.com/docs/voice/webrtc/push-notifications#ring-mobile-devices-while-a-browser-is-connected) for the shared flow and troubleshooting. If mobile push works with web disconnected but stops when web connects, inspect the **web login flags first**. Retest with a fresh inbound call after reconnecting; if it still fails with both flags enabled, collect the call ID, UTC timestamp, and SDK versions without including credentials or complete push tokens.
 
-### Handling calls answered on another device
+#### Handling calls answered on another device
 
 When `pushWhenActive` is enabled, an incoming call can be delivered to more than one client or device. A web client may receive the call over an active WebSocket while iOS devices receive VoIP pushes. When one device answers, the Telnyx backend ends the call attempts on the remaining devices.
 
@@ -263,7 +263,7 @@ extension AppDelegate: TxClientDelegate {
 
 `CallTerminationReason` (delivered through `CallState.DONE(reason:)` and the `onRemoteCallEnded(callId:reason:)` callback) exposes the same fields documented in [Error Handling — Call Termination Reasons](/docs-markdown/error-handling/error-handling.md#call-termination-reasons). In answered-elsewhere flows, the socket BYE commonly arrives as `PICKED_OFF` (`causeCode` 805, SIP 487). Apps should treat this as an expected outcome — not as a failure — when `pushWhenActive` is enabled.
 
-#### CallKit behavior
+##### CallKit behavior
 
 When a CallKit call has already been reported for the incoming push, your app must end that CallKit call when another device answers. Use `.answeredElsewhere` so the system logs the call with the matching answered-elsewhere outcome:
 
@@ -278,7 +278,7 @@ func endCallKitCall(callUUID: UUID) {
 
 Failing to end the CallKit call will leave the system call UI in a stale state and may block subsequent calls on that UUID. End the CallKit call from the same place you dismiss your own incoming-call UI — typically the `CallState.DONE` branch above.
 
-#### PushKit cleanup notifications
+##### PushKit cleanup notifications
 
 Some answered-elsewhere and missed-call outcomes can arrive as VoIP pushes instead of, or in addition to, a socket BYE. These pushes are cleanup signals, not new incoming calls. Handle both alert strings through the same CallKit dismissal path:
 
@@ -341,7 +341,7 @@ func reportPushCleanupCall(callUUID: UUID, reason: CXCallEndedReason) {
 
 The `reason` parameter is required by `CXProvider.reportCall(with:endedAt:reason:)`. Use `.unanswered` for `"Missed call!"` cleanup and `.answeredElsewhere` for `"Answered Elsewhere"` cleanup. Use the same reason for the temporary CallKit call that satisfies PushKit's requirement that every VoIP push reports a CallKit call.
 
-### Expected flow
+#### Expected flow
 
 1. The app connects with `pushWhenActive: true` and a non-empty `pushDeviceToken`.
 2. The SDK registers the device's VoIP push token with Telnyx.
