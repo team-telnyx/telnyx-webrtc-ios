@@ -9,6 +9,7 @@
 import Foundation
 import WebRTC
 import AVFoundation
+import UIKit
 
 
 /// Data class to hold detailed reasons for call termination.
@@ -119,6 +120,21 @@ public extension CallState {
             return "RECONNECTING"
         case .DROPPED:
             return "DROPPED"
+        }
+    }
+
+    /// Strips the associated value so callers can switch over the case
+    /// (VSDK-1144/I4 decline-timestamp gate).
+    func getBaseState() -> CallState {
+        switch self {
+        case .NEW: return .NEW
+        case .CONNECTING: return .CONNECTING
+        case .RINGING: return .RINGING
+        case .ACTIVE: return .ACTIVE
+        case .HELD: return .HELD
+        case .DONE: return .DONE(reason: nil)
+        case .RECONNECTING: return .RECONNECTING(reason: .networkLost)
+        case .DROPPED: return .DROPPED(reason: .networkLost)
         }
     }
 }
@@ -232,6 +248,21 @@ public class Call {
     /// Records call-establishment milestones and adds the `[CallTimings]` block to the call report.
     private(set) var timingRecorder: TelnyxCallTimingRecorder?
     var onInboundRtpSample: ((Call, Int) -> Void)?
+
+    // VSDK-1144 (I1/A2): true final call state + termination details for the summary.
+    // finalState is one of done|dropped|failed; finalStateReason is a short
+    // machine-readable reason; sipCause/sipCode carry the SIP termination info.
+    var finalState: String? = nil
+    var finalStateReason: String? = nil
+    var sipCause: String? = nil
+    var sipCode: Int? = nil
+
+    // VSDK-1144 (I5): inbound push funnel timestamps (wall clock in millis).
+    // pushReceivedMs — when the VoIP push reached the SDK (processVoIPNotification),
+    // userAnsweredMs / userDeclinedMs — when the user tapped accept / decline.
+    var pushReceivedMs: Int? = nil
+    var userAnsweredMs: Int? = nil
+    var userDeclinedMs: Int? = nil
     
     /// Flag to track if we're currently performing ICE restart
     internal var isIceRestarting: Bool = false
@@ -720,8 +751,24 @@ public class Call {
     }
 
     private func endCall(terminationReason: CallTerminationReason? = nil) {
+        // VSDK-1144 (I4): record the user decline timestamp for the push funnel
+        // (inbound calls declined while still ringing).
+        if direction != .OUTBOUND,
+           case .NEW = callState.getBaseState(),
+           self.userDeclinedMs == nil {
+            self.userDeclinedMs = currentWallClockMillis()
+        }
         // Reset benchmarking when call ends
         CallTimingBenchmark.reset()
+
+        // VSDK-1144 (I1/A2): capture the true final call state and SIP termination
+        // details before the call state is switched to DONE.
+        if self.finalState == nil {
+            self.finalState = Call.finalStateFor(callState: callState, terminationReason: terminationReason)
+            self.finalStateReason = terminationReason?.cause ?? callState.getReason()
+        }
+        self.sipCause = terminationReason?.cause ?? self.sipCause
+        self.sipCode = terminationReason?.sipCode ?? terminationReason?.causeCode ?? self.sipCode
 
         // Build context dict, filtering out nil values
         var endCallContext: [String: AnyCodable] = [:]
@@ -832,8 +879,41 @@ public class Call {
         default:
             break
         }
-        
+
         self.delegate?.callStateUpdated(call: self)
+    }
+
+    // MARK: - VSDK-1144 call report summary helpers
+
+    /// Maps a call state + termination reason to the true final state
+    /// (VSDK-1144/A2): `done` for successful calls, `dropped` for network/server
+    /// drops, `failed` for anything else (e.g. SIP errors, unanswered calls).
+    /// Parity with Android's `Call.finalStateFor`.
+    static func finalStateFor(callState: CallState,
+                              terminationReason: CallTerminationReason?) -> String {
+        switch callState {
+        case .DROPPED:
+            return "dropped"
+        case .DONE:
+            let cause = terminationReason?.cause
+            let sipCode = terminationReason?.sipCode
+            let causeCode = terminationReason?.causeCode
+            // Distinguish normal clearing from failures. Normal clearing
+            // (16 / 200) and caller-cancel (487 / ORIGINATOR_CANCEL) are
+            // `done`; everything else is `failed`.
+            if causeCode == 16 || sipCode == 200 { return "done" }
+            if causeCode == 487 || cause == "ORIGINATOR_CANCEL" { return "done" }
+            if cause == "NORMAL_CLEARING" { return "done" }
+            if causeCode != nil || sipCode != nil || cause != nil { return "failed" }
+            return "done"
+        default:
+            return "done"
+        }
+    }
+
+    /// Wall-clock time in milliseconds since epoch, for push funnel timestamps.
+    func currentWallClockMillis() -> Int {
+        return Int(Date().timeIntervalSince1970 * 1000)
     }
 } // End Call class
 
@@ -867,17 +947,25 @@ extension Call {
     public func hangup() {
         Logger.log.i(message: "Call:: hangup()")
         guard let sessionId = self.sessionId else { return }
-        
-        // Create a termination reason for local hangup
-        // Use USER_BUSY for incoming calls (NEW state) and outbound calls not yet connected (RINGING, CONNECTING)
-        // Use NORMAL_CLEARING for active calls
+
+        // VSDK-1144 (I4): pre-answer local termination depends on intent.
+        // - Outbound call not yet answered (NEW / CONNECTING / RINGING): the caller
+        //   is cancelling the call -> ORIGINATOR_CANCEL (487).
+        // - Inbound call still ringing (NEW / RINGING): the callee is declining ->
+        //   USER_BUSY (17) preserved for iOS/JS wire parity.
+        // - Everything else: normal clearing (16).
         let causeCode: CauseCode
 
         switch callState {
         case .ACTIVE, .HELD:
             causeCode = .NORMAL_CLEARING
-        case .NEW, .RINGING, .CONNECTING:
-            causeCode = .USER_BUSY
+        case .CONNECTING:
+            // Outbound invite in progress: cancelling, not declining.
+            causeCode = .ORIGINATOR_CANCEL
+        case .NEW:
+            causeCode = direction == .OUTBOUND ? .ORIGINATOR_CANCEL : .USER_BUSY
+        case .RINGING:
+            causeCode = direction == .OUTBOUND ? .ORIGINATOR_CANCEL : .USER_BUSY
         default:
             causeCode = .NORMAL_CLEARING
         }
@@ -925,6 +1013,11 @@ extension Call {
             Logger.log.i(message: "Call:: Ignoring duplicate answer for callId: \(callInfo?.callId.uuidString ?? "unknown")")
             completion?(false)
             return
+        }
+
+        // VSDK-1144 (I5): user tapped accept — record for the push funnel.
+        if self.userAnsweredMs == nil {
+            self.userAnsweredMs = currentWallClockMillis()
         }
 
         // Start benchmarking for inbound calls when answer is called
@@ -1265,7 +1358,7 @@ extension Call {
         Logger.log.i(message: "Call:: Started call report collector")
     }
     
-    private func stopAndPostCallReport() {
+    internal func stopAndPostCallReport() {
         guard enableCallReports,
               let collector = self.callReportCollector,
               let socket = self.socket,
@@ -1284,12 +1377,35 @@ extension Call {
         let durationSeconds = collector.callEndTime.map { $0.timeIntervalSince(collector.callStartTime) }
 
         // Build call summary
+        let funnelFormatter = ISO8601DateFormatter()
+        funnelFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        funnelFormatter.timeZone = TimeZone(identifier: "UTC")
+        let funnelTs: (Int?) -> String? = { millis in
+            millis.map { funnelFormatter.string(from: Date(timeIntervalSince1970: Double($0) / 1000)) }
+        }
+
+        // Build call summary
         let summary = CallReportSummary(
             callId: callId.uuidString.lowercased(),
             destinationNumber: self.callOptions?.destinationNumber,
             callerNumber: self.callInfo?.callerNumber,
             direction: self.direction.rawValue,
+            // VSDK-1145: report the real call state — mirrors Android, which now
+            // records actual state transitions instead of forcing "done".
             state: self.callState.value.lowercased(),
+            finalState: self.finalState,
+            finalStateReason: self.finalStateReason,
+            sipCause: self.sipCause,
+            sipCode: self.sipCode,
+            osVersion: UIDevice.current.systemVersion,
+            deviceModel: UIDevice.current.model,
+            firstMediaMs: collector.firstMediaMs,
+            pushNotificationReceivedMs: self.pushReceivedMs,
+            ringTs: funnelTs(self.pushReceivedMs),
+            userAnsweredMs: self.userAnsweredMs,
+            answerTs: funnelTs(self.userAnsweredMs),
+            userDeclinedMs: self.userDeclinedMs,
+            declineTs: funnelTs(self.userDeclinedMs),
             durationSeconds: durationSeconds,
             telnyxSessionId: self.telnyxSessionId?.uuidString.lowercased(),
             telnyxLegId: self.telnyxLegId?.uuidString.lowercased(),
@@ -1332,12 +1448,33 @@ extension Call {
         let flushIso8601 = ISO8601DateFormatter()
         flushIso8601.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         let startTimestamp = flushIso8601.string(from: collector.callStartTime)
+        let funnelFormatter = ISO8601DateFormatter()
+        funnelFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        funnelFormatter.timeZone = TimeZone(identifier: "UTC")
+        let funnelTs: (Int?) -> String? = { millis in
+            millis.map { funnelFormatter.string(from: Date(timeIntervalSince1970: Double($0) / 1000)) }
+        }
         let summary = CallReportSummary(
             callId: callId.uuidString.lowercased(),
             destinationNumber: self.callOptions?.destinationNumber,
             callerNumber: self.callInfo?.callerNumber,
             direction: self.direction.rawValue,
+            // VSDK-1145: intermediate segments report the real live state
+            // (connecting/ringing/active), same as the final segment.
             state: self.callState.value.lowercased(),
+            finalState: self.finalState,
+            finalStateReason: self.finalStateReason,
+            sipCause: self.sipCause,
+            sipCode: self.sipCode,
+            osVersion: UIDevice.current.systemVersion,
+            deviceModel: UIDevice.current.model,
+            firstMediaMs: collector.firstMediaMs,
+            pushNotificationReceivedMs: self.pushReceivedMs,
+            ringTs: funnelTs(self.pushReceivedMs),
+            userAnsweredMs: self.userAnsweredMs,
+            answerTs: funnelTs(self.userAnsweredMs),
+            userDeclinedMs: self.userDeclinedMs,
+            declineTs: funnelTs(self.userDeclinedMs),
             telnyxSessionId: self.telnyxSessionId?.uuidString.lowercased(),
             telnyxLegId: self.telnyxLegId?.uuidString.lowercased(),
             voiceSdkSessionId: self.sessionId,

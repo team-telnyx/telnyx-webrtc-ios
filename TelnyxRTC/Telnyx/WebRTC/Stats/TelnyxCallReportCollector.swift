@@ -67,7 +67,51 @@ public class TelnyxCallReportCollector {
     /// Delivers the audio inbound packet counter from the collector's normal
     /// WebRTC sample, allowing call recovery to avoid a duplicate stats query.
     internal var onInboundRtpSample: ((Int) -> Void)?
-    
+
+    // VSDK-1144 (I3): first bidirectional media detection.
+    // firstMediaMs — millis from call start until packets were observed flowing
+    // in BOTH directions (audio). Sampling piggybacks on the normal stats
+    // interval; no extra peer-connection polling is added.
+    private(set) var firstMediaMs: Int? = nil
+    private var outboundPacketSeen = false
+    private var inboundPacketSeen = false
+    private var firstMediaDetectionWindowStart: Date? = nil
+
+    /// Marks direction presence from the latest stats sample; records
+    /// `firstMediaMs` once both directions have packet flow.
+    private func observeMediaDirection(outboundPackets: Int?, inboundPackets: Int?) {
+        guard firstMediaMs == nil else { return }
+
+        // Detection window: only observe during the first 10 s after start,
+        // matching the Android implementation.
+        let windowStart = firstMediaDetectionWindowStart ?? callStartTime
+        if Date().timeIntervalSince(windowStart) > 10.0 {
+            firstMediaMs = -1 // sentinel: window elapsed, no two-way media
+            return
+        }
+
+        if let outboundPackets, outboundPackets > 0 { outboundPacketSeen = true }
+        if let inboundPackets, inboundPackets > 0 { inboundPacketSeen = true }
+
+        if outboundPacketSeen && inboundPacketSeen {
+            firstMediaMs = Int(Date().timeIntervalSince(callStartTime) * 1000)
+        }
+    }
+
+    // MARK: - Test hooks (VSDK-1144)
+
+    /// Exposes the media-direction observer to the test target without making
+    /// the stats pipeline itself internal.
+    func observeMediaDirectionForTesting(outbound: Int?, inbound: Int?) {
+        observeMediaDirection(outboundPackets: outbound, inboundPackets: inbound)
+    }
+
+    /// Starts the collector's clock without a live peer connection so tests can
+    /// exercise the first-media window deterministically.
+    func forceStartForTesting(windowOverride: TimeInterval? = nil) {
+        callStartTime = Date().addingTimeInterval(-(windowOverride ?? 0))
+    }
+
     // Previous values for rate calculations
     private var previousStats = PreviousStats()
     
@@ -811,6 +855,11 @@ public class TelnyxCallReportCollector {
         statistics: [String: RTCStatistics],
         now: Date
     ) {
+        // VSDK-1144 (I3): watch for the first bidirectional media window using
+        // the same sample — zero extra getStats queries.
+        observeMediaDirection(outboundPackets: parsed.outbound?.packetsSent,
+                              inboundPackets: parsed.inbound?.packetsReceived)
+
         if let outbound = parsed.outbound {
             // iOS exposes the local capture level on media-source. Older
             // WebRTC builds exposed it on the track record, so keep that as a
