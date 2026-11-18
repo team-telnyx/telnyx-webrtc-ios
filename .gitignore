@@ -9,6 +9,14 @@
 *.xcuserstate
 *.xcworkspace/
 project.xcworkspace/
+# Preserve the demo's real SwiftPM lockfile without tracking workspace user data.
+!TelnyxRTC.xcodeproj/project.xcworkspace/
+TelnyxRTC.xcodeproj/project.xcworkspace/*
+!TelnyxRTC.xcodeproj/project.xcworkspace/xcshareddata/
+TelnyxRTC.xcodeproj/project.xcworkspace/xcshareddata/*
+!TelnyxRTC.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+TelnyxRTC.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/*
+!TelnyxRTC.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
 xcuserdata/
 DerivedData/
 

@@ -1,19 +1,8 @@
 # Uncomment the next line to define a global platform for your project
 platform :ios, '12.0'
 
-target 'TelnyxWebRTCDemo' do
-  # Comment the next line if you don't want to use dynamic frameworks
-  use_frameworks!
-  
-  pod 'Firebase/Core'
-
-  pod 'ReachabilitySwift', '~> 5.2.1'
-
-  # Pods for TelnyxWebRTCDemo
-  # Using the framework from the main project instead of as a pod
-#   pod 'TelnyxRTC', :path => '.'
-
-end
+# CocoaPods is retained only for local SDK development/tests.
+# TelnyxWebRTCDemo resolves all dependencies through Swift Package Manager.
 
 target 'TelnyxRTC' do
   # Comment the next line if you don't want to use dynamic frameworks

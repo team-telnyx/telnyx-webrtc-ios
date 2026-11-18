@@ -85,7 +85,7 @@ end
 desc "Builds the app and tests in build-for-testing mode to be executed later on devices or in Firebase Test Lab."
 lane :build_for_testing do
   xcodebuild(
-    workspace: "TelnyxRTC.xcworkspace",
+    project: "TelnyxRTC.xcodeproj",
     scheme: "TelnyxWebRTCDemo",
     sdk: "iphoneos",
     configuration: "Debug",
