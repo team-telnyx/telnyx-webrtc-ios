@@ -23,15 +23,15 @@ xcodebuild -project TelnyxRTC.xcodeproj -scheme TelnyxWebRTCDemo \
   -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
 ```
 
-Keep the demo scheme's implicit dependencies disabled to avoid selecting the same-named local SDK framework. SPM builds its own declared dependencies. See [SPM migration notes](docs-markdown/sample-app/spm-migration.md) for validation and customer migration gotchas.
+Keep the demo scheme's implicit dependencies disabled to avoid selecting the same-named local SDK framework. SPM builds its own declared dependencies.
 
 ### Optional demo configuration
 
 The repository includes `Config.xcconfig` with default values. To use Pre-call Diagnosis, set `PHONE_NUMBER` to a valid number that can receive test calls. Otherwise, leave it empty. Configure the Firebase plist and device signing as described in the [UI test guide](docs-markdown/sample-app/ui-tests/README.md).
 
-### Local SDK development and SDK tests (CocoaPods)
+### Local SDK development and SDK tests (Swift Package Manager)
 
-The `TelnyxRTC` and `TelnyxRTCTests` targets still use CocoaPods for local SDK development. Run `pod install`, then open the generated `TelnyxRTC.xcworkspace` for those targets only. Select `TelnyxRTC` to build the local SDK or `TelnyxRTCTests` to run its tests. SDK pod publishing is unchanged; this migration concerns the demo app.
+Open `TelnyxRTC.xcodeproj`. Select `TelnyxRTC` to build the local SDK or `TelnyxRTCTests` to run tests. Both resolve Starscream and WebRTC through SPM. `bundle exec fastlane tests` runs credential-free tests; the protected integration workflow runs credentialed tests. No generated CocoaPods workspace is required.
 
 
 ## SIP Credentials
@@ -97,42 +97,7 @@ try telnyxClient.connect(txConfig: txConfig, serverConfiguration: serverConfig)
 
 
 ## Adding Telnyx SDK to your iOS Client Application:
-Currently the iOS SDK is supported using cocoapods. 
-
-### Cocoapods
-
-If your xcode project is not using [cocoapods](https://cocoapods.org/) yet, you will need to configure it.
-
-1. Open your podfile and add the TelnyxRTC. 
-```
-pod 'TelnyxRTC', '~> 0.1.0'
-```
-2. Install your pods. You can add the flag --repo-update to ensure your cocoapods has the specs updated.
-```
-pod install --repo-update
-```
-3. Open your .xcworkspace 
-4. Import TelnyxRTC at the top level of your class:
-```
-import TelnyxRTC
-```
-5. Disable BITCODE (The GoogleWebRTC dependency has BITCODE disabled):  Go to the Build Settings tab of your app target, search for “bitcode” and set it to “NO”
-<p align="center">
-<img width="743" alt="Screen Shot 2021-05-07 at 17 46 08" src="https://user-images.githubusercontent.com/75636882/117506545-235bc180-af5c-11eb-91eb-00d60f5844fa.png" />
-</p>
-
-6. Enable VoIP and Audio background modes: Go to Signing & Capabilities tab, press the +Capability button and add those background modes:
-<p align="center">
-<img width="719" alt="Screen Shot 2021-05-07 at 17 46 54" src="https://user-images.githubusercontent.com/75636882/117506607-3ff7f980-af5c-11eb-8df2-2f9170c12baf.png" />
-</p>
-
-7. Go to your Info.plist file and add the “Privacy - Microphone Usage Description” key with a description that your app requires microphone access in order to make VoIP calls. 
-<p align="center">
-<img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://user-images.githubusercontent.com/75636882/117506706-6d44a780-af5c-11eb-87e2-d6be092474f2.png"/>
-</p>
-
-8. You are all set!
-
+Future SDK releases are distributed through Swift Package Manager only. Existing CocoaPods releases remain available, but new versions will not be published to CocoaPods. Remove the old TelnyxRTC/WebRTC pods before adding the package to avoid duplicate binaries.
 
 ### Swift Package Manager
 
@@ -140,7 +105,7 @@ Xcode has a built-in support for Swift package manager. To add a package :
 
 1. Select Files > Add Packages
 2. On the Swift Package Manager Screen, Search for the https://github.com/team-telnyx/telnyx-webrtc-ios.git package.
-3. Select the **main brach** and click Add Package
+3. Select a released version using a version rule and click Add Package
 
 <p align="center">
 <img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://github.com/isaacakakpo1/telnyx-webrtc-ios-smp/assets/134492608/39be0ab7-222f-478c-bba9-cb2813bcb81d"/>
@@ -151,7 +116,7 @@ NB: if Add Package is stuck downloading try File > Packages > Reset Package Cach
 
 Read more in [Apple documentation](https://developer.apple.com/documentation/xcode/adding_package_dependencies_to_your_app)
 
-**Hint: Use either Cocoapods or Swift Package Manager for Individual Packages to avoid Duplicate binaries**
+Enable the Audio and VoIP background modes and add a microphone usage description to your app’s Info.plist.
 
 ## Usage
 

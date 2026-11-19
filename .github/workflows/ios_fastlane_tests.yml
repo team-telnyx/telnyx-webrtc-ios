@@ -37,8 +37,11 @@ jobs:
           ruby-version: 3.3.0
           bundler-cache: true
 
-      - name: Install Pods
-        run: pod install
+      - name: Resolve SDK packages
+        run: xcodebuild -resolvePackageDependencies -project TelnyxRTC.xcodeproj -scheme TelnyxRTCTests
+
+      - name: Validate distributable Swift package
+        run: bash scripts/validate_spm.sh
 
       - name: Run credential-free tests
         run: bundle exec fastlane tests

@@ -26,48 +26,15 @@ The Telnyx iOS WebRTC Client SDK provides all the functionality you need to star
 3. Connect a device or start an emulated device and hit the run button
 
 ## Usage 
-### Cocoapods
-**Adding Telnyx to your iOS Client Application:**
-
-If your xcode project is not using [cocoapods](https://cocoapods.org) yet, you will need to configure it.
-
-1. Open your podfile and add the TelnyxRTC. 
-```
-pod 'TelnyxRTC', '~> 0.1.38'
-```
-2. Install your pods. You can add the flag --repo-update to ensure your cocoapods has the specs updated.
-```
-pod install --repo-update
-```
-3. Open your .xcworkspace 
-4. Import TelnyxRTC at the top level of your class:
-```
-import TelnyxRTC
-```
-5. Disable BITCODE (The GoogleWebRTC dependency has BITCODE disabled):  Go to the Build Settings tab of your app target, search for “bitcode” and set it to “NO”
-<p align="center">
-<img width="743" alt="Screen Shot 2021-05-07 at 17 46 08" src="https://user-images.githubusercontent.com/75636882/117506545-235bc180-af5c-11eb-91eb-00d60f5844fa.png" />
-</p>
-
-6. Enable VoIP and Audio background modes: Go to Signing & Capabilities tab, press the +Capability button and add those background modes:
-<p align="center">
-<img width="719" alt="Screen Shot 2021-05-07 at 17 46 54" src="https://user-images.githubusercontent.com/75636882/117506607-3ff7f980-af5c-11eb-8df2-2f9170c12baf.png"/>
-</p>
-
-7. Go to your Info.plist file and add the “Privacy - Microphone Usage Description” key with a description that your app requires microphone access in order to make VoIP calls. 
-<p align="center">
-<img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://user-images.githubusercontent.com/75636882/117506706-6d44a780-af5c-11eb-87e2-d6be092474f2.png"/>
-</p>
-
-8. You are all set!
-
-
 ### Swift Package Manager
+
+Future SDK releases use Swift Package Manager only. Existing CocoaPods releases remain available, but new versions will not be published to CocoaPods. Remove the old TelnyxRTC/WebRTC pods before adding the package to avoid duplicate binaries.
+
 Xcode has a built-in support for Swift package manager. To add a package : 
 
 1. Select Files > Add Packages
 2. On the Swift Package Manager Screen, Search for the https://github.com/team-telnyx/telnyx-webrtc-ios.git package.
-3. Select the **main brach** and click Add Package
+3. Select a released version using a version rule and click Add Package
 
 <p align="center">
 <img width="911" alt="Screen Shot 2021-05-07 at 17 48 17" src="https://github.com/isaacakakpo1/telnyx-webrtc-ios-smp/assets/134492608/39be0ab7-222f-478c-bba9-cb2813bcb81d"/>
@@ -78,7 +45,7 @@ NB: if Add Package gets stuck downloading binaries try File > Packages > Reset P
 
 Read more in [Apple documentation](https://developer.apple.com/documentation/xcode/adding_package_dependencies_to_your_app)
 
-**Hint: Use either Cocoapods or Swift Package Manager for Individual Packages to avoid Duplicate binaries**
+Enable the Audio and VoIP background modes and add a microphone usage description to your app’s Info.plist.
 
 ## Telnyx Client
 

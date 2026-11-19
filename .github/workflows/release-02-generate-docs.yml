@@ -5,7 +5,7 @@
 # 2. Sets up the required Xcode version for building the SDK.
 # 3. Installs Ruby 3.3.0 along with Fastlane and Jazzy for documentation.
 # 4. Installs SourceDocs via Homebrew.
-# 5. Installs CocoaPods dependencies required by the SDK.
+# 5. Resolves Swift Package Manager dependencies required by the SDK.
 # 6. Runs Fastlane to generate full documentation using Jazzy and SourceDocs.
 # 7. Configures Git user identity and push settings for committing changes.
 # 8. Creates a uniquely named branch for the documentation update.
@@ -49,9 +49,8 @@ jobs:
       run: |
         brew install sourcedocs
 
-    - name: 📦 Install dependencies (CocoaPods)
-      run: |
-        pod install
+    - name: 📦 Resolve SDK packages
+      run: xcodebuild -resolvePackageDependencies -project TelnyxRTC.xcodeproj -scheme TelnyxRTC
 
     - name: 📝 Run Fastlane to generate full documentation
       run: |
