@@ -16,44 +16,44 @@ This is the Telnyx iOS Voice SDK - a WebRTC-based voice calling solution for iOS
 - Follow the established architecture patterns for WebRTC, including peer connection management, ICE candidate handling, and call state management.
 - Ensure that all new features and bug fixes are accompanied by appropriate unit tests in the `TelnyxRTCTests` target.
 - If asked to make a pull request, ensure you use the format described at .github/pull_request_template.md, including a clear description of the changes, any relevant issue numbers, and testing instructions.
-- Please do not update podspec and Podfile files without confirming the changes with the team first.
+- SDK dependencies and release distribution use Swift Package Manager.
 
 ## Development Commands
 
 ### Building and Running
 ```bash
 # Open the workspace
-open TelnyxRTC.xcworkspace
+open TelnyxRTC.xcodeproj
 
 # Build the framework
-xcodebuild -workspace TelnyxRTC.xcworkspace -scheme TelnyxRTC -configuration Release
+xcodebuild -project TelnyxRTC.xcodeproj -scheme TelnyxRTC -configuration Release
 
 # Run tests
-xcodebuild test -workspace TelnyxRTC.xcworkspace -scheme TelnyxRTC -destination 'platform=iOS Simulator,name=iPhone 14'
+xcodebuild test -project TelnyxRTC.xcodeproj -scheme TelnyxRTC -destination 'platform=iOS Simulator,name=iPhone 14'
 
 # Build the demo app
-xcodebuild -workspace TelnyxRTC.xcworkspace -scheme TelnyxWebRTCDemo -configuration Debug
+xcodebuild -project TelnyxRTC.xcodeproj -scheme TelnyxWebRTCDemo -configuration Debug
 ```
 
 ### Development Tools
 ```bash
 # Install dependencies
-pod install
+xcodebuild -resolvePackageDependencies -project TelnyxRTC.xcodeproj -scheme TelnyxRTCTests
 
 # Update dependencies
-pod update
+# In Xcode: File > Packages > Update to Latest Package Versions
 
 # Clean build artifacts
-xcodebuild clean -workspace TelnyxRTC.xcworkspace -scheme TelnyxRTC
+xcodebuild clean -project TelnyxRTC.xcodeproj -scheme TelnyxRTC
 ```
 
 ### Testing
 ```bash
 # Run unit tests
-xcodebuild test -workspace TelnyxRTC.xcworkspace -scheme TelnyxRTC -destination 'platform=iOS Simulator,name=iPhone 14'
+xcodebuild test -project TelnyxRTC.xcodeproj -scheme TelnyxRTC -destination 'platform=iOS Simulator,name=iPhone 14'
 
 # Run UI tests
-xcodebuild test -workspace TelnyxRTC.xcworkspace -scheme TelnyxWebRTCDemoUITests -destination 'platform=iOS Simulator,name=iPhone 14'
+xcodebuild test -project TelnyxRTC.xcodeproj -scheme TelnyxWebRTCDemoUITests -destination 'platform=iOS Simulator,name=iPhone 14'
 ```
 
 ## Architecture Overview
@@ -117,8 +117,8 @@ xcodebuild test -workspace TelnyxRTC.xcworkspace -scheme TelnyxWebRTCDemoUITests
 5. Media stream handling and call state management
 
 ### Configuration Files
-- `TelnyxRTC.podspec` - Framework dependencies and configuration
-- `Podfile` - Demo app dependencies (for both framework and iOS demo app)
+- `Package.swift` - SDK package dependencies and configuration
+- `TelnyxRTC.xcodeproj` - Local SDK, test and demo SPM product linkage
 - `Info.plist` - Required permissions and capabilities
 - `PrivacyInfo.xcprivacy` - Privacy manifest for App Store
 

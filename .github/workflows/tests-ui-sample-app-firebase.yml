@@ -26,8 +26,8 @@ jobs:
           ruby-version: 3.3.0
           bundler-cache: true
 
-      - name: Install dependencies
-        run: pod install
+      - name: Resolve demo Swift packages
+        run: xcodebuild -resolvePackageDependencies -project TelnyxRTC.xcodeproj -scheme TelnyxWebRTCDemo
 
       - name: Install Fastlane
         run: gem install fastlane
@@ -85,7 +85,7 @@ jobs:
 
       - name: Clean Xcode build cache
         run: |
-          sudo xcodebuild -alltargets clean
+          xcodebuild -project TelnyxRTC.xcodeproj -scheme TelnyxWebRTCDemo clean
           sudo rm -rf ~/Library/Developer/Xcode/DerivedData/*
 
       - name: Disable UI prompts

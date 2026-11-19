@@ -9,8 +9,8 @@ output: docs
 
 # Xcode build settings
 xcodebuild_arguments:
-  - -workspace
-  - TelnyxRTC.xcworkspace
+  - -project
+  - TelnyxRTC.xcodeproj
   - -scheme
   - TelnyxRTC
   - -sdk

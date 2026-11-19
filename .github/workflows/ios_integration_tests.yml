@@ -83,8 +83,8 @@ jobs:
           TELNYX_SIP_TOKEN_FILE: ${{ runner.temp }}/sip_token
         run: bash scripts/setup_env.sh -u "$TELNYX_SIP_USER" -p "$TELNYX_SIP_PASSWORD" -f "$TELNYX_SIP_TOKEN_FILE"
 
-      - name: Install Pods
-        run: pod install
+      - name: Resolve SDK packages
+        run: xcodebuild -resolvePackageDependencies -project TelnyxRTC.xcodeproj -scheme TelnyxRTCTests
 
       - name: Run credentialed integration tests
         run: bundle exec fastlane integration_tests

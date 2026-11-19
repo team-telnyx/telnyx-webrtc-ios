@@ -1,5 +1,9 @@
 default_platform(:ios)
 
+# Package resolution can make the first build-settings query slow on clean runners.
+ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] ||= "60"
+ENV["FASTLANE_XCODEBUILD_SETTINGS_RETRIES"] ||= "3"
+
 before_all do
 	sh 'mkdir ../reports || true'
 	sh 'mkdir ../dist || true'
@@ -24,14 +28,14 @@ credentialed_tests = [
 
 desc "Run credential-free tests."
 lane :tests do
-  run_tests(workspace: "TelnyxRTC.xcworkspace",
+  run_tests(project: "TelnyxRTC.xcodeproj",
             scheme: "TelnyxRTCTests",
             skip_testing: credentialed_tests)
 end
 
 desc "Run tests that require live SIP credentials."
 lane :integration_tests do
-  run_tests(workspace: "TelnyxRTC.xcworkspace",
+  run_tests(project: "TelnyxRTC.xcodeproj",
             scheme: "TelnyxRTCTests",
             only_testing: credentialed_tests)
 end
@@ -66,9 +70,9 @@ lane :generate_docs_markdown do
   sh <<-SHELL
     cd .. && sourcedocs generate --output-folder ./docs-markdown \
                               -- \
-                              -workspace TelnyxRTC.xcworkspace \
+                              -project TelnyxRTC.xcodeproj \
                               -scheme TelnyxRTC \
-                              -destination 'platform=iOS Simulator,OS=18.5,name=iPhone 16 Pro Max'
+                              -destination 'generic/platform=iOS Simulator'
 
 
   SHELL
@@ -85,7 +89,7 @@ end
 desc "Builds the app and tests in build-for-testing mode to be executed later on devices or in Firebase Test Lab."
 lane :build_for_testing do
   xcodebuild(
-    workspace: "TelnyxRTC.xcworkspace",
+    project: "TelnyxRTC.xcodeproj",
     scheme: "TelnyxWebRTCDemo",
     sdk: "iphoneos",
     configuration: "Debug",

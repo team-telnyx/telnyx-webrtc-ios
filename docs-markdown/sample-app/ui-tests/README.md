@@ -5,7 +5,7 @@ This guide explains how to set up, build, and run UI Tests for the Telnyx WebRTC
 ## Prerequisites
 
 - Xcode installed on your macOS system
-- CocoaPods installed
+- Swift Package Manager (included with Xcode; CocoaPods is not needed for the demo)
 - Access to a Firebase project with Test Lab enabled
 - Valid SIP credentials for testing
 
@@ -38,15 +38,15 @@ Replace the dummy `GoogleService-Info.plist` in the project with your downloaded
 Run the following command to install all required dependencies:
 
 ```sh
-pod install
+xcodebuild -resolvePackageDependencies -project TelnyxRTC.xcodeproj -scheme TelnyxWebRTCDemo
 ```
 
 ### 6. Open Project
 
-Open the Xcode workspace:
+Open the Xcode project directly:
 
 ```sh
-open TelnyxRTC.xcworkspace
+open TelnyxRTC.xcodeproj
 ```
 
 ### 7. Configure Test Credentials
@@ -75,7 +75,7 @@ Compile the tests using the following command:
 
 ```sh
 xcodebuild build-for-testing \
-     -workspace TelnyxRTC.xcworkspace \
+     -project TelnyxRTC.xcodeproj \
      -scheme TelnyxWebRTCDemo \
      -sdk iphoneos \
      -configuration Debug \
