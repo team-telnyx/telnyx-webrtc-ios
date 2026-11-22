@@ -276,6 +276,24 @@ class CallTimingsReportTests: XCTestCase {
             .filter { $0.hasPrefix("[CallTimings]") }
     }
 
+    func testClientPathDiagnosticsReachTheCallReport() {
+        let client = TxClient()
+        let call = makeInboundCall(callReportLogLevel: "info")
+        client.calls[call.callInfo!.callId] = call
+        let context: [String: Any] = [
+            "previousState": "cellular", "state": "cellular", "stateChanged": false
+        ]
+        let recorded = expectation(description: "path update forwarded on main")
+
+        client.networkMonitor.onPathUpdate?(context)
+        DispatchQueue.main.async { recorded.fulfill() }
+        wait(for: [recorded], timeout: 1)
+
+        XCTAssertTrue(call.callReportCollector?.getLogs().contains {
+            $0.message == "Network path updated"
+        } ?? false)
+    }
+
     func testInboundCallAddsCallTimingsBlockWhenActiveAndDtlsConnected() {
         let call = makeInboundCall()
 

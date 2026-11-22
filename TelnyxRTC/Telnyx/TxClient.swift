@@ -389,6 +389,17 @@ public class TxClient {
         // Start monitoring audio route changes
         setupAudioRouteChangeMonitoring()
 
+        // Preserve every OS path update in call reports, even when both paths
+        // classify as cellular and no recovery callback is generated.
+        networkMonitor.onPathUpdate = { [weak self] context in
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                for call in self.calls.values {
+                    call.recordNetworkPathUpdate(context)
+                }
+            }
+        }
+
         // Set up a closure to handle network state changes
         networkMonitor.onNetworkStateChange = { [weak self] state in
             guard let self = self else { return }
