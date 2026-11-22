@@ -1117,6 +1117,14 @@ extension Call {
         callReportCollector?.setMediaVerificationSamplingEnabled(enabled)
     }
 
+    func recordNetworkPathUpdate(_ context: [String: Any]) {
+        callReportCollector?.addLogEntry(
+            level: "info",
+            message: "Network path updated",
+            context: context
+        )
+    }
+
     /// Sets up Peer callbacks that log signaling, ICE gathering, and ICE connection
     /// state changes into the call report collector. Called after peer creation.
     private func setupPeerEventLogging() {
