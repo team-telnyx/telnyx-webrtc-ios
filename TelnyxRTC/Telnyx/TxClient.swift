@@ -188,7 +188,7 @@ public class TxClient {
     }
     #endif
     private var pushMetaData: [String:Any]?
-    /// VSDK-1144 (I5): when the last VoIP push reached the SDK (ring anchor).
+    /// When the last VoIP push reached the SDK (ring anchor for push funnel).
     var pushNotificationReceivedAt: Date?
     internal var pushTokenRegistrationStore: PushTokenRegistrationStoring = KeychainPushTokenRegistrationStore()
     /// `true` only after the app calls `connect()`. Push and anonymous logins can carry a
@@ -1166,10 +1166,10 @@ public class TxClient {
                 if call.signalingCallId != callUUID {
                     socketToAppCallId.removeValue(forKey: call.signalingCallId)
                 }
-                // VSDK-1144 (I4): decline_push never creates a SIP leg, so the
-                // report carries no synthetic SIP cause/code. DECLINED_PUSH
-                // keeps this bucket separate from a normal in-ring decline
-                // (which still sends USER_BUSY(17) in-band).
+                // Push-decline never creates a SIP leg, so the report carries
+                // no synthetic SIP cause/code. DECLINED_PUSH keeps this bucket
+                // separate from a normal in-ring decline (which still sends
+                // USER_BUSY(17) in-band).
                 call.userDeclinedMs = call.currentWallClockMillis()
                 if call.finalState == nil {
                     call.finalState = "failed"
@@ -1773,9 +1773,9 @@ extension TxClient {
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)
         call.inviteCustomHeaders = customHeaders
-        // VSDK-1144 (I5): ring anchor for the inbound call funnel. In the push
-        // flow this is the VoIP-push arrival time (captured in
-        // processVoIPNotification), otherwise the INVITE arrival time.
+        // Ring anchor for the inbound call funnel. In the push flow this is
+        // the VoIP-push arrival time (captured in processVoIPNotification),
+        // otherwise the INVITE arrival time.
         if isCallFromPush, let pushAt = self.pushNotificationReceivedAt {
             call.pushReceivedMs = Int(pushAt.timeIntervalSince1970 * 1000)
         } else {
@@ -1878,8 +1878,8 @@ extension TxClient {
         // cached ID before any reconnect path can call the normal connect API.
         self.voiceSdkId = rtc_id
 
-        // VSDK-1144 (I5): record when the VoIP push reached the SDK. This is the
-        // ring anchor for the call-report funnel (push → tap → answered).
+        // Record when the VoIP push reached the SDK. This is the ring anchor
+        // for the call-report funnel (push → tap → answered).
         self.pushNotificationReceivedAt = Date()
 
         let noActiveCalls = !self.calls.values.contains {
@@ -1931,7 +1931,7 @@ extension TxClient {
                                                callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000,
                                                pushWhenActive: self.storedTxConfig?.pushWhenActive ?? false,
                                                pushDeviceToken: self.storedTxConfig?.pushNotificationConfig?.pushDeviceToken)
-                    // VSDK-1144 (I5): ring anchor for the push funnel.
+                    // Ring anchor for the push funnel.
                     self.calls[callUUID]?.pushReceivedMs = self.currentWallClockMillis()
                     self.currentCallId = callUUID
                 } else {
@@ -2193,7 +2193,7 @@ extension TxClient : SocketDelegate {
         return shouldForceRelay
     }
 
-    /// VSDK-1144 (I5): wall-clock time in milliseconds since epoch.
+    /// Wall-clock time in milliseconds since epoch, for push funnel timestamps.
     func currentWallClockMillis() -> Int {
         return Int(Date().timeIntervalSince1970 * 1000)
     }

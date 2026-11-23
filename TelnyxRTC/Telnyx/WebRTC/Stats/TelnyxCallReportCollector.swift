@@ -68,25 +68,38 @@ public class TelnyxCallReportCollector {
     /// WebRTC sample, allowing call recovery to avoid a duplicate stats query.
     internal var onInboundRtpSample: ((Int) -> Void)?
 
-    // VSDK-1144 (I3): first bidirectional media detection.
-    // firstMediaMs — millis from call start until packets were observed flowing
-    // in BOTH directions (audio). Sampling piggybacks on the normal stats
-    // interval; no extra peer-connection polling is added.
+    // First bidirectional media detection.
+    // firstMediaMs — millis from media-collection start (ACTIVE) until packets
+    // were observed flowing in BOTH directions (audio).  The detection window
+    // is anchored to `firstMediaDetectionWindowStart`, which is set in
+    // `start()` (triggered by the ACTIVE state), NOT at collector creation.
+    // During the window an initial 1-second sampling burst is used so that a
+    // 3-second media-success requirement can be resolved; after detection (or
+    // window expiry) the cadence reverts to the configured interval.
     private(set) var firstMediaMs: Int? = nil
     private var outboundPacketSeen = false
     private var inboundPacketSeen = false
     private var firstMediaDetectionWindowStart: Date? = nil
+
+    /// Whether the first-media detection burst is active (1 s sampling).
+    /// Flipped to `false` once `firstMediaMs` is determined.
+    private var isFirstMediaBurstActive = false
 
     /// Marks direction presence from the latest stats sample; records
     /// `firstMediaMs` once both directions have packet flow.
     private func observeMediaDirection(outboundPackets: Int?, inboundPackets: Int?) {
         guard firstMediaMs == nil else { return }
 
-        // Detection window: only observe during the first 10 s after start,
-        // matching the Android implementation.
-        let windowStart = firstMediaDetectionWindowStart ?? callStartTime
+        guard let windowStart = firstMediaDetectionWindowStart else {
+            // Collection hasn't started yet — skip.
+            return
+        }
+
+        // Detection window: only observe during the first 10 s after the
+        // call became ACTIVE, matching the Android implementation.
         if Date().timeIntervalSince(windowStart) > 10.0 {
             firstMediaMs = -1 // sentinel: window elapsed, no two-way media
+            endFirstMediaBurst()
             return
         }
 
@@ -94,11 +107,22 @@ public class TelnyxCallReportCollector {
         if let inboundPackets, inboundPackets > 0 { inboundPacketSeen = true }
 
         if outboundPacketSeen && inboundPacketSeen {
-            firstMediaMs = Int(Date().timeIntervalSince(callStartTime) * 1000)
+            firstMediaMs = Int(Date().timeIntervalSince(windowStart) * 1000)
+            endFirstMediaBurst()
         }
     }
 
-    // MARK: - Test hooks (VSDK-1144)
+    /// Reverts the timer from the 1-second burst back to the configured
+    /// cadence once first-media detection is complete.
+    private func endFirstMediaBurst() {
+        guard isFirstMediaBurstActive else { return }
+        isFirstMediaBurstActive = false
+        DispatchQueue.main.async { [weak self] in
+            self?.scheduleStatsTimer()
+        }
+    }
+
+    // MARK: - Test hooks
 
     /// Exposes the media-direction observer to the test target without making
     /// the stats pipeline itself internal.
@@ -109,7 +133,9 @@ public class TelnyxCallReportCollector {
     /// Starts the collector's clock without a live peer connection so tests can
     /// exercise the first-media window deterministically.
     func forceStartForTesting(windowOverride: TimeInterval? = nil) {
-        callStartTime = Date().addingTimeInterval(-(windowOverride ?? 0))
+        let now = Date()
+        callStartTime = now.addingTimeInterval(-(windowOverride ?? 0))
+        firstMediaDetectionWindowStart = now.addingTimeInterval(-(windowOverride ?? 0))
     }
 
     // Previous values for rate calculations
@@ -166,12 +192,22 @@ public class TelnyxCallReportCollector {
     /// - Parameter peerConnection: The RTCPeerConnection to monitor
     public func start(peerConnection: RTCPeerConnection) {
         guard config.enabled else { return }
-        
+
         self.peerConnection = peerConnection
         self.intervalStartTime = Date()
         self.lastIntermediateFlushTime = self.intervalStartTime
-        
-        Logger.log.i(message: "TelnyxCallReportCollector: Starting stats collection (interval: \(config.interval)s, logCollectorActive: \(logCollector?.isActive() ?? false))")
+
+        // Anchor the first-media detection window to when collection
+        // actually starts (call became ACTIVE), not collector creation.
+        // This prevents long ring times from exhausting the window.
+        if firstMediaDetectionWindowStart == nil {
+            firstMediaDetectionWindowStart = Date()
+        }
+        // Use 1-second burst sampling until first media is detected so
+        // that short detection requirements (e.g. 3 s) are resolvable.
+        isFirstMediaBurstActive = (firstMediaMs == nil)
+
+        Logger.log.i(message: "TelnyxCallReportCollector: Starting stats collection (interval: \(config.interval)s, firstMediaBurst: \(isFirstMediaBurstActive), logCollectorActive: \(logCollector?.isActive() ?? false))")
 
         logCollector?.addEntry(
             level: "info",
@@ -731,9 +767,15 @@ public class TelnyxCallReportCollector {
 
     private func scheduleStatsTimer() {
         timer?.invalidate()
-        let interval = isMediaVerificationSamplingEnabled
-            ? min(config.interval, 1.0)
-            : config.interval
+        let interval: TimeInterval
+        if isMediaVerificationSamplingEnabled || isFirstMediaBurstActive {
+            // 1-second burst for ICE-restart verification or first-media
+            // detection (resolves a 3-second requirement the default 5 s
+            // interval cannot).
+            interval = min(config.interval, 1.0)
+        } else {
+            interval = config.interval
+        }
         timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
             self?.collectStats()
         }
@@ -855,8 +897,8 @@ public class TelnyxCallReportCollector {
         statistics: [String: RTCStatistics],
         now: Date
     ) {
-        // VSDK-1144 (I3): watch for the first bidirectional media window using
-        // the same sample — zero extra getStats queries.
+        // Watch for the first bidirectional media window using the same
+        // sample — zero extra getStats queries.
         observeMediaDirection(outboundPackets: parsed.outbound?.packetsSent,
                               inboundPackets: parsed.inbound?.packetsReceived)
 

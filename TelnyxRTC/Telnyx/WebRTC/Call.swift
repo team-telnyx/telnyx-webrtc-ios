@@ -123,8 +123,8 @@ public extension CallState {
         }
     }
 
-    /// Strips the associated value so callers can switch over the case
-    /// (VSDK-1144/I4 decline-timestamp gate).
+    /// Strips the associated value so callers can pattern-match the base
+    /// case in guards (e.g. the pre-answer decline-timestamp gate).
     func getBaseState() -> CallState {
         switch self {
         case .NEW: return .NEW
@@ -249,7 +249,7 @@ public class Call {
     private(set) var timingRecorder: TelnyxCallTimingRecorder?
     var onInboundRtpSample: ((Call, Int) -> Void)?
 
-    // VSDK-1144 (I1/A2): true final call state + termination details for the summary.
+    // True final call state + termination details for the summary.
     // finalState is one of done|dropped|failed; finalStateReason is a short
     // machine-readable reason; sipCause/sipCode carry the SIP termination info.
     var finalState: String? = nil
@@ -257,7 +257,7 @@ public class Call {
     var sipCause: String? = nil
     var sipCode: Int? = nil
 
-    // VSDK-1144 (I5): inbound push funnel timestamps (wall clock in millis).
+    // Inbound push funnel timestamps (wall clock in millis).
     // pushReceivedMs — when the VoIP push reached the SDK (processVoIPNotification),
     // userAnsweredMs / userDeclinedMs — when the user tapped accept / decline.
     var pushReceivedMs: Int? = nil
@@ -751,22 +751,25 @@ public class Call {
     }
 
     private func endCall(terminationReason: CallTerminationReason? = nil) {
-        // VSDK-1144 (I4): record the user decline timestamp for the push funnel
-        // (inbound calls declined while still ringing).
-        if direction != .OUTBOUND,
-           case .NEW = callState.getBaseState(),
-           self.userDeclinedMs == nil {
+        // Record the user decline timestamp for the push funnel, but ONLY
+        // when the local user initiated the hangup (endedLocally).  A remote
+        // BYE on an unanswered inbound call (caller cancel) must NOT set
+        // userDeclinedMs — the callee never acted.
+        let isPreAnswerInbound: Bool = {
+            guard direction != .OUTBOUND else { return false }
+            switch callState.getBaseState() {
+            case .NEW, .RINGING: return true
+            default: return false
+            }
+        }()
+        if endedLocally, isPreAnswerInbound, self.userDeclinedMs == nil {
             self.userDeclinedMs = currentWallClockMillis()
         }
         // Reset benchmarking when call ends
         CallTimingBenchmark.reset()
 
-        // VSDK-1144 (I1/A2): capture the true final call state and SIP termination
-        // details before the call state is switched to DONE.
-        if self.finalState == nil {
-            self.finalState = Call.finalStateFor(callState: callState, terminationReason: terminationReason)
-            self.finalStateReason = terminationReason?.cause ?? callState.getReason()
-        }
+        // Capture SIP termination details; final-state classification is
+        // centralized in updateCallState() so it also covers DROPPED paths.
         self.sipCause = terminationReason?.cause ?? self.sipCause
         self.sipCode = terminationReason?.sipCode ?? terminationReason?.causeCode ?? self.sipCode
 
@@ -839,6 +842,20 @@ public class Call {
 
     internal func updateCallState(callState: CallState) {
         Logger.log.i(message: "Call state updated: \(callState)")
+
+        // Classify the terminal state exactly once, on the transition into
+        // .DONE or .DROPPED, using the pre-transition state + reason.
+        // This covers every path: endCall(), direct DROPPED from TxClient
+        // (network loss), and reconnect-timeout DONE.
+        switch callState {
+        case .DONE(let reason):
+            classifyFinalStateOnce(terminalState: callState, terminationReason: reason)
+        case .DROPPED:
+            classifyFinalStateOnce(terminalState: callState, terminationReason: nil)
+        default:
+            break
+        }
+
         self.callState = callState
 
         callReportCollector?.addLogEntry(
@@ -849,12 +866,12 @@ public class Call {
                 "reason": callState.getReason() ?? ""
             ]
         )
-        
+
         // Notify the stats reporter about the call state change
         if let statsReporter = self.statsReporter, (debug || enableQualityMetrics) {
             statsReporter.handleCallStateChange(callState: callState)
         }
-        
+
         // Setup or remove ICE connection state monitoring based on call state
         switch callState {
         case .ACTIVE:
@@ -871,7 +888,7 @@ public class Call {
         default:
             break
         }
-        
+
         // Stop and post call report when call ends (any terminal state)
         switch callState {
         case .DONE, .DROPPED:
@@ -883,15 +900,32 @@ public class Call {
         self.delegate?.callStateUpdated(call: self)
     }
 
-    // MARK: - VSDK-1144 call report summary helpers
+    /// Sets `finalState` and `finalStateReason` exactly once, right before
+    /// the call state is committed to its terminal value.  Uses the still-
+    /// current (pre-transition) `self.callState` together with the incoming
+    /// terminal state and reason.
+    private func classifyFinalStateOnce(terminalState: CallState,
+                                        terminationReason: CallTerminationReason?) {
+        guard self.finalState == nil else { return }
+        self.finalState = Call.finalStateFor(
+            terminalState: terminalState,
+            terminationReason: terminationReason
+        )
+        self.finalStateReason = terminationReason?.cause ?? self.callState.getReason()
+    }
 
-    /// Maps a call state + termination reason to the true final state
-    /// (VSDK-1144/A2): `done` for successful calls, `dropped` for network/server
-    /// drops, `failed` for anything else (e.g. SIP errors, unanswered calls).
-    /// Parity with Android's `Call.finalStateFor`.
-    static func finalStateFor(callState: CallState,
+    // MARK: - Call report summary helpers
+
+    /// Classifies a terminal call state into one of three report buckets:
+    /// `"done"` (successful), `"dropped"` (network/server loss), or
+    /// `"failed"` (SIP errors, busy, unanswered).  Parity with Android's
+    /// `Call.finalStateFor`.
+    ///
+    /// Called exactly once per call from `updateCallState` at the moment the
+    /// call transitions into `.DONE` or `.DROPPED`.
+    static func finalStateFor(terminalState: CallState,
                               terminationReason: CallTerminationReason?) -> String {
-        switch callState {
+        switch terminalState {
         case .DROPPED:
             return "dropped"
         case .DONE:
@@ -900,13 +934,15 @@ public class Call {
             let causeCode = terminationReason?.causeCode
             // Distinguish normal clearing from failures. Normal clearing
             // (16 / 200) and caller-cancel (487 / ORIGINATOR_CANCEL) are
-            // `done`; everything else is `failed`.
+            // "done"; everything else with a code/cause is "failed".
             if causeCode == 16 || sipCode == 200 { return "done" }
             if causeCode == 487 || cause == "ORIGINATOR_CANCEL" { return "done" }
             if cause == "NORMAL_CLEARING" { return "done" }
             if causeCode != nil || sipCode != nil || cause != nil { return "failed" }
             return "done"
         default:
+            // Should never be reached — classification only runs for
+            // terminal states.  Defensive fallback.
             return "done"
         }
     }
@@ -948,11 +984,11 @@ extension Call {
         Logger.log.i(message: "Call:: hangup()")
         guard let sessionId = self.sessionId else { return }
 
-        // VSDK-1144 (I4): pre-answer local termination depends on intent.
+        // Pre-answer local termination depends on intent:
         // - Outbound call not yet answered (NEW / CONNECTING / RINGING): the caller
         //   is cancelling the call -> ORIGINATOR_CANCEL (487).
         // - Inbound call still ringing (NEW / RINGING): the callee is declining ->
-        //   USER_BUSY (17) preserved for iOS/JS wire parity.
+        //   USER_BUSY (17), preserved for iOS/JS wire parity.
         // - Everything else: normal clearing (16).
         let causeCode: CauseCode
 
@@ -1015,7 +1051,7 @@ extension Call {
             return
         }
 
-        // VSDK-1144 (I5): user tapped accept — record for the push funnel.
+        // User tapped accept — record for the push funnel.
         if self.userAnsweredMs == nil {
             self.userAnsweredMs = currentWallClockMillis()
         }
@@ -1390,8 +1426,8 @@ extension Call {
             destinationNumber: self.callOptions?.destinationNumber,
             callerNumber: self.callInfo?.callerNumber,
             direction: self.direction.rawValue,
-            // VSDK-1145: report the real call state — mirrors Android, which now
-            // records actual state transitions instead of forcing "done".
+            // Report the actual call state at the time of the report, not a
+            // hardcoded "done" — aligns iOS and Android report semantics.
             state: self.callState.value.lowercased(),
             finalState: self.finalState,
             finalStateReason: self.finalStateReason,
@@ -1459,7 +1495,7 @@ extension Call {
             destinationNumber: self.callOptions?.destinationNumber,
             callerNumber: self.callInfo?.callerNumber,
             direction: self.direction.rawValue,
-            // VSDK-1145: intermediate segments report the real live state
+            // Intermediate segments report the real live state
             // (connecting/ringing/active), same as the final segment.
             state: self.callState.value.lowercased(),
             finalState: self.finalState,
