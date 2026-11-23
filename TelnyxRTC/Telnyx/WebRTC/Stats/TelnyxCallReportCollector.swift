@@ -117,8 +117,12 @@ public class TelnyxCallReportCollector {
     private func endFirstMediaBurst() {
         guard isFirstMediaBurstActive else { return }
         isFirstMediaBurstActive = false
+        // Avoid rescheduling after the collector has been stopped; the
+        // stats callback that triggers this may arrive after stop().
+        guard callEndTime == nil else { return }
         DispatchQueue.main.async { [weak self] in
-            self?.scheduleStatsTimer()
+            guard let self = self, self.callEndTime == nil else { return }
+            self.scheduleStatsTimer()
         }
     }
 
@@ -205,7 +209,10 @@ public class TelnyxCallReportCollector {
         }
         // Use 1-second burst sampling until first media is detected so
         // that short detection requirements (e.g. 3 s) are resolvable.
-        isFirstMediaBurstActive = (firstMediaMs == nil)
+        // Only activate the burst when the configured interval is slower
+        // than the burst cadence (1 s); otherwise the normal timer is
+        // already fast enough and the burst machinery is unnecessary.
+        isFirstMediaBurstActive = (firstMediaMs == nil && config.interval > 1.0)
 
         Logger.log.i(message: "TelnyxCallReportCollector: Starting stats collection (interval: \(config.interval)s, firstMediaBurst: \(isFirstMediaBurstActive), logCollectorActive: \(logCollector?.isActive() ?? false))")
 
