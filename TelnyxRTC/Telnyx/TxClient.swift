@@ -188,6 +188,8 @@ public class TxClient {
     }
     #endif
     private var pushMetaData: [String:Any]?
+    /// When the last VoIP push reached the SDK (ring anchor for push funnel).
+    var pushNotificationReceivedAt: Date?
     internal var pushTokenRegistrationStore: PushTokenRegistrationStoring = KeychainPushTokenRegistrationStore()
     /// `true` only after the app calls `connect()`. Push and anonymous logins can carry a
     /// cached token or an earlier user's config, so they must not trigger cleanup.
@@ -204,6 +206,10 @@ public class TxClient {
     private var enableQualityMetrics: Bool = false
     private var isACMResetInProgress: Bool = false
     private var pendingAnonymousLoginMessage: AnonymousLoginMessage?
+    /// A DECLINED_PUSH call report that could not be posted because
+    /// `callReportId` was not yet available (socket reconnecting).
+    /// Posted from the REGED handler once identifiers arrive.
+    private var pendingDeclinePushReport: Call.PendingCallReport?
     private var forceRelayForNextRecoveredCall = false
     private let forceRelayForNextRecoveredCallLock = NSLock()
     /// Local hangups are retained by signaling ID so a stale ATTACH cannot
@@ -1164,6 +1170,20 @@ public class TxClient {
                 if call.signalingCallId != callUUID {
                     socketToAppCallId.removeValue(forKey: call.signalingCallId)
                 }
+                // Push-decline never creates a SIP leg, so the report carries
+                // no synthetic SIP cause/code. DECLINED_PUSH keeps this bucket
+                // separate from a normal in-ring decline (which still sends
+                // USER_BUSY(17) in-band).
+                call.userDeclinedMs = call.currentWallClockMillis()
+                if call.finalState == nil {
+                    call.finalState = "failed"
+                    call.finalStateReason = "DECLINED_PUSH"
+                }
+                call.endForAttachCall()
+                if let pending = call.stopAndPostCallReport() {
+                    self.pendingDeclinePushReport = pending
+                    Logger.log.i(message: "TxClient:: Deferred DECLINED_PUSH report — will post from REGED")
+                }
                 self.calls.removeValue(forKey: callUUID)
             }
             
@@ -1760,6 +1780,14 @@ extension TxClient {
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)
         call.inviteCustomHeaders = customHeaders
+        // Ring anchor for the inbound call funnel. In the push flow this is
+        // the VoIP-push arrival time (captured in processVoIPNotification),
+        // otherwise the INVITE arrival time.
+        if isCallFromPush, let pushAt = self.pushNotificationReceivedAt {
+            call.pushReceivedMs = Int(pushAt.timeIntervalSince1970 * 1000)
+        } else {
+            call.pushReceivedMs = self.currentWallClockMillis()
+        }
         self.calls[appFacingCallId] = call
         // propagate the incoming call to the App
         Logger.log.i(message: "TxClient:: push flow createIncomingCall \(call)")
@@ -1857,6 +1885,10 @@ extension TxClient {
         // cached ID before any reconnect path can call the normal connect API.
         self.voiceSdkId = rtc_id
 
+        // Record when the VoIP push reached the SDK. This is the ring anchor
+        // for the call-report funnel (push → tap → answered).
+        self.pushNotificationReceivedAt = Date()
+
         let noActiveCalls = !self.calls.values.contains {
             $0.callState.isConsideredActive
         }
@@ -1906,6 +1938,8 @@ extension TxClient {
                                                callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000,
                                                pushWhenActive: self.storedTxConfig?.pushWhenActive ?? false,
                                                pushDeviceToken: self.storedTxConfig?.pushNotificationConfig?.pushDeviceToken)
+                    // Ring anchor for the push funnel.
+                    self.calls[callUUID]?.pushReceivedMs = self.currentWallClockMillis()
                     self.currentCallId = callUUID
                 } else {
                     Logger.log.e(message: "TxClient:: processVoIPNotification - Invalid call_id or socket. Cannot create call object.")
@@ -2165,7 +2199,12 @@ extension TxClient : SocketDelegate {
         forceRelayForNextRecoveredCall = false
         return shouldForceRelay
     }
-    
+
+    /// Wall-clock time in milliseconds since epoch, for push funnel timestamps.
+    func currentWallClockMillis() -> Int {
+        return Int(Date().timeIntervalSince1970 * 1000)
+    }
+
     func updateActiveCallsState(callState: CallState) {
         if self.isCallsActive {
             for call in self.calls.values {
@@ -2382,8 +2421,24 @@ extension TxClient : SocketDelegate {
                 if let callReportId = params["call_report_id"] as? String {
                     self.socket?.callReportId = callReportId
                     Logger.log.i(message: "TelnyxCallReportCollector: Captured call_report_id from REGED: \(callReportId)")
+
+                    // Flush any DECLINED_PUSH report that was deferred because
+                    // callReportId was unavailable at decline time.
+                    if let pending = self.pendingDeclinePushReport,
+                       let host = self.socket?.signalingServer?.absoluteString {
+                        self.pendingDeclinePushReport = nil
+                        pending.collector.postReport(
+                            summary: pending.summary,
+                            callReportId: callReportId,
+                            host: host,
+                            voiceSdkId: vertoMessage.voiceSdkId
+                        )
+                        Logger.log.i(message: "TelnyxCallReportCollector: Posted deferred DECLINED_PUSH report")
+                    }
                 } else {
                     Logger.log.w(message: "TelnyxCallReportCollector: No call_report_id found in REGED params: \(params.keys.joined(separator: ", "))")
+                    // Clear pending report — cannot post without an ID.
+                    self.pendingDeclinePushReport = nil
                 }
                 self.socket?.voiceSdkId = vertoMessage.voiceSdkId
                 

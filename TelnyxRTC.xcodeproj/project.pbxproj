@@ -123,6 +123,7 @@
 		99FF7B102D4BC4F700DB1408 /* DTMFKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FF7B0F2D4BC4F700DB1408 /* DTMFKeyboardView.swift */; };
 		99FF7B122D4BC71800DB1408 /* DTMFKeyboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FF7B112D4BC71800DB1408 /* DTMFKeyboardViewModel.swift */; };
 		AA0001002F3E000100000001 /* CallReportCollectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00FF002F3E000100000001 /* CallReportCollectorTests.swift */; };
+		AA00CC012F3E000100000001 /* CallReportSummaryMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00CC002F3E000100000001 /* CallReportSummaryMetricsTests.swift */; };
 		AA0006812F3E000100000004 /* TelnyxCallTimingRecorderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0006812F3E000100000003 /* TelnyxCallTimingRecorderTests.swift */; };
 		A28400022F84000000000001 /* TurnServerConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A28400012F84000000000001 /* TurnServerConfigurationTests.swift */; };
 		AA0001022F3E000100000001 /* TelnyxCallReportCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001012F3E000100000001 /* TelnyxCallReportCollector.swift */; };
@@ -363,6 +364,7 @@
 		AA0001052F3E000100000001 /* TelnyxLogCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnyxLogCollector.swift; sourceTree = "<group>"; };
 		AA0002002F0F0A0100000001 /* TxClientSocketErrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxClientSocketErrorTests.swift; sourceTree = "<group>"; };
 		AA00FF002F3E000100000001 /* CallReportCollectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallReportCollectorTests.swift; sourceTree = "<group>"; };
+		AA00CC002F3E000100000001 /* CallReportSummaryMetricsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallReportSummaryMetricsTests.swift; sourceTree = "<group>"; };
 		AA0006812F3E000100000003 /* TelnyxCallTimingRecorderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnyxCallTimingRecorderTests.swift; sourceTree = "<group>"; };
 		A28400012F84000000000001 /* TurnServerConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurnServerConfigurationTests.swift; sourceTree = "<group>"; };
 		B187B019200FB14E90B2870B /* Pods-TelnyxWebRTCDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TelnyxWebRTCDemo.debug.xcconfig"; path = "Target Support Files/Pods-TelnyxWebRTCDemo/Pods-TelnyxWebRTCDemo.debug.xcconfig"; sourceTree = "<group>"; };
@@ -866,6 +868,7 @@
 				B391221F260502650051E076 /* CallTests.swift */,
 				AA00BEEF2F8E000100000002 /* CallInboundAnswerStatsReporterTests.swift */,
 				AA00FF002F3E000100000001 /* CallReportCollectorTests.swift */,
+				AA00CC002F3E000100000001 /* CallReportSummaryMetricsTests.swift */,
 				AA0006812F3E000100000003 /* TelnyxCallTimingRecorderTests.swift */,
 				36D59B37D5C89B9A69EEC3F5 /* CallReportCollectorSSLTests.swift */,
 			);
@@ -1347,6 +1350,7 @@
 				B366D3FB26150D1100156FE1 /* StringExtension.swift in Sources */,
 				B391220C2604D9C50051E076 /* PeerConnectionTests.swift in Sources */,
 				AA0001002F3E000100000001 /* CallReportCollectorTests.swift in Sources */,
+				AA00CC012F3E000100000001 /* CallReportSummaryMetricsTests.swift in Sources */,
 				AA0006812F3E000100000004 /* TelnyxCallTimingRecorderTests.swift in Sources */,
 				A28400022F84000000000001 /* TurnServerConfigurationTests.swift in Sources */,
 				B3912264260F6A050051E076 /* TelnyxRTCMulticallTests.swift in Sources */,

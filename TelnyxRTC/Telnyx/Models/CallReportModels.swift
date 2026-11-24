@@ -359,6 +359,44 @@ public struct CallReportSummary: Codable {
     public let callerNumber: String?
     public let direction: String?
     public let state: String?
+    /// True final call state (VSDK-1144/I1+A2): one of `done`, `dropped`, `failed`.
+    /// `state` keeps reporting the raw CallState value for backwards compatibility.
+    public let finalState: String?
+    /// Short machine-readable reason accompanying `finalState` (e.g. the termination
+    /// cause name). Mirrors Android's `finalStateReason`.
+    public let finalStateReason: String?
+    /// SIP cause name when known (VSDK-1144/I1), e.g. "USER_BUSY", "ORIGINATOR_CANCEL".
+    public let sipCause: String?
+    /// SIP response code (VSDK-1144/I1). Falls back to the Q.850 cause code when the
+    /// signaling server did not provide a SIP code.
+    public let sipCode: Int?
+    /// Device OS version (VSDK-1144/I2), e.g. "17.5.1". Nil on older OS versions.
+    public let osVersion: String?
+    /// Device model (VSDK-1144/I2), e.g. "iPhone15,3".
+    public let deviceModel: String?
+    /// Milliseconds from call activation (ACTIVE transition) to the first
+    /// observed bidirectional media (VSDK-1144/I3). The detection window is
+    /// anchored to when the collector starts (ACTIVE), not call creation.
+    /// `nil` when call reports are disabled or the collector was never started;
+    /// `-1` (sentinel) when the 10-second detection window elapsed without
+    /// observing two-way media.
+    public let firstMediaMs: Int?
+    /// Wall-clock millis when the VoIP push notification reached the SDK
+    /// (VSDK-1144/I5 ring anchor). For inbound push calls this is the VoIP
+    /// push arrival time; for non-push inbound calls the SDK falls back to
+    /// the INVITE arrival time (see `TxClient.createIncomingCall`).
+    public let pushNotificationReceivedMs: Int?
+    /// Formatted ring anchor timestamp, mirroring Android's `ringTs`
+    /// (VSDK-1144/I5, UTC ISO-8601 with fractional seconds).
+    public let ringTs: String?
+    /// Wall-clock millis when the user accepted the call (VSDK-1144/I5).
+    public let userAnsweredMs: Int?
+    /// Formatted answer timestamp, mirroring Android's `answerTs`.
+    public let answerTs: String?
+    /// Wall-clock millis when the user declined the call (VSDK-1144/I5).
+    public let userDeclinedMs: Int?
+    /// Formatted decline timestamp, mirroring Android's `declineTs`.
+    public let declineTs: String?
     public let durationSeconds: Double?
     public let telnyxSessionId: String?
     public let telnyxLegId: String?
@@ -369,13 +407,26 @@ public struct CallReportSummary: Codable {
     /// Sanitized client and call options that were in effect for this call.
     /// Credentials and ICE usernames are represented only as presence flags.
     public let clientSummary: CallReportClientSummary?
-    
+
     public init(
         callId: String,
         destinationNumber: String? = nil,
         callerNumber: String? = nil,
         direction: String? = nil,
         state: String? = nil,
+        finalState: String? = nil,
+        finalStateReason: String? = nil,
+        sipCause: String? = nil,
+        sipCode: Int? = nil,
+        osVersion: String? = nil,
+        deviceModel: String? = nil,
+        firstMediaMs: Int? = nil,
+        pushNotificationReceivedMs: Int? = nil,
+        ringTs: String? = nil,
+        userAnsweredMs: Int? = nil,
+        answerTs: String? = nil,
+        userDeclinedMs: Int? = nil,
+        declineTs: String? = nil,
         durationSeconds: Double? = nil,
         telnyxSessionId: String? = nil,
         telnyxLegId: String? = nil,
@@ -390,6 +441,19 @@ public struct CallReportSummary: Codable {
         self.callerNumber = callerNumber
         self.direction = direction
         self.state = state
+        self.finalState = finalState
+        self.finalStateReason = finalStateReason
+        self.sipCause = sipCause
+        self.sipCode = sipCode
+        self.osVersion = osVersion
+        self.deviceModel = deviceModel
+        self.firstMediaMs = firstMediaMs
+        self.pushNotificationReceivedMs = pushNotificationReceivedMs
+        self.ringTs = ringTs
+        self.userAnsweredMs = userAnsweredMs
+        self.answerTs = answerTs
+        self.userDeclinedMs = userDeclinedMs
+        self.declineTs = declineTs
         self.durationSeconds = durationSeconds
         self.telnyxSessionId = telnyxSessionId
         self.telnyxLegId = telnyxLegId
