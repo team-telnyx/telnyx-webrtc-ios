@@ -918,8 +918,18 @@ public class Call {
 
     /// Classifies a terminal call state into one of three report buckets:
     /// `"done"` (successful), `"dropped"` (network/server loss), or
-    /// `"failed"` (SIP errors, busy, unanswered).  Parity with Android's
-    /// `Call.finalStateFor`.
+    /// `"failed"` (SIP errors, busy, unanswered).
+    ///
+    /// **Exact parity with Android's `DebugDataCollector.finalStateFor`**
+    /// (telnyx-webrtc-android @ e8747f4): classification is based on the
+    /// cause *string* using `contains` matching, not numeric codes.
+    ///
+    /// Android rules (applied in order):
+    /// 1. cause contains `"DROP"` -> `"dropped"`
+    /// 2. cause contains `ANSWER_ERROR | MEDIA_ERROR | CONNECTION |
+    ///    TIMED_OUT | RECONNECT` -> `"failed"`
+    /// 3. cause contains `USER_BUSY | CALL_REJECTED` -> `"failed"`
+    /// 4. everything else -> `"done"`
     ///
     /// Called exactly once per call from `updateCallState` at the moment the
     /// call transitions into `.DONE` or `.DROPPED`.
@@ -927,18 +937,27 @@ public class Call {
                               terminationReason: CallTerminationReason?) -> String {
         switch terminalState {
         case .DROPPED:
-            return "dropped"
+            // A DROPPED terminal state with no cause is network loss.
+            // When a cause IS present we still classify by Android's
+            // cause-list below (the cause may contain "DROP" anyway).
+            if terminationReason?.cause == nil { return "dropped" }
+            fallthrough
         case .DONE:
-            let cause = terminationReason?.cause
-            let sipCode = terminationReason?.sipCode
-            let causeCode = terminationReason?.causeCode
-            // Distinguish normal clearing from failures. Normal clearing
-            // (16 / 200) and caller-cancel (487 / ORIGINATOR_CANCEL) are
-            // "done"; everything else with a code/cause is "failed".
-            if causeCode == 16 || sipCode == 200 { return "done" }
-            if causeCode == 487 || cause == "ORIGINATOR_CANCEL" { return "done" }
-            if cause == "NORMAL_CLEARING" { return "done" }
-            if causeCode != nil || sipCode != nil || cause != nil { return "failed" }
+            guard let cause = terminationReason?.cause else { return "done" }
+
+            // Android: cause.contains("DROP") -> dropped
+            if cause.contains("DROP") { return "dropped" }
+
+            // Android: failure causes (contains match)
+            let failureCauses = [
+                "ANSWER_ERROR", "MEDIA_ERROR", "CONNECTION",
+                "TIMED_OUT", "RECONNECT",
+                "USER_BUSY", "CALL_REJECTED"
+            ]
+            for token in failureCauses {
+                if cause.contains(token) { return "failed" }
+            }
+
             return "done"
         default:
             // Should never be reached — classification only runs for
@@ -1394,40 +1413,86 @@ extension Call {
         Logger.log.i(message: "Call:: Started call report collector")
     }
     
-    internal func stopAndPostCallReport() {
+    /// Lightweight snapshot of a report that could not be posted because
+    /// `callReportId` / host were not yet available (e.g. DECLINED_PUSH
+    /// while the socket is still connecting). `TxClient` stores this and
+    /// flushes it once REGED supplies the missing identifiers.
+    struct PendingCallReport {
+        let summary: CallReportSummary
+        let collector: TelnyxCallReportCollector
+    }
+
+    /// Stops the collector and posts the final call report.
+    ///
+    /// Returns a `PendingCallReport` when the report could not be posted
+    /// because `callReportId` or the signaling host are not yet available
+    /// (socket still connecting). The caller is responsible for posting the
+    /// pending report once those values become available.
+    @discardableResult
+    internal func stopAndPostCallReport() -> PendingCallReport? {
         guard enableCallReports,
               let collector = self.callReportCollector,
-              let socket = self.socket,
               let callId = self.callInfo?.callId else {
-            Logger.log.w(message: "TelnyxCallReportCollector: stopAndPostCallReport guard failed (enableCallReports: \(enableCallReports), collector: \(callReportCollector != nil), socket: \(self.socket != nil), callId: \(self.callInfo?.callId.uuidString ?? "nil"))")
-            return
+            Logger.log.w(message: "TelnyxCallReportCollector: stopAndPostCallReport guard failed (enableCallReports: \(enableCallReports), collector: \(callReportCollector != nil), callId: \(self.callInfo?.callId.uuidString ?? "nil"))")
+            return nil
         }
-        
+
         // Stop collection
         collector.stop()
 
+        let summary = buildCallReportSummary(collector: collector, callId: callId)
+
+        // Get call_report_id and host
+        guard let socket = self.socket,
+              let callReportId = socket.callReportId,
+              let host = socket.signalingServer?.absoluteString else {
+            Logger.log.w(message: "Call:: Cannot post call report now: missing call_report_id or host — deferring")
+            return PendingCallReport(summary: summary, collector: collector)
+        }
+
+        // Post report (async, doesn't block)
+        collector.postReport(
+            summary: summary,
+            callReportId: callReportId,
+            host: host,
+            voiceSdkId: socket.voiceSdkId
+        )
+
+        Logger.log.i(message: "Call:: Posted call report")
+        return nil
+    }
+
+    // MARK: - Shared call report helpers
+
+    /// Shared UTC ISO-8601 formatter for funnel timestamps (push-received,
+    /// user-answered, user-declined). Thread-safe: `ISO8601DateFormatter`
+    /// is documented as thread-safe once configured.
+    private static let funnelFormatter: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        f.timeZone = TimeZone(identifier: "UTC")
+        return f
+    }()
+
+    /// Converts an optional wall-clock millis value to a UTC ISO-8601 string.
+    private static func funnelTs(_ millis: Int?) -> String? {
+        millis.map { funnelFormatter.string(from: Date(timeIntervalSince1970: Double($0) / 1000)) }
+    }
+
+    /// Builds a `CallReportSummary` from the current call state and the given collector.
+    /// Used by both `stopAndPostCallReport` (final) and `flushIntermediateReport` (intermediate).
+    private func buildCallReportSummary(collector: TelnyxCallReportCollector, callId: UUID) -> CallReportSummary {
         let iso8601 = ISO8601DateFormatter()
         iso8601.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         let startTimestamp = iso8601.string(from: collector.callStartTime)
         let endTimestamp = collector.callEndTime.map { iso8601.string(from: $0) }
         let durationSeconds = collector.callEndTime.map { $0.timeIntervalSince(collector.callStartTime) }
 
-        // Build call summary
-        let funnelFormatter = ISO8601DateFormatter()
-        funnelFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        funnelFormatter.timeZone = TimeZone(identifier: "UTC")
-        let funnelTs: (Int?) -> String? = { millis in
-            millis.map { funnelFormatter.string(from: Date(timeIntervalSince1970: Double($0) / 1000)) }
-        }
-
-        // Build call summary
-        let summary = CallReportSummary(
+        return CallReportSummary(
             callId: callId.uuidString.lowercased(),
             destinationNumber: self.callOptions?.destinationNumber,
             callerNumber: self.callInfo?.callerNumber,
             direction: self.direction.rawValue,
-            // Report the actual call state at the time of the report, not a
-            // hardcoded "done" — aligns iOS and Android report semantics.
             state: self.callState.value.lowercased(),
             finalState: self.finalState,
             finalStateReason: self.finalStateReason,
@@ -1437,11 +1502,11 @@ extension Call {
             deviceModel: UIDevice.current.model,
             firstMediaMs: collector.firstMediaMs,
             pushNotificationReceivedMs: self.pushReceivedMs,
-            ringTs: funnelTs(self.pushReceivedMs),
+            ringTs: Call.funnelTs(self.pushReceivedMs),
             userAnsweredMs: self.userAnsweredMs,
-            answerTs: funnelTs(self.userAnsweredMs),
+            answerTs: Call.funnelTs(self.userAnsweredMs),
             userDeclinedMs: self.userDeclinedMs,
-            declineTs: funnelTs(self.userDeclinedMs),
+            declineTs: Call.funnelTs(self.userDeclinedMs),
             durationSeconds: durationSeconds,
             telnyxSessionId: self.telnyxSessionId?.uuidString.lowercased(),
             telnyxLegId: self.telnyxLegId?.uuidString.lowercased(),
@@ -1451,23 +1516,6 @@ extension Call {
             endTimestamp: endTimestamp,
             clientSummary: callReportClientSummary()
         )
-        
-        // Get call_report_id and host
-        guard let callReportId = socket.callReportId,
-              let host = socket.signalingServer?.absoluteString else {
-            Logger.log.w(message: "Call:: Cannot post call report: missing call_report_id or host")
-            return
-        }
-        
-        // Post report (async, doesn't block)
-        collector.postReport(
-            summary: summary,
-            callReportId: callReportId,
-            host: host,
-            voiceSdkId: socket.voiceSdkId
-        )
-        
-        Logger.log.i(message: "Call:: Posted call report")
     }
 
     private func flushIntermediateReport() {
@@ -1480,44 +1528,7 @@ extension Call {
             return
         }
 
-        // Build an in-progress summary (no endTimestamp since call is active)
-        let flushIso8601 = ISO8601DateFormatter()
-        flushIso8601.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let startTimestamp = flushIso8601.string(from: collector.callStartTime)
-        let funnelFormatter = ISO8601DateFormatter()
-        funnelFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        funnelFormatter.timeZone = TimeZone(identifier: "UTC")
-        let funnelTs: (Int?) -> String? = { millis in
-            millis.map { funnelFormatter.string(from: Date(timeIntervalSince1970: Double($0) / 1000)) }
-        }
-        let summary = CallReportSummary(
-            callId: callId.uuidString.lowercased(),
-            destinationNumber: self.callOptions?.destinationNumber,
-            callerNumber: self.callInfo?.callerNumber,
-            direction: self.direction.rawValue,
-            // Intermediate segments report the real live state
-            // (connecting/ringing/active), same as the final segment.
-            state: self.callState.value.lowercased(),
-            finalState: self.finalState,
-            finalStateReason: self.finalStateReason,
-            sipCause: self.sipCause,
-            sipCode: self.sipCode,
-            osVersion: UIDevice.current.systemVersion,
-            deviceModel: UIDevice.current.model,
-            firstMediaMs: collector.firstMediaMs,
-            pushNotificationReceivedMs: self.pushReceivedMs,
-            ringTs: funnelTs(self.pushReceivedMs),
-            userAnsweredMs: self.userAnsweredMs,
-            answerTs: funnelTs(self.userAnsweredMs),
-            userDeclinedMs: self.userDeclinedMs,
-            declineTs: funnelTs(self.userDeclinedMs),
-            telnyxSessionId: self.telnyxSessionId?.uuidString.lowercased(),
-            telnyxLegId: self.telnyxLegId?.uuidString.lowercased(),
-            voiceSdkSessionId: self.sessionId,
-            sdkVersion: Message.SDK_VERSION,
-            startTimestamp: startTimestamp,
-            clientSummary: callReportClientSummary()
-        )
+        let summary = buildCallReportSummary(collector: collector, callId: callId)
 
         guard let payload = collector.flush(summary: summary) else { return }
 

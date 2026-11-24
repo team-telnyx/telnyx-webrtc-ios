@@ -114,14 +114,18 @@ public class TelnyxCallReportCollector {
 
     /// Reverts the timer from the 1-second burst back to the configured
     /// cadence once first-media detection is complete.
+    ///
+    /// `isFirstMediaBurstActive` is read by `scheduleStatsTimer()` on the
+    /// main queue, so the flag mutation is hopped to main to avoid a data
+    /// race with the WebRTC stats-callback thread that calls this method
+    /// (mirrors the `setMediaVerificationSamplingEnabled` pattern).
     private func endFirstMediaBurst() {
-        guard isFirstMediaBurstActive else { return }
-        isFirstMediaBurstActive = false
-        // Avoid rescheduling after the collector has been stopped; the
-        // stats callback that triggers this may arrive after stop().
-        guard callEndTime == nil else { return }
         DispatchQueue.main.async { [weak self] in
-            guard let self = self, self.callEndTime == nil else { return }
+            guard let self = self, self.isFirstMediaBurstActive else { return }
+            self.isFirstMediaBurstActive = false
+            // Avoid rescheduling after the collector has been stopped; the
+            // stats callback that triggers this may arrive after stop().
+            guard self.callEndTime == nil else { return }
             self.scheduleStatsTimer()
         }
     }
@@ -212,9 +216,13 @@ public class TelnyxCallReportCollector {
         // Only activate the burst when the configured interval is slower
         // than the burst cadence (1 s); otherwise the normal timer is
         // already fast enough and the burst machinery is unnecessary.
-        isFirstMediaBurstActive = (firstMediaMs == nil && config.interval > 1.0)
+        //
+        // The flag is written on the main queue together with the timer
+        // schedule to avoid a data race: scheduleStatsTimer() and
+        // endFirstMediaBurst() both read it on main.
+        let shouldBurst = (firstMediaMs == nil && config.interval > 1.0)
 
-        Logger.log.i(message: "TelnyxCallReportCollector: Starting stats collection (interval: \(config.interval)s, firstMediaBurst: \(isFirstMediaBurstActive), logCollectorActive: \(logCollector?.isActive() ?? false))")
+        Logger.log.i(message: "TelnyxCallReportCollector: Starting stats collection (interval: \(config.interval)s, firstMediaBurst: \(shouldBurst), logCollectorActive: \(logCollector?.isActive() ?? false))")
 
         logCollector?.addEntry(
             level: "info",
@@ -226,6 +234,7 @@ public class TelnyxCallReportCollector {
         // where RunLoop.current is not running, which would prevent the timer from firing.
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
+            self.isFirstMediaBurstActive = shouldBurst
             self.scheduleStatsTimer()
         }
     }

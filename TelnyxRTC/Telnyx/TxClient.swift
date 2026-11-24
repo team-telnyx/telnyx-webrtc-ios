@@ -206,6 +206,10 @@ public class TxClient {
     private var enableQualityMetrics: Bool = false
     private var isACMResetInProgress: Bool = false
     private var pendingAnonymousLoginMessage: AnonymousLoginMessage?
+    /// A DECLINED_PUSH call report that could not be posted because
+    /// `callReportId` was not yet available (socket reconnecting).
+    /// Posted from the REGED handler once identifiers arrive.
+    private var pendingDeclinePushReport: Call.PendingCallReport?
     private var forceRelayForNextRecoveredCall = false
     private let forceRelayForNextRecoveredCallLock = NSLock()
     /// Local hangups are retained by signaling ID so a stale ATTACH cannot
@@ -1176,7 +1180,10 @@ public class TxClient {
                     call.finalStateReason = "DECLINED_PUSH"
                 }
                 call.endForAttachCall()
-                call.stopAndPostCallReport()
+                if let pending = call.stopAndPostCallReport() {
+                    self.pendingDeclinePushReport = pending
+                    Logger.log.i(message: "TxClient:: Deferred DECLINED_PUSH report — will post from REGED")
+                }
                 self.calls.removeValue(forKey: callUUID)
             }
             
@@ -2414,8 +2421,24 @@ extension TxClient : SocketDelegate {
                 if let callReportId = params["call_report_id"] as? String {
                     self.socket?.callReportId = callReportId
                     Logger.log.i(message: "TelnyxCallReportCollector: Captured call_report_id from REGED: \(callReportId)")
+
+                    // Flush any DECLINED_PUSH report that was deferred because
+                    // callReportId was unavailable at decline time.
+                    if let pending = self.pendingDeclinePushReport,
+                       let host = self.socket?.signalingServer?.absoluteString {
+                        self.pendingDeclinePushReport = nil
+                        pending.collector.postReport(
+                            summary: pending.summary,
+                            callReportId: callReportId,
+                            host: host,
+                            voiceSdkId: vertoMessage.voiceSdkId
+                        )
+                        Logger.log.i(message: "TelnyxCallReportCollector: Posted deferred DECLINED_PUSH report")
+                    }
                 } else {
                     Logger.log.w(message: "TelnyxCallReportCollector: No call_report_id found in REGED params: \(params.keys.joined(separator: ", "))")
+                    // Clear pending report — cannot post without an ID.
+                    self.pendingDeclinePushReport = nil
                 }
                 self.socket?.voiceSdkId = vertoMessage.voiceSdkId
                 

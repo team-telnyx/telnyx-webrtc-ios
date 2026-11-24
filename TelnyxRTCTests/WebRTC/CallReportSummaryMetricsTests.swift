@@ -46,6 +46,54 @@ class CallReportSummaryMetricsTests: XCTestCase {
         XCTAssertEqual(Call.finalStateFor(terminalState: .DONE(reason: nil), terminationReason: nil), "done")
     }
 
+    // Android parity: causes that map to "done" (no failure token match)
+    func testFinalStateNoAnswerIsDone() {
+        let reason = CallTerminationReason(cause: "NO_ANSWER", causeCode: 19)
+        XCTAssertEqual(Call.finalStateFor(terminalState: .DONE(reason: reason), terminationReason: reason), "done")
+    }
+
+    func testFinalStateNormalUnspecifiedIsDone() {
+        let reason = CallTerminationReason(cause: "NORMAL_UNSPECIFIED", causeCode: 31)
+        XCTAssertEqual(Call.finalStateFor(terminalState: .DONE(reason: reason), terminationReason: reason), "done")
+    }
+
+    // Android parity: failure causes (contains-match)
+    func testFinalStateCallRejectedIsFailed() {
+        let reason = CallTerminationReason(cause: "CALL_REJECTED", causeCode: 21)
+        XCTAssertEqual(Call.finalStateFor(terminalState: .DONE(reason: reason), terminationReason: reason), "failed")
+    }
+
+    func testFinalStateAnswerErrorIsFailed() {
+        let reason = CallTerminationReason(cause: "ANSWER_ERROR")
+        XCTAssertEqual(Call.finalStateFor(terminalState: .DONE(reason: reason), terminationReason: reason), "failed")
+    }
+
+    func testFinalStateMediaErrorIsFailed() {
+        let reason = CallTerminationReason(cause: "MEDIA_ERROR")
+        XCTAssertEqual(Call.finalStateFor(terminalState: .DONE(reason: reason), terminationReason: reason), "failed")
+    }
+
+    func testFinalStateConnectionErrorIsFailed() {
+        let reason = CallTerminationReason(cause: "CONNECTION_ERROR")
+        XCTAssertEqual(Call.finalStateFor(terminalState: .DONE(reason: reason), terminationReason: reason), "failed")
+    }
+
+    func testFinalStateTimedOutIsFailed() {
+        let reason = CallTerminationReason(cause: "TIMED_OUT")
+        XCTAssertEqual(Call.finalStateFor(terminalState: .DONE(reason: reason), terminationReason: reason), "failed")
+    }
+
+    func testFinalStateReconnectFailureIsFailed() {
+        let reason = CallTerminationReason(cause: "RECONNECT_FAILED")
+        XCTAssertEqual(Call.finalStateFor(terminalState: .DONE(reason: reason), terminationReason: reason), "failed")
+    }
+
+    // Android parity: DROP in cause -> dropped
+    func testFinalStateCauseContainingDropIsDropped() {
+        let reason = CallTerminationReason(cause: "CALL_DROP")
+        XCTAssertEqual(Call.finalStateFor(terminalState: .DONE(reason: reason), terminationReason: reason), "dropped")
+    }
+
     // MARK: - I1: summary carries sipCause/sipCode
 
     func testSummaryEncodesNewFields() throws {

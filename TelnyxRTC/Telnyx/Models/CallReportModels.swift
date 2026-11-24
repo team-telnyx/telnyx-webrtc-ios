@@ -374,11 +374,17 @@ public struct CallReportSummary: Codable {
     public let osVersion: String?
     /// Device model (VSDK-1144/I2), e.g. "iPhone15,3".
     public let deviceModel: String?
-    /// Milliseconds from call start to the first observed bidirectional media
-    /// (VSDK-1144/I3). Nil when two-way media was never observed.
+    /// Milliseconds from call activation (ACTIVE transition) to the first
+    /// observed bidirectional media (VSDK-1144/I3). The detection window is
+    /// anchored to when the collector starts (ACTIVE), not call creation.
+    /// `nil` when call reports are disabled or the collector was never started;
+    /// `-1` (sentinel) when the 10-second detection window elapsed without
+    /// observing two-way media.
     public let firstMediaMs: Int?
     /// Wall-clock millis when the VoIP push notification reached the SDK
-    /// (VSDK-1144/I5 ring anchor). Inbound push calls only.
+    /// (VSDK-1144/I5 ring anchor). For inbound push calls this is the VoIP
+    /// push arrival time; for non-push inbound calls the SDK falls back to
+    /// the INVITE arrival time (see `TxClient.createIncomingCall`).
     public let pushNotificationReceivedMs: Int?
     /// Formatted ring anchor timestamp, mirroring Android's `ringTs`
     /// (VSDK-1144/I5, UTC ISO-8601 with fractional seconds).
