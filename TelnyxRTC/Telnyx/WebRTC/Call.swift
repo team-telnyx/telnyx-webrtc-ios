@@ -719,7 +719,7 @@ public class Call {
         })
     }
 
-    private func endCall(terminationReason: CallTerminationReason? = nil) {
+    internal func endCall(terminationReason: CallTerminationReason? = nil) {
         // Reset benchmarking when call ends
         CallTimingBenchmark.reset()
 

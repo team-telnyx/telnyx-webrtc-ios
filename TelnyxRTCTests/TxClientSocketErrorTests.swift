@@ -254,8 +254,33 @@ final class TxClientRoutingIdentityTests: XCTestCase {
         XCTAssertEqual(try loginParams()["from_push"] as? Bool, true)
     }
 
+    func testDeclineDelegateStartingNewPushDoesNotClearOrDisconnectIt() throws {
+        let oldCallId = UUID()
+        try push(callId: oldCallId)
+        let delegate = RoutingIdentityPushDelegate()
+        delegate.endedCall = { [unowned self] in
+            do { try self.push(voiceSdkId: "next-push") } catch { XCTFail("\(error)") }
+        }
+        client.delegate = delegate
+
+        client.endCallFromCallkit(endAction: CXEndCallAction(call: oldCallId))
+
+        XCTAssertEqual(delegate.doneCallIds, [oldCallId])
+        XCTAssertEqual(routingId(client.serverConfiguration), "next-push")
+        let nextSocket = try XCTUnwrap(sockets.last)
+        let settled = expectation(description: "old decline delay elapsed")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { settled.fulfill() }
+        wait(for: [settled], timeout: 3)
+        XCTAssertTrue(nextSocket.isConnected)
+        XCTAssertEqual(routingId(client.serverConfiguration), "next-push")
+        XCTAssertEqual(try loginParams()["from_push"] as? Bool, true)
+    }
+
     func testAttachFailureClearsPushRoutingMetadata() throws {
-        try push()
+        let callId = UUID()
+        try push(callId: callId)
+        let delegate = RoutingIdentityPushDelegate()
+        client.delegate = delegate
         _ = try loginParams()
         client.onMessageReceived(message: """
         {"jsonrpc":"2.0","voice_sdk_id":"push-routing-id","result":{"params":{"state":"REGED"}}}
@@ -265,7 +290,65 @@ final class TxClientRoutingIdentityTests: XCTestCase {
         {"jsonrpc":"2.0","id":"\(attachId)","error":{"code":-1,"message":"Call failed"}}
         """)
         XCTAssertNil(client.serverConfiguration.pushMetaData)
+        XCTAssertEqual(delegate.remoteEndedCallIds, [callId])
+        XCTAssertEqual(delegate.doneCallIds, [callId])
+        XCTAssertNil(client.getCall(callId: callId))
         XCTAssertNil(routingId(client.serverConfiguration))
+    }
+
+    func testAttachFailureDelegateStartingNewPushDoesNotClearIt() throws {
+        let oldCallId = UUID()
+        try push(callId: oldCallId)
+        _ = try loginParams()
+        client.onMessageReceived(message: """
+        {"jsonrpc":"2.0","voice_sdk_id":"push-routing-id","result":{"params":{"state":"REGED"}}}
+        """)
+        let attachId = try XCTUnwrap(client.pendingAttachCallIdForTesting)
+        let delegate = RoutingIdentityPushDelegate()
+        delegate.remoteEndedCall = { [unowned self] in
+            do { try self.push(voiceSdkId: "next-push") } catch { XCTFail("\(error)") }
+        }
+        client.delegate = delegate
+
+        client.onMessageReceived(message: """
+        {"jsonrpc":"2.0","id":"\(attachId)","error":{"code":-1,"message":"Call failed"}}
+        """)
+
+        XCTAssertEqual(delegate.remoteEndedCallIds, [oldCallId])
+        XCTAssertTrue(delegate.doneCallIds.isEmpty)
+        XCTAssertNil(client.getCall(callId: oldCallId))
+        XCTAssertEqual(routingId(client.serverConfiguration), "next-push")
+        XCTAssertEqual(client.serverConfiguration.pushMetaData?["voice_sdk_id"] as? String, "next-push")
+        XCTAssertEqual(try loginParams()["from_push"] as? Bool, true)
+    }
+
+    func testInviteTimeoutDelegateStartingNewPushPreservesItsAnswer() throws {
+        let callId = UUID()
+        let oldAnswer = TrackingAnswerCallAction(call: callId)
+        let newAnswer = TrackingAnswerCallAction(call: callId)
+        client.inviteTimeoutInterval = 0.01
+        try push(callId: callId)
+        client.answerFromCallkit(answerAction: oldAnswer)
+        let terminated = expectation(description: "old push timed out")
+        let delegate = RoutingIdentityPushDelegate()
+        delegate.remoteEndedCall = { [unowned self] in
+            do { try self.push(callId: callId, voiceSdkId: "next-push") } catch { XCTFail("\(error)") }
+            self.client.answerFromCallkit(answerAction: newAnswer)
+            terminated.fulfill()
+        }
+        client.delegate = delegate
+
+        client.onMessageReceived(message: """
+        {"jsonrpc":"2.0","result":{"params":{"state":"REGED"}}}
+        """)
+        wait(for: [terminated], timeout: 1)
+
+        XCTAssertEqual(delegate.remoteEndedCallIds, [callId])
+        XCTAssertTrue(delegate.doneCallIds.isEmpty)
+        XCTAssertEqual(oldAnswer.failCallCount, 1)
+        XCTAssertEqual(newAnswer.failCallCount, 0)
+        XCTAssertTrue(client.hasPendingAnswerActionForTesting(callId: callId))
+        XCTAssertEqual(routingId(client.serverConfiguration), "next-push")
     }
 
     func testRemovingEmbeddedRoutingHintPreservesCustomURL() {
@@ -279,10 +362,29 @@ final class TxClientRoutingIdentityTests: XCTestCase {
 
 private final class RoutingIdentityPushDelegate: PingTestDelegate {
     var receivedPush: (() -> Void)?
+    var endedCall: (() -> Void)?
+    var remoteEndedCall: (() -> Void)?
+
     override func onPushCall(call: Call) { receivedPush?() }
+
+    override func onCallStateUpdated(callState: CallState, callId: UUID) {
+        super.onCallStateUpdated(callState: callState, callId: callId)
+        if case .DONE = callState {
+            let callback = endedCall
+            endedCall = nil
+            callback?()
+        }
+    }
+
+    override func onRemoteCallEnded(callId: UUID, reason: CallTerminationReason?) {
+        super.onRemoteCallEnded(callId: callId, reason: reason)
+        let callback = remoteEndedCall
+        remoteEndedCall = nil
+        callback?()
+    }
 }
 
-private final class RoutingIdentitySocket: Socket {
+final class RoutingIdentitySocket: Socket {
     var messages: [[String: Any]] = []
 
     override func connect(signalingServer: URL) {

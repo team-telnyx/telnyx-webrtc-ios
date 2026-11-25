@@ -425,12 +425,15 @@ public class TxClient {
                     }
                     self.reconnectClient()
                 case .noConnection:
-                    if(!self.isCallsActive){
+                    let generation = self.connectionGeneration
+                    if !self.isCallsActive {
                         self.delegate?.onSocketDisconnected()
+                        guard self.connectionGeneration == generation else { return }
                     }
                     Logger.log.e(message: "No network connection")
                     self.socket?.isConnected = false
                     self.updateActiveCallsState(callState: CallState.DROPPED(reason: .networkLost))
+                    guard self.connectionGeneration == generation else { return }
                     // Only start reconnect timeout if there are active calls
                     if self.isCallsActive {
                         self.startReconnectTimeout()
@@ -798,13 +801,18 @@ public class TxClient {
                 causeCode: CauseCode.USER_BUSY.rawValue
             )
             
-            self.delegate?.onCallStateUpdated(callState: CallState.DONE(reason: terminationReason),
-                                              callId: self.currentCallId)
-            
-            // A newer push may replace this transport before the decline delay expires.
             let decliningSocket = self.socket
+            let declineGeneration = connectionGeneration
+            let decliningCallId = currentCallId
+            retirePushPlaceholder(callId: decliningCallId, reason: terminationReason)
+            self.delegate?.onCallStateUpdated(callState: .DONE(reason: terminationReason), callId: decliningCallId)
+
+            // The delegate can start another push before this callback returns.
+            guard connectionGeneration == declineGeneration, currentCallId == decliningCallId else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self, weak decliningSocket] in
-                guard let self, let decliningSocket, self.socket === decliningSocket else { return }
+                guard let self, let decliningSocket, self.socket === decliningSocket,
+                      self.connectionGeneration == declineGeneration,
+                      self.currentCallId == decliningCallId else { return }
                 Logger.log.i(message: "TxClient:: performLogin - Disconnecting socket after decline_push login")
                 // Reset push variables after decline_push login is complete
                 self.resetPushVariables()
@@ -817,12 +825,14 @@ public class TxClient {
     public func disconnect() {
         Logger.log.i(message: "TxClient:: disconnect()")
         connectionGeneration &+= 1
+        let disconnectGeneration = connectionGeneration
         self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
         self.gatewayState = .NOREG
 
         // Let's cancell all the current calls
         for (_ ,call) in self.calls {
             call.hangup()
+            guard connectionGeneration == disconnectGeneration else { return }
         }
         self.calls.removeAll()
         self.socketToAppCallId.removeAll()
@@ -954,7 +964,12 @@ public class TxClient {
 
         // If already connected and there's a pending INVITE, immediately accept the call
         if let currentCall = self.calls[answerAction.callUUID] {
+            let generation = connectionGeneration
             failPendingCallKitAnswer(for: answerAction.callUUID)
+            guard connectionGeneration == generation, calls[answerAction.callUUID] === currentCall else {
+                answerAction.fail()
+                return
+            }
             currentCall.answer(customHeaders: customHeaders,
                                debug: debug) { [weak self] answered in
                 guard let self else { return }
@@ -966,7 +981,7 @@ public class TxClient {
                 }
                 // A newer push may have started while SDP was generated. Only
                 // reset transport state when this is still the current call.
-                if self.currentCallId == answerAction.callUUID {
+                if self.connectionGeneration == generation && self.currentCallId == answerAction.callUUID {
                     self.resetPushVariables()
                 }
             }
@@ -1007,17 +1022,17 @@ public class TxClient {
 
     private func takePendingCallKitAnswer(for callId: UUID) -> PendingCallKitAnswer? {
         pruneCompletedOrExpiredPendingCallKitAnswers()
+        return removePendingCallKitAnswer(for: callId)
+    }
+
+    private func removePendingCallKitAnswer(for callId: UUID) -> PendingCallKitAnswer? {
         pendingCallKitAnswersLock.lock()
         defer { pendingCallKitAnswersLock.unlock() }
         return pendingCallKitAnswers.removeValue(forKey: callId)
     }
 
     private func failPendingCallKitAnswer(for callId: UUID) {
-        pendingCallKitAnswersLock.lock()
-        let pendingAnswer = pendingCallKitAnswers.removeValue(forKey: callId)
-        pendingCallKitAnswersLock.unlock()
-
-        if let pendingAnswer, !pendingAnswer.action.isComplete {
+        if let pendingAnswer = removePendingCallKitAnswer(for: callId), !pendingAnswer.action.isComplete {
             pendingAnswer.action.fail()
         }
     }
@@ -1118,8 +1133,10 @@ public class TxClient {
         // terminate a newer call that already replaced this one (e.g. the next push
         // arriving before the stale timer fires).
         let timedOutCallId = currentCallId
+        let inviteGeneration = connectionGeneration
         inviteTimeoutTimer = Timer.scheduledTimer(withTimeInterval: inviteTimeoutInterval, repeats: false) { [weak self] _ in
-            self?.handleInviteTimeout(timedOutCallId: timedOutCallId)
+            guard let self, self.connectionGeneration == inviteGeneration else { return }
+            self.handleInviteTimeout(timedOutCallId: timedOutCallId)
         }
     }
     
@@ -1140,7 +1157,6 @@ public class TxClient {
         }
         Logger.log.w(message: "TxClient:: INVITE timeout - No INVITE received within \(inviteTimeoutInterval) seconds after attachCalls")
         let timedOutCallId = capturedCallId ?? currentCallId
-        let pendingAnswer = takePendingCallKitAnswer(for: timedOutCallId)
         
         // Create the termination reason as specified in the ticket
         let terminationReason = CallTerminationReason(
@@ -1150,23 +1166,46 @@ public class TxClient {
             sipReason: "Request Terminated"
         )
         
-        // Emit both delegate events to ensure proper CallKit termination
-        delegate?.onRemoteCallEnded(callId: timedOutCallId, reason: terminationReason)
-        delegate?.onCallStateUpdated(callState: CallState.DONE(reason: terminationReason),
-                                     callId: timedOutCallId)
-        
-        // The transport watchdog may resolve only the answer for this exact
-        // push. Pending answers for other calls remain untouched.
-        if let pendingAnswer, !pendingAnswer.action.isComplete {
-            pendingAnswer.action.fail()
-        }
-        if currentCallId == timedOutCallId {
-            resetPushVariables()
-        }
-        
-        Logger.log.i(message: "TxClient:: INVITE timeout handled - Call terminated with ORIGINATOR_CANCEL, CallKit events emitted")
+        finishFailedPush(callId: timedOutCallId, reason: terminationReason)
     }
-    
+
+    private func finishFailedPush(callId: UUID?, reason: CallTerminationReason) {
+        let generation = connectionGeneration
+        let pushCallId = currentCallId
+        attachCallId = nil
+        stopInviteTimeout()
+
+        // Capture only the old CallKit action. A delegate may register a new
+        // action, including for the same UUID, while handling termination.
+        if let callId {
+            retirePushPlaceholder(callId: callId, reason: reason)
+        }
+        let pendingAnswer = callId.flatMap { removePendingCallKitAnswer(for: $0) }
+        defer {
+            if let pendingAnswer, !pendingAnswer.action.isComplete {
+                pendingAnswer.action.fail()
+            }
+            if connectionGeneration == generation && currentCallId == pushCallId {
+                resetPushVariables()
+            }
+        }
+
+        guard let callId, connectionGeneration == generation, currentCallId == pushCallId else { return }
+        delegate?.onRemoteCallEnded(callId: callId, reason: reason)
+        guard connectionGeneration == generation, currentCallId == pushCallId else { return }
+        delegate?.onCallStateUpdated(callState: .DONE(reason: reason), callId: callId)
+    }
+
+    private func retirePushPlaceholder(callId: UUID, reason: CallTerminationReason) {
+        // Remove the unanswered placeholder before app code can disconnect
+        // and hang it up again. A live call is handled by its own lifecycle.
+        guard let placeholder = calls[callId], placeholder.direction == .ATTACH,
+              placeholder.remoteSdp == "" else { return }
+        calls.removeValue(forKey: callId)
+        placeholder.delegate = nil
+        placeholder.endCall(terminationReason: reason)
+    }
+
     /// To end and control callKit active and conn
     public func endCallFromCallkit(endAction: CXEndCallAction,
                                    callId: UUID? = nil) {
@@ -1184,7 +1223,14 @@ public class TxClient {
             // Send a login message with decline_push: true to silently reject the call
             if isConnected() {
                 Logger.log.i(message: "TxClient:: endCallFromCallkit - Socket connected, performing login with decline_push: true")
+                let generation = connectionGeneration
+                let decliningCallId = currentCallId
                 performLogin(declinePush: true)
+                guard connectionGeneration == generation, currentCallId == decliningCallId,
+                      self.endCallAction === endAction else {
+                    endAction.fulfill()
+                    return
+                }
             } else {
                 Logger.log.i(message: "TxClient:: endCallFromCallkit - Socket not connected, connecting first")
                 guard let storedServerConfiguration = storedServerConfiguration else {
@@ -1228,9 +1274,13 @@ public class TxClient {
         // Perform a standard call rejection
         if let call = self.calls[endAction.callUUID] {
             Logger.log.i(message: "EndClient:: Ended Call with Id \(endAction.callUUID)")
+            let generation = connectionGeneration
+            let endingCallId = currentCallId
             call.hangup()
-            self.resetPushVariables()
-            self.stopReconnectTimeout()
+            if connectionGeneration == generation && currentCallId == endingCallId {
+                resetPushVariables()
+                stopReconnectTimeout()
+            }
             endAction.fulfill()
         } else {
             Logger.log.e(message: "TxClient:: endCallFromCallkit failed - no call found for \(endAction.callUUID)")
@@ -1482,7 +1532,10 @@ public class TxClient {
 
                 resendPendingByes()
                 
+                let readyGeneration = connectionGeneration
+                let readyCallId = currentCallId
                 self.delegate?.onClientReady()
+                guard connectionGeneration == readyGeneration, currentCallId == readyCallId else { return }
                 //Check if isCallFromPush and sendAttachCall Message
                 if (self.isCallFromPush == true){
                     self.sendAttachCall()
@@ -1748,8 +1801,10 @@ extension TxClient {
                                     isAttach:Bool = false
     ) {
 
-        guard let sessionId = self.sessionId,
-        let socket = self.socket else {
+        guard let sessionId = self.sessionId, let socket = self.socket else {
+            if isAttach {
+                resetPushVariables()
+            }
             return
         }
 
@@ -1806,6 +1861,12 @@ extension TxClient {
                         callReportMaxLogEntries: self.txConfig?.callReportMaxLogEntries ?? 1000,
                         pushWhenActive: self.txConfig?.pushWhenActive ?? false,
                         pushDeviceToken: self.txConfig?.pushNotificationConfig?.pushDeviceToken)
+        // Constructing an inbound call can emit NEW synchronously.
+        guard connectionGeneration == incomingGeneration else {
+            call.delegate = nil
+            call.endCall()
+            return
+        }
         call.callInfo?.callerName = callerName
         call.callInfo?.callerNumber = callerNumber
         call.callOptions = TxCallOptions(audio: true)
@@ -1832,8 +1893,7 @@ extension TxClient {
                 }
             }
             if connectionGeneration == incomingGeneration && currentCallId == appFacingCallId {
-                self.isCallFromPush = false
-                clearPushRoutingMetadata()
+                resetPushVariables()
             }
             return
         }
@@ -1859,9 +1919,11 @@ extension TxClient {
                 }
             }
             
+            guard connectionGeneration == incomingGeneration, currentCallId == appFacingCallId else { return }
             //End is pending from callkit
             if endCallAction != nil {
                 call.hangup()
+                guard connectionGeneration == incomingGeneration, currentCallId == appFacingCallId else { return }
                 stopReconnectTimeout()
                 currentCallId = UUID()
                 resetPushVariables()
@@ -1918,7 +1980,9 @@ extension TxClient {
         // Tear down the previous push before storing the new push state.
         if noActiveCalls && isConnected() {
             Logger.log.i(message: "TxClient:: processVoIPNotification - No Active Calls disconnect")
+            let disconnectGeneration = connectionGeneration &+ 1
             self.disconnect()
+            guard connectionGeneration == disconnectGeneration else { return }
         }
 
         // Install new metadata only after old-call teardown has finished.
@@ -2030,60 +2094,59 @@ extension TxClient: CallProtocol {
 
         guard let callId = call.callInfo?.callId else { return }
         
-        // Forward call state
-        self.delegate?.onCallStateUpdated(callState: call.callState, callId: callId)
+        let generation = connectionGeneration
+        guard case let .DONE(reason) = call.callState else {
+            delegate?.onCallStateUpdated(callState: call.callState, callId: callId)
+            return
+        }
 
-        // Remove call if it has ended
-        if case .DONE = call.callState,
-           let callId = call.callInfo?.callId {
-            Logger.log.i(message: "TxClient:: Remove call")
-            if call.endedLocally, case let .DONE(terminationReason) = call.callState {
-                let causeCode = terminationReason?.causeCode
-                    .flatMap { CauseCode(rawValue: $0) } ?? .NORMAL_CLEARING
-                let signalingCallId = call.signalingCallId
-                if localHangups[signalingCallId] == nil {
-                    localHangupOrder.append(signalingCallId)
-                }
-                localHangups[signalingCallId] = LocalHangup(
-                    causeCode: causeCode,
-                    byePending: localHangups[signalingCallId]?.byePending == true
-                        || call.socket?.isConnected != true
-                )
-                if localHangups[signalingCallId]?.byePending == true {
-                    Logger.log.i(message: "TxClient:: Stored pending BYE for call [\(signalingCallId)]")
-                }
-                if localHangupOrder.count > Self.LOCAL_HANGUPS_LIMIT {
-                    localHangups.removeValue(forKey: localHangupOrder.removeFirst())
-                }
+        // Retire the call before a termination callback can disconnect again.
+        guard calls[callId] === call else { return }
+        Logger.log.i(message: "TxClient:: Remove call")
+        if call.endedLocally {
+            let causeCode = reason?.causeCode
+                .flatMap { CauseCode(rawValue: $0) } ?? .NORMAL_CLEARING
+            let signalingCallId = call.signalingCallId
+            if localHangups[signalingCallId] == nil {
+                localHangupOrder.append(signalingCallId)
             }
-            failPendingCallKitAnswer(for: callId)
-            self.calls.removeValue(forKey: callId)
-            // Clean up reverse mapping if this was a push call with different signaling ID
-            if call.signalingCallId != callId {
-                socketToAppCallId.removeValue(forKey: call.signalingCallId)
+            localHangups[signalingCallId] = LocalHangup(
+                causeCode: causeCode,
+                byePending: localHangups[signalingCallId]?.byePending == true
+                    || call.socket?.isConnected != true
+            )
+            if localHangups[signalingCallId]?.byePending == true {
+                Logger.log.i(message: "TxClient:: Stored pending BYE for call [\(signalingCallId)]")
             }
+            if localHangupOrder.count > Self.LOCAL_HANGUPS_LIMIT {
+                localHangups.removeValue(forKey: localHangupOrder.removeFirst())
+            }
+        }
+        self.calls.removeValue(forKey: callId)
+        // Clean up reverse mapping if this was a push call with different signaling ID
+        if call.signalingCallId != callId {
+            socketToAppCallId.removeValue(forKey: call.signalingCallId)
+        }
 
-            // Clear AI Assistant transcriptions when call ends
-            self.aiAssistantManager.clearTranscriptions()
-            
-            //Forward call ended state with termination reason if available
-            if case let .DONE(reason) = call.callState {
-                self.delegate?.onRemoteCallEnded(callId: callId, reason: reason)
-            } else {
-                self.delegate?.onRemoteCallEnded(callId: callId, reason: nil)
-            }
-            self._isSpeakerEnabled = false
+        // Clear AI Assistant transcriptions when call ends
+        self.aiAssistantManager.clearTranscriptions()
 
-            // A terminal event can arrive for the placeholder call before the
-            // replayed INVITE. Cancel the post-attach watchdog so it cannot emit
-            // a second DONE/onRemoteCallEnded callback for the same push call.
-            if isCallFromPush && callId == currentCallId {
-                resetPushVariables()
-            }
+        failPendingCallKitAnswer(for: callId)
+        guard connectionGeneration == generation else { return }
 
-            if !isCallsActive {
-                stopReconnectTimeout()
-            }
+        delegate?.onCallStateUpdated(callState: .DONE(reason: reason), callId: callId)
+        guard connectionGeneration == generation else { return }
+        delegate?.onRemoteCallEnded(callId: callId, reason: reason)
+        guard connectionGeneration == generation else { return }
+        self._isSpeakerEnabled = false
+
+        // A terminal event can arrive before the replayed INVITE.
+        if isCallFromPush && callId == currentCallId {
+            resetPushVariables()
+        }
+
+        if !isCallsActive {
+            stopReconnectTimeout()
         }
     }
 }
@@ -2152,13 +2215,13 @@ extension TxClient : SocketDelegate {
                 guard let self = self else { return }
                 Logger.log.i(message: "Reconnect TimeOut : after \(self.txConfig?.reconnectTimeout ?? TxConfig.DEFAULT_TIMEOUT) secs")
                 
-                // Execute timeout actions on main queue for UI updates
-                self.updateActiveCallsState(callState: CallState.DONE(reason: nil))
-                self.disconnect()
-                self.delegate?.onClientError(error: TxError.callFailed(reason: .reconnectFailed))
-                
-                // Clean up timer reference
+                let generation = self.connectionGeneration
                 self.reconnectTimeoutTimer = nil
+                self.updateActiveCallsState(callState: CallState.DONE(reason: nil))
+                guard self.connectionGeneration == generation else { return }
+                self.disconnect()
+                guard self.connectionGeneration == generation &+ 1 else { return }
+                self.delegate?.onClientError(error: TxError.callFailed(reason: .reconnectFailed))
             }
             
             // Store reference and start timer
@@ -2177,7 +2240,9 @@ extension TxClient : SocketDelegate {
             && hasPendingByes
 
         if hasActiveCalls {
+            let generation = connectionGeneration
             updateActiveCallsState(callState: CallState.RECONNECTING(reason: .networkSwitch))
+            guard connectionGeneration == generation else { return }
             startReconnectTimeout()
             Logger.log.i(message: "Reconnect Called : Calls are active")
         } else if shouldReconnectForPendingBye {
@@ -2225,10 +2290,11 @@ extension TxClient : SocketDelegate {
     }
     
     func updateActiveCallsState(callState: CallState) {
-        if self.isCallsActive {
-            for call in self.calls.values {
-                call.updateCallState(callState: callState)
-            }
+        guard isCallsActive else { return }
+        let generation = connectionGeneration
+        for call in calls.values {
+            call.updateCallState(callState: callState)
+            guard connectionGeneration == generation else { return }
         }
     }
     
@@ -2238,7 +2304,10 @@ extension TxClient : SocketDelegate {
         // A cleanup from an earlier connection got no response, so the next REGED retries it.
         pendingPushCleanup = nil
         isReconnectPendingForCallKitDecline = false
+        let connectedGeneration = connectionGeneration
+        let connectedCallId = currentCallId
         self.delegate?.onSocketConnected()
+        guard connectionGeneration == connectedGeneration, currentCallId == connectedCallId else { return }
 
         // Handle push notification flows
         if isCallFromPush {
@@ -2388,10 +2457,12 @@ extension TxClient : SocketDelegate {
     func onMessageReceived(message: String) {
         Logger.log.i(message: "TxClient:: SocketDelegate onMessageReceived() message: \(message)")
         
+        let messageGeneration = connectionGeneration
         // Post notification for websocket message capture
         NotificationCenter.default.post(name: .telnyxWebSocketMessageReceived, object: nil, userInfo: ["message": message])
         
-        guard let vertoMessage = Message().decode(message: message) else { return }
+        guard connectionGeneration == messageGeneration,
+              let vertoMessage = Message().decode(message: message) else { return }
         self.signalingHealthMonitor.signalingMessageReceived(vertoMessage)
         
         // Process message through AI Assistant Manager
@@ -2399,6 +2470,7 @@ extension TxClient : SocketDelegate {
             _ = self.aiAssistantManager.processIncomingMessage(messageDict)
         }
 
+        guard connectionGeneration == messageGeneration else { return }
         if handleStalePushCleanupResponse(vertoMessage) {
             return
         }
@@ -2407,20 +2479,9 @@ extension TxClient : SocketDelegate {
 
         //Check if server is sending an error code
         if let error = vertoMessage.serverError {
-            if attachCallId == vertoMessage.id {
-                stopInviteTimeout()
-                // Call failed from remote end
-              if let callId = pushMetaData?["call_id"] as? String,
-                let callUUID = UUID(uuidString: callId) {
-                  Logger.log.i(message: "TxClient:: Attach Call ID \(String(describing: callId))")
-                  FileLogger.shared.log("Error Recieved, Remote Call Ended Line 764")
-                  // Create a termination reason for the error
-                  let terminationReason = CallTerminationReason(cause: "REMOTE_ERROR")
-                  self.delegate?.onRemoteCallEnded(callId: callUUID, reason: terminationReason)
-                  self.delegate?.onCallStateUpdated(callState: .DONE(reason: terminationReason), callId: callUUID)
-                }
-                failPendingCallKitAnswer(for: currentCallId)
-                resetPushVariables()
+            if let attachCallId, attachCallId == vertoMessage.id {
+                let callId = (pushMetaData?["call_id"] as? String).flatMap(UUID.init(uuidString:))
+                finishFailedPush(callId: callId, reason: CallTerminationReason(cause: "REMOTE_ERROR"))
                 return
             }
             let message: String = error["message"] as? String ?? "Unknown"
@@ -2430,6 +2491,7 @@ extension TxClient : SocketDelegate {
             // Use the existing ServerErrorReason.signalingServerError approach
             let err = TxError.serverError(reason: .signalingServerError(message: message, code: code))
             self.delegate?.onClientError(error: err)
+            guard connectionGeneration == messageGeneration else { return }
         }
 
         //Check if we are getting the new sessionId in response to the "login" message.
@@ -2455,6 +2517,7 @@ extension TxClient : SocketDelegate {
                 self.socket?.voiceSdkId = vertoMessage.voiceSdkId
                 
                 self.updateGatewayState(newState: gatewayState)
+                guard connectionGeneration == messageGeneration else { return }
               
             }
             
@@ -2464,6 +2527,7 @@ extension TxClient : SocketDelegate {
                     if(vertoMessage.method == .DISABLE_PUSH){
                         Logger.log.i(message: "DisablePushMessage.DISABLE_PUSH_SUCCESS_MESSAGE")
                         self.delegate?.onPushDisabled(success: true, message: message)
+                        guard connectionGeneration == messageGeneration else { return }
                     }
                 }
             }
@@ -2496,6 +2560,7 @@ extension TxClient : SocketDelegate {
                let callUUID = UUID(uuidString: callUUIDString),
                let call = call(forSocketCallId: callUUID) {
                 call.handleVertoMessage(message: vertoMessage, dataMessage: message, txClient: self)
+                guard connectionGeneration == messageGeneration else { return }
             }
             
 
@@ -2569,7 +2634,7 @@ extension TxClient : SocketDelegate {
                                                 telnyxSessionId: telnyxSessionId,
                                                 telnyxLegId: telnyxLegId,
                                                 customHeaders: customHeaders)
-                        if(isCallFromPush){
+                        if connectionGeneration == messageGeneration && isCallFromPush {
                             /*FileLogger.shared.log("INVITE : \(message) \n")
                             FileLogger.shared.log("INVITE telnyxLegId: \(telnyxLegId) \n") */
                             self.sendFileLogs = true
@@ -2640,8 +2705,6 @@ extension TxClient : SocketDelegate {
                                             customHeaders: customHeaders,
                                             isAttach: true
                     )
-                    resetPushVariables()
-                    
                 }
                  break;
                 //Mark: to send meassage to pong
