@@ -177,6 +177,7 @@ public class TxClient {
     private var isReconnectingSession = false
     internal var makeSocket: () -> Socket = { Socket() }
     private var connectionGeneration: UInt = 0
+    private var disconnectTerminations: [(callId: UUID, reason: CallTerminationReason?)]?
 
     private func installSocket() {
         connectionGeneration &+= 1
@@ -829,18 +830,19 @@ public class TxClient {
         self.registerRetryCount = TxClient.MAX_REGISTER_RETRY
         self.gatewayState = .NOREG
 
-        // Let's cancell all the current calls
-        for (_ ,call) in self.calls {
+        // Retire every call on the old transport before publishing terminal callbacks.
+        // Hangup removes calls from the live dictionary.
+        let disconnectingCalls = Array(self.calls.values)
+        disconnectTerminations = []
+        for call in disconnectingCalls {
             call.hangup()
-            guard connectionGeneration == disconnectGeneration else { return }
         }
+        let terminations = disconnectTerminations ?? []
+        disconnectTerminations = nil
         self.calls.removeAll()
         self.socketToAppCallId.removeAll()
         self.stopReconnectTimeout()
         self.stopInviteTimeout()
-
-        // Clear AI Assistant Manager data
-        self.aiAssistantManager.clearAllData()
 
         // NOTE: The AVAudioSession.routeChangeNotification observer registered in
         // `setupAudioRouteChangeMonitoring()` is intentionally NOT removed here.
@@ -860,6 +862,16 @@ public class TxClient {
         socket?.delegate = nil
         socket?.disconnect(reconnect: false)
         socket = nil
+        if !terminations.isEmpty {
+            self._isSpeakerEnabled = false
+        }
+        self.aiAssistantManager.clearAllData()
+
+        for (callId, reason) in terminations {
+            delegate?.onCallStateUpdated(callState: .DONE(reason: reason), callId: callId)
+            delegate?.onRemoteCallEnded(callId: callId, reason: reason)
+        }
+        guard connectionGeneration == disconnectGeneration else { return }
         delegate?.onSocketDisconnected()
     }
 
@@ -2126,6 +2138,12 @@ extension TxClient: CallProtocol {
         // Clean up reverse mapping if this was a push call with different signaling ID
         if call.signalingCallId != callId {
             socketToAppCallId.removeValue(forKey: call.signalingCallId)
+        }
+
+        if disconnectTerminations != nil {
+            disconnectTerminations?.append((callId, reason))
+            failPendingCallKitAnswer(for: callId)
+            return
         }
 
         // Clear AI Assistant transcriptions when call ends
