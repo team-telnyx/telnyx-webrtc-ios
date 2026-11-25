@@ -19,7 +19,7 @@ class LoginMessage : Message {
          pushNotificationProvider: String? = nil,
          startFromPush: Bool = false,
          pushEnvironment:PushEnvironment? = nil,
-         sessionId:String,
+         sessionId: String? = nil,
          declinePush: Bool = false,
          enableMissedCallNotifications: Bool = false,
          pushWhenActive: Bool = false
@@ -30,7 +30,8 @@ class LoginMessage : Message {
         params["passwd"] = password
         params["User-Agent"] = Message.userAgent(enableMissedCallNotifications: enableMissedCallNotifications)
         params["from_push"] = startFromPush
-        params["sessid"] = sessionId
+        let resumeSessionId = sessionId.flatMap { $0.isEmpty ? nil : $0 }
+        params["sessid"] = resumeSessionId
         // `mobile_sdk_name` + `mobile_sdk_version` are added centrally in
         // `Message.init(_:method:)` (VSDK-768 / VSDK-764).
         //Setup push variables
@@ -68,7 +69,9 @@ class LoginMessage : Message {
       
         
         var loginParams = [String: Any]()
-        loginParams["attach_call"] = true.description
+        if startFromPush || declinePush || resumeSessionId != nil {
+            loginParams["attach_call"] = true.description
+        }
         if declinePush {
             loginParams["decline_push"] = true.description
         }
@@ -86,7 +89,7 @@ class LoginMessage : Message {
          pushNotificationProvider: String? = nil,
          startFromPush: Bool = false,
          pushEnvironment:PushEnvironment? = nil,
-         sessionId:String,
+         sessionId: String? = nil,
          declinePush: Bool = false,
          enableMissedCallNotifications: Bool = false,
          pushWhenActive: Bool = false
@@ -95,11 +98,14 @@ class LoginMessage : Message {
         params["login_token"] = token
         params["User-Agent"] = Message.userAgent(enableMissedCallNotifications: enableMissedCallNotifications)
         params["from_push"] = startFromPush
-        params["sessid"] = sessionId
+        let resumeSessionId = sessionId.flatMap { $0.isEmpty ? nil : $0 }
+        params["sessid"] = resumeSessionId
         // `mobile_sdk_name` + `mobile_sdk_version` are added centrally in
         // `Message.init(_:method:)` (VSDK-768 / VSDK-764).
         var loginParams = [String: Any]()
-        loginParams["attach_call"] = true.description
+        if startFromPush || declinePush || resumeSessionId != nil {
+            loginParams["attach_call"] = true.description
+        }
         if declinePush {
             loginParams["decline_push"] = true
         }

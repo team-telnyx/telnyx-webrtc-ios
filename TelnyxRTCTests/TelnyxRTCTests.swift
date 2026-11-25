@@ -101,84 +101,69 @@ class TelnyxRTCTests: XCTestCase {
         }
     }
     
-    /**
-     Test login error when using wrong sip user and password.
-     - Connects to wss
-     - Sends an login message using user and password.
-     - Waits for server login error
-     */
-    func testLoginErrorInvalidCredentials() {
-        //This needs to be solved from the Server side
-        //Currently this test case will fail due that the server.
-        //is returning a success message:
-        //{"jsonrpc":"2.0","id":"3bdc03f2-03a3-44b0-aea3-326fcca9d066","result":{"message":"logged in","sessid":"9af493a1-2f9f-4f73-bffc-db2bc25f66f8"}}
-        class TestDelegate: RTCTestDelegate {
-            override func onClientError(error:Error) {
-                XCTAssertEqual(error.localizedDescription,
-                               TxError.serverError(reason:
-                                    .signalingServerError(message: "Login Incorrect",
-                                                          code: "-32001")).localizedDescription)
-                self.expectation.fulfill()
-            }
-        }
-        
-        let expectation = XCTestExpectation()
-        let telnyxClient = TxClient()
-        let delegate = TestDelegate(expectation: expectation)
-        telnyxClient.delegate = delegate
-        
-        
-        
-        let sipUser = "<userName>"
-        let sipPassword = "<password>"
-        let txConfig = TxConfig(sipUser: sipUser,
-                                password: sipPassword)
-        
-        try! telnyxClient.connect(txConfig: txConfig)
-        
-        wait(for: [expectation], timeout: 10)
-        
-    
-    }
-    
-    /**
-     Test login error when using wrong sip user and password.
-     - Connects to wss
-     - Sends an login message using an invalid token
-     - Waits for server login error
-     */
-    func testLoginErrorInvalidToken() {
-        
-        class TestDelegate: RTCTestDelegate {
-            override func onClientError(error: Error) {
-                guard case let TxError.serverError(reason) = error,
-                      case let .signalingServerError(message, code) = reason else {
-                    XCTFail("Expected signaling server error, got \(error)")
-                    self.expectation.fulfill()
-                    return
-                }
+    func testLoginErrorInvalidCredentials() throws {
+        let user = "invalid-user"
+        let password = "invalid-password"
+        let params = try assertLoginRejection(
+            config: TxConfig(sipUser: user, password: password),
+            message: "Login Incorrect"
+        )
 
-                XCTAssertEqual(code, "-32001")
-                XCTAssertTrue(
-                    ["JWT token authentication failed", "Login Incorrect"].contains(message),
-                    "Unexpected invalid-token error message: \(message)"
-                )
-                self.expectation.fulfill()
+        XCTAssertEqual(params["login"] as? String, user)
+        XCTAssertEqual(params["passwd"] as? String, password)
+    }
+
+    func testLoginErrorInvalidToken() throws {
+        let token = "invalid-token"
+        let params = try assertLoginRejection(
+            config: TxConfig(token: token),
+            message: "JWT token authentication failed"
+        )
+
+        XCTAssertEqual(params["login_token"] as? String, token)
+    }
+
+    private func assertLoginRejection(config: TxConfig, message: String) throws -> [String: Any] {
+        class LoginDelegate: PingTestDelegate {
+            var errors: [Error] = []
+            override func onClientError(error: Error) {
+                errors.append(error)
             }
         }
-        
-        let expectation = XCTestExpectation()
-        let telnyxClient = TxClient()
-        let delegate = TestDelegate(expectation: expectation)
-        telnyxClient.delegate = delegate
-        
-        let token = "<token>"
-        let txConfig = TxConfig(token: token)
-        try! telnyxClient.connect(txConfig: txConfig)
-        
-        wait(for: [expectation], timeout: 10)
+
+        let socket = RoutingIdentitySocket()
+        let client = TxClient()
+        let delegate = LoginDelegate()
+        client.makeSocket = { socket }
+        client.delegate = delegate
+        defer { client.disconnect() }
+
+        try client.connect(txConfig: config)
+        socket.delegate?.onSocketConnected()
+        XCTAssertEqual(socket.messages.count, 1)
+        let login = try XCTUnwrap(socket.messages.first)
+        XCTAssertEqual(login["method"] as? String, Method.LOGIN.rawValue)
+        let requestId = try XCTUnwrap(login["id"] as? String)
+        let params = try XCTUnwrap(login["params"] as? [String: Any])
+        XCTAssertNil(params["sessid"])
+        XCTAssertTrue(delegate.errors.isEmpty)
+
+        socket.delegate?.onMessageReceived(message: """
+        {"jsonrpc":"2.0","id":"\(requestId)","error":{"code":-32001,"message":"\(message)"}}
+        """)
+
+        XCTAssertEqual(delegate.errors.count, 1)
+        let error = try XCTUnwrap(delegate.errors.first)
+        guard case let TxError.serverError(reason) = error,
+              case let .signalingServerError(actualMessage, code) = reason else {
+            XCTFail("Expected signaling server error, got \(error)")
+            return params
+        }
+        XCTAssertEqual(code, "-32001")
+        XCTAssertEqual(actualMessage, message)
+        return params
     }
-    
+
     /**
      Test resetablish connection
      */

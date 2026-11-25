@@ -209,6 +209,73 @@ final class TxClientPendingEndedCallTests: XCTestCase {
         XCTAssertNil(client.calls[endedCallId])
     }
 
+    func testDisconnectRetiresBothOldCallsWhenFirstDoneConnectsAgain() throws {
+        signalingSocket.isConnected = false
+        let oldCalls = (0..<2).map { _ in
+            makeCall(appCallId: UUID(), signalingCallId: UUID(), socket: signalingSocket)
+        }
+        let oldCallIds = try oldCalls.map { try XCTUnwrap($0.callInfo?.callId) }
+        for (callId, call) in zip(oldCallIds, oldCalls) {
+            client.calls[callId] = call
+            call.updateCallState(callState: .ACTIVE)
+        }
+
+        let newSocket = PendingHangupSocket(connected: true)
+        let newCallId = UUID()
+        let newSessionId = "reentrant-session"
+        let newAttach = attachMessage(callId: newCallId)
+        client.makeSocket = { newSocket }
+        var doneCallIds: [UUID] = []
+        delegate.onDone = { [client = self.client!] callId in
+            doneCallIds.append(callId)
+            guard doneCallIds.count == 1 else { return }
+            do {
+                try client.connect(txConfig: TxConfig(sipUser: "test-user", password: "test-password"))
+            } catch {
+                XCTFail("Reentrant connect failed: \(error)")
+                return
+            }
+            newSocket.delegate?.onMessageReceived(message: """
+            {"jsonrpc":"2.0","result":{"sessid":"\(newSessionId)"}}
+            """)
+            newSocket.delegate?.onMessageReceived(message: newAttach)
+        }
+
+        client.disconnect()
+
+        XCTAssertEqual(doneCallIds.count, 2)
+        XCTAssertEqual(Set(doneCallIds), Set(oldCallIds))
+        XCTAssertEqual(delegate.endedCallIds, doneCallIds)
+        for call in oldCalls {
+            guard case .DONE = call.callState else {
+                XCTFail("Old call was left in \(call.callState)")
+                continue
+            }
+        }
+        XCTAssertEqual(Set(client.calls.keys), [newCallId])
+        let newCall = try XCTUnwrap(client.getCall(callId: newCallId))
+        XCTAssertTrue(newCall.socket === newSocket)
+        XCTAssertEqual(client.getSessionId(), newSessionId)
+        XCTAssertEqual(signalingSocket.reconnectRequests, [false])
+        XCTAssertTrue(newSocket.delegate === client)
+        XCTAssertTrue(newSocket.reconnectRequests.isEmpty)
+        XCTAssertEqual(delegate.socketDisconnects, 0)
+        XCTAssertTrue(newSocket.byeMessages.isEmpty)
+
+        newSocket.delegate?.onMessageReceived(message: gatewayStateMessage())
+        let byes = newSocket.byeMessages
+        XCTAssertEqual(byes.count, 2)
+        for (bye, callId) in zip(byes, doneCallIds) {
+            let oldCall = try XCTUnwrap(oldCalls.first { $0.callInfo?.callId == callId })
+            try assertBye(bye, callId: oldCall.signalingCallId,
+                          sessionId: newSessionId, causeCode: .NORMAL_CLEARING)
+        }
+        XCTAssertTrue(client.getCall(callId: newCallId) === newCall)
+        if case .DONE = newCall.callState {
+            XCTFail("New call was terminated")
+        }
+    }
+
     func testExplicitDisconnectWaitsForExplicitReconnectBeforeSendingPendingBye() {
         client.txConfig = TxConfig(sipUser: "test-user", password: "test-password")
         client.onMessageReceived(message: gatewayStateMessage())
@@ -297,6 +364,8 @@ private final class PendingHangupSocket: Socket {
         isConnected = connected
     }
 
+    override func connect(signalingServer: URL) {}
+
     override func sendMessage(message: String?) {
         guard isConnected, let message = message else { return }
         sentMessages.append(message)
@@ -313,9 +382,12 @@ private final class PendingHangupSocket: Socket {
 
 private final class PendingHangupDelegate: TxClientDelegate {
     var incomingCallIds: [UUID] = []
+    var endedCallIds: [UUID] = []
+    var onDone: ((UUID) -> Void)?
+    var socketDisconnects = 0
 
     func onSocketConnected() {}
-    func onSocketDisconnected() {}
+    func onSocketDisconnected() { socketDisconnects += 1 }
     func onClientReady() {}
     func onSessionUpdated(sessionId: String) {}
     func onIncomingCall(call: Call) {
@@ -323,9 +395,15 @@ private final class PendingHangupDelegate: TxClientDelegate {
             incomingCallIds.append(callId)
         }
     }
-    func onCallStateUpdated(callState: CallState, callId: UUID) {}
+    func onCallStateUpdated(callState: CallState, callId: UUID) {
+        if case .DONE = callState {
+            onDone?(callId)
+        }
+    }
     func onRemoteCallEnded(callId: UUID) {}
-    func onRemoteCallEnded(callId: UUID, reason: CallTerminationReason?) {}
+    func onRemoteCallEnded(callId: UUID, reason: CallTerminationReason?) {
+        endedCallIds.append(callId)
+    }
     func onPushDisabled(success: Bool, message: String) {}
     func onPushCall(call: Call) {}
     func onClientError(error: Error) {}

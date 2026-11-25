@@ -11,6 +11,43 @@ import XCTest
 
 class VertoMessagesTests: XCTestCase {
 
+    func testFreshLoginsOmitSessionAndAttachParameters() {
+        let messages = [
+            LoginMessage(user: "user", password: "password", sessionId: ""),
+            LoginMessage(token: "token", sessionId: "")
+        ]
+        for message in messages {
+            XCTAssertNil(message.params?["sessid"])
+            let loginParams = message.params?["loginParams"] as? [String: Any]
+            XCTAssertNil(loginParams?["attach_call"])
+        }
+    }
+
+    func testPushLoginsAttachWithoutInventingSessionIdentity() {
+        let messages = [
+            LoginMessage(user: "user", password: "password", startFromPush: true, sessionId: ""),
+            LoginMessage(token: "token", startFromPush: true, sessionId: "")
+        ]
+        for message in messages {
+            XCTAssertNil(message.params?["sessid"])
+            XCTAssertEqual(message.params?["from_push"] as? Bool, true)
+            let loginParams = message.params?["loginParams"] as? [String: Any]
+            XCTAssertEqual(loginParams?["attach_call"] as? String, "true")
+        }
+    }
+
+    func testReconnectLoginsPreserveRealSessionAndAttach() {
+        let messages = [
+            LoginMessage(user: "user", password: "password", sessionId: "existing-session"),
+            LoginMessage(token: "token", sessionId: "existing-session")
+        ]
+        for message in messages {
+            XCTAssertEqual(message.params?["sessid"] as? String, "existing-session")
+            let loginParams = message.params?["loginParams"] as? [String: Any]
+            XCTAssertEqual(loginParams?["attach_call"] as? String, "true")
+        }
+    }
+
     /**
      Test Login Message with token.
      */

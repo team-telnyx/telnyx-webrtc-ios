@@ -22,6 +22,23 @@ public struct TxServerConfiguration {
     public internal(set) var pushMetaData: [String:Any]?
     public internal(set) var webRTCIceServers: [RTCIceServer]
 
+    /// Replace only the routing hint, preserving custom paths, ports and query options.
+    /// Passing nil also removes a hint embedded in an already-built configuration.
+    internal func replacingVoiceSdkId(_ voiceSdkId: String?, clearPushMetadata: Bool = false) -> TxServerConfiguration {
+        var configuration = self
+        if clearPushMetadata {
+            configuration.pushMetaData = nil
+        }
+        var components = URLComponents(url: signalingServer, resolvingAgainstBaseURL: false)
+        var queryItems = components?.queryItems?.filter { $0.name != "voice_sdk_id" } ?? []
+        if let voiceSdkId, !voiceSdkId.isEmpty {
+            queryItems.append(URLQueryItem(name: "voice_sdk_id", value: voiceSdkId))
+        }
+        components?.queryItems = queryItems.isEmpty ? nil : queryItems
+        configuration.signalingServer = components?.url ?? signalingServer
+        return configuration
+    }
+
     /// Constructor for the Server configuration parameters.
     /// - Parameters:
     ///   - signalingServer: To define the signaling server URL `wss://address:port`
